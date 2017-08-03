@@ -1,1 +1,118 @@
-/* You can add global styles to this file, and also import other style files */
+h1 {
+  color: #369;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 250%;
+}
+
+
+
+
+
+
+/*APP STYLES (taken from app.less)
+----------------------------------------------------------------------------------*/
+body {
+  font-family: 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;
+}
+
+
+.items {
+  position: relative;
+}
+
+/*
+.items img-tile {
+  display: block;
+  position: absolute;
+  transition: all 0.2s ease-out;
+}
+*/
+
+.items img-tile {
+  display: inline-block;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+ .selectable {
+  -webkit-touch-callout: auto; /* iOS Safari */
+  -webkit-user-select: auto; /* Safari */
+  -khtml-user-select: auto; /* Konqueror HTML */
+  -moz-user-select: auto; /* Firefox */
+  -ms-user-select: auto; /* Internet Explorer/Edge */
+  user-select: auto; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+
+
+
+
+/* MODAL STYLES (taken from modal.less)
+------------------------------------------------------------------------------------------*/
+modal { /*This is the modal frame.  Modals are hidden by default */
+  display: none;
+}
+
+modal .modal {
+  /* modal container fixed across whole screen */
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  /* z-index must be higher than .modal-background */
+  z-index: 1000;
+
+  /* enables scrolling for tall modals */
+  overflow: auto;
+}
+
+modal .modal .modal-body {
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 10px;
+  background: #fff;
+
+  /* margin exposes part of the modal background */
+  margin: 40px;
+
+  /*tim's changes:*/
+  position: relative;
+  margin: 0 auto;
+  top: 100px;
+  background-color: rgba(255,255,255,0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  /*padding-bottom: 5px;*/
+}
+
+modal .modal-background {
+  /* modal background fixed across whole screen */
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  /* semi-transparent black  */
+  background-color: #000;
+  opacity: 0.75;
+
+  /* z-index must be below .modal and above everything else  */
+  z-index: 900;
+}
+
+body .modal-open {
+  /* body overflow is hidden to hide main scrollbar when modal window is open */
+  overflow: hidden;
+}
+
+
+

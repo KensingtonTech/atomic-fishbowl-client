@@ -1,0 +1,162 @@
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
+  <div class="modal">
+    <div class="modal-body" style="width:800px;">
+      <div style="width: 100%;">
+        <h3 style="float: left; margin-top:0px; margin-bottom: 10px;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; align: right; color: red;">{{errorMessage}}</span>
+        <div>&nbsp;</div>
+      </div>
+
+      <div>
+        <fieldset [disabled]="formDisabled" style="border: none; margin: 0; padding: 0; width: 100%;">
+          <div style="position: relative; max-height: 800px; min-height: 200px; overflow: auto;">
+            <table style="width: 100%;">
+              <tr>
+                <th align="left">Enabled</th>
+                <th align="left">User</th>
+                <th align="left">Full Name</th>
+                <th align="left">Email</th>
+                <th align="center">Actions</th>
+              </tr>
+              <tr *ngFor="let user of users" class="table-body">
+                <td>
+                  <span *ngIf="!user.enabled" class="fa fa-ban" style="color: red;"></span>
+                  <span *ngIf="user.enabled" class="fa fa-check" style="color: green;"></span>
+                </td>
+                <td>{{user.username}}</td>
+                <td>{{user.fullname}}</td>
+                <td>{{user.email}}</td>
+                <td align="center"><span class="fa fa-pencil" (click)="displayUserEditBox(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="deleteUser(user.id)"></span></td>
+              </tr>
+            </table>
+          </div>
+          <div style="float: left;">
+            <button type="button" (click)="displayUserAddBox()">New User</button>
+          </div>
+          <div style="margin-top: 5px; float: right;">
+            <button type="button" (click)="cancel()">OK</button>
+          </div>
+        </fieldset>
+
+        <div #addUserBox style="padding: 5px; display: none;">
+          <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
+          <form #addUserForm="ngForm" (ngSubmit)="addUser(addUserForm)" novalidate>
+            <table style="width: 100%;">
+              <tr>
+                <td class="column1">
+                  Username
+                </td>
+                <td>
+                  <input #userInAdd [(ngModel)]="addUserFormModel.user" type="text" name="user" style="width: 100%;" required>
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  <span>Password</span>
+                </td>
+                <td>
+                    <input [(ngModel)]="addUserFormModel.password" type="password" name="password" style="width: 100%;" required>
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  <span>Confirm</span>
+                </td>
+                <td>
+                    <input [(ngModel)]="addUserFormModel.passwordConfirm" type="password" name="password" style="width: 100%;" required>
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  Email
+                </td>
+                <td>
+                  <input [(ngModel)]="addUserFormModel.email" type="email" name="email" style="width: 100%;">
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  Full Name
+                </td>
+                <td>
+                  <input [(ngModel)]="addUserFormModel.fullname" type="text" name="fullname" style="width: 100%;">
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  Enabled
+                </td>
+                <td>
+                   <input [(ngModel)]="addUserFormModel.enabled" type="checkbox" name="enabled">
+                </td>
+              </tr>
+            </table>
+            <div>
+              <a><button type="submit" [disabled]="!addUserForm.form.valid">Save</button> <button type="button" (click)="hideUserAddBox()">Cancel</button></a>
+            </div>
+          </form>
+        </div>
+
+        <div #editUserBox style="padding: 5px; display: none;">
+          <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
+          <form #editUserForm="ngForm" (ngSubmit)="editUser(editUserForm)" novalidate>
+            <table style="width: 100%;">
+              <tr>
+                <td class="column1">
+                  Username
+                </td>
+                <td>
+                  <span #userInEdit><b>{{editUserFormModel.user}}</b></span>
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  <span>Password</span>
+                </td>
+                <td>
+                    <input [(ngModel)]="editUserFormModel.password" type="password" name="password" style="width: 100%;">
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  <span>Confirm</span>
+                </td>
+                <td>
+                    <input [(ngModel)]="editUserFormModel.passwordConfirm" type="password" name="passwordConfirm" style="width: 100%;">
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  Email
+                </td>
+                <td>
+                  <input [(ngModel)]="editUserFormModel.email" type="email" name="email" style="width: 100%;">
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  Full Name
+                </td>
+                <td>
+                  <input [(ngModel)]="editUserFormModel.fullname" type="text" name="fullname" style="width: 100%;">
+                </td>
+              </tr>
+              <tr>
+                <td class="column1">
+                  Enabled
+                </td>
+                <td>
+                   <input [(ngModel)]="editUserFormModel.enabled" type="checkbox" name="enabled">
+                </td>
+              </tr>
+            </table>
+            <div>
+              <a><button type="submit" [disabled]="!editUserForm.form.valid">Update</button> <button type="button" (click)="hideUserEditBox()">Cancel</button></a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-background"></div>
+</modal>
+<confirm-user-delete-modal></confirm-user-delete-modal>

@@ -1,0 +1,56 @@
+import { Component, ChangeDetectionStrategy, OnInit, Input } from '@angular/core';
+import { ToolWidgetCommsService } from './tool-widget.comms.service';
+import { LoggerService } from './logger-service';
+
+@Component({
+  selector: 'masonry-control-bar',
+  //changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+<div class="noselect" style="position: absolute; top: 20px; left: 10px; padding: 5px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px; z-index: 100;">
+    <div style="position: absolute; left: 0;"><router-dropdown></router-dropdown></div>
+    <div style="position: absolute; left: 40px;" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></div>
+    <div *ngIf="!scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-level-down fa-2x fa-fw" (click)="scrollToBottom()"></div>
+    <div *ngIf="scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-stop fa-2x fa-fw" (click)="stopScrollToBottom()"></div>
+</div>
+`,
+  styles: [`
+    .icon {
+      background-color: rgb(75,173,243);
+      color: white;
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .noselect {
+      -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+      -khtml-user-select: none; /* Konqueror HTML */
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+    }
+  `]
+})
+
+export class MasonryControlBarComponent {
+
+  constructor(private toolService: ToolWidgetCommsService,
+              private loggerService: LoggerService) {}
+
+  ngOnInit(): void {
+    this.toolService.scrollToBottomRunning.subscribe( () => this.scrollStarted = true );
+    this.toolService.scrollToBottomStopped.subscribe( () => this.scrollStarted = false );
+  }
+
+  private scrollStarted: boolean = false;
+
+  scrollToBottom(): void {
+    this.scrollStarted = true;
+    this.toolService.scrollToBottom.next();
+  }
+
+  stopScrollToBottom(): void {
+    this.scrollStarted = false;
+    this.toolService.stopScrollToBottom.next();
+  }
+
+}

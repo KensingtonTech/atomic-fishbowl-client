@@ -1,0 +1,263 @@
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
+  <div class="modal">
+    <div class="modal-body" style="width:480px; max-height: 90%; overflow: auto; top: 5%;">
+      <div>
+        <h3 style="margin-top:0px; margin-bottom: 10px;">Create a New Collection</h3>
+        <fieldset [disabled]="collectionFormDisabled" style="border: none; margin: 0; padding: 0;">
+        <form #addCollectionForm="ngForm" (ngSubmit)="addCollection(addCollectionForm)" novalidate>
+        <div>
+          <table style="width: 100%;">
+            <tr>
+              <td class="column1">
+                <b>Name</b>
+              </td>
+              <td>
+                <input #nameBox type="text" name="name" [(ngModel)]="collectionFormModel.name" style="width: 100%;" required>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Type</b>
+              </td>
+              <td>
+                <span><p-radioButton name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="top"></p-radioButton></span>&nbsp;&nbsp;
+                <span><p-radioButton name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" pTooltip="Rolling collections run continuously, displaying results for only the last N minutes.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="top"></p-radioButton></span>&nbsp;&nbsp;
+                <span><p-radioButton name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="top"></p-radioButton></span>
+              </td>
+            </tr>
+            <tr *ngIf="collectionFormModel.type=='fixed'">
+              <td class="column1">
+                <b>Timeframe</b>
+              </td>
+              <td>
+                <select name="timeFrame" style="width: 125px;" [(ngModel)]="selectedTimeframe" (ngModelChange)="timeframeSelected($event)">
+                  <option *ngFor="let t of timeframes">{{t}}</option>
+                </select>
+              </td>
+            </tr>
+            <tr *ngIf="collectionFormModel.type=='rolling'">
+              <td class="column1">
+                <b>Timeframe</b>
+              </td>
+              <td>
+                Last <input type="text" name="lastHours" [(ngModel)]="collectionFormModel.lastHours" style="width: 30px;"> hours
+              </td>
+            </tr>
+            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type=='fixed'">
+              <td><i>From</i>
+              </td>
+              <td><p-calendar name="time1" showTime="showTime" showIcon="true" [(ngModel)]="collectionFormModel.timeBegin" inputStyleClass="ourFont"></p-calendar>
+              </td>
+            </tr>
+            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type=='fixed'">
+              <td><i>To</i>
+              </td>
+              <td><p-calendar name="time2" showTime="showTime" showIcon="true" [(ngModel)]="collectionFormModel.timeEnd" inputStyleClass="ourFont"></p-calendar>
+              </td>
+            </tr>
+            <tr>
+              <td class="column1" style="vertical-align: top;">
+                <b>Query</b>
+              </td>
+              <td>
+                <div>
+                  <select style="width: 100%;" [(ngModel)]="selectedQuery" (ngModelChange)="querySelected($event)" [ngModelOptions]="{standalone: true}">
+                    <option *ngFor="let query of defaultQueries" [ngValue]="query">{{query.text}}</option>
+                  </select>
+                </div>
+                <div>
+                  <input type="text" name="query" [(ngModel)]="collectionFormModel.query" style="width: 100%;" value="vis.level exists" required>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Image Limit</b>
+              </td>
+              <td>
+                <input type="number" name="imageLimit" [(ngModel)]="collectionFormModel.imageLimit" style="width: 60px;" required>
+              </td>
+            </tr>
+            <tr>
+              <td class="column1">
+                <b>Min. Dimensions</b>
+              </td>
+              <td>
+                <input type="number" name="minX" [(ngModel)]="collectionFormModel.minX" style="width: 40px;" required> width x &nbsp;<input type="number" name="minY" [(ngModel)]="collectionFormModel.minY" style="width: 40px;" required> height
+              </td>
+            </tr>
+            <tr>
+              <td class="column1">
+                <b>Text Distillation</b>
+              </td>
+              <td>
+                 <input [(ngModel)]="collectionFormModel.distillationEnabled" type="checkbox" name="distillationEnabled">
+              </td>
+            </tr>
+            <tr *ngIf="collectionFormModel.distillationEnabled">
+              <td>
+                <b>Search Terms</b><br><br>
+                <span style="font-size: 10pt;">
+                  Returns Only Documents.<br><br>
+                  Case-Insensitive.<br><br>
+                  One Per-Line.<br><br>
+                  Any Term Will Match.
+                </span>
+              </td>
+              <td>
+                <textarea name="distillationTerms" [(ngModel)]="collectionFormModel.distillationTerms" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="column1">
+                <b>Regex Distillation</b>
+              </td>
+              <td>
+                 <input [(ngModel)]="collectionFormModel.regexDistillationEnabled" type="checkbox" name="regexDistillationEnabled">
+              </td>
+            </tr>
+            <tr *ngIf="collectionFormModel.regexDistillationEnabled">
+              <td>
+                <b>Regex Terms</b><br><br>
+                <span style="font-size: 10pt;">
+                  Perl-style Regex <span class="fa fa-info-circle fa-lg fa-fw" #regexInfoIcon escape="false" pTooltip="Uses perl-style regular expressions.<br>Only match functionality is supported.<br>Perl-style modifiers such as 'i' for case-insensitivity are NOT supported.<br>Search only words, and do not use beginning or end of line metacharacters (e.g. '^' or '$').<br>Note that multi-word matches may or may not work, depending on how the PDF was laid out internally and how the text is generated by 'pdftotext'."></span><br><br>
+                  Returns Only Documents.<br><br>
+                  One Per-Line.<br><br>
+                  Any Term Will Match.
+                </span>
+              </td>
+              <td>
+                <textarea name="regexDistillationTerms" [(ngModel)]="collectionFormModel.regexDistillationTerms" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+              </td>
+            </tr>
+            <tr>
+              <td class="column1">
+                <b>SHA1 Hashing</b>
+              </td>
+              <td>
+                 <input [(ngModel)]="collectionFormModel.sha1Enabled" type="checkbox" name="sha1Enabled">
+              </td>
+            </tr>
+            <tr *ngIf="collectionFormModel.sha1Enabled">
+              <td>
+                <b>SHA1 Hash Strings</b><br><br>
+                <span style="font-size: 10pt;">
+                  Matches on executables.<br><br>
+                  Case-Insensitive.<br><br>
+                  One Per-Line.
+                </span>
+              </td>
+              <td>
+                <textarea name="sha1Hashes" [(ngModel)]="collectionFormModel.sha1Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+              </td>
+            </tr>
+            <tr>
+              <td class="column1">
+                <b>SHA256 Hashing</b>
+              </td>
+              <td>
+                 <input [(ngModel)]="collectionFormModel.sha256Enabled" type="checkbox" name="sha256Enabled">
+              </td>
+            </tr>
+            <tr *ngIf="collectionFormModel.sha256Enabled">
+              <td>
+                <b>SHA256 Hash Strings</b><br><br>
+                <span style="font-size: 10pt;">
+                  Matches on executables.<br><br>
+                  Case-Insensitive.<br><br>
+                  One Per-Line.
+                </span>
+              </td>
+              <td>
+                <textarea name="sha256Hashes" [(ngModel)]="collectionFormModel.sha256Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+              </td>
+            </tr>
+            <tr>
+              <td class="column1">
+                <b>MD5 Hashing</b>
+              </td>
+              <td>
+                 <input [(ngModel)]="collectionFormModel.md5Enabled" type="checkbox" name="md5Enabled">
+              </td>
+            </tr>
+            <tr *ngIf="collectionFormModel.md5Enabled">
+              <td>
+                <b>MD5 Hash Strings</b><br><br>
+                <span style="font-size: 10pt;">
+                  Matches on executables.<br><br>
+                  Case-Insensitive.<br><br>
+                  One Per-Line.
+                </span>
+              </td>
+              <td>
+                <textarea name="md5Hashes" [(ngModel)]="collectionFormModel.md5Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+              </td>
+            </tr>
+          </table>
+
+          <div *ngIf="nwservers" style="overflow: hidden; margin-top: 15px;">
+            <h4 style="margin-top: 0px; margin-bottom: 5px;">Select a NetWitness Service</h4>
+            <div style="float: left; padding-top: 3px;">
+              <select name="nwserver" [(ngModel)]="collectionFormModel.nwserver" size="10" style="width: 420px;" required>
+                <option *ngFor="let s of nwservers | mapValues" [ngValue]="s.id">{{s.friendlyName}}</option>
+              </select>
+            </div>
+            <div style="float: left;">
+              &nbsp;<span (click)="displayServiceAddBox()" class="fa fa-plus fa-1"></span>   <span (click)="deleteNwServer()" class="fa fa-minus fa-1"></span>
+            </div>
+          </div>
+          <div style="margin-top: 5px; float: right;">
+            <button type="submit" [disabled]="!addCollectionForm.form.valid">Execute</button>
+            <button type="button" (click)="cancel()">Cancel</button>
+          </div>
+        </div>
+        </form>
+        </fieldset>
+
+
+
+        <div #addServiceBox style="margin-top: 20px; padding: 5px; display: none;">
+          <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
+          <form #addServiceForm="ngForm" (ngSubmit)="addNwServer(addServiceForm)" novalidate>
+            <table style="width: 100%;">
+              <tr>
+                <td class="column1">
+                  <span style="">Hostname&nbsp;&nbsp;</span>
+                </td>
+                <td>
+                    <input #hostName [(ngModel)]="serviceFormModel.hostname" type="text" name="hostname" style="width: 100%;" required>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <a>Username</a>
+                </td>
+                <td>
+                  <a><input [(ngModel)]="serviceFormModel.user" type="text" name="user" style="width: 100px;" required></a>
+                  <a>&nbsp;Password <input [(ngModel)]="serviceFormModel.password" type="password" name="password" style="width: 100px;" required></a>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  REST Port
+                </td>
+                <td>
+                  <input [(ngModel)]="serviceFormModel.restPort" type="text" name="restPort" style="width: 50px;" required>&nbsp;SSL&nbsp;<input [(ngModel)]="serviceFormModel.ssl" type="checkbox" name="ssl">
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2">Investigation Device ID&nbsp;&nbsp;<input [(ngModel)]="serviceFormModel.deviceNumber" type="text" name="deviceNumber" style="width: 15px;" required>
+                </td>
+              </tr>
+            </table>
+            <div>
+              <a><button type="submit" [disabled]="!addServiceForm.form.valid">Save</button> <button type="button" (click)="hideServiceAddBox()">Cancel</button></a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-background"></div>
+</modal>

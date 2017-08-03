@@ -8,8 +8,8 @@
       "root": "src",
       "outDir": "dist",
       "assets": [
-        "assets",
-        "favicon.ico"
+        "favicon.ico",
+        "resources"
       ],
       "index": "index.html",
       "main": "main.ts",
@@ -19,9 +19,21 @@
       "testTsconfig": "tsconfig.spec.json",
       "prefix": "app",
       "styles": [
-        "styles.css"
+        "styles.css",
+        "../node_modules/font-awesome/css/font-awesome.css",
+        "../node_modules/primeng/resources/themes/omega/theme.css",
+        "../node_modules/primeng/resources/primeng.min.css"
       ],
-      "scripts": [],
+      "scripts": [
+        "../node_modules/jquery/dist/jquery.min.js",
+        "../node_modules/isotope-layout/dist/isotope.pkgd.min.js",
+        "../node_modules/less/dist/less.min.js",
+        "../node_modules/oboe/dist/oboe-browser.min.js",
+        "../node_modules/moment/min/moment-with-locales.min.js",
+        "../node_modules/screenfull/dist/screenfull.js",
+        "../node_modules/hamsterjs/hamster.js",
+        "../node_modules/imagesloaded/imagesloaded.pkgd.min.js"
+      ],
       "environmentSource": "environments/environment.ts",
       "environments": {
         "dev": "environments/environment.ts",
@@ -55,6 +67,10 @@
   },
   "defaults": {
     "styleExt": "css",
-    "component": {}
+    "component": {},
+    "serve": {
+      "port": 3000,
+      "host": "0.0.0.0"
+    }
   }
 }
