@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnChanges, ElementRef, ViewChild, Input, Renderer, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, ViewChild, Input, Renderer, ViewEncapsulation } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { DataService } from './data.service';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 import { LoggerService } from './logger-service';
+import "rxjs/add/operator/takeWhile";
 
 @Component( {
   selector: 'session-widget',
@@ -78,7 +79,7 @@ import { LoggerService } from './logger-service';
 
 //https://172.16.0.56/investigation/13/reconstruction/893035630/AUTO
 
-export class SessionWidgetComponent implements OnInit, OnChanges {
+export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(private dataService : DataService,
               private renderer: Renderer,
@@ -90,11 +91,9 @@ export class SessionWidgetComponent implements OnInit, OnChanges {
   @ViewChild('topDiv') topDiv: ElementRef;
   @ViewChild('showAll') showAll: ElementRef;
   @Input('sessionId') sessionId: number;
-  //@Input('enabled') enabled: boolean = false;
   @Input('enabled') enabled: number;
-  //@Input('deviceNumber') deviceNumber: number;
+  private alive: boolean = true;
   private deviceNumber: number;
-  //private updated: number = 0;
   public enabledTrigger: string;
   private preferences: any;
   private sessions: any;
@@ -119,18 +118,18 @@ export class SessionWidgetComponent implements OnInit, OnChanges {
 
   ngOnInit() : void {
     this.enabledTrigger = 'disabled';
-    this.dataService.sessionsChanged.subscribe( (s: any) => { //console.log("sessionsChanged", s);
+    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { //console.log("sessionsChanged", s);
                                                               this.sessions = s;
                                                               //this._changeDetectionRef.detectChanges();
                                                               //this._changeDetectionRef.markForCheck();
                                                             });
-    this.dataService.sessionPublished.subscribe( (s: any) => {  //console.log("sessionPublished", s);
+    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  //console.log("sessionPublished", s);
                                                                 let sessionId = s.id;
                                                                 this.sessions[sessionId] = s;
                                                                 //this._changeDetectionRef.detectChanges();
                                                                 //this._changeDetectionRef.markForCheck();
                                                               });
-    this.dataService.preferencesChanged.subscribe( (prefs: any) => {  //console.log("prefs observable: ", prefs);
+    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  //console.log("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
@@ -138,8 +137,12 @@ export class SessionWidgetComponent implements OnInit, OnChanges {
                                                                       //this._changeDetectionRef.detectChanges();
                                                                       //this._changeDetectionRef.markForCheck();
                                                                     });
-    this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+    this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
     this.dataService.getPreferences();
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
   private metaUpdated: boolean = false;

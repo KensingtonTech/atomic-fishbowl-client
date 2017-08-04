@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { LoggerService } from './logger-service';
 import { ModalService } from './modal/modal.service';
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'my-app',
@@ -16,7 +17,7 @@ import { ModalService } from './modal/modal.service';
   `
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
   constructor(private authService:AuthenticationService,
               private loggerService: LoggerService,
@@ -26,10 +27,11 @@ export class AppComponent implements OnInit {
   public loggedIn: boolean = false;
   public serverReachable: boolean = false;
   private credentialsChecked: boolean = false;
+  private alive: boolean = true;
 
   ngOnInit(): void {
 
-    this.authService.loggedInChanged.subscribe( (loggedIn: boolean) => {
+    this.authService.loggedInChanged.takeWhile(() => this.alive).subscribe( (loggedIn: boolean) => {
                                                                           //console.log("loggedIn:", loggedIn);
                                                                           this.loggedIn = loggedIn;
                                                                         });
@@ -55,6 +57,10 @@ export class AppComponent implements OnInit {
 
     }, 10000);
 
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
 }

@@ -9,6 +9,7 @@ import { HostListener } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { AuthenticationService } from './authentication.service';
 import { LoggerService } from './logger-service';
+import "rxjs/add/operator/takeWhile";
 
 @Component( {
   selector: 'tool-widget',
@@ -127,7 +128,7 @@ import { LoggerService } from './logger-service';
   `]
 } )
 
-export class ToolWidgetComponent implements OnInit, AfterViewInit {
+export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ////<tool-widget [imageCount]="imageCount" (caseSensitiveSearchChanged)="toggleCaseSensitiveSearch()" (searchTermsChanged)="searchTermsChanged($event)" (maskChanged)="maskChanged($event)" (deviceNumber)="deviceNumberUpdate($event)"></tool-widget>
 
@@ -146,6 +147,7 @@ export class ToolWidgetComponent implements OnInit, AfterViewInit {
   public showSearch: boolean = false;
   private searchTerms: string;
   private refreshed: boolean = false;
+  private alive: boolean = true;
 
   @ViewChild('spinnerIcon') spinnerIconRef: ElementRef;
   @ViewChild('errorIcon') errorIconRef: ElementRef;
@@ -158,10 +160,10 @@ export class ToolWidgetComponent implements OnInit, AfterViewInit {
 
 
   ngOnInit() : void {
-    this.toolService.imageCount.subscribe( (c: any) => this.imageCount = c );
-    this.toolService.reSelectCollection.subscribe( () => this.reSelectCollection() );
-    this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollection = e.id );
-    this.dataService.collectionsChanged.subscribe( (c: string) => {
+    this.toolService.imageCount.takeWhile(() => this.alive).subscribe( (c: any) => this.imageCount = c );
+    this.toolService.reSelectCollection.takeWhile(() => this.alive).subscribe( () => this.reSelectCollection() );
+    this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (e: any) => this.selectedCollection = e.id );
+    this.dataService.collectionsChanged.takeWhile(() => this.alive).subscribe( (c: string) => {
                                                                     this.collections = c;
                                                                     console.log('collections update', this.collections);
                                                                     //console.log('selectedCollection:', this.selectedCollection);
@@ -182,11 +184,15 @@ export class ToolWidgetComponent implements OnInit, AfterViewInit {
                       }
                     });
 
-    this.dataService.collectionStateChanged.subscribe( (collection: any) => {
+    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
                                                                               //console.log("collection", collection);
                                                                               this.iconDecider(collection.state);
                                                                               this.collections[collection.id].state = collection.state;
                                                                             });
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
   ngAfterViewInit(): void {

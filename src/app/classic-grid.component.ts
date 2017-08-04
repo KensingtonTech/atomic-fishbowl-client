@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer, ChangeDetectorRef } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { ISubscription } from "rxjs/Subscription";
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 import { PanZoomConfigService } from './panzoom/panzoom-config.service';
 import { PanZoomModelService } from './panzoom/panzoom-model.service';
@@ -12,6 +11,7 @@ import { ModalService } from './modal/modal.service';
 import { LoggerService } from './logger-service';
 import * as $ from 'jquery';
 //declare var $: any;
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'classic-grid-view',
@@ -70,42 +70,20 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private imageCount: any; //{ images: number, pdfs: number, total: number }
   public selectedSessionDetails: any;
   public sessions: any;
-
-  private caseSensitiveSearchChangedSubscription: ISubscription;
-  private searchTermsChangedSubscription: ISubscription;
-  private maskChangedSubscription: ISubscription;
-  private collectionStateChangedSubscription: ISubscription;
-  private imagesChangedSubscription: ISubscription;
-  private imagePublishedSubscription: ISubscription;
-  private searchChangedSubscription: ISubscription;
-  private searchPublishedSubscription: ISubscription;
-  private sessionsPurgedSubscription: ISubscription;
-  private sessionsChangedSubscription: ISubscription;
-  private sessionPublishedSubscription: ISubscription;
+  private alive: boolean = true;
 
   ngOnDestroy(): void {
     console.log("ClassicGridComponent: ngOnDestroy()");
-    this.caseSensitiveSearchChangedSubscription.unsubscribe();
-    this.searchTermsChangedSubscription.unsubscribe();
-    this.maskChangedSubscription.unsubscribe();
-    //this.selectedCollectionChangedSubscription.unsubscribe();
-    this.collectionStateChangedSubscription.unsubscribe();
-    this.sessionsChangedSubscription.unsubscribe();
-    this.sessionPublishedSubscription.unsubscribe();
-    this.imagesChangedSubscription.unsubscribe();
-    this.imagePublishedSubscription.unsubscribe();
-    this.searchChangedSubscription.unsubscribe();
-    this.searchPublishedSubscription.unsubscribe();
-    this.sessionsPurgedSubscription.unsubscribe();
+    this.alive = false;
   }
 
   ngOnInit() : void {
     console.log("ClassicGridComponent: ngOnInit()");
 
     //bind ToolWidgetCommsService observables to our own variables
-    this.caseSensitiveSearchChangedSubscription = this.toolService.caseSensitiveSearchChanged.subscribe( () => this.toggleCaseSensitiveSearch() );
-    this.searchTermsChangedSubscription = this.toolService.searchTermsChanged.subscribe( ($event: any) => this.searchTermsChanged($event) );
-    this.maskChangedSubscription = this.toolService.maskChanged.subscribe( ($event: any) => this.maskChanged($event) );
+    this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
+    this.toolService.searchTermsChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.searchTermsChanged($event) );
+    this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.maskChanged($event) );
 
     this.panzoomConfig.invertMouseWheel = true;
     this.panzoomConfig.useHardwareAcceleration = true;
@@ -126,7 +104,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.panzoomConfig.modelChangedCallback = (model: any) => this.sessionWidgetDecider();
     //this.panzoomConfig.keepInBounds = true;
 
-    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => {
+    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
                                                                               //console.log("collection", collection);
                                                                               if (collection.state === 'refreshing')  {
                                                                                 //this.toolService.changingCollections.next(true);
@@ -145,7 +123,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                                                                               }
                                                                             });
 
-    this.imagesChangedSubscription = this.dataService.imagesChanged.subscribe( (i: any) => { console.log("images:", i); //when a new collection is selected
+    this.dataService.imagesChanged.takeWhile(() => this.alive).subscribe( (i: any) => { console.log("images:", i); //when a new collection is selected
                                                             i.sort(this.sortImages);
                                                             this.images = i;
                                                             this.displayedImages = i;
@@ -165,7 +143,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                                                             this.sessionWidgetDecider();
                                                             this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
                                                           });
-    this.imagePublishedSubscription = this.dataService.imagePublished.subscribe( (i: any) =>  { //when images are pushed from a still-building collection
+    this.dataService.imagePublished.takeWhile(() => this.alive).subscribe( (i: any) =>  { //when images are pushed from a still-building collection
                                                               for (var img of i) {
                                                                 this.images.push(img);
                                                                 if (img.contentType === 'pdf') {
@@ -179,17 +157,17 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                                                               this.toolService.imageCount.next( this.imageCount );
                                                               this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
                                                             });
-    this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: any) =>  { //this receives complete search term data from complete collection
+    this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  { //this receives complete search term data from complete collection
                                                                 this.search = s;
                                                                 console.log('search update', this.search);
                                                               });
-    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: any) => {
+    this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
                                                               console.log("search term published:", s);
                                                               this.search.push(s);
                                                               this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
                                                             }); //this receives a partial search term data from a building collection
 
-    this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) =>  {
+    this.dataService.sessionsPurged.takeWhile(() => this.alive).subscribe( (sessionsToPurge: number[]) =>  {
                                                               console.log("sessions purged:", sessionsToPurge);
                                                               let c=0;
 
@@ -255,13 +233,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     this.panZoomApiService.getAPI('abc').then( (v: any) => {this.panZoomAPI = v;});
 
-    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => { console.log("sessionsChanged", s);
+    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { console.log("sessionsChanged", s);
                                                               this.sessions = s;
                                                               //this.changeDetectionRef.detectChanges();
                                                               //this.changeDetectionRef.markForCheck();
                                                             });
 
-    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {  //console.log("sessionPublished", s);
+    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  //console.log("sessionPublished", s);
                                                                 let sessionId = s.id;
                                                                 this.sessions[sessionId] = s;
                                                                 //this.changeDetectionRef.detectChanges();

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
@@ -6,6 +6,7 @@ import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
 import { LoggerService } from './logger-service';
 declare var moment: any;
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'add-collection-modal',
@@ -54,7 +55,7 @@ declare var moment: any;
   `]
 })
 
-export class AddCollectionModalComponent implements OnInit {
+export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService : DataService,
               private modalService: ModalService,
@@ -68,6 +69,7 @@ export class AddCollectionModalComponent implements OnInit {
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
+  private alive: boolean = true;
   private enabledTrigger: string;
   public collectionFormDisabled: boolean = false;
 
@@ -136,7 +138,7 @@ export class AddCollectionModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.getNwServers();
-    this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
+    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
                                                                       //console.log("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'defaultNwQuery' in prefs ) {
@@ -166,6 +168,10 @@ export class AddCollectionModalComponent implements OnInit {
                                                                       this.changeDetectionRef.markForCheck();
                                                                     });
     this.dataService.getPreferences();
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
   public defaultQueries = defaultQueries;

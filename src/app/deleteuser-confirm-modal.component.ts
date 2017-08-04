@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 //import { LoggerService } from './logger-service';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 import { Subject } from 'rxjs/Subject';
 import { User } from './user';
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'confirm-user-delete-modal',
@@ -37,7 +38,7 @@ import { User } from './user';
   `]
 })
 
-export class DeleteUserConfirmModalComponent implements OnInit {
+export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {
 
   constructor(private modalService: ModalService,
               private toolService: ToolWidgetCommsService ) {}
@@ -46,9 +47,14 @@ export class DeleteUserConfirmModalComponent implements OnInit {
   //@Input('collectionName') collectionName: any;
   public id: string = 'confirm-user-delete-modal';
   public user: User;
+  private alive: boolean = true;
 
   ngOnInit(): void {
-    this.toolService.userToDelete.subscribe( (u: User) => {this.user = u;} );
+    this.toolService.userToDelete.takeWhile(() => this.alive).subscribe( (u: User) => {this.user = u;} );
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
   confirmDelete(): void {

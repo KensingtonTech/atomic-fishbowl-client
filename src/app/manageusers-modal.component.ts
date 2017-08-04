@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
@@ -8,6 +8,7 @@ import { User } from './user';
 import { LoggerService } from './logger-service';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 declare var moment: any;
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'manage-users-modal',
@@ -54,7 +55,7 @@ declare var moment: any;
   `]
 })
 
-export class ManageUsersModalComponent implements OnInit {
+export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService : DataService,
               private modalService: ModalService,
@@ -73,6 +74,7 @@ export class ManageUsersModalComponent implements OnInit {
   public formDisabled: boolean = false;
   public errorDefined: boolean = false;
   private errorMessage: string;
+  private alive: boolean = true;
 
   public users: any = [];
 
@@ -100,7 +102,11 @@ export class ManageUsersModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.getUsers();
-    this.toolService.confirmUserDelete.subscribe( (id: string) => {this.deleteUserConfirmed(id);} );
+    this.toolService.confirmUserDelete.takeWhile(() => this.alive).subscribe( (id: string) => {this.deleteUserConfirmed(id);} );
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
   displayUserAddBox(): void {

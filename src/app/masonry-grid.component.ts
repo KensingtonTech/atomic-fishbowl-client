@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ComponentRef, ElementRef, Renderer, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
-import { ISubscription } from "rxjs/Subscription";
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 import { DataService } from './data.service';
 import { Image } from './image';
@@ -11,6 +10,7 @@ import { MasonryComponent } from './masonry/masonry.component';
 import { LoggerService } from './logger-service';
 import * as $ from 'jquery';
 //declare var $: any;
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'masonry-grid-view',
@@ -103,41 +103,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadAllBeforeLayout: boolean = true;
   private imageIncludedTypes: any = ['image', 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry'];
   private masonryKeys: any;
-
-  private caseSensitiveSearchChangedSubscription: ISubscription;
-  private searchTermsChangedSubscription: ISubscription;
-  private maskChangedSubscription: ISubscription;
-  private scrollToBottomSubscription: ISubscription;
-  private layoutCompleteSubscription: ISubscription;
-  private stopScrollToBottomSubscription: ISubscription;
-  private selectedCollectionChangedSubscription: ISubscription;
-  private collectionStateChangedSubscription: ISubscription;
-  private sessionsChangedSubscription: ISubscription;
-  private sessionPublishedSubscription: ISubscription;
-  private imagesChangedSubscription: ISubscription;
-  private imagePublishedSubscription: ISubscription;
-  private searchChangedSubscription: ISubscription;
-  private searchPublishedSubscription: ISubscription;
-  private sessionsPurgedSubscription: ISubscription;
-  private preferencesChangedSubscription: ISubscription;
+  private alive: boolean = true;
 
   ngOnDestroy(): void {
     console.log("MasonryGridComponent: ngOnDestroy()");
-    this.caseSensitiveSearchChangedSubscription.unsubscribe();
-    this.searchTermsChangedSubscription.unsubscribe();
-    this.maskChangedSubscription.unsubscribe();
-    this.scrollToBottomSubscription.unsubscribe();
-    this.layoutCompleteSubscription.unsubscribe();
-    this.stopScrollToBottomSubscription.unsubscribe();
-    this.selectedCollectionChangedSubscription.unsubscribe();
-    this.collectionStateChangedSubscription.unsubscribe();
-    this.sessionsChangedSubscription.unsubscribe();
-    this.sessionPublishedSubscription.unsubscribe();
-    this.imagesChangedSubscription.unsubscribe();
-    this.imagePublishedSubscription.unsubscribe();
-    this.searchChangedSubscription.unsubscribe();
-    this.searchPublishedSubscription.unsubscribe();
-    this.sessionsPurgedSubscription.unsubscribe();
+    this.alive = false;
   }
 
   ngOnInit(): void {
@@ -147,7 +117,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
 
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
+    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
       this.masonryKeys = prefs.masonryKeys;
       //console.log('masonryKeys:', this.masonryKeys)
       this.changeDetectionRef.detectChanges();
@@ -169,17 +139,17 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     //bind ToolWidgetCommsService observables to our own variables
-    this.caseSensitiveSearchChangedSubscription = this.toolService.caseSensitiveSearchChanged.subscribe( () => this.toggleCaseSensitiveSearch() );
+    this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
 
-    this.searchTermsChangedSubscription = this.toolService.searchTermsChanged.subscribe( ($event: any) => this.searchTermsChanged($event) );
+    this.toolService.searchTermsChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.searchTermsChanged($event) );
 
-    this.maskChangedSubscription = this.toolService.maskChanged.subscribe( ($event: any) => this.maskChanged($event) );
+    this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.maskChanged($event) );
 
-    //this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumberUpdate($event) );
+    //this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumberUpdate($event) );
 
-    this.scrollToBottomSubscription = this.toolService.scrollToBottom.subscribe( () => {this.autoScrollerStopped = false; this.autoScroller();} );
+    this.toolService.scrollToBottom.takeWhile(() => this.alive).subscribe( () => {this.autoScrollerStopped = false; this.autoScroller();} );
 
-    this.layoutCompleteSubscription = this.toolService.layoutComplete.subscribe( () => {
+    this.toolService.layoutComplete.takeWhile(() => this.alive).subscribe( () => {
                                                         console.log("MasonryGridComponent: layoutCompleteSubscription: layoutComplete");
                                                         if (this.selectedCollectionType === 'monitoring' && !this.autoScrollerStopped) {
                                                           this.autoScroller();
@@ -189,13 +159,13 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                      });
 
 
-    this.stopScrollToBottomSubscription = this.toolService.stopScrollToBottom.subscribe( () =>  {
+    this.toolService.stopScrollToBottom.takeWhile(() => this.alive).subscribe( () =>  {
                                                             this.autoScrollerStopped = true;
                                                             this.stopAutoScroller();
                                                           });
-    //this.toolService.selectedCollection.subscribe( ($event: any) => {
+    //this.toolService.selectedCollection.takeWhile(() => this.alive).subscribe( ($event: any) => {
 
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: any) => { //this triggers whenever we choose a new collection
+    this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { //this triggers whenever we choose a new collection
                                                                       console.log("MasonryGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:", collection);
                                                                       if (this.masonryComponentRef) this.masonryComponentRef.destroyMe();
                                                                       this.destroyMasonry = true;
@@ -222,7 +192,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                                       }
                                                                     });
 
-    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => { //this triggers when a monitoring collection refreshes
+    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { //this triggers when a monitoring collection refreshes
                                                                               console.log("MasonryGridComponent: collectionStateChangedSubscription: collectionStateChanged:", collection.state);
                                                                               //console.log("collection", collection);
                                                                               //this.iconDecider(collection.state);
@@ -254,7 +224,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                                               }
                                                                             });
 
-    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => { console.log("sessionsChanged:", s); //when an a whole new collection is selected
+    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { console.log("sessionsChanged:", s); //when an a whole new collection is selected
                                                               this.sessionsDefined = true;
                                                               this.sessions = s;
                                                               this.changeDetectionRef.detectChanges();
@@ -265,7 +235,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                               //this.changeDetectionRef.markForCheck();
                                                             });
 
-    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {  console.log("sessionPublished", s); //when an individual session is pushed from a building collection (or monitoring or rolling)
+    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  console.log("sessionPublished", s); //when an individual session is pushed from a building collection (or monitoring or rolling)
                                                                 let sessionId = s.id;
                                                                 //setTimeout( () => this.sessions[sessionId] = s );
                                                                 this.sessionsDefined = true;
@@ -275,7 +245,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                                 //this.changeDetectionRef.markForCheck();
                                                               });
 
-    this.imagesChangedSubscription = this.dataService.imagesChanged.subscribe( (i: any) => { console.log("imagesChanged:", i); //when a new collection is selected
+    this.dataService.imagesChanged.takeWhile(() => this.alive).subscribe( (i: any) => { console.log("imagesChanged:", i); //when a new collection is selected
                                                             //this.toolService.changingCollections.next(true);
                                                             this.stopAutoScroller();
                                                             //setTimeout( () => {this.destroyMasonry = true}, 0 );
@@ -310,7 +280,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                             this.changeDetectionRef.markForCheck();
                                                           });
 
-    this.imagePublishedSubscription = this.dataService.imagePublished.subscribe( (imgs: any) =>  { //when images are pushed from a still-building, rolling, or monitoring collection \
+    this.dataService.imagePublished.takeWhile(() => this.alive).subscribe( (imgs: any) =>  { //when images are pushed from a still-building, rolling, or monitoring collection \
                                                               console.log("MasonryGridComponent: imagePublishedSubscription: imagePublished:", imgs);
                                                               //for (var img of i) {
 
@@ -336,14 +306,14 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                               this.changeDetectionRef.markForCheck();
                                                             });
 
-    this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: any) =>  { //this receives complete search term data from complete collection
+    this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  { //this receives complete search term data from complete collection
                                                                 this.search = s;
                                                                 console.log('MasonryGridComponent: searchChangedSubscription: searchChanged:', this.search);
                                                                 this.changeDetectionRef.detectChanges();
                                                                 this.changeDetectionRef.markForCheck();
                                                               });
 
-    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: any) => {
+    this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
                                                               console.log("MasonryGridComponent: searchPublishedSubscription: searchPublished:", s);
                                                               this.search.push(s);
                                                               this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
@@ -351,7 +321,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                               this.changeDetectionRef.markForCheck();
                                                             }); //this receives a partial search term data from a building collection
 
-    this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) =>  {
+    this.dataService.sessionsPurged.takeWhile(() => this.alive).subscribe( (sessionsToPurge: number[]) =>  {
                                                               console.log("MasonryGridComponent: sessionsPurgedSubscription: sessionsPurged:", sessionsToPurge);
                                                               //console.log("images", this.images);
                                                               //console.log("images length:",this.images.length);

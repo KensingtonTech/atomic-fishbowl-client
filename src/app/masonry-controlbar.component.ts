@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, OnInit, Input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input } from '@angular/core';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 import { LoggerService } from './logger-service';
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'masonry-control-bar',
@@ -31,14 +32,20 @@ import { LoggerService } from './logger-service';
   `]
 })
 
-export class MasonryControlBarComponent {
+export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
   constructor(private toolService: ToolWidgetCommsService,
               private loggerService: LoggerService) {}
 
+  private alive: boolean = true;
+
   ngOnInit(): void {
-    this.toolService.scrollToBottomRunning.subscribe( () => this.scrollStarted = true );
-    this.toolService.scrollToBottomStopped.subscribe( () => this.scrollStarted = false );
+    this.toolService.scrollToBottomRunning.takeWhile(() => this.alive).subscribe( () => this.scrollStarted = true );
+    this.toolService.scrollToBottomStopped.takeWhile(() => this.alive).subscribe( () => this.scrollStarted = false );
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
   public scrollStarted: boolean = false;

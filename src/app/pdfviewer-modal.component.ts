@@ -1,10 +1,11 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnChanges, Input, Renderer, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, OnChanges, Input, Renderer, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { NwSession } from './nwsession';
 import { Image } from './image';
 import { ModalService } from './modal/modal.service';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 import { LoggerService } from './logger-service';
+import "rxjs/add/operator/takeWhile";
 
 @Component({
   selector: 'pdf-viewer-modal',
@@ -86,7 +87,7 @@ import { LoggerService } from './logger-service';
   `]
 })
 
-export class PdfViewerModalComponent implements OnInit {
+export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService : DataService,
               private modalService: ModalService,
@@ -99,6 +100,7 @@ export class PdfViewerModalComponent implements OnInit {
   @Input('sessionDetails') sessionDetails: any = {};
   @ViewChild('showAll') showAll: ElementRef;
 
+  private alive: boolean = true;
   private pdfFilename: string;
   private page: number = 1;
   public id: string = 'pdf-viewer';
@@ -129,7 +131,7 @@ export class PdfViewerModalComponent implements OnInit {
                                 ]; //these are just defaults in case we can't get them from prefs
 
   ngOnInit(): void {
-    this.dataService.preferencesChanged.subscribe( (prefs: any) => {  //console.log("prefs observable: ", prefs);
+    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  //console.log("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
@@ -137,22 +139,26 @@ export class PdfViewerModalComponent implements OnInit {
                                                                       //this._changeDetectionRef.detectChanges();
                                                                       //this._changeDetectionRef.markForCheck();
                                                                     });
-    this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+    this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
     this.dataService.getPreferences();
 
-    this.toolService.newSession.subscribe( (session: any) => {
+    this.toolService.newSession.takeWhile(() => this.alive).subscribe( (session: any) => {
       //console.log("got new session", session);
       this.session = session;
       this.meta = session.meta;
     });
 
-    this.toolService.newImage.subscribe( (image: any) => {
+    this.toolService.newImage.takeWhile(() => this.alive).subscribe( (image: any) => {
       //console.log("got new image:", image)
       this.image = image;
       this.sessionId = this.image.session;
       this.pdfFile = this.image.contentFile;
       //this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
     });
+  }
+
+  public ngOnDestroy() {
+    this.alive = false;
   }
 
   private pdfFile: string;
