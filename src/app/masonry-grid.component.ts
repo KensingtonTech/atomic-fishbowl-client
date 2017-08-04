@@ -63,7 +63,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private images: Image[];
   //private sessionWidgetEnabled: boolean = false
   private hoveredImageSession: number;
-  private apiServerUrl: string = '//' + window.location.hostname;
+  public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
   private search: any = [];
   private displayedImages: any = [];
@@ -92,9 +92,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                   };
   private sessions: any;
   private sessionsDefined: boolean = false;
-  private selectedCollectionType: string;
+  public selectedCollectionType: string;
   private collectionId: string;
-  private destroyMasonry: boolean = true;
+  public destroyMasonry: boolean = true;
   private shownBricks: any = [];
   private pixelsPerSecond: number = 200;
   @ViewChild(MasonryComponent) private masonryComponentRef: MasonryComponent;
@@ -491,7 +491,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.modalService.open('pdf-viewer');
   }
 
-  private selectedSessionDetails: any;
+  public selectedSessionDetails: any;
 
   openSessionDetails(e: any): void {
     console.log("openSessionDetails:", e);

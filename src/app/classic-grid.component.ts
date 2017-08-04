@@ -54,22 +54,22 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                 private loggerService: LoggerService ) {}
 
   @ViewChild('sessionWidget') sessionWidget: ElementRef;
-  private images: Image[];
-  private sessionWidgetEnabled: boolean = false
-  private hoveredImageSession: number;
-  private apiServerUrl: string = '//' + window.location.hostname;
+  public images: Image[];
+  public sessionWidgetEnabled: boolean = false
+  public hoveredImageSession: number;
+  public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
   private panzoomModel = this.modelService.model;
   private panZoomAPI: any;
   private search: any = [];
-  private canvasWidth = 2400;
-  private initialZoomHeight = 1080;
+  public canvasWidth = 2400;
+  public initialZoomHeight = 1080;
   private displayedImages: any = [];
   private pdfImages: Image[] = [];
   private imageImages: Image[] = [];
   private imageCount: any; //{ images: number, pdfs: number, total: number }
-  private selectedSessionDetails: any;
-  private sessions: any;
+  public selectedSessionDetails: any;
+  public sessions: any;
 
   private caseSensitiveSearchChangedSubscription: ISubscription;
   private searchTermsChangedSubscription: ISubscription;

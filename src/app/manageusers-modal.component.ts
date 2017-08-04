@@ -64,19 +64,19 @@ export class ManageUsersModalComponent implements OnInit {
               private toolService: ToolWidgetCommsService,
               private authService: AuthenticationService ) {}
 
-  private id: string = 'accounts-modal';
+  public id: string = 'accounts-modal';
   @ViewChild('addUserBox') addUserBoxRef: ElementRef;
   @ViewChild('editUserBox') editUserBoxRef: ElementRef;
   @ViewChildren('userInAdd') userInAddRef: QueryList<any>;
   @ViewChildren('userInEdit') userInEditRef: QueryList<any>;
   private enabledTrigger: string;
-  private formDisabled: boolean = false;
-  private errorDefined: boolean = false;
+  public formDisabled: boolean = false;
+  public errorDefined: boolean = false;
   private errorMessage: string;
 
-  private users: any = [];
+  public users: any = [];
 
-  private addUserFormModel = {
+  public addUserFormModel = {
     user: '',
     fullname: '',
     password: '',
@@ -85,7 +85,7 @@ export class ManageUsersModalComponent implements OnInit {
     enabled: true
   }
 
-  private editUserFormModel = {
+  public editUserFormModel = {
     user: '',
     fullname: '',
     password: '',

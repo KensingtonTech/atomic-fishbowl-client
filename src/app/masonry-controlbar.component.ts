@@ -41,7 +41,7 @@ export class MasonryControlBarComponent {
     this.toolService.scrollToBottomStopped.subscribe( () => this.scrollStarted = false );
   }
 
-  private scrollStarted: boolean = false;
+  public scrollStarted: boolean = false;
 
   scrollToBottom(): void {
     this.scrollStarted = true;

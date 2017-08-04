@@ -42,9 +42,9 @@ export class SplashScreenModal {
   constructor(private modalService: ModalService,
               private loggerService: LoggerService ) {}
 
-  private id: string = 'splashScreenModal';
-  private firstOpen = true;
-  private version = appVersion;
+  public id: string = 'splashScreenModal';
+  public firstOpen = true;
+  public version = appVersion;
 
   onOpen(): void {
     //console.log("SplashScreenModal: onOpen()");

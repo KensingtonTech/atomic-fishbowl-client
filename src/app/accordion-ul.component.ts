@@ -51,8 +51,8 @@ export class AccordionULComponent implements AfterViewInit {
   //@Input('updated') updated: number;
 
   private headerText: string =  '';
-  private oneValue: boolean = false;
-  private multiValues: boolean = true;
+  public oneValue: boolean = false;
+  public multiValues: boolean = true;
   private hideHeader: boolean = false;
   private collapsed: string = 'true';
 

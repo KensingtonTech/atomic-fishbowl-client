@@ -53,7 +53,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.userNameRef.first.nativeElement.focus();
   }
 
-  private login(): void {
+  public login(): void {
     this.errorMsg = '';
     this.authService.login(this.user)
                     .then( (res: boolean) => {

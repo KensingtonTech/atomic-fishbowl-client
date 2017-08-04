@@ -39,19 +39,19 @@ import { LoggerService } from './logger-service';
 export class DeleteCollectionConfirmModalComponent {
 
   constructor(private modalService: ModalService,
-              private _changeDetectionRef: ChangeDetectorRef,
+              private changeDetectionRef: ChangeDetectorRef,
               private loggerService: LoggerService) {}
 
   @Input('collectionName') collectionName: any;
   @Output('confirmDelete') confirmDeleteEvent: EventEmitter<any> = new EventEmitter();
-  private id: string = 'collection-confirm-delete-modal';
+  public id: string = 'collection-confirm-delete-modal';
 
   confirmDelete(): void {
     this.confirmDeleteEvent.emit();
     this.closeModal();
   }
 
-  cancelDelete(id: string) : void {
+  cancelDelete() : void {
     this.modalService.close(this.id);
   }
 

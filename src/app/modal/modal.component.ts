@@ -24,7 +24,7 @@ export class ModalComponent implements OnInit, OnDestroy {
     @Input() id: string;
     @Input() private escapeEnabled: boolean = true; //pass escapeEnabled="false" to <modal> to disable escape
     private element: JQuery;
-    private enabledTrigger: string = 'disabled';
+    public enabledTrigger: string = 'disabled';
     @Output('cancelled') cancelledEventEmitter: EventEmitter<void> = new EventEmitter<void>();
     @Output('opened') openedEventEmitter: EventEmitter<void> = new EventEmitter<void>();
 

@@ -49,7 +49,7 @@ export class RouterDropdownComponent implements OnInit {
                                   { name: 'classicGrid', link: '/classicGrid', class: 'icon fa fa-th fa-2x fa-fw', tooltip: "Classic Grid" },
                                   { name: 'masonryGrid', link: '/masonryGrid', class: 'icon fa fa-th-large fa-2x fa-fw', tooltip: "Masonry Grid" }
                                 ];
-  private selectedRoute: any;
+  public selectedRoute: any;
   private selectionExpanded: boolean = false;
 
   ngOnInit(): void {

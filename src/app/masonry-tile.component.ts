@@ -141,7 +141,7 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
   @Input() private image: any;
   @Input() private session: any;
   @Input() private masonryKeys: any;
-  @Input() private masonryColumnSize: number;
+  @Input() public masonryColumnSize: number;
   @Output('openPDFViewer') private openPDFViewerEmitter: EventEmitter<any> = new EventEmitter<any>();
   @Output('openSessionDetails') private openSessionDetails: EventEmitter<any> = new EventEmitter<any>();
   private enabledTrigger: string = 'disabled';

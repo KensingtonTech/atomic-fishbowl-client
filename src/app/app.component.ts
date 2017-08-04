@@ -23,8 +23,8 @@ export class AppComponent implements OnInit {
               private dataService: DataService,
               private modalService: ModalService ) {}
 
-  private loggedIn: boolean = false;
-  private serverReachable: boolean = false;
+  public loggedIn: boolean = false;
+  public serverReachable: boolean = false;
   private credentialsChecked: boolean = false;
 
   ngOnInit(): void {

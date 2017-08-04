@@ -34,7 +34,7 @@ export class PreferencesModalComponent {
   @Input('enabled') enabled: boolean;
   @ViewChild('topDiv') topDiv: ElementRef;
 
-  private id: string = 'preferences-modal';
+  public id: string = 'preferences-modal';
 
   private defaultNwInvestigateUrl: string = '';
   private defaultDefaultNwquery: string = "vis.level exists || content = 'application/pdf'";
@@ -46,7 +46,7 @@ export class PreferencesModalComponent {
   private defaultDisplayedKeys = [ 'size', 'service', 'ip.src', 'ip.dst', 'alias.host', 'city.dst', 'country.dst', 'action', 'content', 'ad.username.src', 'ad.computer.src', 'filename', 'client'];
   private defaultDefaultImageLimit: number = 1000;
   private defaultDefaultRollingHours: number = 1;
-  private defaultQueries = defaultQueries;
+  public defaultQueries = defaultQueries;
   private defaultMasonryColumnSize: number = 350;
 
   private defaultMasonryKeys: any = [
@@ -56,7 +56,7 @@ export class PreferencesModalComponent {
                                 { key: 'ad.domain.src', friendly: 'AD Domain' }
                               ];
 
-  private preferencesModel: any = { nwInvestigateUrl: this.defaultNwInvestigateUrl,
+  public preferencesModel: any = { nwInvestigateUrl: this.defaultNwInvestigateUrl,
                                     defaultNwQuery: this.defaultDefaultNwquery,
                                     minX: this.defaultMinX,
                                     minY: this.defaultMinY,

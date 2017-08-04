@@ -126,10 +126,10 @@ export class SessionDetailsModalComponent implements OnInit {
   @ViewChild('showAll') showAll: ElementRef;
 
   private blip: boolean = true;
-  private image: any;
+  public image: any;
   private session: any;
-  private meta: any;
-  private sessionId: number;
+  public meta: any;
+  public sessionId: number;
   private hideAllMeta: boolean = true;
   private preferences: any;
   private deviceNumber: number;

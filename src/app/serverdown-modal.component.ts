@@ -31,7 +31,7 @@ import { Component, OnInit, ElementRef, ViewChild, Input, Output, EventEmitter, 
 
 export class ServerDownModalComponent implements OnInit {
 
-  @Input() private id: string;// = 'serverdown-modal'
+  @Input() public id: string;// = 'serverdown-modal'
 
   ngOnInit(): void {
     console.log("ServerDownModalComponent: ngOnInit()");

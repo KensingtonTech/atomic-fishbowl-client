@@ -69,7 +69,7 @@ export class AddCollectionModalComponent implements OnInit {
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
   private enabledTrigger: string;
-  private collectionFormDisabled: boolean = false;
+  public collectionFormDisabled: boolean = false;
 
   private defaultColName: string = '';
   private defaultColQuery: string = "vis.level exists || content = 'application/pdf'";
@@ -87,7 +87,7 @@ export class AddCollectionModalComponent implements OnInit {
   private defaultSha1Hashes: string = '';
   private defaultSha256Hashes: string = '';
 
-  private collectionFormModel = {
+  public collectionFormModel = {
     name: this.defaultColName,
     query: this.defaultColQuery,
     imageLimit: this.defaultColImageLimit,
@@ -111,14 +111,14 @@ export class AddCollectionModalComponent implements OnInit {
   };
 
   //selectedNwServer: string;
-  private nwservers: any;
+  public nwservers: any;
   private defaultHostname: string = '';
   private defaultUser: string = '';
   private defaultPassword: string = '';
   private defaultRestPort: number = 50103;
   private defaultSSL: boolean = false;
   private defaultDeviceNumber: number = 13;
-  private serviceFormModel = {
+  public serviceFormModel = {
     hostname: this.defaultHostname,
     restPort: this.defaultRestPort,
     ssl: this.defaultSSL,
@@ -131,7 +131,7 @@ export class AddCollectionModalComponent implements OnInit {
   private preferences: any;
   private timeframes: any = ['Last 5 Minutes', 'Last 10 Minutes', 'Last 15 Minutes', 'Last 30 Minutes', 'Last Hour', 'Last 3 Hours', 'Last 6 Hours', 'Last 12 Hours', 'Last 24 Hours', 'Last 48 Hours', 'Last 5 Days (120 Hours)', 'Today', 'Yesterday', 'This Week', 'Last Week', 'Custom'];
   private selectedTimeframe: string = 'Last Hour';
-  private displayCustomTimeframeSelector: boolean = false;
+  public displayCustomTimeframeSelector: boolean = false;
 
 
   ngOnInit(): void {
@@ -168,8 +168,8 @@ export class AddCollectionModalComponent implements OnInit {
     this.dataService.getPreferences();
   }
 
-  private defaultQueries = defaultQueries;
-  private selectedQuery: any = this.defaultQueries[2];
+  public defaultQueries = defaultQueries;
+  public selectedQuery: any = this.defaultQueries[2];
 
   querySelected(e: any): void {
     //console.log("querySelected():", e);

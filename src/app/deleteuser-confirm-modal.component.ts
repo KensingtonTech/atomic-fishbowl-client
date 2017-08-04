@@ -44,8 +44,8 @@ export class DeleteUserConfirmModalComponent implements OnInit {
               //private loggerService: LoggerService
 
   //@Input('collectionName') collectionName: any;
-  private id: string = 'confirm-user-delete-modal';
-  private user: User;
+  public id: string = 'confirm-user-delete-modal';
+  public user: User;
 
   ngOnInit(): void {
     this.toolService.userToDelete.subscribe( (u: User) => {this.user = u;} );
@@ -56,7 +56,7 @@ export class DeleteUserConfirmModalComponent implements OnInit {
     this.closeModal();
   }
 
-  cancelDelete(id: string) : void {
+  cancelDelete() : void {
     this.modalService.close(this.id);
   }
 

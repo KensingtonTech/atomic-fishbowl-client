@@ -95,10 +95,10 @@ export class SessionWidgetComponent implements OnInit, OnChanges {
   //@Input('deviceNumber') deviceNumber: number;
   private deviceNumber: number;
   //private updated: number = 0;
-  private enabledTrigger: string;
+  public enabledTrigger: string;
   private preferences: any;
   private sessions: any;
-  private meta: any; //contains meta
+  public meta: any; //contains meta
   private nativeElement = this.el.nativeElement;
   private displayedKeys: any =  [
                                   'size',

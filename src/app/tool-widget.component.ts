@@ -140,10 +140,10 @@ export class ToolWidgetComponent implements OnInit, AfterViewInit {
 
   private collections: any;
   private selectedCollection: string;
-  private addCollectionModalId: string = "add-collection-modal";
-  private showCreateFirstCollection: boolean = false;
-  private showCollections: boolean = false;
-  private showSearch: boolean = false;
+  public addCollectionModalId: string = "add-collection-modal";
+  public showCreateFirstCollection: boolean = false;
+  public showCollections: boolean = false;
+  public showSearch: boolean = false;
   private searchTerms: string;
   private refreshed: boolean = false;
 

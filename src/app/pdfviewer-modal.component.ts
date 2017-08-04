@@ -101,8 +101,8 @@ export class PdfViewerModalComponent implements OnInit {
 
   private pdfFilename: string;
   private page: number = 1;
-  private id: string = 'pdf-viewer';
-  private isOpen: boolean = false;
+  public id: string = 'pdf-viewer';
+  public isOpen: boolean = false;
   private selectedPage: number = 1;
   private numPages: number;
   private session: any;
