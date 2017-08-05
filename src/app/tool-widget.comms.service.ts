@@ -12,7 +12,7 @@ export class ToolWidgetCommsService {
   public maskChanged: Subject<any> = new Subject<any>();
   public deviceNumber: Subject<any> = new Subject<any>();
   public imageCount: Subject<any> = new Subject<any>();
-  public reSelectCollection: Subject<any> = new Subject<any>();
+  public getCollectionDataAgain: Subject<any> = new Subject<any>();
   //public selectedCollection: Subject<any> = new Subject<any>();
   public changingCollections: Subject<any> = new Subject<any>();
   public scrollToBottom: Subject<any> = new Subject<any>();
@@ -24,4 +24,5 @@ export class ToolWidgetCommsService {
   public newImage: Subject<any> = new Subject<any>();
   public confirmUserDelete: Subject<any> = new Subject<any>();
   public userToDelete: Subject<any> = new Subject<any>();
+  public noCollections: Subject<any> = new Subject<any>();
 }

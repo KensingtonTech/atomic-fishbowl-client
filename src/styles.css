@@ -60,7 +60,8 @@ modal { /*This is the modal frame.  Modals are hidden by default */
   display: none;
 }
 
-modal .modal {
+/*modal .modal {*/
+.modal {
   /* modal container fixed across whole screen */
   position: fixed;
   top: 0;
@@ -75,7 +76,8 @@ modal .modal {
   overflow: auto;
 }
 
-modal .modal .modal-body {
+/*modal .modal .modal-body {*/
+.modal-body {
   font-family: Arial, Helvetica, sans-serif;
   padding: 10px;
   background: #fff;

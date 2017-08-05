@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, OnInit, OnChanges, AfterViewInit, OnDestroy, ElementRef, ViewChild, ViewChildren, ContentChild, Input, Renderer, ViewContainerRef, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, Output, OnInit, OnChanges, AfterViewInit, OnDestroy, ElementRef, ViewChild, ViewChildren, ContentChild, Input, Renderer, ViewContainerRef, QueryList, ViewEncapsulation } from '@angular/core';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 import { Observable }        from 'rxjs/Observable';
 import { Subject }           from 'rxjs/Subject';
@@ -130,8 +130,6 @@ import "rxjs/add/operator/takeWhile";
 
 export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  ////<tool-widget [imageCount]="imageCount" (caseSensitiveSearchChanged)="toggleCaseSensitiveSearch()" (searchTermsChanged)="searchTermsChanged($event)" (maskChanged)="maskChanged($event)" (deviceNumber)="deviceNumberUpdate($event)"></tool-widget>
-
   constructor (private dataService : DataService,
                private modalService: ModalService,
                private renderer: Renderer,
@@ -152,43 +150,44 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('spinnerIcon') spinnerIconRef: ElementRef;
   @ViewChild('errorIcon') errorIconRef: ElementRef;
   @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
-  private imageCount: any;
-  @Output('collectionSelected') collectionSelectedEmitter: EventEmitter<any> = new EventEmitter();
-  @Output('pdfMaskChanged') pdfMaskChangedEmitter: EventEmitter<any> = new EventEmitter();
-  @Output('imageMaskChanged') imageMaskChangedEmitter: EventEmitter<any> = new EventEmitter();
-
-
+  private imageCount: any = {images: 0, pdfs: 0, total: 0};
 
   ngOnInit() : void {
+    //take subscriptions
     this.toolService.imageCount.takeWhile(() => this.alive).subscribe( (c: any) => this.imageCount = c );
-    this.toolService.reSelectCollection.takeWhile(() => this.alive).subscribe( () => this.reSelectCollection() );
+    this.toolService.getCollectionDataAgain.takeWhile(() => this.alive).subscribe( () => this.getCollectionDataAgain() );
     this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (e: any) => this.selectedCollection = e.id );
     this.dataService.collectionsChanged.takeWhile(() => this.alive).subscribe( (c: string) => {
                                                                     this.collections = c;
-                                                                    console.log('collections update', this.collections);
+                                                                    console.log('ToolWidgetComponent: collectionsChangedSubscription: collections update', this.collections);
                                                                     //console.log('selectedCollection:', this.selectedCollection);
                                                                   });
+    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
+                                                                              //console.log("collection", collection);
+                                                                              this.iconDecider(collection.state);
+                                                                              this.collections[collection.id].state = collection.state;
+                                                                            });
 
     this.dataService.refreshCollections()
                     .then( () => {
                       this.refreshed = true;
                       if (Object.keys(this.collections).length !== 0 ) { //we only select a collection if there are collections
                         this.selectedCollection = this.getFirstCollection();
-                        console.log('select collection 0');
-                        this.dataService.selectCollection(this.collections[this.selectedCollection])
+                        //console.log('ToolWidgetComponent: ngOnInit(): select collection 0');
+
+                        /*this.dataService.getCollectionData(this.collections[this.selectedCollection])
                           .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } ))
-                          .then( () => this.showCollections = true );
+                          .then( () => this.showCollections = true )
+                        */
+
+                        this.collectionSelected(this.selectedCollection);
+                        this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } );
+                        this.showCollections = true;
                       }
                       else {
                         this.showCreateFirstCollection = true;
                       }
                     });
-
-    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
-                                                                              //console.log("collection", collection);
-                                                                              this.iconDecider(collection.state);
-                                                                              this.collections[collection.id].state = collection.state;
-                                                                            });
   }
 
   public ngOnDestroy() {
@@ -234,7 +233,6 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   imageMaskClick(): void {
     this.showImages = !this.showImages;
     this.maskState.showImage = !this.maskState.showImage;
-    //this.maskChanged.emit(this.maskState);
     this.toolService.maskChanged.next(this.maskState);
   }
 
@@ -243,7 +241,6 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   pdfMaskClick(): void {
     this.showPdfs = !this.showPdfs;
     this.maskState.showPdf = !this.maskState.showPdf;
-    //this.maskChanged.emit(this.maskState);
     this.toolService.maskChanged.next(this.maskState);
   }
 
@@ -266,7 +263,7 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   getFirstCollection(): any { // a bit of a hack since dicts aren't really ordered
     //console.log("getFirstCollection()");
     for (var c in this.collections) {
-      console.log(c);
+      //console.log(c);
       return c;
     }
   }
@@ -300,7 +297,7 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   deleteConfirmed(): void {
-    console.log("ToolWidgetComponent: Received deleteConfirmed event");
+    console.log("ToolWidgetComponent: deleteConfirmed(): Received deleteConfirmed event");
     this.dataService.abortGetBuildingCollection()
                     .then( () => this.dataService.deleteCollection(this.selectedCollection) )
                     .then( () => this.dataService.refreshCollections() )
@@ -309,14 +306,16 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                                     if (Object.keys(this.collections).length === 0 ) {
                                       this.showCreateFirstCollection = true;
                                       this.showCollections = false;
-                                      this.dataService.noCollections();
+                                      //this.dataService.noCollections();
+                                      this.toolService.noCollections.next();
                                     }
                                     else {
                                       this.showCollections = true;
                                       this.selectedCollection = this.getFirstCollection();
-                                      console.log('select collection 1');
-                                      this.dataService.selectCollection(this.collections[this.selectedCollection])
-                                                      .then( () => this.iconDecider(this.collections[this.selectedCollection].state) );
+                                      //console.log('ToolWidgetComponent: deleteConfirmed(): select collection 1');
+                                      this.collectionSelected(this.selectedCollection);
+                                      //this.dataService.getCollectionData(this.collections[this.selectedCollection])
+                                      //                .then( () => this.iconDecider(this.collections[this.selectedCollection].state) );
                                     }
                                   });
   }
@@ -355,22 +354,22 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
     if (this.collections[id].type === "rolling" || this.collections[id].type === "monitoring") {
-      console.log('select collection 2');
-      this.dataService.selectCollection(this.collections[id])
+      //console.log('select collection 2');
+      this.dataService.getCollectionData(this.collections[id])
                       .then( () => this.dataService.getRollingCollection(id) );
     }
     else { //fixed collections
-      console.log('select collection 3');
-      console.log("this.collections[id].state",  this.collections[id].state);
+      //console.log('select collection 3');
+      //console.log("this.collections[id].state",  this.collections[id].state);
       this.iconDecider(this.collections[id].state);
       if (this.collections[id].state === "building") {
-        console.log('select collection 4');
-        this.dataService.selectCollection(this.collections[id])
+        //console.log('select collection 4');
+        this.dataService.getCollectionData(this.collections[id])
                         .then( () => this.dataService.getBuildingCollection(id) );
         return;
       }
-      console.log('select collection 5');
-      this.dataService.selectCollection(this.collections[id]);
+      //console.log('select collection 5');
+      this.dataService.getCollectionData(this.collections[id]);
     }
   }
 
@@ -394,7 +393,7 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   hideSpinnerIcon(): void {
     //console.log("hideSpinnerIcon()");
-    this.renderer.setElementStyle(this.spinnerIconRef.nativeElement, 'display', 'none');
+   setTimeout( () =>  this.renderer.setElementStyle(this.spinnerIconRef.nativeElement, 'display', 'none'), 25);
   }
 
   showErrorIcon(): void {
@@ -434,14 +433,14 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                     .then( () =>  {
                                     if (this.collections[id].type === 'rolling' || this.collections[id].type === 'monitoring') {
                                       console.log('select collection 5');
-                                      this.dataService.selectCollection(this.collections[this.selectedCollection])
+                                      this.dataService.getCollectionData(this.collections[this.selectedCollection])
                                                       .then( () => this.getRollingCollection(id) )
                                                       //.then( () => { this.showCreateFirstCollection = false; this.showCollections = true; })
                                                       .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber } ));
                                     }
                                     else { //fixed collections
                                       console.log('select collection 6');
-                                      this.dataService.selectCollection(this.collections[this.selectedCollection])
+                                      this.dataService.getCollectionData(this.collections[this.selectedCollection])
                                                       .then( () => this.dataService.buildCollection(id) )
                                                       .then( () => this.dataService.getBuildingCollection(id) ) //they're all 'building' when we first execute a collection
                                                       //.then( () => { this.showCreateFirstCollection = false; this.showCollections = true; })
@@ -479,7 +478,6 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   searchTermsUpdate(): void {
     console.log("ToolWidgetComponent: searchTermsUpdate()", this.searchTerms);
-    //this.searchTermsChangedEmitter.emit( { searchTerms: this.searchTerms } );
     this.toolService.searchTermsChanged.next( { searchTerms: this.searchTerms } );
   }
 
@@ -488,14 +486,13 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   toggleCaseSensitivity(): void {
     console.log("ToolWidgetComponent: toggleCaseSensitivity()", this.caseSensitive);
     this.caseSensitive = !this.caseSensitive;
-    //this.caseSensitiveSearchChangedEmitter.emit();
     this.toolService.caseSensitiveSearchChanged.next();
   }
 
-  reSelectCollection(): void {
-    console.log("ToolWidgetComponent: reSelectCollection()");
-    console.log('select collection 7');
-    this.dataService.selectCollection(this.collections[this.selectedCollection])
+  getCollectionDataAgain(): void {
+    console.log("ToolWidgetComponent: getCollectionDataAgain()");
+    //console.log('select collection 7');
+    this.dataService.getCollectionData(this.collections[this.selectedCollection])
                     .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } ))
   }
 

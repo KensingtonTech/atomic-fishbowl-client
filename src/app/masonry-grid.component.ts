@@ -137,6 +137,25 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
+    this.toolService.noCollections.takeWhile(() => this.alive).subscribe( () => {
+                                                                                  console.log("MasonryGridComponent: noCollectionsSubscription");
+                                                                                  if (this.masonryComponentRef) this.masonryComponentRef.destroyMe();
+                                                                                  this.destroyMasonry = true;
+                                                                                  this.sessionsDefined = false;
+                                                                                  //this.changeDetectionRef.detectChanges();
+                                                                                  //this.changeDetectionRef.markForCheck();
+                                                                                  this.images = []; //undefined
+                                                                                  this.shownBricks = []; //undefined
+                                                                                  this.pdfImages = []; //undefined
+                                                                                  this.imageImages = []; //undefined
+                                                                                  this.search = []; //undefined
+                                                                                  this.sessions = {}; //undefined
+                                                                                  this.imageCount = { images: 0, pdfs: 0, total: 0 };
+                                                                                  this.toolService.imageCount.next( this.imageCount );
+                                                                                  this.changeDetectionRef.detectChanges();
+                                                                                  this.changeDetectionRef.markForCheck();
+                                                                                });
+
 
     //bind ToolWidgetCommsService observables to our own variables
     this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
@@ -224,7 +243,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                                               }
                                                                             });
 
-    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { console.log("sessionsChanged:", s); //when an a whole new collection is selected
+    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => {
+                                                              console.log("MasonryGridComponent: sessionsChangedSubscription: sessionsChanged:", s); //when an a whole new collection is selected
                                                               this.sessionsDefined = true;
                                                               this.sessions = s;
                                                               this.changeDetectionRef.detectChanges();
@@ -235,7 +255,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                               //this.changeDetectionRef.markForCheck();
                                                             });
 
-    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  console.log("sessionPublished", s); //when an individual session is pushed from a building collection (or monitoring or rolling)
+    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
+                                                                console.log("MasonryGridComponent: sessionPublishedSubscription: sessionPublished", s); //when an individual session is pushed from a building collection (or monitoring or rolling)
                                                                 let sessionId = s.id;
                                                                 //setTimeout( () => this.sessions[sessionId] = s );
                                                                 this.sessionsDefined = true;
@@ -245,7 +266,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                                                                 //this.changeDetectionRef.markForCheck();
                                                               });
 
-    this.dataService.imagesChanged.takeWhile(() => this.alive).subscribe( (i: any) => { console.log("imagesChanged:", i); //when a new collection is selected
+    this.dataService.imagesChanged.takeWhile(() => this.alive).subscribe( (i: any) => {
+                                                            console.log("MasonryGridComponent: imagesChangedSubscription: imagesChanged:", i); //when a new collection is selected
                                                             //this.toolService.changingCollections.next(true);
                                                             this.stopAutoScroller();
                                                             //setTimeout( () => {this.destroyMasonry = true}, 0 );
@@ -401,7 +423,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   stopAutoScroller(): void {
-    console.log("stopping scroller");
+    console.log("MasonryGridComponent: stopAutoScroller(): Stopping scroller");
     $('.scrollContainer').stop(true, false);
     this.autoScrollRunning = false;
   }
@@ -464,13 +486,13 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public selectedSessionDetails: any;
 
   openSessionDetails(e: any): void {
-    console.log("openSessionDetails:", e);
+    console.log("MasonryGridComponent: openSessionDetails():", e);
     this.selectedSessionDetails = e;
     this.modalService.open('sessionDetails');
   }
 
   maskChanged(e: any): void {
-    console.log("maskChanged()", e);
+    console.log("MasonryGridComponent: maskChanged()", e);
     //e = { showPdf: boolean, showImage: boolean }
     //console.log("mask:", e);
     //console.log("e.showPdf", e.showPdf);
@@ -500,7 +522,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleCaseSensitiveSearch(): void {
-    console.log("toggleCaseSensitiveSearch()");
+    console.log("MasonryGridComponent: toggleCaseSensitiveSearch()");
     this.caseSensitiveSearch = !this.caseSensitiveSearch;
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
   }
@@ -535,7 +557,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     //console.log("searchTermsChanged:", e);
     var searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
-    console.log("searchTerms update:", searchTerms);
+    console.log("MasonryGridComponent: searchTermsChanged(): searchTerms update:", searchTerms);
     var matchedSessions = [];
     var matchedSessionIds = [];
     if (searchTerms === '') {

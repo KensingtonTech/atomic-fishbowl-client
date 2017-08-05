@@ -37,7 +37,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   //@Output() removeComplete: EventEmitter<any[]> = new EventEmitter<any[]>();
 
   ngOnInit() {
-    console.log("MasonryComponent ngOnInit()");
+    console.log("MasonryComponent: ngOnInit()");
 
     // Create masonry options object
     //if (!this.options) console.log("couldn't get options!");
@@ -120,7 +120,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
           }
           else {
             //console.log("got to 4");
-            console.log("could not find brick!");
+            console.log("MasonryComponent: ngOnChanges(): Could not find brick");
           }
         }
         //console.log("finished loop");
@@ -189,7 +189,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   ngAfterContentInit(): void {
     if (this.loadAllBeforeLayout) {
       imagesLoaded('.grid', (instance: any) => {
-        console.log("all images have been loaded");
+        console.log("MasonryComponent: ngAfterContentInit(): All images have been loaded");
         this.layout();
       });
     }
@@ -206,7 +206,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     }
 
     if (!this.loadAllBeforeLayout) {
-      console.log("appending element with layout");
+      console.log("MasonryComponent: add(): Appending element with layout");
       imagesLoaded(element, (instance: any) => {
         this.el.nativeElement.appendChild(element);
 
@@ -228,7 +228,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
       //this.changeDetectionRef.markForCheck();
     }
     else { //let all images load before calling layout (done elsewhere)
-      console.log("adding element without layout");
+      console.log("MasonryComponent: add(): Adding element without layout");
       this.el.nativeElement.appendChild(element);
       this.ngZone.runOutsideAngular( () => this.isotope.addItems(element) );
       //try {this.el.nativeElement.removeChild(element)} catch(err) {};

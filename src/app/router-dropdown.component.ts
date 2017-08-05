@@ -87,7 +87,7 @@ export class RouterDropdownComponent implements OnInit {
       //execute route
       this.router.navigate([e.link]);
       this.changeDetectorRef.markForCheck();
-      this.toolService.reSelectCollection.next();
+      this.toolService.getCollectionDataAgain.next();
     }
     else {
       this.collapseRouterOptions();

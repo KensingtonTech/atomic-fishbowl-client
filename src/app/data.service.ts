@@ -72,6 +72,17 @@ export class DataService { //Manages NwSession objects and also Image objects in
 //    return Promise.resolve(this.sessions[s].meta);
 //  }
 
+  getServerVersion(): Promise<any> {
+    return this.http
+                .get(this.apiUrl + '/version', this.buildOptions() )
+                .toPromise()
+                .then(response => {
+                                    let res = response.json();
+                                    return res.version;
+                                  })
+                .catch(e => this.handleError(e));
+  }
+
   getNwServers(): Promise<any> {
     return this.http
                 .get(this.apiUrl + '/nwservers', this.buildOptions() )
@@ -160,9 +171,10 @@ export class DataService { //Manages NwSession objects and also Image objects in
     });
   }
 
-  selectCollection(collection: any): Promise<string> {
+  //selectCollection(collection: any): Promise<string> {
+  getCollectionData(collection: any): Promise<string> {
     let id=collection.id;
-    console.log('DataService: selectCollection(' + id + '):', collection);
+    console.log('DataService: getCollectionData(' + id + '):', collection);
     return this.http.get(this.apiUrl + '/collectiondata/' + id, this.buildOptions() )
                     .toPromise()
                     .then(response => {

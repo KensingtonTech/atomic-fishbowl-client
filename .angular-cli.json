@@ -27,7 +27,6 @@
       "scripts": [
         "../node_modules/jquery/dist/jquery.min.js",
         "../node_modules/isotope-layout/dist/isotope.pkgd.min.js",
-        "../node_modules/less/dist/less.min.js",
         "../node_modules/oboe/dist/oboe-browser.min.js",
         "../node_modules/moment/min/moment-with-locales.min.js",
         "../node_modules/screenfull/dist/screenfull.js",
