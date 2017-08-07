@@ -306,7 +306,6 @@ export class ToolWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                                     if (Object.keys(this.collections).length === 0 ) {
                                       this.showCreateFirstCollection = true;
                                       this.showCollections = false;
-                                      //this.dataService.noCollections();
                                       this.toolService.noCollections.next();
                                     }
                                     else {

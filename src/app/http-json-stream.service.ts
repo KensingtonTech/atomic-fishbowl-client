@@ -16,14 +16,12 @@ export class HttpJsonStreamService {
 
   fetchStream(url: string) : Observable<any> {
     console.log('CollectionBuilderService: buildCollection()');
-    let token = localStorage.getItem("221b_token");
     var subject: Subject<any> = new Subject<any>();
     var config = {
       'url': url,
       'method': "GET",
-      //'headers': {'Authorization': 'Bearer ' + this._jwToken },
       //'headers': { 'Connection': 'keep-alive' },
-      headers: {'Authorization': 'Bearer ' +  token},
+      //headers: {'Authorization': 'Bearer ' +  token},
       'body': '',
       'cached': false
       //'withCredentials': true

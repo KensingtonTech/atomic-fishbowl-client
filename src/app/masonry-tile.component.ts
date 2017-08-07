@@ -53,8 +53,8 @@ import { LoggerService } from './logger-service';
     <div class="textArea" *ngIf="session && masonryKeys">
       <table class="selectable" style="width: 100%;">
         <tr *ngFor="let key of masonryKeys">
-          <td class="column1">{{key.friendly}}</td>
-          <td class="value">{{session.meta[key.key]}}</td>
+          <td *ngIf="session.meta[key.key]" class="column1">{{key.friendly}}</td>
+          <td *ngIf="session.meta[key.key]" class="value">{{session.meta[key.key]}}</td>
         </tr>
         <tr *ngIf="image.md5Hash">
           <td class="column1">MD5 Hash:</td>

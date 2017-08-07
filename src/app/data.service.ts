@@ -11,6 +11,7 @@ import { NwServer } from './nwserver';
 import { HttpJsonStreamService } from './http-json-stream.service';
 import { AuthenticationService } from './authentication.service';
 import { LoggerService } from './logger-service';
+import { ToolWidgetCommsService } from './tool-widget.comms.service';
 
 @Injectable()
 
@@ -18,8 +19,9 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   constructor(private http: Http,
               private httpJsonStreamService: HttpJsonStreamService,
-              private authService: AuthenticationService,
-              private loggerService: LoggerService) {}
+              //private authService: AuthenticationService,
+              private loggerService: LoggerService,
+              private toolService: ToolWidgetCommsService ) {}
 
   public imagePublished: Subject<any> = new Subject<any>();
   public sessionPublished: Subject<any> = new Subject<any>();
@@ -74,7 +76,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   getServerVersion(): Promise<any> {
     return this.http
-                .get(this.apiUrl + '/version', this.buildOptions() )
+                .get(this.apiUrl + '/version' )
                 .toPromise()
                 .then(response => {
                                     let res = response.json();
@@ -85,7 +87,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   getNwServers(): Promise<any> {
     return this.http
-                .get(this.apiUrl + '/nwservers', this.buildOptions() )
+                .get(this.apiUrl + '/nwservers' )
                 .toPromise()
                 .then(response => response.json() as any )
                 .catch(e => this.handleError(e));
@@ -93,7 +95,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   getUsers(): Promise<any> {
     return this.http
-                .get(this.apiUrl + '/users', this.buildOptions() )
+                .get(this.apiUrl + '/users' )
                 .toPromise()
                 .then(response => response.json() as any )
                 .catch(e => this.handleError(e));
@@ -103,7 +105,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   getPreferences(): Promise<any> {
     return this.http
-                .get(this.apiUrl + '/preferences', this.buildOptions() )
+                .get(this.apiUrl + '/preferences' )
                 .toPromise()
                 .then( (response: any) => { let prefs = response.json();
                                             this.globalPreferences = prefs;
@@ -114,8 +116,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
   }
 
   setPreferences(prefs: any): Promise<void> {
-    let token = localStorage.getItem("221b_token");
-    let headers = new Headers({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' +  token });
+    let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     this.globalPreferences = prefs;
     this.preferencesChanged.next(prefs);
@@ -129,7 +130,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   getCollections(): Promise<Collection[]> {
     console.log("DataService: getCollections()");
-    return this.http.get(this.apiUrl + '/collections', this.buildOptions() )
+    return this.http.get(this.apiUrl + '/collections' )
                 .toPromise()
                 .then(response => response.json() as Collection[] )
                 .catch(e => this.handleError(e));
@@ -138,7 +139,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
   refreshCollections(): Promise<void> {
     //console.log('DataService: refreshCollections()');
     this.loggerService.logDebug('DataService: refreshCollections()');
-    return this.http.get(this.apiUrl + '/collections', this.buildOptions() )
+    return this.http.get(this.apiUrl + '/collections' )
                 .toPromise()
                 //.then(response => {this.collections = response.json() as Collection[]; console.log('collections:',this.collections);} )
                 //.then(response => {this.collections = response.json() as any; console.log('collections:',this.collections);} )
@@ -147,15 +148,9 @@ export class DataService { //Manages NwSession objects and also Image objects in
                 .catch(e => this.handleError(e));
   }
 
-  noCollections(): void {
-    this.imagesChanged.next( [] );
-    //this.sessionsChanged.next( {} );
-  }
-
-
   buildCollection(id: string): Promise<void> {
     console.log("DataService: buildCollection():", id);
-    return this.http.get(this.apiUrl + '/buildcollection/' + id, this.buildOptions() )
+    return this.http.get(this.apiUrl + '/buildcollection/' + id )
                     .toPromise()
                     //.then( () => this.getBuildingCollection(id) )
                     .catch(e => this.handleError(e));
@@ -175,7 +170,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
   getCollectionData(collection: any): Promise<string> {
     let id=collection.id;
     console.log('DataService: getCollectionData(' + id + '):', collection);
-    return this.http.get(this.apiUrl + '/collectiondata/' + id, this.buildOptions() )
+    return this.http.get(this.apiUrl + '/collectiondata/' + id )
                     .toPromise()
                     .then(response => {
                       let data = response.json() as any;
@@ -265,7 +260,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   deleteCollection(id: string): Promise<void> {
     console.log("DataService: deleteCollection("+id+")");
-    return this.http.delete(this.apiUrl + '/collection/' + id, this.buildOptions() )
+    return this.http.delete(this.apiUrl + '/collection/' + id )
                 .toPromise()
                 .then( () => {} )
                 .catch(e => this.handleError(e));
@@ -273,7 +268,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   deleteUser(id: string): Promise<void> {
     console.log("DataService: deleteUser():", id);
-    return this.http.delete(this.apiUrl + '/user/' + id, this.buildOptions() )
+    return this.http.delete(this.apiUrl + '/user/' + id )
                 .toPromise()
                 .then(response => {
                   let def=response.json() as any;
@@ -283,7 +278,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   deleteNwServer(id: string): Promise<void> {
     console.log("DataService: deleteNwServer()");
-    return this.http.delete(this.apiUrl + '/nwserver/' + id, this.buildOptions() )
+    return this.http.delete(this.apiUrl + '/nwserver/' + id )
                 .toPromise()
                 .then(response => {
                   let def=response.json() as any;
@@ -293,8 +288,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   addUser(user: any): Promise<any> {
     console.log("DataService: addUser()")
-    let token = localStorage.getItem("221b_token");
-    let headers = new Headers({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' +  token });
+    let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/adduser', user, options)
                 .toPromise()
@@ -306,8 +300,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   updateUser(user: any): Promise<any> {
     console.log("DataService: updateUser()");
-    let token = localStorage.getItem("221b_token");
-    let headers = new Headers({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' +  token });
+    let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/updateuser', user, options)
                 .toPromise()
@@ -319,8 +312,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   addNwServer(nwserver: NwServer): Promise<any> {
     console.log("DataService: addNwServer()");
-    let token = localStorage.getItem("221b_token");
-    let headers = new Headers({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' +  token });
+    let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/addnwserver', nwserver, options)
                 .toPromise()
@@ -332,8 +324,7 @@ export class DataService { //Manages NwSession objects and also Image objects in
 
   addCollection(collection: any):  Promise<any> {
     console.log("DataService: addCollection():", collection.id);
-    let token = localStorage.getItem("221b_token");
-    let headers = new Headers({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' +  token });
+    let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/addcollection', collection, options)
                 .toPromise()
@@ -352,16 +343,10 @@ export class DataService { //Manages NwSession objects and also Image objects in
                     //.catch(e => this.handleError(e));
   }
 
-  public buildOptions(): any {
-    let token = localStorage.getItem("221b_token");
-    let headers = new Headers({ 'Authorization': 'Bearer ' +  token});
-    let options = new RequestOptions({ headers: headers });
-    return options;
-  }
-
   handleError(error: any): Promise<any> {
     if (error.status === 401) {
-      this.authService.logout();
+      //this.authService.logout();
+      this.toolService.logout.next();
       return Promise.reject(error.message || error);
     }
     else {

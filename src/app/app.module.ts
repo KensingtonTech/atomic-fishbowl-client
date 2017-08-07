@@ -110,8 +110,8 @@ import { HttpJsonStreamService } from './http-json-stream.service';
                   DeleteUserConfirmModalComponent,
                   ServerDownModalComponent
                 ],
-  providers:    [ AuthenticationService,
-                  DataService,
+  providers:    [ DataService,
+                  AuthenticationService,
                   ToolWidgetCommsService,
                   LoggerService,
                   HttpJsonStreamService

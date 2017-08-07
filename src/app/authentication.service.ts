@@ -6,28 +6,34 @@ import 'rxjs/add/operator/toPromise';
 import { Headers, RequestOptions, Http } from '@angular/http';
 import { User } from './user';
 import { LoggerService } from './logger-service';
+import { ToolWidgetCommsService } from './tool-widget.comms.service';
+import { DataService } from './data.service';
 
 @Injectable()
 
 export class AuthenticationService {
 
-  constructor(  private router: Router,
+  constructor(  private loggerService: LoggerService,
+                private dataService: DataService,
+                private router: Router,
                 private http: Http,
-                private loggerService: LoggerService ) {}
+                private toolService: ToolWidgetCommsService ) {
+                  this.toolService.logout.subscribe( () => this.logout() );
+                }
+                //private dataService: DataService ) {}
 
   public loggedInChanged: Subject<boolean> = new Subject<boolean>();
   private apiUrl : string = '/api';
   public loggedInUser: User;
 
   public logout(): void {
-    console.log("logging out");
-    this.http.get(this.apiUrl + '/logout', this.buildOptions() )
+    console.log("AuthenticationService: logout(): logging out");
+    this.dataService.abortGetBuildingCollection();
+    this.http.get(this.apiUrl + '/logout' )
                     .toPromise()
                     .then( () => {} )
-                    .catch( (err) => {console.error("ERROR during logout"); });
+                    .catch( (err) => {console.error("AuthenticationService: logout(): ERROR during logout"); });
 
-    //localStorage.removeItem("221b_user");
-    localStorage.removeItem("221b_token");
     this.loggedInUser = null;
     this.loggedInChanged.next(false);
     this.router.navigate(['login']);
@@ -35,19 +41,26 @@ export class AuthenticationService {
 
   getUsers(): Promise<any> {
     return this.http
-                .get(this.apiUrl + '/users', this.buildOptions() )
+                .get(this.apiUrl + '/users' )
                 .toPromise()
                 .then(response => response.json() as any )
                 .catch(e => this.handleError(e));
   }
 
   getUser(userName: string): Promise<User> {
-    return this.http.get(this.apiUrl + '/user/' + userName, this.buildOptions() )
+    return this.http.get(this.apiUrl + '/user/' + userName )
                     .toPromise()
                     .then( response => {
-                              let user = response.json();
-                              return user;
+                      let user = response.json();
+                      return user;
                     });
+  }
+
+  isLoggedIn(): Promise<boolean> {
+    return this.http.get(this.apiUrl + '/isloggedin' )
+                    .toPromise()
+                    .then( () => {return true} )
+                    .catch( () => {return false} );
   }
 
   public login(u: User): Promise<boolean> {
@@ -58,15 +71,10 @@ export class AuthenticationService {
                     .toPromise()
                     .then(response => {
                       let res = response.json();
-                      localStorage.setItem("221b_token", res.token);
-                      //localStorage.setItem("221b_user", JSON.stringify(res.user));
-                      let parsedToken = this.parseJwt(res.token);
-                      this.loggedInUser = parsedToken._doc;
+                      console.log("AuthenticationService: login(): Got login response:", res);
+                      this.loggedInUser = res.user;
                       this.loggedInChanged.next(true);
                       this.router.navigate(['/']);
-                      //this.getUser(u.username)
-                      //    .then( (u: User) => this.loggedInUser = u );
-
                       return true;
                     })
                     .catch( (e: any) => {
@@ -77,10 +85,23 @@ export class AuthenticationService {
                     });
   }
 
-
   checkCredentials(): void {
+    this.isLoggedIn()
+        .then( (res) => {
+          if (res === false) {
+            this.loggedInChanged.next(false);
+            this.router.navigate(['login']);
+          }
+          else {
+            this.loggedInChanged.next(true);
+          }
+        });
+  }
+
+/*
+  checkCredentialsOld(): void {
     let token = localStorage.getItem("221b_token");
-    if ( token === null){
+    if ( token === null ){
       this.loggedInChanged.next(false);
       this.router.navigate(['login']);
     }
@@ -93,19 +114,15 @@ export class AuthenticationService {
 
     }
   }
+*/
 
   parseJwt(token: any): any {
-      var base64Url = token.split('.')[1];
-      var base64 = base64Url.replace('-', '+').replace('_', '/');
-      return JSON.parse(window.atob(base64));
+      let base64Url = token.split('.')[1];
+      let base64 = base64Url.replace('-', '+').replace('_', '/');
+      let parsed = JSON.parse(window.atob(base64));
+      //console.log("AuthenticationService: parseJwt(): parsed:", parsed);
+      return parsed;
   };
-
-  buildOptions(): any {
-    let token = localStorage.getItem("221b_token");
-    let headers = new Headers({ 'Authorization': 'Bearer ' +  token});
-    let options = new RequestOptions({ headers: headers });
-    return options;
-  }
 
   handleError(error: any): Promise<any> {
     console.error('ERROR: ',error);

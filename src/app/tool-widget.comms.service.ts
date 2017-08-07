@@ -25,4 +25,5 @@ export class ToolWidgetCommsService {
   public confirmUserDelete: Subject<any> = new Subject<any>();
   public userToDelete: Subject<any> = new Subject<any>();
   public noCollections: Subject<any> = new Subject<any>();
+  public logout: Subject<any> = new Subject<any>();
 }

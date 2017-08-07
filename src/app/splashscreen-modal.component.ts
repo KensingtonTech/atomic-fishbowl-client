@@ -13,7 +13,7 @@ import { LoggerService } from './logger-service';
   <div class="modal">
     <div class="modal-body splash-body" style="position: relative; width: 400px; background-color: rgba(0,0,0,.9); color: white; font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;">
       <h1 align="left" style="margin-bottom: 0px;">221B Beta</h1>
-      <span>Version {{version}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span *ngIf="serverVersion">Server Version {{serverVersion}}</span>
+      <span>Client Version {{version}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span *ngIf="serverVersion">Server Version {{serverVersion}}</span>
       <p align="center"><img src="resources/221B_logo.png" style="width: 350px; height: auto;"><img style="float: left; width: 75px; height: auto;" src="resources/logo-medium.png"></p>
       <p align="right" style="font-size: 9pt;">Copyright &copy; 2017 Kensington Technology Associates<br>
       All Rights Reserved</p>
