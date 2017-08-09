@@ -5,15 +5,12 @@ import { Subject } from 'rxjs/Subject';
 @Injectable()
 
 export class ToolWidgetCommsService {
-  //<tool-widget [imageCount]="imageCount" (caseSensitiveSearchChanged)="toggleCaseSensitiveSearch()" (searchTermsChanged)="searchTermsChanged($event)" (maskChanged)="maskChanged($event)" (deviceNumber)="deviceNumberUpdate($event)"></tool-widget>
-
   public caseSensitiveSearchChanged: Subject<any> = new Subject<any>();
   public searchTermsChanged: Subject<any> = new Subject<any>();
   public maskChanged: Subject<any> = new Subject<any>();
   public deviceNumber: Subject<any> = new Subject<any>();
   public imageCount: Subject<any> = new Subject<any>();
   public getCollectionDataAgain: Subject<any> = new Subject<any>();
-  //public selectedCollection: Subject<any> = new Subject<any>();
   public changingCollections: Subject<any> = new Subject<any>();
   public scrollToBottom: Subject<any> = new Subject<any>();
   public layoutComplete: Subject<any> = new Subject<any>();

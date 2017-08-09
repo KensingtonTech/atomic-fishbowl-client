@@ -6,8 +6,8 @@ declare var imagesLoaded: any;
 //var masonry = require('isotope-layout');
 declare var Isotope;
 var masonry = Isotope;
-import * as $ from 'jquery';
-//declare var $: any;
+// import * as $ from 'jquery';
+// declare var $: any;
 
 @Component({
   selector: '[masonry], masonry',

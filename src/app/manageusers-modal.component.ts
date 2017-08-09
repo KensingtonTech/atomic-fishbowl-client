@@ -1,22 +1,61 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
-import { NgForm } from '@angular/forms';
+// import { FormsModule, NgForm } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators, FormGroupDirective } from '@angular/forms';
+// import { AbstractControl, FormArray, FormBuilder, }
+// import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { User } from './user';
 import { LoggerService } from './logger-service';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
 declare var moment: any;
-import "rxjs/add/operator/takeWhile";
+import 'rxjs/add/operator/takeWhile';
+
+function passwordMatcher(c: AbstractControl) {
+  return c.get('password').value === c.get('passwordConfirm').value ? null : {'nomatch': true};
+}
+
+function userExists(c: AbstractControl) {
+  // console.log('userExists:', c);
+  if (this.users) {
+    for (let i = 0; i < this.users.length; i++) {
+      const user = this.users[i];
+      if ( c.value === user.username ) {
+        return { 'userExists': true };
+      }
+    }
+  }
+  return null;
+}
+
+function isNotLoggedInUser(c: AbstractControl) {
+  console.log('isNotLoggedInUser', c);
+  // if ( this.authService && c.get('username') && this.authService.loggedInUser.id !== c.get('username').value ) {
+  if ( this.authService && this.editingUser &&  this.authService.loggedInUser.username === this.editingUser.username && c.value === false ) {
+    // console.log('returning isloggedinuser');
+    return { 'isloggedinuser': true}
+  }
+  // console.log('returning null');
+  return null;
+}
 
 @Component({
   selector: 'manage-users-modal',
-  //changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
-
+    // encapsulation: ViewEncapsulation.None,
   templateUrl: './manageusers-modal.component.html',
   styles: [`
+
+    .myForm {
+      width: 500px;
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+
     .column1 {
       white-space: nowrap;
       width: 1px;
@@ -57,102 +96,215 @@ import "rxjs/add/operator/takeWhile";
 
 export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
-  constructor(private dataService : DataService,
+  constructor(private dataService: DataService,
               private modalService: ModalService,
               private renderer: Renderer,
-              private changeDetectionRef: ChangeDetectorRef,
               private loggerService: LoggerService,
               private toolService: ToolWidgetCommsService,
-              private authService: AuthenticationService ) {}
+              private authService: AuthenticationService,
+              public fb: FormBuilder ) {}
 
-  public id: string = 'accounts-modal';
-  @ViewChild('addUserBox') addUserBoxRef: ElementRef;
-  @ViewChild('editUserBox') editUserBoxRef: ElementRef;
-  @ViewChildren('userInAdd') userInAddRef: QueryList<any>;
-  @ViewChildren('userInEdit') userInEditRef: QueryList<any>;
+  public id = 'accounts-modal';
+  @ViewChildren('userInAdd') userInAddRef: QueryList<any>; // used to focus input on element
+  @ViewChildren('userInEdit') userInEditRef: QueryList<any>; // used to focus input on element
   private enabledTrigger: string;
-  public formDisabled: boolean = false;
-  public errorDefined: boolean = false;
+  public usersFormDisabled = false;
+  public errorDefined = false;
   private errorMessage: string;
-  private alive: boolean = true;
+  private alive = true;
+  private editingUser: User;
+  public users: User[];
+  public minPasswordLength = 8;
+  public minUsernameLength = 3;
+  public displayUserAddForm = false;
+  public displayUserEditForm = false;
 
-  public users: any = [];
-
-  public addUserFormModel = {
-    user: '',
-    fullname: '',
-    password: '',
-    passwordConfirm: '',
-    email: '',
-    enabled: true
-  }
-
-  public editUserFormModel = {
-    user: '',
-    fullname: '',
-    password: '',
-    passwordConfirm: '',
-    email: '',
-    enabled: true,
-    id: ''
-  }
-
-  private displayCustomTimeframeSelector: boolean = false;
-
+  public addUserForm: FormGroup;
+  public editUserForm: FormGroup;
 
   ngOnInit(): void {
+    console.log('ManageUsersModalComponent: ngOnInit');
     this.getUsers();
-    this.toolService.confirmUserDelete.takeWhile(() => this.alive).subscribe( (id: string) => {this.deleteUserConfirmed(id);} );
+    
+    this.addUserForm = this.fb.group({
+      username: ['', Validators.compose( [ Validators.required, Validators.minLength(this.minUsernameLength), userExists.bind(this)]) ],
+      fullname: '',
+      email: '',
+      passwords: this.fb.group({
+        password: ['', Validators.compose( [ Validators.required, Validators.minLength(this.minPasswordLength) ]) ],
+        passwordConfirm: ['', Validators.required]
+      }, { validator: passwordMatcher }),
+      enabled: true
+    });
+
+    this.editUserForm = this.fb.group({
+      id: '',
+      username: '',
+      fullname: '',
+      email: '',
+      passwords: this.fb.group({
+        password: ['', Validators.minLength(this.minPasswordLength)],
+        passwordConfirm: ''
+      }, { validator: passwordMatcher }),
+      enabled: [true, isNotLoggedInUser.bind(this)]
+    });
+    this.toolService.confirmUserDelete.takeWhile(() => this.alive).subscribe( (id: string) => { this.deleteUserConfirmed(id); } );
   }
 
   public ngOnDestroy() {
     this.alive = false;
   }
 
+
+/////////////////////////////////////////////////////////////////
+                      // Add User //
+/////////////////////////////////////////////////////////////////
+
   displayUserAddBox(): void {
+    console.log('addUserForm', this.addUserForm);
     this.errorDefined = false;
-    this.renderer.setElementStyle(this.addUserBoxRef.nativeElement, 'display', 'block');
-    this.formDisabled = true;
-    //setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
-    this.userInAddRef.first.nativeElement.focus();
+    this.displayUserAddForm = true;
+    this.usersFormDisabled = true;
+    setTimeout( () => { this.userInAddRef.first.nativeElement.focus(); }, 10);
   }
 
-  private editingUser: User;
+  addUserSubmit(): void {
+    console.log('addUserForm', this.addUserForm);
+    this.hideUserAddBox();
+    const newUser = {
+      username: this.addUserForm.value.username,
+      fullname: this.addUserForm.value.fullname,
+      password: this.addUserForm.value.passwords.password,
+      email: this.addUserForm.value.email,
+      enabled: this.addUserForm.value.enabled
+    };
+    console.log('ManageUsersModalComponent: newUser:', newUser);
+    this.addUserForm.patchValue({
+      username: '',
+      email: '',
+      fullname: '',
+      passwords: {
+        password: '',
+        passwordConfirm: ''
+      },
+      enabled: true
+    });
+    this.dataService.addUser(newUser)
+                    .then( () => this.getUsers() );
 
-  displayUserEditBox(user: any): void {
-    console.log("ManageUsersModalComponent: displayUserEditBox():", user);
-    this.errorDefined = false;
-    this.editingUser = user;
-    this.renderer.setElementStyle(this.editUserBoxRef.nativeElement, 'display', 'block');
-    this.formDisabled = true;
-    //setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
-    this.editUserFormModel.user = user.username;
-    this.editUserFormModel.fullname = user.fullname;
-    this.editUserFormModel.email = user.email;
-    this.editUserFormModel.enabled = user.enabled;
-    this.editUserFormModel.id = user.id;
-    this.userInEditRef.first.nativeElement.focus();
   }
 
   hideUserAddBox(): void {
-    this.renderer.setElementStyle(this.addUserBoxRef.nativeElement, 'display', 'none');
-    this.addUserFormModel.user = '';
-    this.addUserFormModel.password = ''
-    this.addUserFormModel.email = '';
-    this.formDisabled = false;
+    this.displayUserAddForm = false;
+    this.usersFormDisabled = false;
+  }
+
+  public addUserPasswordMatcher(control: FormControl, form: FormGroupDirective): boolean {
+    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
+    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
+    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
+    // console.log('addUserForm', this.addUserForm);
+    // console.log('control:', form.control.controls.passwords.get('password').dirty );
+    if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    if (form.form.controls.passwords.get('password').hasError('minlength') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    return false;
+  }
+
+
+
+/////////////////////////////////////////////////////////////////
+                      // Edit User //
+/////////////////////////////////////////////////////////////////
+  displayUserEditBox(user: any): void {
+    console.log('ManageUsersModalComponent: displayUserEditBox():', user);
+
+    if (!this.displayUserAddForm) {
+      this.errorDefined = false;
+      this.editingUser = user;
+
+      this.editUserForm.patchValue({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullname: user.fullname,
+        passwords: {
+          password: '',
+          passwordConfirm: ''
+        },
+        enabled: user.enabled
+      });
+      
+      this.displayUserEditForm = true;
+      this.usersFormDisabled = true;
+
+      setTimeout( () => { this.userInEditRef.first.nativeElement.focus(); }, 10);
+    }
+  }
+
+  editUserSubmit(form: any): void {
+    //const form = this.editUserForm;
+    console.log('ManageUsersModalComponent: editUserSubmit()', form);
+    // console.log('editUserForm:', this.editUserForm);
+    // this.errorDefined = false;
+    let updatedUser: User = new User;
+    updatedUser.id = this.editingUser.id;
+    if ( this.editingUser.fullname !== form.value.fullname ) {updatedUser.fullname = form.value.fullname; }
+    if ( this.editingUser.email !== form.value.email ) { updatedUser.email = form.value.email; }
+    if ( this.editingUser.enabled !== form.value.enabled ) { updatedUser.enabled = form.value.enabled; }
+    // if ('passwordConfirm' in form.value && form.value.passwordConfirm !== '') { updatedUser.password = form.value.password; }
+    if ( form.controls.passwords.dirty && form.value.passwords.password.length !== 0 ) { updatedUser.password = form.value.passwords.password; }
+    // console.log('updatedUser:', updatedUser);
+    this.dataService.updateUser(updatedUser)
+                    .then( () => this.getUsers() );
+    this.hideUserEditBox();
   }
 
   hideUserEditBox(): void {
-    this.renderer.setElementStyle(this.editUserBoxRef.nativeElement, 'display', 'none');
-    this.editUserFormModel.user = '';
-    this.editUserFormModel.fullname = '';
-    this.editUserFormModel.password = '';
-    this.editUserFormModel.passwordConfirm = '';
-    this.editUserFormModel.email = '';
-    this.formDisabled = false;
+    this.displayUserEditForm = false;
+    this.editUserForm.patchValue({
+      email: '',
+      fullname: '',
+      passwords: {
+        password: '',
+        passwordConfirm: ''
+      },
+      enabled: true
+    });
+    this.usersFormDisabled = false;
   }
 
-  cancel() : void {
+  public editUserPasswordMatcher(control: FormControl, form: FormGroupDirective): boolean {
+    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
+    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
+    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
+    // console.log('addUserForm', this.addUserForm);
+    // console.log('control:', form.control.controls.passwords.get('password').dirty );
+    if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    if (form.form.controls.passwords.get('password').hasError('minlength') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    return false;
+  }
+
+  public disableEditUserSubmitButton(): boolean {
+    if (this.editUserForm.pristine) { return true; }
+    if (this.editUserForm.invalid && this.editUserForm.dirty) { return true; }
+    return false;
+  }
+
+
+
+
+
+
+
+  cancel(): void {
     this.modalService.close(this.id);
   }
 
@@ -161,75 +313,48 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   cancelledEventReceived(): void {
-    console.log("ManageUsersModalComponent: cancelledEventReceived()");
+    console.log('ManageUsersModalComponent: cancelledEventReceived()');
   }
 
   getUsers(): void {
     this.dataService.getUsers().then(n => {
-                                            //console.log("ManageUsersModalComponent: getUsers():", n);
+                                            // console.log("ManageUsersModalComponent: getUsers():", n);
                                             this.users = n;
-                                            this.changeDetectionRef.markForCheck();
+                                            // this.changeDetectionRef.markForCheck();
                                           });
   }
 
-  addUser(form: NgForm): void {
-    this.hideUserAddBox();
-    let newUser = {
-      username: form.value.user,
-      fullname: form.value.fullname,
-      password: form.value.password,
-      email: form.value.email,
-      enabled: form.value.enabled
-    }
-    console.log("ManageUsersModalComponent: newUser:", newUser);
-    this.dataService.addUser(newUser)
-                    .then( () => this.getUsers() );
-  }
-
-  editUser(form: NgForm): void {
-    console.log('ManageUsersModalComponent: editUser()', form);
-    //this.errorDefined = false;
-    this.hideUserEditBox();
-    let updatedUser: User = new User;
-    updatedUser.id = this.editingUser.id;
-    if (this.editingUser.fullname != form.value.fullname) updatedUser.fullname = form.value.fullname;
-    if (this.editingUser.email != form.value.email) updatedUser.email = form.value.email;
-    if (this.editingUser.enabled != form.value.enabled) updatedUser.enabled = form.value.enabled;
-    if ('passwordConfirm' in form.value && form.value.passwordConfirm !== '') updatedUser.password = form.value.password;
-    console.log("updatedUser:", updatedUser);
-    this.dataService.updateUser(updatedUser)
-                    .then( () => this.getUsers() );
-  }
-
   findUser(id: string): User {
-    for (let x=0; x < this.users.length; x++) {
-      let u = this.users[x];
-      if (u.id === id) return u;
+    for (let x = 0; x < this.users.length; x++) {
+      const u = this.users[x];
+      if (u.id === id) { return u; }
     }
   }
 
   deleteUser(id: string): void {
-    console.log("ManageUsersModalComponent: deleteUser():", id);
-    if (this.authService.loggedInUser.id !== id) {
-      this.errorDefined = false;
-      this.toolService.userToDelete.next( this.findUser(id) );
-      this.modalService.open('confirm-user-delete-modal');
-    }
-    else {
-      //console.log("deleteUser(" + id + "): cannot delete logged in user!");
-      this.errorMessage = "Cannot delete logged in user!"
-      this.errorDefined = true;
+    console.log('ManageUsersModalComponent: deleteUser():', id);
+    if (!this.displayUserAddForm && !this.displayUserEditForm) {
+      if (this.authService.loggedInUser.id !== id) {
+        this.errorDefined = false;
+        this.toolService.userToDelete.next( this.findUser(id) );
+        this.modalService.open('confirm-user-delete-modal');
+      }
+      else {
+        // console.log("deleteUser(" + id + "): cannot delete logged in user!");
+        this.errorMessage = 'Cannot delete logged in user!';
+        this.errorDefined = true;
+      }
     }
   }
 
   deleteUserConfirmed(id: string): void {
-    console.log("ManageUsersModalComponent: deleteUserConfirmed(id)", id);
+    console.log('ManageUsersModalComponent: deleteUserConfirmed(id)', id);
     this.dataService.deleteUser(id)
                     .then ( () => this.getUsers() );
   }
 
   onOpen(): void {
-    console.log("ManageUsersModalComponent: onOpen()");
+    console.log('ManageUsersModalComponent: onOpen()');
     this.errorDefined = false;
     this.getUsers();
   }

@@ -1,1 +1,1 @@
-export const appVersion: string = '2017.08.06';
+export const appVersion: string = '2017.08.08';

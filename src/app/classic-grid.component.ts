@@ -9,8 +9,8 @@ import { DataService } from './data.service';
 import { Image } from './image';
 import { ModalService } from './modal/modal.service';
 import { LoggerService } from './logger-service';
-import * as $ from 'jquery';
-//declare var $: any;
+// import * as $ from 'jquery';
+// declare var $: any;
 import "rxjs/add/operator/takeWhile";
 
 @Component({

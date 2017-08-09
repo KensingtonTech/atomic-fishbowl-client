@@ -3,8 +3,8 @@ import { PanZoomApiService } from './panzoom-api.service';
 import { PanZoomConfigService } from './panzoom-config.service';
 import { PanZoomModelService } from './panzoom-model.service';
 import { WindowRefService } from './panzoom-windowref.service';
-import * as $ from 'jquery';
-//declare var $: any;
+// import * as $ from 'jquery';
+// declare var $: any;
 
 @Component( {
   selector: 'panzoom',

@@ -9,7 +9,7 @@ import { LoggerService } from './logger-service';
 <modal id="{{id}}">
     <div class="modal">
       <div class="noselect">
-          <div class="modal-body" style="width: 350px;">
+          <div class="modal-body" style="top: 30px; left: 120px; margin: 0; width: 350px;">
             <div>
               <p>Are you sure you want to delete collection {{collectionName}}?</p>
               <p>This operation cannot be undone.</p>

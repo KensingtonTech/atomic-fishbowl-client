@@ -1,14 +1,14 @@
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
   <div class="modal">
-    <div class="modal-body" style="width:800px;">
+    <div class="modal-body mat-app-background manage-users" style="width:800px;">
       <div style="width: 100%;">
-        <h3 style="float: left; margin-top:0px; margin-bottom: 10px;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; align: right; color: red;">{{errorMessage}}</span>
+        <h3 style="float: left; margin-top:0px; margin-bottom: 10px;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; text-align: right; color: red;">{{errorMessage}}</span>
         <div>&nbsp;</div>
       </div>
 
       <div>
-        <fieldset [disabled]="formDisabled" style="border: none; margin: 0; padding: 0; width: 100%;">
-          <div style="position: relative; max-height: 800px; min-height: 200px; overflow: auto;">
+        <fieldset [disabled]="usersFormDisabled" style="border: none; margin: 0; padding: 0; width: 100%;">
+          <div style="position: relative; max-height: 800px; overflow: auto;"> <!--min-height: 200px;-->
             <table style="width: 100%;">
               <tr>
                 <th align="left">Enabled</th>
@@ -37,123 +37,123 @@
           </div>
         </fieldset>
 
-        <div #addUserBox style="padding: 5px; display: none;">
-          <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
-          <form #addUserForm="ngForm" (ngSubmit)="addUser(addUserForm)" novalidate>
-            <table style="width: 100%;">
-              <tr>
-                <td class="column1">
-                  Username
-                </td>
-                <td>
-                  <input #userInAdd [(ngModel)]="addUserFormModel.user" type="text" name="user" style="width: 100%;" required>
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  <span>Password</span>
-                </td>
-                <td>
-                    <input [(ngModel)]="addUserFormModel.password" type="password" name="password" style="width: 100%;" required>
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  <span>Confirm</span>
-                </td>
-                <td>
-                    <input [(ngModel)]="addUserFormModel.passwordConfirm" type="password" name="password" style="width: 100%;" required>
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  Email
-                </td>
-                <td>
-                  <input [(ngModel)]="addUserFormModel.email" type="email" name="email" style="width: 100%;">
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  Full Name
-                </td>
-                <td>
-                  <input [(ngModel)]="addUserFormModel.fullname" type="text" name="fullname" style="width: 100%;">
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  Enabled
-                </td>
-                <td>
-                   <input [(ngModel)]="addUserFormModel.enabled" type="checkbox" name="enabled">
-                </td>
-              </tr>
-            </table>
-            <div>
-              <a><button type="submit" [disabled]="!addUserForm.form.valid">Save</button> <button type="button" (click)="hideUserAddBox()">Cancel</button></a>
-            </div>
-          </form>
+
+
+
+        <div *ngIf="displayUserAddForm" style="padding: 5px;">
+          <md-card>
+            <md-card-content>
+              
+              <md-card-title>
+                Add a User
+              </md-card-title>
+
+              <form class="myForm" [formGroup]="addUserForm" (ngSubmit)="addUserSubmit()" novalidate>
+
+                <md-input-container class="full-width">
+                  <input #userInAdd mdInput type="text" formControlName="username" placeholder="Username">
+                  <md-error *ngIf="addUserForm.controls['username'].hasError('userExists')">User already exists</md-error>
+                  <md-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userExists')">Minimum username length is {{minUsernameLength}} characters</md-error>
+                </md-input-container>
+                
+                <md-input-container class="full-width">
+                  <input mdInput type="text" formControlName="fullname" placeholder="Full Name">
+                </md-input-container>
+                
+                <md-input-container class="full-width">
+                  <input mdInput type="email" formControlName="email" placeholder="Email">
+                </md-input-container>
+                
+                <table class="full-width" formGroupName="passwords">
+                  <tr>
+                    <td>
+                      <md-input-container class="full-width">
+                        <input mdInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="addUserPasswordMatcher">
+                        <md-error *ngIf="addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                          Passwords do not match
+                        </md-error>
+                        <md-error *ngIf="addUserForm.controls['passwords'].controls['password'].hasError('minlength') && !addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                          Minimum password length is {{minPasswordLength}}
+                        </md-error>
+                      </md-input-container>
+                    </td>
+                    <td>
+                      <md-input-container class="full-width">
+                        <input mdInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                      </md-input-container>
+                    </td>
+                  </tr>
+                </table>
+
+                <md-checkbox type="checkbox" formControlName="enabled">Enabled</md-checkbox>
+
+                <md-card-actions align="end">
+                  <button md-button type="submit" [disabled]="!addUserForm.valid">SAVE</button> <button md-button type="button" (click)="hideUserAddBox()">CANCEL</button>
+                </md-card-actions>
+              </form>
+            </md-card-content>
+          </md-card>
         </div>
 
-        <div #editUserBox style="padding: 5px; display: none;">
-          <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
-          <form #editUserForm="ngForm" (ngSubmit)="editUser(editUserForm)" novalidate>
-            <table style="width: 100%;">
-              <tr>
-                <td class="column1">
-                  Username
-                </td>
-                <td>
-                  <span #userInEdit><b>{{editUserFormModel.user}}</b></span>
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  <span>Password</span>
-                </td>
-                <td>
-                    <input [(ngModel)]="editUserFormModel.password" type="password" name="password" style="width: 100%;">
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  <span>Confirm</span>
-                </td>
-                <td>
-                    <input [(ngModel)]="editUserFormModel.passwordConfirm" type="password" name="passwordConfirm" style="width: 100%;">
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  Email
-                </td>
-                <td>
-                  <input [(ngModel)]="editUserFormModel.email" type="email" name="email" style="width: 100%;">
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  Full Name
-                </td>
-                <td>
-                  <input [(ngModel)]="editUserFormModel.fullname" type="text" name="fullname" style="width: 100%;">
-                </td>
-              </tr>
-              <tr>
-                <td class="column1">
-                  Enabled
-                </td>
-                <td>
-                   <input [(ngModel)]="editUserFormModel.enabled" type="checkbox" name="enabled">
-                </td>
-              </tr>
-            </table>
-            <div>
-              <a><button type="submit" [disabled]="!editUserForm.form.valid">Update</button> <button type="button" (click)="hideUserEditBox()">Cancel</button></a>
-            </div>
-          </form>
+
+        <div *ngIf="displayUserEditForm" style="padding: 5px;">
+          <md-card>
+            <md-card-content>
+              
+                <md-card-title>
+                  Edit User
+                </md-card-title>
+
+              <form class="myForm" [formGroup]="editUserForm" (ngSubmit)="editUserSubmit(editUserForm)" novalidate>
+
+                <md-input-container class="full-width">
+                  <input mdInput type="text" formControlName="username" placeholder="Username" readonly>
+                </md-input-container>
+
+                <md-input-container class="full-width">
+                  <input #userInEdit mdInput type="text" formControlName="fullname" placeholder="Full Name">
+                </md-input-container>
+                
+                <md-input-container class="full-width">
+                  <input mdInput type="email" formControlName="email" placeholder="Email">
+                </md-input-container>
+
+                <table class="full-width" formGroupName="passwords">
+                  <tr>
+                    <td>
+                      <md-input-container class="full-width">
+                        <input mdInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="editUserPasswordMatcher">
+                        <md-error *ngIf="editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                          Passwords do not match
+                        </md-error>
+                        <md-error *ngIf="editUserForm.controls['passwords'].controls['password'].hasError('minlength') && !editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                          Minimum password length is {{minPasswordLength}}
+                        </md-error>
+                      </md-input-container>
+                    </td>
+                    <td>
+                      <md-input-container class="full-width">
+                        <input mdInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                      </md-input-container>
+                    </td>
+                  </tr>
+                </table>
+
+                  <md-checkbox mdInput type="checkbox" formControlName="enabled">Enabled</md-checkbox>
+                  <div class="mat-input-error" *ngIf="editUserForm.controls['enabled'].hasError('isloggedinuser')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                    Cannot disable logged-in user
+                  </div>
+
+                <md-card-actions align="end">
+                  <button md-button type="submit" [disabled]="disableEditUserSubmitButton()">UPDATE</button> <button md-button type="button" (click)="hideUserEditBox()">CANCEL</button>
+                </md-card-actions>
+
+              </form>
+            </md-card-content>
+          </md-card>
         </div>
+
+        
       </div>
     </div>
   </div>

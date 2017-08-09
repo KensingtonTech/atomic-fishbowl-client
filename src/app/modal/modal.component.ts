@@ -2,8 +2,8 @@
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
-import * as $ from 'jquery';
-//declare var $: any;
+// import * as $ from 'jquery';
+// declare var $: any;
 
 @Component({
   moduleId: module.id.toString(),

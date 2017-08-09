@@ -59,7 +59,10 @@ export class AuthenticationService {
   isLoggedIn(): Promise<boolean> {
     return this.http.get(this.apiUrl + '/isloggedin' )
                     .toPromise()
-                    .then( () => {return true} )
+                    .then( (res: any) => {
+                      this.loggedInUser = res.json();
+                      return true;
+                    })
                     .catch( () => {return false} );
   }
 

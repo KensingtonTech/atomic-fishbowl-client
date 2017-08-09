@@ -8,8 +8,8 @@ import { ModalService } from './modal/modal.service';
 import { MasonryOptions } from './masonry/masonry-options';
 import { MasonryComponent } from './masonry/masonry.component';
 import { LoggerService } from './logger-service';
-import * as $ from 'jquery';
-//declare var $: any;
+// import * as $ from 'jquery';
+// declare var $: any;
 import "rxjs/add/operator/takeWhile";
 
 @Component({

@@ -9,7 +9,7 @@ import "rxjs/add/operator/takeWhile";
 @Component({
   selector: 'confirm-user-delete-modal',
   template: `
-<modal id="{{id}}">
+<modal id="{{id}}" class="confirm-user-delete-modal">
     <div class="modal">
       <div class="noselect">
           <div class="modal-body" style="width: 350px;">
@@ -34,6 +34,17 @@ import "rxjs/add/operator/takeWhile";
       -moz-user-select: none; /* Firefox */
       -ms-user-select: none; /* Internet Explorer/Edge */
       user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+    }
+    
+    .confirm-user-delete-modal .modal {
+      z-index: 1100;
+    }
+
+    .confirm-user-delete-modal .modal-background {
+      opacity: 0.85;
+
+      /* z-index must be below .modal and above everything else  */
+      z-index: 1050 !important;
     }
   `]
 })

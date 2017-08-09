@@ -1,13 +1,5 @@
-h1 {
-  color: #369;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 250%;
-}
-
-
-
-
-
+/*Material Theme*/
+@import '~@angular/material/prebuilt-themes/pink-bluegrey.css';
 
 /*APP STYLES (taken from app.less)
 ----------------------------------------------------------------------------------*/
