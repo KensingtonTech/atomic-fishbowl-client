@@ -110,3 +110,28 @@ body .modal-open {
 
 
 
+/* Session Display Styles */
+
+.metalabel {
+  /*color: rgb(118,143,181);*/
+  color: white;
+  font-weight: bold;
+  vertical-align: top;
+  font-size: 12px;
+}
+
+.metavalue {
+  /*color: rgb(0,0,0);*/
+  color: white;
+  font-size: 10px;
+}
+
+.multiValues {
+  background-color: rgba(36, 109, 226, 0.65);
+}
+
+
+/* Fix for PDF horizontal scrollbar */
+.ng2-pdf-viewer--zoom {
+  overflow-x: visible !important;
+}

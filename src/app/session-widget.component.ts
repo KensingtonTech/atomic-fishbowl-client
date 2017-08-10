@@ -7,9 +7,9 @@ import "rxjs/add/operator/takeWhile";
 
 @Component( {
   selector: 'session-widget',
-  encapsulation: ViewEncapsulation.None,
-//changeDetection: ChangeDetectionStrategy.OnPush,
-//[updated]="updated"
+  // encapsulation: ViewEncapsulation.None,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
+  // [updated]="updated"
 
   template: `
 <div #topDiv [@faderAnimation]="enabledTrigger" style="position: absolute; right: 0; top: 0px; width: 325px; height: 100%; background-color: rgba(0,0,0,.8); padding: 5px; color: white; font-size: 12px;">
@@ -22,9 +22,10 @@ import "rxjs/add/operator/takeWhile";
         <tr *ngFor="let key of displayedKeys">
           <td class="metalabel">{{key}}</td>
           <td>
-            <ul-accordion>
-              <accordion-li *ngFor="let value of getMetaForKey(key)">{{value}}</accordion-li>
+            <ul-accordion *ngIf="meta[key]">
+              <accordion-li *ngFor="let value of meta[key]">{{value}}</accordion-li>
             </ul-accordion>
+            <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
           </td>
         </tr>
       </table>

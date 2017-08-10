@@ -50,7 +50,7 @@ import { LoggerService } from './logger-service';
       <img *ngIf="image.contentType == 'sha256Matched'" class="separator" (click)="onClick($event)" src="/resources/executable_hash_icon.png" [attr.image]="image.image" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile" draggable="false" [attr.sha256Hash]="image.sha256Hash">
 
     </div>
-    <div class="textArea" *ngIf="session && masonryKeys">
+    <div class="textArea" *ngIf="session && masonryKeys" style="position: relative;">
       <table class="selectable" style="width: 100%;">
         <tr *ngFor="let key of masonryKeys">
           <td *ngIf="session.meta[key.key]" class="column1">{{key.friendly}}</td>
@@ -99,8 +99,15 @@ import { LoggerService } from './logger-service';
     .value {
       //white-space: nowrap;
       word-wrap: break-word;
+      word-break: break-all;
       color: black;
     }
+
+    /*
+    .metarow {
+      width: 100%
+    }
+    */
 
     img {
       width: 100%;

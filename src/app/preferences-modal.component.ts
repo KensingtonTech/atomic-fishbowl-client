@@ -7,19 +7,14 @@ import { LoggerService } from './logger-service';
 
 @Component({
   selector: 'preferences-modal',
-  //changeDetection: ChangeDetectionStrategy.OnPush,
-/*
-<select style="width: 200px;" [(ngModel)]="selectedCollection" (ngModelChange)="collectionSelected($event)">
-  <option *ngFor="let collection of collections" [ngValue]="collection">{{collection.name}}</option>
-</select></a>
-*/
-/*
-<a><button (click)="addNwServer()">Save</button> <button (click)="hideServiceAddBox()">Cancel</button></a>
-*/
-//[disabled]="!addServiceForm.form.valid"
   templateUrl: './preferences-modal.component.html',
-  styleUrls: ['./preferences-modal.component.css']
+  styles: [`
 
+  table td {
+    white-space: nowrap;
+    width: 1px;
+  }
+  `]
 })
 
 export class PreferencesModalComponent {
@@ -29,25 +24,23 @@ export class PreferencesModalComponent {
               private changeDetectionRef: ChangeDetectorRef,
               private loggerService: LoggerService ) {}
 
-  //enabled: boolean = false;
-
   @Input('enabled') enabled: boolean;
   @ViewChild('topDiv') topDiv: ElementRef;
 
-  public id: string = 'preferences-modal';
+  public id = 'preferences-modal';
 
-  private defaultNwInvestigateUrl: string = '';
-  private defaultDefaultNwquery: string = "vis.level exists || content = 'application/pdf'";
-  private defaultMinX: number = 1;
-  private defaultMinY: number = 1;
-  private defaultGsPath: string = '/usr/bin/gs';
-  private defaultPdftotextPath: string = '/usr/bin/pdftotext';
-  private defaultUnrarPath: string = '/usr/bin/unrar';
+  private defaultNwInvestigateUrl = '';
+  private defaultDefaultNwquery = "vis.level exists || content = 'application/pdf'";
+  private defaultMinX = 1;
+  private defaultMinY = 1;
+  private defaultGsPath = '/usr/bin/gs';
+  private defaultPdftotextPath = '/usr/bin/pdftotext';
+  private defaultUnrarPath = '/usr/bin/unrar';
   private defaultDisplayedKeys = [ 'size', 'service', 'ip.src', 'ip.dst', 'alias.host', 'city.dst', 'country.dst', 'action', 'content', 'ad.username.src', 'ad.computer.src', 'filename', 'client'];
-  private defaultDefaultImageLimit: number = 1000;
-  private defaultDefaultRollingHours: number = 1;
+  private defaultDefaultImageLimit = 1000;
+  private defaultDefaultRollingHours = 1;
   public defaultQueries = defaultQueries;
-  private defaultMasonryColumnSize: number = 350;
+  private defaultMasonryColumnSize = 350;
 
   private defaultMasonryKeys: any = [
                                 { key: 'alias.host', friendly: 'Hostname' },
@@ -72,10 +65,10 @@ export class PreferencesModalComponent {
                                   }
 
   getDisplayedKeysValue(a: any): string {
-    var text: string = "";
-    for (var i = 0; i < a.length; i++) {
+    let text = '';
+    for (let i = 0; i < a.length; i++) {
       text += a[i];
-      if (i < a.length - 1) { //omit the newline on the last line
+      if (i < a.length - 1) { // omit the newline on the last line
        text += '\n';
       }
     }
@@ -83,10 +76,10 @@ export class PreferencesModalComponent {
   }
 
   getMasonryKeysValue(a: any): string {
-    var text: string = "";
-    for (var i = 0; i < a.length; i++) {
+    var text = '';
+    for (let i = 0; i < a.length; i++) {
       text += a[i].key + ',' + a[i].friendly;
-      if (i < a.length - 1) { //omit the newline on the last line
+      if (i < a.length - 1) { // omit the newline on the last line
        text += '\n';
       }
     }
@@ -94,25 +87,74 @@ export class PreferencesModalComponent {
   }
 
   setDisplayedKeysValue(v: string): any {
-    let newarray = v.split('\n');
-    return newarray;
+    let n = v.split('\n');
+    let newArray = [];
+    for (let x = 0; x < n.length; x++) {
+      // remove blank lines
+      if (!n[x].match(/^\s*$/)) {
+        newArray.push(n[x]);
+      }
+    }
+    let keysArray = [];
+    for (let x = 0; x < newArray.length; x++) {
+      newArray[x] = newArray[x].replace(/^\s+/, '').replace(/\s+$/, ''); // remove leading and trailing whitespace
+      if (newArray[x].match(/\s/)) {
+        // we will skip this row if the key contains any remaining whitespace
+        continue;
+      }
+      keysArray.push(newArray[x]);
+    }
+    // console.log('PreferencesModalComponent: setDisplayedKeysValue(): keysArray:', keysArray);
+    return keysArray;
   }
 
+
   setMasonryKeysValue(v: string): any {
-    let newArray = v.split('\n');
+    let n = v.split('\n'); // split by newline
+    let newArray = [];
+    // console.log('PreferencesModalComponent: setMasonryKeysValue(): n:', n);
+
+    for (let x = 0; x < n.length; x++) {
+      //remove blank lines
+      if (!n[x].match(/^\s*$/)) {
+        newArray.push(n[x]);
+      }
+    }
+    // console.log('PreferencesModalComponent: setMasonryKeysValue(): newArray:', newArray);
+
     let keysArray = [];
+
     for (let i=0; i < newArray.length; i++) {
       let x = {};
       let y = newArray[i].split(',');
-      x['key'] = y[0];
-      x['friendly'] = y[1];
+      // console.log('y:', y);
+
+      y[0] = y[0].replace(/\s+$/, '').replace(/^\s+/, ''); // remove trailing and leading whitespace from key name, if any
+
+      if (y[0].match(/\s/)) {
+        // We will skip this row if the key contains any remaining whitespace
+        continue;
+      }
+
+      x['key'] = y[0]; // assign key name
+
+      if (y.length >= 2) {
+        // if user specifies CSV notation, save the second part as the friendly name
+        let s = y[1].replace(/^\s+/, '').replace(/\s+$/, ''); // remove leading and trailing whitespace
+        x['friendly'] = s;
+      }
+      else {
+        // if not in CSV notation, save the key name as the friendly name 
+        x['friendly'] = y[0];
+      }
       keysArray.push(x);
     }
+    // console.log('PreferencesModalComponent: setMasonryKeysValue(): keysArray:', keysArray);
     return keysArray;
   }
 
   cancel(): void {
-    //this.resetForm();
+    // this.resetForm();
     this.modalService.close(this.id);
   }
 
@@ -121,14 +163,14 @@ export class PreferencesModalComponent {
   }
 
   cancelledEventReceived(): void {
-    //console.log("PreferencesModalComponent: cancelledEventReceived()");
-    //this.resetForm();
+    // console.log('PreferencesModalComponent: cancelledEventReceived()';
+    // this.resetForm();
   }
 
   onOpen(): void {
-    console.log("PreferencesModalComponent: onOpen()");
+    console.log('PreferencesModalComponent: onOpen()');
     this.dataService.getPreferences()
-                    .then( (prefs: any) => {  console.log("prefs:", prefs);
+                    .then( (prefs: any) => {  console.log('PreferencesModalComponent: onOpen(): prefs:', prefs);
                                               if ( 'nwInvestigateUrl' in prefs ) {
                                                 this.preferencesModel.nwInvestigateUrl = prefs.nwInvestigateUrl;
                                               }
@@ -174,7 +216,7 @@ export class PreferencesModalComponent {
   }
 
   submitPreferences(f: any): void {
-    console.log("PreferencesModalComponent: submitPreferences()", f);
+    console.log("PreferencesModalComponent: submitPreferences(): f", f);
     let prefs = {
       nwInvestigateUrl: f.value.nwInvestigateUrl,
       defaultNwQuery: f.value.defaultNwQuery,

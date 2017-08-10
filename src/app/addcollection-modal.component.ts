@@ -6,7 +6,26 @@ import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
 import { LoggerService } from './logger-service';
 declare var moment: any;
-import "rxjs/add/operator/takeWhile";
+import 'rxjs/add/operator/takeWhile';
+
+/*
+declare global {
+  interface String {
+    hasWhitespace: boolean;
+    isBlank: boolean;
+  }
+}
+
+String.prototype.hasWhitespace = function(c): boolean {
+  if (c.match(/\s/)) { return true; }
+  return false;
+}
+
+String.prototype.isBlank = function(c) {
+  if (this.length === 0) {return true;}
+  return false;
+}
+*/
 
 @Component({
   selector: 'add-collection-modal',
@@ -57,7 +76,7 @@ import "rxjs/add/operator/takeWhile";
 
 export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
-  constructor(private dataService : DataService,
+  constructor(private dataService: DataService,
               private modalService: ModalService,
 //              private el: ElementRef,
               private renderer: Renderer,
@@ -69,31 +88,31 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
-  private alive: boolean = true;
+  private alive = true;
   private enabledTrigger: string;
-  public collectionFormDisabled: boolean = false;
+  public collectionFormDisabled = false;
 
-  private defaultColName: string = '';
-  private defaultColQuery: string = "vis.level exists || content = 'application/pdf'";
-  private defaultColImageLimit: number = 1000;
+  private defaultColName = '';
+  private defaultColQuery = "vis.level exists || content = 'application/pdf'";
+  private defaultColImageLimit = 1000;
   private defaultColService: any = undefined;
-  private defaultNwserver: string = '';
-  private defaultMinX: number = 1;
-  private defaultMinY: number = 1;
-  private defaultDistillationEnabled: boolean = false;
-  private defaultDistillationTerms: string = '';
-  private defaultRegexDistillationEnabled: boolean = false;
-  private defaultRegexDistillationTerms: string = '';
-  private defaultCollectionType: string = 'fixed';
-  private defaultMd5Hashes: string = '';
-  private defaultSha1Hashes: string = '';
-  private defaultSha256Hashes: string = '';
+  private defaultNwserver = '';
+  private defaultMinX = 1;
+  private defaultMinY = 1;
+  private defaultDistillationEnabled = false;
+  private defaultDistillationTerms = '';
+  private defaultRegexDistillationEnabled = false;
+  private defaultRegexDistillationTerms = '';
+  private defaultCollectionType = 'fixed';
+  private defaultMd5Hashes = '';
+  private defaultSha1Hashes = '';
+  private defaultSha256Hashes = '';
 
   public collectionFormModel = {
     name: this.defaultColName,
     query: this.defaultColQuery,
     imageLimit: this.defaultColImageLimit,
-    nwserver: this.defaultNwserver, //id
+    nwserver: this.defaultNwserver,
     minX: this.defaultMinX,
     minY: this.defaultMinY,
     distillationEnabled: this.defaultDistillationEnabled,
@@ -105,21 +124,20 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     type: this.defaultCollectionType,
     lastHours: 24,
     md5Enabled: false,
-    md5Hashes:this.defaultMd5Hashes,
+    md5Hashes: this.defaultMd5Hashes,
     sha1Enabled: false,
-    sha1Hashes:this.defaultSha1Hashes,
+    sha1Hashes: this.defaultSha1Hashes,
     sha256Enabled: false,
-    sha256Hashes:this.defaultSha256Hashes
+    sha256Hashes: this.defaultSha256Hashes
   };
 
-  //selectedNwServer: string;
   public nwservers: any;
-  private defaultHostname: string = '';
-  private defaultUser: string = '';
-  private defaultPassword: string = '';
-  private defaultRestPort: number = 50103;
-  private defaultSSL: boolean = false;
-  private defaultDeviceNumber: number = 13;
+  private defaultHostname = '';
+  private defaultUser = '';
+  private defaultPassword = '';
+  private defaultRestPort = 50103;
+  private defaultSSL = false;
+  private defaultDeviceNumber = 13;
   public serviceFormModel = {
     hostname: this.defaultHostname,
     restPort: this.defaultRestPort,
@@ -127,19 +145,19 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     user: this.defaultUser,
     password: this.defaultPassword,
     deviceNumber: this.defaultDeviceNumber
-  }
-
-
+  };
+  public defaultQueries = defaultQueries;
+  public selectedQuery: any = this.defaultQueries[2];
   private preferences: any;
   private timeframes: any = ['Last 5 Minutes', 'Last 10 Minutes', 'Last 15 Minutes', 'Last 30 Minutes', 'Last Hour', 'Last 3 Hours', 'Last 6 Hours', 'Last 12 Hours', 'Last 24 Hours', 'Last 48 Hours', 'Last 5 Days (120 Hours)', 'Today', 'Yesterday', 'This Week', 'Last Week', 'Custom'];
-  private selectedTimeframe: string = 'Last Hour';
-  public displayCustomTimeframeSelector: boolean = false;
+  private selectedTimeframe = 'Last Hour';
+  public displayCustomTimeframeSelector = false;
 
 
   ngOnInit(): void {
     this.getNwServers();
     this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
-                                                                      //console.log("prefs observable: ", prefs);
+                                                                      // console.log("AddCollectionModalComponent: prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'defaultNwQuery' in prefs ) {
                                                                         this.defaultColQuery = prefs.defaultNwQuery;
@@ -157,7 +175,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                                                                         this.collectionFormModel.lastHours = prefs.defaultRollingHours;
                                                                       }
                                                                       if ( 'defaultQuerySelection' in prefs ) {
-                                                                        for (let q=0; q < this.defaultQueries.length; q++) {
+                                                                        for (let q = 0; q < this.defaultQueries.length; q++) {
                                                                           if (this.defaultQueries[q].text === prefs.defaultQuerySelection) {
                                                                             setTimeout(() => this.selectedQuery = this.defaultQueries[q]);
                                                                             this.collectionFormModel.query = this.defaultQueries[q].queryString;
@@ -174,25 +192,19 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.alive = false;
   }
 
-  public defaultQueries = defaultQueries;
-  public selectedQuery: any = this.defaultQueries[2];
-
   querySelected(e: any): void {
-    //console.log("querySelected():", e);
-    if (e.text === "Default Query") {
+    // console.log('AddCollectionModalComponent: querySelected(): e', e);
+    if (e.text === 'Default Query') {
       this.collectionFormModel.query = this.defaultColQuery;
     }
-//    else if (e.text === "Custom Query") {
-//      this.collectionFormModel.query = this.defaultColQuery;
-//    }
     else {
       this.collectionFormModel.query = e.queryString;
     }
   }
 
-  timeframeSelected(e: any): void{
-    if (this.selectedTimeframe == 'Custom') {
-      //display custom timeframe selector
+  timeframeSelected(e: any): void {
+    if (this.selectedTimeframe === 'Custom') {
+      // display custom timeframe selector
       this.displayCustomTimeframeSelector = true;
     }
     else {
@@ -203,21 +215,21 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   displayServiceAddBox(): void {
     this.renderer.setElementStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
     this.collectionFormDisabled = true;
-    //setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
+    // setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
     this.hostNameRef.first.nativeElement.focus();
   }
 
   hideServiceAddBox(): void {
     this.renderer.setElementStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
-    this.serviceFormModel.hostname=this.defaultHostname;
-    this.serviceFormModel.restPort=this.defaultRestPort;
-    this.serviceFormModel.ssl=this.defaultSSL;
-    this.serviceFormModel.user=this.defaultUser;
+    this.serviceFormModel.hostname = this.defaultHostname;
+    this.serviceFormModel.restPort = this.defaultRestPort;
+    this.serviceFormModel.ssl = this.defaultSSL;
+    this.serviceFormModel.user = this.defaultUser;
     this.serviceFormModel.password = this.defaultPassword;
     this.collectionFormDisabled = false;
   }
 
-  cancel() : void {
+  cancel(): void {
     this.modalService.close(this.id);
   }
 
@@ -226,115 +238,101 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   cancelledEventReceived(): void {
-    console.log("cancelledEventReceived()");
+    console.log('AddCollectionModalComponent: cancelledEventReceived()');
   }
 
   getNwServers(): void {
-    //console.log("AddCollectionModalComponent: getNwServers()");
+    // console.log("AddCollectionModalComponent: getNwServers()");
     this.dataService.getNwServers().then(n => {
                                                 this.nwservers = n;
-                                                //console.log("AddCollectionModalComponent getNwServers():", this.nwservers);
+                                                // console.log("AddCollectionModalComponent: getNwServers(): this.nwservers:", this.nwservers);
                                                 this.collectionFormModel.nwserver = this.getFirstNwServer();
                                                 this.changeDetectionRef.markForCheck();
-                                              }); //console.log('nwservers:');
+                                              });
   }
 
   getFirstNwServer(): any { // a bit of a hack since dicts aren't really ordered
-    for (var s in this.nwservers) {
-      //console.log(s);
+    for (let s in this.nwservers) {
+      // console.log(AddCollectionModalComponent: getFirstNwServer: s, s);
       return s;
     }
   }
 
-  deleteNwServer() : void {
-    console.log("deleteNwServer()");
-    console.log(this.collectionFormModel.nwserver);
-    //console.log(this.nwservers[this.collectionFormModel.nwserver].friendlyName);
+  deleteNwServer(): void {
+    console.log('AddCollectionModalComponent: deleteNwServer(): this.collectionFormModel.nwserver', this.collectionFormModel.nwserver);
+    // console.log(this.nwservers[this.collectionFormModel.nwserver].friendlyName);
     this.dataService.deleteNwServer(this.collectionFormModel.nwserver).then ( () => this.getNwServers() );
   }
 
   convertTimeSelection(): any {
-    var t = { timeBegin: 0, timeEnd: 0 };
+    const t = { timeBegin: 0, timeEnd: 0 };
+    const d = new Date();
     if (this.selectedTimeframe === 'Last 5 Minutes') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * 5 );
     }
     if (this.selectedTimeframe === 'Last 10 Minutes') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * 10 );
     }
     if (this.selectedTimeframe === 'Last 15 Minutes') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * 15 );
     }
     if (this.selectedTimeframe === 'Last 30 Minutes') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * 30 );
     }
     if (this.selectedTimeframe === 'Last Hour') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * 60 );
     }
     if (this.selectedTimeframe === 'Last 3 Hours') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * (60 * 3) );
     }
     if (this.selectedTimeframe === 'Last 6 Hours') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * (60 * 6) );
     }
     if (this.selectedTimeframe === 'Last 12 Hours') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * (60 * 12) );
     }
     if (this.selectedTimeframe === 'Last 24 Hours') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * (60 * 24) );
     }
     if (this.selectedTimeframe === 'Last 48 Hours') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * (60 * 24) * 2 );
     }
     if (this.selectedTimeframe === 'Last 5 Days (120 Hours)') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = ( now - 60 * (60 * 24) * 5 );
     }
     if (this.selectedTimeframe === 'Today') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = moment().startOf('day').unix();
     }
     if (this.selectedTimeframe === 'Yesterday') {
-      var d = new Date();
       t.timeEnd = moment().startOf('day').unix() - 1;
       t.timeBegin = moment().startOf('day').unix() - 86400;
     }
     if (this.selectedTimeframe === 'This Week') {
-      var d = new Date();
-      var now = Math.round(d.getTime() / 1000);
+      const now = Math.round(d.getTime() / 1000);
       t.timeEnd = now;
       t.timeBegin = moment().startOf('week').unix();
     }
@@ -350,33 +348,78 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   unique(a: any): any {
-    var unique = [];
+    let unique = [];
     for (let i = 0; i < a.length; i++) {
       let current = a[i];
-      if (unique.indexOf(current) < 0) unique.push(current);
+      if (unique.indexOf(current) < 0) { unique.push(current); }
     }
     return unique;
   }
 
   grokLines(t: string): any {
-    var terms = t.split('\n');
-    var midterms: any = [];
-    for (let i=0; i < terms.length; i++) {
+    let terms = t.split('\n');
+    let midterms: any = [];
+    for (let i = 0; i < terms.length; i++) {
       let term = terms[i];
-      //console.log("term:", term);
+      // console.log("term:", term);
       term = term.replace(/\s+$/g, '');
       term = term.replace(/^\s+/g, '');
-      if ( ! term.match(/^\s*$/g) ) { //remove blank lines from array
-        midterms.push(term)
+      if ( ! term.match(/^\s*$/g) ) { // remove blank lines from array
+        midterms.push(term);
       }
     }
-    let endterms = this.unique(midterms);  //de-deduplicate array
+    let endterms = this.unique(midterms); // de-deduplicate array
     return endterms;
   }
 
+   grokHashingLines(v: string): any {
+    let n = v.split('\n'); // split by newline
+    let newArray = [];
+    // console.log('AddCollectionModalComponent: grokHashingLines(): n:', n);
+
+    for (let x = 0; x < n.length; x++) {
+      // remove blank lines
+      if (!n[x].match(/^\s*$/)) {
+        newArray.push(n[x]);
+      }
+    }
+    // console.log('AddCollectionModalComponent: grokHashingLines(): newArray:', newArray);
+
+    let keysArray = [];
+
+    for (let i = 0; i < newArray.length; i++) {
+      let x = {};
+      let y = newArray[i].split(',');
+      // console.log('y:', y);
+
+      y[0] = y[0].replace(/\s+$/, '').replace(/^\s+/, ''); // remove trailing and leading whitespace from key name, if any
+
+      if (y[0].match(/\s/)) {
+        // We will skip this row if the key contains any remaining whitespace
+        continue;
+      }
+
+      x['hash'] = y[0]; // assign key name
+
+      if (y.length >= 2) {
+        // if user specifies CSV notation, save the second part as the file name
+        let s = y[1].replace(/^\s+/, '').replace(/\s+$/, ''); // remove leading and trailing whitespace
+        x['file'] = s;
+      }
+      
+      /*else { //we don't want to define the file key if the user doesn't specify one
+        // if not in CSV notation, save the key name as the file name
+        x['file'] = y[0];
+      }*/
+      keysArray.push(x);
+    }
+    // console.log('AddCollectionModalComponent: grokHashingLines(): keysArray:', keysArray);
+    return keysArray;
+  }
+
   addCollection(f: NgForm): void {
-    console.log("addCollection()", f);
-    let time = <number>(Math.round( <any>(new Date()) / 1000) );
+    console.log('AddCollectionModalComponent: addCollection(): f:', f);
+    const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
     let newCollection = {
       type: f.value.type,
@@ -393,13 +436,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       sha1Enabled: f.value.sha1Enabled,
       sha256Enabled: f.value.sha256Enabled,
       executeTime: time
-    }
+    };
 
     if ( f.value.type === 'rolling' ) {
       newCollection['lastHours'] = f.value.lastHours;
     }
     else if ( f.value.type === 'fixed' ) {
-      var t = this.convertTimeSelection();
+      let t = this.convertTimeSelection();
       newCollection['timeBegin'] = t.timeBegin;
       newCollection['timeEnd'] = t.timeEnd;
     }
@@ -463,7 +506,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log("newCollection:", newCollection);
+    console.log('AddCollectionModalComponent: addCollection(): newCollection:', newCollection);
     this.dataService.addCollection(newCollection)
                     .then( () => {
                                     this.executeCollectionEvent.emit(newCollection);
@@ -471,8 +514,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                                   });
   }
 
-  addNwServer(f: NgForm) : void {
-//    console.log("addNwServer()", f);
+  addNwServer(f: NgForm): void {
+    // console.log("AddCollectionModalComponent: addNwServer(): f:", f);
     this.hideServiceAddBox();
     let newServer = {
       host: f.value.hostname,
@@ -482,24 +525,24 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       password: f.value.password,
       deviceNumber: f.value.deviceNumber,
       friendlyName: f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ' (' + f.value.deviceNumber + ')'
-    }
+    };
     if (newServer.ssl) {
-      //newServer.friendlyName = newServer.friendlyName + ':ssl';
+      // newServer.friendlyName = newServer.friendlyName + ':ssl';
       newServer.friendlyName = f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ':ssl' + ' (' + f.value.deviceNumber + ')';
     }
-    console.log(newServer);
+    console.log('AddCollectionModalComponent: addNwServer() newServer:', newServer);
     this.dataService.addNwServer(newServer).then( () => this.getNwServers() );
   }
 
   onOpen(): void {
-    console.log("addCollectionModal: onOpen()");
+    console.log('AddCollectionModalComponent: onOpen()');
     this.dataService.getPreferences();
     this.nameBoxRef.first.nativeElement.focus();
   }
 
   timeValue(): void {
-    console.log("time1:", this.collectionFormModel.timeBegin.getTime() / 1000);
-    console.log("time2:", this.collectionFormModel.timeEnd.getTime() / 1000);
+    console.log('time1:', this.collectionFormModel.timeBegin.getTime() / 1000);
+    console.log('time2:', this.collectionFormModel.timeEnd.getTime() / 1000);
   }
 
 }

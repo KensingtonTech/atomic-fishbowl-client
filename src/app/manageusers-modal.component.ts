@@ -23,15 +23,33 @@ function userExists(c: AbstractControl) {
     for (let i = 0; i < this.users.length; i++) {
       const user = this.users[i];
       if ( c.value === user.username ) {
-        return { 'userExists': true };
+        return { 'userexists': true };
       }
     }
   }
   return null;
 }
 
+function spaceValidator(c: AbstractControl) {
+  const v = c.value;
+  if ( v.match(/\s/g) ) { 
+    return { 'spaceexists': true };
+  }
+  return null;
+}
+
+function emailValidator(c: AbstractControl) {
+  const EMAIL_REGEXP = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+  // if (!EMAIL_REGEXP.test(email)) {
+  if (!c.value.match(EMAIL_REGEXP)) {
+      return { 'notemail': true };
+  }
+  return null;
+}
+
 function isNotLoggedInUser(c: AbstractControl) {
-  console.log('isNotLoggedInUser', c);
+  // console.log('isNotLoggedInUser', c);
   // if ( this.authService && c.get('username') && this.authService.loggedInUser.id !== c.get('username').value ) {
   if ( this.authService && this.editingUser &&  this.authService.loggedInUser.username === this.editingUser.username && c.value === false ) {
     // console.log('returning isloggedinuser');
@@ -125,11 +143,10 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('ManageUsersModalComponent: ngOnInit');
     this.getUsers();
-    
     this.addUserForm = this.fb.group({
-      username: ['', Validators.compose( [ Validators.required, Validators.minLength(this.minUsernameLength), userExists.bind(this)]) ],
+      username: ['', Validators.compose( [ Validators.required, spaceValidator, Validators.minLength(this.minUsernameLength), userExists.bind(this)]) ],
       fullname: '',
-      email: '',
+      email: ['', emailValidator],
       passwords: this.fb.group({
         password: ['', Validators.compose( [ Validators.required, Validators.minLength(this.minPasswordLength) ]) ],
         passwordConfirm: ['', Validators.required]
@@ -141,7 +158,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       id: '',
       username: '',
       fullname: '',
-      email: '',
+      email: ['', emailValidator],
       passwords: this.fb.group({
         password: ['', Validators.minLength(this.minPasswordLength)],
         passwordConfirm: ''
@@ -161,7 +178,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 /////////////////////////////////////////////////////////////////
 
   displayUserAddBox(): void {
-    console.log('addUserForm', this.addUserForm);
+    console.log('ManageUsersModalComponent: displayUserAddBox(): this.addUserForm:', this.addUserForm);
     this.errorDefined = false;
     this.displayUserAddForm = true;
     this.usersFormDisabled = true;
@@ -169,7 +186,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   addUserSubmit(): void {
-    console.log('addUserForm', this.addUserForm);
+    console.log('ManageUsersModalComponent: addUserSubmit: this.addUserForm:', this.addUserForm);
     this.hideUserAddBox();
     const newUser = {
       username: this.addUserForm.value.username,
@@ -178,7 +195,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       email: this.addUserForm.value.email,
       enabled: this.addUserForm.value.enabled
     };
-    console.log('ManageUsersModalComponent: newUser:', newUser);
+    console.log('ManageUsersModalComponent: addUserSubmit(): newUser:', newUser);
     this.addUserForm.patchValue({
       username: '',
       email: '',

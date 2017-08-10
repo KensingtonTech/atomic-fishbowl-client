@@ -31,7 +31,6 @@ import { LoggerService } from './logger-service';
   <img *ngIf="showHighRes" [class.pdf]="isPdf" (load)="onImgLoad()" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + image.image" class="image-gallery-thumbnail" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile">
 </div>
   `,
-//      display:inline-block;
   styles: [`
     .image-gallery-thumbnail-container {
       //display: none;
@@ -64,14 +63,6 @@ import { LoggerService } from './logger-service';
     .disable {
 
     }
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
-    }
   `],
 /*
   animations: [
@@ -95,7 +86,6 @@ export class ImgTileComponent implements OnChanges {
   @Input('showHighRes') showHighRes: boolean = false;
   @Input('image') image: any;
   @Input('session') session: any;
-//  @Input('showOnlyImages') showOnlyImages: any = [];
   @Output('openPDFViewer') openPDFViewerEmitter: EventEmitter<any> = new EventEmitter<any>();
   private enabledTrigger: string = 'disabled';
   private isPdf: boolean = false;

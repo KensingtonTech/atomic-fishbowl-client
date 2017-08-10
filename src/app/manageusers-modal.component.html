@@ -52,8 +52,9 @@
 
                 <md-input-container class="full-width">
                   <input #userInAdd mdInput type="text" formControlName="username" placeholder="Username">
-                  <md-error *ngIf="addUserForm.controls['username'].hasError('userExists')">User already exists</md-error>
-                  <md-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userExists')">Minimum username length is {{minUsernameLength}} characters</md-error>
+                  <md-error *ngIf="addUserForm.controls['username'].hasError('spaceexists')">Spaces are not permitted in usernames</md-error>
+                  <md-error *ngIf="addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">User already exists</md-error>
+                  <md-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">Minimum username length is {{minUsernameLength}} characters</md-error>
                 </md-input-container>
                 
                 <md-input-container class="full-width">
@@ -62,6 +63,7 @@
                 
                 <md-input-container class="full-width">
                   <input mdInput type="email" formControlName="email" placeholder="Email">
+                  <md-error>Not a valid email address format</md-error>
                 </md-input-container>
                 
                 <table class="full-width" formGroupName="passwords">
@@ -116,6 +118,7 @@
                 
                 <md-input-container class="full-width">
                   <input mdInput type="email" formControlName="email" placeholder="Email">
+                  <md-error>Not a valid email address format</md-error>
                 </md-input-container>
 
                 <table class="full-width" formGroupName="passwords">

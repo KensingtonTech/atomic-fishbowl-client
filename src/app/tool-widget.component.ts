@@ -1,7 +1,7 @@
 import { Component, Output, OnInit, OnChanges, AfterViewInit, OnDestroy, ElementRef, ViewChild, ViewChildren, ContentChild, Input, Renderer, ViewContainerRef, QueryList, ViewEncapsulation } from '@angular/core';
 import { ToolWidgetCommsService } from './tool-widget.comms.service';
-import { Observable }        from 'rxjs/Observable';
-import { Subject }           from 'rxjs/Subject';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
 import { DataService } from './data.service';
 import { Collection } from './collection';
 import { NwServer } from './nwserver';
@@ -9,7 +9,7 @@ import { HostListener } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { AuthenticationService } from './authentication.service';
 import { LoggerService } from './logger-service';
-import "rxjs/add/operator/takeWhile";
+import 'rxjs/add/operator/takeWhile';
 
 @Component( {
   selector: 'tool-widget',

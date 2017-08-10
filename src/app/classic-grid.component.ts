@@ -23,8 +23,8 @@ import "rxjs/add/operator/takeWhile";
     </div>
   </panzoom>
   <grid-control-bar [canvasWidth]="canvasWidth" [initialZoomHeight]="initialZoomHeight" ></grid-control-bar>
+  <pdf-viewer-modal [apiServerUrl]="apiServerUrl" id="pdf-viewer"></pdf-viewer-modal>
   <session-widget [enabled]="sessionWidgetEnabled" [sessionId]="hoveredImageSession" #sessionWidget></session-widget>
-  <pdf-viewer-modal [apiServerUrl]="apiServerUrl" [sessionDetails]="selectedSessionDetails"></pdf-viewer-modal>
 </div>
 `,
   styles: [`
