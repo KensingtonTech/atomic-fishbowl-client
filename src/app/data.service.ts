@@ -239,8 +239,8 @@ export class DataService { //Manages NwSession objects and also Image objects in
                                                             this.imagePublished.next(o.collectionUpdate.images);
                                                           }
                                                           if ('search' in o.collectionUpdate) {
-                                                            console.log("search:", o.collectionUpdate.search);
-                                                            this.searchPublished.next(o.collectionUpdate.search[0]);
+                                                            //console.log("search:", o.collectionUpdate.search);
+                                                            this.searchPublished.next(o.collectionUpdate.search);
                                                             //this.searchPublished.next(o.collectionUpdate.search);
                                                           }
                                                         }

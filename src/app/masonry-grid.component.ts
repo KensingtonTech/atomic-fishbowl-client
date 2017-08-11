@@ -17,7 +17,7 @@ import 'rxjs/add/operator/takeWhile';
   changeDetection: ChangeDetectionStrategy.OnPush,
   // [ngStyle]="{'width.px': masonryColumnSize}"
   template: `
-<div style="position:relative; width: 100%; height: 100%; background-color: black;">
+<div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px; background-color: black;">
   <div style="position: absolute; left: 0; width: 100px; height: 100%;">
     <masonry-control-bar></masonry-control-bar>
     <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 15px; top: 100px; color: white; z-index: 100;">
@@ -25,9 +25,9 @@ import 'rxjs/add/operator/takeWhile';
       <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="togglePauseMonitoring()"></i>
     </div>
   </div>
-  <div *ngIf="!destroyMasonry" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; overflow-y: scroll; height: 100%;">
-    <masonry class="grid" *ngIf="images && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [shownBricks]="shownBricks" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%;">
-      <masonry-tile class="brick" [ngStyle]="{'width.px': masonryColumnSize}" *ngFor="let image of images" [image]="image" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[image.session]" [attr.image]="image.image" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
+  <div *ngIf="!destroyMasonry" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
+    <masonry class="grid" *ngIf="images && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [shownBricks]="shownBricks" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
+      <masonry-tile class="brick" [ngStyle]="{'width.px': masonryColumnSize}" *ngFor="let image of images" [image]="image" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[image.session]" [attr.contentFile]="image.contentFile" [attr.sessionid]="image.session" [attr.contentType]="image.contentType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
     </masonry>
     <div class="scrollTarget"></div>
   </div>
@@ -102,7 +102,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   //@ViewChild('scrollTarget') scrollTarget: ElementRef;
   //@ViewChild('scrollContainer') scrollContainer: ElementRef;
   private loadAllBeforeLayout: boolean = true;
-  private imageIncludedTypes: any = ['image', 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry'];
+  private imageIncludedTypes: any = ['image', 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'hash']; //we need to break out these other types
   private masonryKeys: any;
   private alive: boolean = true;
 
@@ -338,7 +338,10 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
                                                               console.log("MasonryGridComponent: searchPublishedSubscription: searchPublished:", s);
-                                                              this.search.push(s);
+                                                              for (let i = 0; i < s.length; i++) {
+                                                                this.search.push(s[i]);
+                                                              }
+                                                              // console.log("MasonryGridComponent: searchPublishedSubscription: this.search:", this.search);
                                                               this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
                                                               this.changeDetectionRef.detectChanges();
                                                               this.changeDetectionRef.markForCheck();
@@ -519,7 +522,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
   }
 
-  getImageById(n: number): any {
+  getImageBySession(n: number): any {
     for (var x=0; x < this.images.length; x++) {
       if (this.images[x].session === n) {
         return this.images[x];
@@ -527,14 +530,26 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  getImageBySessionAndContentFile(o: any): any {
+    for (var x=0; x < this.images.length; x++) {
+      if (this.images[x].session === o.session && this.reduceContentFile(this.images[x].contentFile) === o.contentFile) {
+        return this.images[x];
+      }
+    }
+  }
+
   imagesToBricks(imgs: any): any {
+    // console.log('MasonryGridComponent: imagesToBricks: imgs:', imgs);
     var retImgs = [];
     for (let i=0; i < imgs.length; i++) {
       let img = {
-                  image: imgs[i].image,
+                  contentFile: imgs[i].contentFile, //////////////////////////////////////////////////////////////check this!
                   session: imgs[i].session,
                   type: imgs[i].contentType
                 };
+      if ('hashType' in imgs[i]) {
+        img['hashType'] = imgs[i].hashType;
+      }
       retImgs.push(img);
     }
     return retImgs;
@@ -545,7 +560,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
     // console.log('MasonryGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
-    let matchedSessionIds = [];
+    let matchedSessions = [];
 
 
     if (searchTerms === '') {
@@ -555,27 +570,35 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (this.search.length > 0) {
-      // Ok, we have a search term to do something with.  This block will generate matchedSessionIds[]
+      // Ok, we have a search term to do something with.  This block will generate matchedSessions[]
+      // console.log('MasonryGridComponent: searchTermsChanged: this.search:', this.search);
       for (let i=0; i < this.search.length; i++) {
-        if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) {
-          // case-insensitive search
-          let sessionId = this.search[i].session;
-          matchedSessionIds.push(sessionId);
+        if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
+          // we found a match!
+          let matchedSession = {
+            session: this.search[i].session,
+            contentFile: this.search[i].contentFile
+          };
+          matchedSessions.push(matchedSession);
         }
-        else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) {
-          // case-sensitive search
-          let sessionId = this.search[i].session;
-          matchedSessionIds.push(sessionId);
+        else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) { // case-sensitive search
+          // we found a match!
+          let matchedSession = {
+            session: this.search[i].session,
+            contentFile: this.search[i].contentFile
+          };
+          matchedSessions.push(matchedSession);
         }
       }
     }
 
-    if ( matchedSessionIds.length !== 0 ) {
+    if ( matchedSessions.length !== 0 ) {
       // Let's now turn our matched session id's into shownBricks[]
-      // console.log('MasonryGridComponent: searchTermsChanged: Length of matchedSessionIds:', matchedSessionIds.length);
+      // console.log('MasonryGridComponent: searchTermsChanged: Length of matchedSessions:', matchedSessions.length);
+      // console.log('MasonryGridComponent: searchTermsChanged: matchedSessions:', matchedSessions);
       let localShownBricks = [];
-      for (let x=0; x < matchedSessionIds.length; x++) {
-        let img = this.getImageById(matchedSessionIds[x]);
+      for (let x=0; x < matchedSessions.length; x++) {
+        let img = this.getImageBySessionAndContentFile(matchedSessions[x]);
         let brick = this.imagesToBricks( [img] )
         localShownBricks.push( brick[0] );
       }
@@ -587,6 +610,13 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();
+  }
+
+  reduceContentFile(s: string): string {
+    const RE = /([^/]*)$/;
+    let match = RE.exec(s);
+    //console.log(match[0]);
+    return match[0];
   }
 
 }

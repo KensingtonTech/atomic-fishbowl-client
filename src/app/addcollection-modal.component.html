@@ -1,10 +1,10 @@
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
   <div class="modal">
-    <div class="modal-body" style="width:480px; max-height: 90%; overflow: auto; top: 5%;">
+    <div class="modal-body" style="width: 480px; max-height: 90%; overflow: auto; top: 5%;">
       <div>
         <h3 style="margin-top:0px; margin-bottom: 10px;">Create a New Collection</h3>
         <fieldset [disabled]="collectionFormDisabled" style="border: none; margin: 0; padding: 0;">
-        <form #addCollectionForm="ngForm" (ngSubmit)="addCollection(addCollectionForm)" novalidate>
+        <form #addCollectionForm="ngForm" (ngSubmit)="addCollectionSubmit(addCollectionForm)" novalidate>
         <div>
           <table style="width: 100%;">
             <tr>
@@ -105,7 +105,7 @@
                 </span>
               </td>
               <td>
-                <textarea name="distillationTerms" [(ngModel)]="collectionFormModel.distillationTerms" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="distillationTerms" wrap="off" [(ngModel)]="collectionFormModel.distillationTerms" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
 
@@ -128,7 +128,7 @@
                 </span>
               </td>
               <td>
-                <textarea name="regexDistillationTerms" [(ngModel)]="collectionFormModel.regexDistillationTerms" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="regexDistillationTerms" wrap="off" [(ngModel)]="collectionFormModel.regexDistillationTerms" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
             <tr>
@@ -149,7 +149,7 @@
                 </span>
               </td>
               <td>
-                <textarea name="sha1Hashes" [(ngModel)]="collectionFormModel.sha1Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="sha1Hashes" wrap="off" [(ngModel)]="collectionFormModel.sha1Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
             <tr>
@@ -170,7 +170,7 @@
                 </span>
               </td>
               <td>
-                <textarea name="sha256Hashes" [(ngModel)]="collectionFormModel.sha256Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="sha256Hashes" wrap="off" [(ngModel)]="collectionFormModel.sha256Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
             <tr>
@@ -191,7 +191,7 @@
                 </span>
               </td>
               <td>
-                <textarea name="md5Hashes" [(ngModel)]="collectionFormModel.md5Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="md5Hashes" wrap="off" [(ngModel)]="collectionFormModel.md5Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
           </table>
@@ -219,7 +219,7 @@
 
         <div #addServiceBox style="margin-top: 20px; padding: 5px; display: none;">
           <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
-          <form #addServiceForm="ngForm" (ngSubmit)="addNwServer(addServiceForm)" novalidate>
+          <form #addServiceForm="ngForm" (ngSubmit)="addNwServerSubmit(addServiceForm)" novalidate>
             <table style="width: 100%;">
               <tr>
                 <td class="column1">

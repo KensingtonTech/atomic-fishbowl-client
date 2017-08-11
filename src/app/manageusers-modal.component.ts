@@ -42,7 +42,7 @@ function emailValidator(c: AbstractControl) {
   const EMAIL_REGEXP = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
   // if (!EMAIL_REGEXP.test(email)) {
-  if (!c.value.match(EMAIL_REGEXP)) {
+  if (!c.value.match(EMAIL_REGEXP) && c.value.length !== 0) {
       return { 'notemail': true };
   }
   return null;

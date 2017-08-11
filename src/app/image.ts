@@ -1,6 +1,14 @@
 export class Image {
-  image?: string; //image file URL
-  thumbnail?: string; //thumbnail file URL
   session: number;
-  contentType?: string; //represents graphic, pdf, office doc, etc
+  contentType?: string; // image, pdf, hash
+  contentFile?: string;
+  // image?: string; // image file URL
+  thumbnail?: string; // thumbnail file URL
+  pdfImage?: string;
+  archiveFilename?: string;
+  hashType?: string;
+  hashValue?: string;
+  hashFriendly?: string;
+  fromArchive?: boolean;
+  archiveType: string;
 }

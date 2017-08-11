@@ -21,7 +21,7 @@ import "rxjs/add/operator/takeWhile";
           {{getFileNameFromPath(pdfFile)}}
         </div>
         <div class="noselect" style="position: absolute; top: 2px; right: 40px;">
-          <span>Zoom:
+          <span>Zoom
             <select [(ngModel)]="pdfZoom"> <!--(ngModelChange)="collectionSelected($event)"-->
               <option *ngFor="let zoomLevel of zoomLevels" [ngValue]="zoomLevel.value">{{zoomLevel.text}}</option>
             </select>

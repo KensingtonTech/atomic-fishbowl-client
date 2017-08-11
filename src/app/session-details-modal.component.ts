@@ -11,7 +11,6 @@ import "rxjs/add/operator/takeWhile";
   // encapsulation: ViewEncapsulation.None,
   // {{meta.time | fromEpoch}}
   template: `
-
 <modal id="{{id}}" (opened)="opened()" (cancelled)="cancelled()">
   <div class="modal">
     <div class="modal-body" *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: rgba(128, 128, 128, .95); font-size: 10pt;">
@@ -19,15 +18,42 @@ import "rxjs/add/operator/takeWhile";
 
       <div *ngIf="image" style="position: absolute; height: 100%; top: 0; left: 0; width: 75%;">
           <div style="position: relative;" class="imgContainer">
-            <img class="myImg" *ngIf="image.contentType != 'encryptedZipEntry' && image.contentType != 'unsupportedZipEntry' && image.contentType != 'encryptedRarEntry' && image.contentType != 'md5Matched'" [src]="apiServerUrl + image.image" [attr.image]="image.image" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile" draggable="false">
-            <img class="myImg" *ngIf="image.contentType == 'encryptedZipEntry'"  src="/resources/zip_icon_locked.png" [attr.image]="image.image" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile" draggable="false">
-            <img class="myImg" *ngIf="image.contentType == 'unsupportedZipEntry'"  src="/resources/zip_icon_unknown.png" [attr.image]="image.image" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile" draggable="false">
-            <img class="myImg" *ngIf="image.contentType == 'encryptedRarEntry'"  src="/resources/rar_icon_locked.png" [attr.image]="image.image" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile" draggable="false">
-            <div *ngIf="image.contentType == 'md5Matched'">
-              <img class="myImg" src="/resources/executable_hash_icon.png" [attr.image]="image.image" [attr.sessionId]="image.session" [attr.contentType]="image.contentType" [attr.contentFile]="image.contentFile" draggable="false" [attr.md5Hash]="image.md5Hash">
-              <p style="color: white;"><b>MD5 Hash:</b> {{image.md5Hash}}</p>
+            <img class="myImg" *ngIf="image.contentType == 'image'" [src]="apiServerUrl + image.contentFile" draggable="false">
+            <img class="myImg" *ngIf="image.contentType == 'encryptedZipEntry'"  src="/resources/zip_icon_locked.png" draggable="false">
+            <img class="myImg" *ngIf="image.contentType == 'unsupportedZipEntry'"  src="/resources/zip_icon_unknown.png" draggable="false">
+            <img class="myImg" *ngIf="image.contentType == 'encryptedRarEntry'"  src="/resources/rar_icon_locked.png" draggable="false">
+
+            <div *ngIf="image.contentType == 'hash'" style="text-align: center; color: white;">
+              <img class="myImg" src="/resources/executable_hash_icon.png" draggable="false">
+              <table class="selectable">
+                <tr>
+                  <td class="column1">
+                    {{toCaps(image.hashType)}} Hash:
+                  </td>
+                  <td class="value">
+                    {{image.hashValue}}
+                  </td>
+                </tr>
+                <tr *ngIf="image.hashFriendly">
+                  <td class="column1">
+                  {{toCaps(image.hashType)}} Description:
+                  </td>
+                  <td class="value">
+                    {{image.hashFriendly}}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="column1">
+                    Filename:
+                  </td>
+                  <td class="value">
+                    {{reduceContentFile(image.contentFile)}}
+                  </td>
+                </tr>
+              </table>
             </div>
-          </div>
+
+            </div>
         </div>
 
 
@@ -79,9 +105,6 @@ import "rxjs/add/operator/takeWhile";
   styles: [`
 
   .myImg {
-    /* width: auto;
-    height: auto;
-    */
     max-height: 95%;
     max-width: 95%;
   }
@@ -91,6 +114,20 @@ import "rxjs/add/operator/takeWhile";
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .column1 {
+    white-space: nowrap;
+    width: 1px;
+    font-weight: bold;
+    vertical-align: top;
+    text-align: right;
+  }
+
+  .value {
+    word-wrap: break-word;
+    word-break: break-all;
+    text-align: left;
   }
   `]
 })
@@ -202,5 +239,15 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     this.isOpen = false;
   }
 
+  reduceContentFile(s: string): string {
+    const RE = /([^/]*)$/;
+    let match = RE.exec(s);
+    console.log(match[0]);
+    return match[0];
+  }
+
+  toCaps(s: string) {
+    return s.toUpperCase();
+  }
 
 }

@@ -54,19 +54,8 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     }
 
     // Initialize Masonry
-    //this.isotope = new masonry(this.el.nativeElement, this.options);
     this.isotope = new masonry('.grid', this.options);
-    //console.log("options:", this.options);
-    //console.log("isotope:", this.isotope);
-    /*this.isotope.on( 'layoutComplete', () => {
-                                                //console.log("layout complete");
-                                                this.toolService.layoutComplete.next();
-                                                //this.changeDetectionRef.detectChanges();
-                                                //this.changeDetectionRef.markForCheck();
-                                              });*/
     this.ngZone.runOutsideAngular( () => { this.isotope.on( 'layoutComplete', () => this.toolService.layoutComplete.next() )} );
-    //this.isotope.on( 'layoutComplete', () => {});
-    // console.log('MasonryComponent:', 'Initialized');
 
     // Bind to events
     //this.isotope.on('layoutComplete', (items: any) => this.layoutComplete.emit(items) );
@@ -79,37 +68,30 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
 
 
   ngOnChanges(e: any): void {
-    console.log("MasonryComponent: ngOnChanges()", e);
+    //console.log("MasonryComponent: ngOnChanges()", e);
 
     if ('options' in e && this.isotope != undefined ) {
       //console.log("MasonryComponent: ngOnChanges() Got options", e.options.currentValue);
-      //console.log("isotope:", this.isotope)
-
-      //this.isotope(e.options.currentValue);
-      //this.layout();
-       //this.ngZone.runOutsideAngular( () => this.isotope.arrange( {masonry: {columnWidth: this.options.columnWidth} } ) );
        this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
-       //console.log("isotope:", this.isotope)
-       //this.changeDetectionRef.detectChanges();
-       //this.changeDetectionRef.markForCheck();
-       //this.layout();
-
-       //this.ngZone.runOutsideAngular( () => this.isotope.layout() );
-       //this.isotope.arrange();
     }
 
 
     setTimeout( () => {
       if ('shownBricks' in e) {
-        //console.log("got to 1", e.shownBricks.currentValue);
         //console.log("MasonryComponent: ngOnChanges(): this.shownBricks", this.shownBricks);
         let parent = $('masonry');
-        //console.log("parent:", parent);
         let elementsToHide: any = [];
 
         for (let i=0; i < this.shownBricks.length; i++) {
           let brick = this.shownBricks[i];
-          let selector = "masonry-tile[image='" + brick.image + "'][sessionid='" + brick.session + "'][contenttype='" + brick.type + "']";
+          //let selector = "masonry-tile[image='" + brick.image + "'][sessionid='" + brick.session + "'][contenttype='" + brick.type + "']"; //original selector
+          let selector = "masonry-tile[contentFile='" + brick.contentFile + "'][sessionid='" + brick.session + "'][contenttype='" + brick.type + "']";
+          if ('hashType' in brick) {
+            // we have to add in this extra selector for hashes in the case where more one contentFile is
+            // matched on multiple hashTypes in the same session id (say, from a zip file), to distinguish them
+            // only one would be visible, otherwise
+            selector = selector + "[hashType='" + brick.hashType + "']";
+          }
           //console.log("selector:", selector);
           let h = parent.find(selector).closest('masonry-tile');
           //console.log("got to 2");
@@ -144,23 +126,12 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
         }
       }
     }, 50);
-
-  //this.layout();
-
   }
 
   private isDestroyed: boolean = false;
 
   ngOnDestroy(): void {
-    console.log("MasonryComponent: ngOnDestroy().  Automatically destroying MasonryComponent");
-    /*
-    if (this.isotope) {
-      this.ngZone.runOutsideAngular( () => this.isotope.destroy() );
-    }
-    */
-
-    //this.changeDetectionRef.detectChanges();
-    //this.changeDetectionRef.markForCheck();
+    console.log("MasonryComponent: ngOnDestroy().  Automatically destroying MasonryComponent"); //just informational so we know when parent has destroyed this
   }
 
   public destroyMe(): void {
@@ -174,13 +145,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
 
   public layout() {
     //console.log('MasonryComponent: layout()', 'Layout');
-    //setTimeout( () => this.isotope.layout() );
-    //this.ngZone.runOutsideAngular( () => this.isotope.layout() );
     this.ngZone.runOutsideAngular( () => this.isotope.arrange() );
-    //this.ngZone.runOutsideAngular( () => this.isotope.arrange( {filter: '*'} ) );
-    //this.changeDetectionRef.detectChanges();
-    //this.changeDetectionRef.markForCheck();
-    //console.log("layout done");
   }
 
   private isFirstItem: boolean = true;
@@ -211,27 +176,16 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
         this.el.nativeElement.appendChild(element);
 
         // Tell Masonry that a child element has been added
-        //this.ngZone.runOutsideAngular( () => this.isotope.appended(element) );
         this.ngZone.runOutsideAngular( () => this.isotope.insert(element) );
-        //this.ngZone.runOutsideAngular( () => this.isotope.addItems(element) );
 
         // layout if first item
         if (isFirstItem) this.layout();
-        //this.layout();
-        //this.changeDetectionRef.detectChanges();
-        //this.changeDetectionRef.markForCheck();
       });
-
-      //this.el.nativeElement.removeChild(element);
-      //try {this.el.nativeElement.removeChild(element)} catch(err) {};
-      //this.changeDetectionRef.detectChanges();
-      //this.changeDetectionRef.markForCheck();
     }
     else { //let all images load before calling layout (done elsewhere)
       console.log("MasonryComponent: add(): Adding element without layout");
       this.el.nativeElement.appendChild(element);
       this.ngZone.runOutsideAngular( () => this.isotope.addItems(element) );
-      //try {this.el.nativeElement.removeChild(element)} catch(err) {};
     }
 
   }
@@ -243,14 +197,10 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     //console.log("MasonryComponent: removing element", element);
     if (!this.isDestroyed ) {
       this.ngZone.runOutsideAngular( () => this.isotope.remove(element));
-      //this.isotope.ignore(element);
 
       // Layout items
       this.layout();
     }
-    //this.changeDetectionRef.detectChanges();
-    //this.changeDetectionRef.markForCheck();
-
     // console.log('MasonryComponent:', 'Brick removed');
   }
 

@@ -373,8 +373,11 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
    grokHashingLines(v: string): any {
+     console.log('v:', v);
     let n = v.split('\n'); // split by newline
+    console.log('n:', n);
     let newArray = [];
+    let hashTracker = []; // used for de-duplicating hash entries
     // console.log('AddCollectionModalComponent: grokHashingLines(): n:', n);
 
     for (let x = 0; x < n.length; x++) {
@@ -392,33 +395,39 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       let y = newArray[i].split(',');
       // console.log('y:', y);
 
-      y[0] = y[0].replace(/\s+$/, '').replace(/^\s+/, ''); // remove trailing and leading whitespace from key name, if any
+      y[0] = y[0].trim(); // remove trailing and leading whitespace from key name, if any
+      console.log('y[0]', y[0]);
 
       if (y[0].match(/\s/)) {
+        // console.log('got to 1');
         // We will skip this row if the key contains any remaining whitespace
         continue;
       }
+      // console.log('got to 2');
 
-      x['hash'] = y[0]; // assign key name
+      if (!hashTracker.includes(y[0])) { // de-dupe hashes
+        hashTracker.push(y[0]);
+        x['hash'] = y[0]; // assign hash id
 
-      if (y.length >= 2) {
-        // if user specifies CSV notation, save the second part as the file name
-        let s = y[1].replace(/^\s+/, '').replace(/\s+$/, ''); // remove leading and trailing whitespace
-        x['file'] = s;
+        if (y.length >= 2) {
+          // if user specifies CSV notation, save the second part as the friendly identifier
+          let s = y[1].trim(); // remove leading and trailing whitespace
+          x['friendly'] = s;
+        }
+        
+        /*else { //we don't want to define the file key if the user doesn't specify one
+          // if not in CSV notation, save the key name as the file name
+          x['file'] = y[0];
+        }*/
+        keysArray.push(x);
       }
-      
-      /*else { //we don't want to define the file key if the user doesn't specify one
-        // if not in CSV notation, save the key name as the file name
-        x['file'] = y[0];
-      }*/
-      keysArray.push(x);
     }
-    // console.log('AddCollectionModalComponent: grokHashingLines(): keysArray:', keysArray);
+    console.log('AddCollectionModalComponent: grokHashingLines(): keysArray:', keysArray);
     return keysArray;
   }
 
-  addCollection(f: NgForm): void {
-    console.log('AddCollectionModalComponent: addCollection(): f:', f);
+  addCollectionSubmit(f: NgForm): void {
+    console.log('AddCollectionModalComponent: addCollectionSubmit(): f:', f);
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
     let newCollection = {
@@ -473,19 +482,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (f.value.md5Enabled) {
-      let endterms = this.grokLines(f.value.md5Hashes);
-      if ( endterms.length !== 0 ) {
-        newCollection.md5Enabled = true;
-        newCollection['md5Hashes'] = endterms;
-      }
-      else {
-        newCollection.md5Enabled = false;
-      }
-    }
-
     if (f.value.sha1Enabled) {
-      let endterms = this.grokLines(f.value.sha1Hashes);
+      let endterms = this.grokHashingLines(f.value.sha1Hashes);
       if ( endterms.length !== 0 ) {
         newCollection.sha1Enabled = true;
         newCollection['sha1Hashes'] = endterms;
@@ -496,7 +494,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (f.value.sha256Enabled) {
-      let endterms = this.grokLines(f.value.sha256Hashes);
+      let endterms = this.grokHashingLines(f.value.sha256Hashes);
       if ( endterms.length !== 0 ) {
         newCollection.sha256Enabled = true;
         newCollection['sha256Hashes'] = endterms;
@@ -506,7 +504,18 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log('AddCollectionModalComponent: addCollection(): newCollection:', newCollection);
+    if (f.value.md5Enabled) {
+      let endterms = this.grokHashingLines(f.value.md5Hashes);
+      if ( endterms.length !== 0 ) {
+        newCollection.md5Enabled = true;
+        newCollection['md5Hashes'] = endterms;
+      }
+      else {
+        newCollection.md5Enabled = false;
+      }
+    }
+
+    console.log('AddCollectionModalComponent: addCollectionSubmit(): newCollection:', newCollection);
     this.dataService.addCollection(newCollection)
                     .then( () => {
                                     this.executeCollectionEvent.emit(newCollection);
@@ -514,7 +523,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                                   });
   }
 
-  addNwServer(f: NgForm): void {
+  addNwServerSubmit(f: NgForm): void {
     // console.log("AddCollectionModalComponent: addNwServer(): f:", f);
     this.hideServiceAddBox();
     let newServer = {
