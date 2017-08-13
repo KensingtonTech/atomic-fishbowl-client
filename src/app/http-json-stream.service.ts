@@ -10,7 +10,7 @@ export class HttpJsonStreamService {
   private oboeService: any;
 
   fetchStream(url: string) : Observable<any> {
-    console.log('HttpJsonStreamService: fetchStream()');
+    log.debug('HttpJsonStreamService: fetchStream()');
     var subject: Subject<any> = new Subject<any>();
     var config = {
       //headers: {'Authorization': 'Bearer ' +  token},

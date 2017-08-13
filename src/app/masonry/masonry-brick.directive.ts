@@ -20,8 +20,8 @@ export class AngularMasonryBrick implements OnDestroy, AfterViewInit {
                 @Inject(forwardRef(() => MasonryComponent)) private parent: MasonryComponent,
                 @Inject(forwardRef(() => MasonryTileComponent)) private masonryTileComponent: MasonryTileComponent
              ) {
-                  //console.log("el:", this.el);
-                  //console.log("masonryDisplayComponent:", this.masonryDisplayComponent);
+                  //log.debug("el:", this.el);
+                  //log.debug("masonryDisplayComponent:", this.masonryDisplayComponent);
                }
 
   ngAfterViewInit(): void {
@@ -33,7 +33,7 @@ export class AngularMasonryBrick implements OnDestroy, AfterViewInit {
 
   ngOnDestroy(): void {
     //this.parent.remove(this.el.nativeElement);
-    //console.log("AngularMasonryBrick: ngOnDestroy() removing brick");
+    //log.debug("AngularMasonryBrick: ngOnDestroy() removing brick");
     this.parent.remove(this.masonryTileComponent.el.nativeElement);
   }
 

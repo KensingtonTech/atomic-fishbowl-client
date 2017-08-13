@@ -86,12 +86,12 @@ export class ImgTileComponent implements OnChanges {
   private data: any = {}; // prevent opening pdf modal if dragging the view
 
   handleError(error: any): Promise<any> {
-    console.error('ERROR: ', error);
+    log.error('ERROR: ', error);
     return Promise.reject(error.message || error);
   }
 
   enableMe(): void {
-    // console.log("enableMe");
+    // log.debug("enableMe");
     // this.renderer.setElementStyle(this.el.nativeElement, 'display', 'inline-block');
     // this.renderer.setElementStyle(this.el.nativeElement, 'display', 'block');
     this.enabledTrigger = 'enabled';
@@ -101,7 +101,7 @@ export class ImgTileComponent implements OnChanges {
   }
 
   disableMe(): void {
-    // console.log('disableMe()')
+    // log.debug('disableMe()')
     this.enabledTrigger = 'disabled';
     // this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();
@@ -114,16 +114,16 @@ export class ImgTileComponent implements OnChanges {
   }
 
   ngOnChanges(o: any): void {
-    // console.log("onChanges:", o);
+    // log.debug("onChanges:", o);
     // if (o.highResSession && this.content.session === o.highResSession.currentValue) {
     //    if (o.showHighRes && !this.showHighRes) {
     //    }
     if (o.highResSession && this.content.session && this.content.session === o.highResSession.currentValue) {
-      // console.log("enabling high res for session", o.highResSession.currentValue);
-      // console.log("o.highResSession.currentValue");
+      // log.debug("enabling high res for session", o.highResSession.currentValue);
+      // log.debug("o.highResSession.currentValue");
       this.showHighRes = true;
       this.changeDetectionRef.markForCheck();
-      // console.log('showing high res');
+      // log.debug('showing high res');
     }
     else if (this.showHighRes) { // this was previously high res but the session didn't match.  set it back to low-res
       this.showHighRes = false;
@@ -133,7 +133,7 @@ export class ImgTileComponent implements OnChanges {
 
 /*
   onImgLoad(): void {
-    //console.log("loaded");
+    //log.debug("loaded");
  //moved temporarily to aftercontentinit
     //this.changeDetectionRef.reattach();
     if ( this.content ) {

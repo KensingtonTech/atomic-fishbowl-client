@@ -92,7 +92,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   getCollections(): Promise<Collection[]> {
-    console.log('DataService: getCollections()');
+    log.debug('DataService: getCollections()');
     return this.http.get(this.apiUrl + '/collections' )
                 .toPromise()
                 .then(response => response.json() as Collection[] )
@@ -100,7 +100,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   refreshCollections(): Promise<void> {
-    // console.log('DataService: refreshCollections()');
+    // log.debug('DataService: refreshCollections()');
     log.debug('DataService: refreshCollections()');
     return this.http.get(this.apiUrl + '/collections' )
                 .toPromise()
@@ -109,14 +109,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   buildCollection(id: string): Promise<void> {
-    console.log('DataService: buildCollection():', id);
+    log.debug('DataService: buildCollection():', id);
     return this.http.get(this.apiUrl + '/buildcollection/' + id )
                     .toPromise()
                     .catch(e => this.handleError(e));
   }
 
   abortGetBuildingCollection(): Promise<void> {
-    console.log('DataService: abortGetBuildingCollection()');
+    log.debug('DataService: abortGetBuildingCollection()');
     return new Promise<void>( resolve => {
       this.httpJsonStreamService.abort();
       resolve();
@@ -125,7 +125,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   getCollectionData(collection: any): Promise<string> {
     let id = collection.id;
-    console.log('DataService: getCollectionData(' + id + '):', collection);
+    log.debug('DataService: getCollectionData(' + id + '):', collection);
     return this.http.get(this.apiUrl + '/collectiondata/' + id )
                     .toPromise()
                     .then(response => {
@@ -142,11 +142,11 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
   getBuildingCollection(id: string): void {
-    console.log('DataService: getBuildingCollection():', id);
+    log.debug('DataService: getBuildingCollection():', id);
     this.httpJsonStreamService.fetchStream(this.apiUrl + '/getbuildingcollection/' + id)
                               .subscribe( (o: any) => {
                                                         if (o.collection) {
-                                                          // console.log("received collection update",o.collection);
+                                                          // log.debug("received collection update",o.collection);
                                                           this.collectionStateChanged.next(o.collection);
                                                         }
                                                         else if (o.collectionUpdate) {
@@ -162,17 +162,17 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                         }
                                                         else {
                                                           // there's data here that shouldn't be
-                                                          console.error('DataService: getBuildingCollection(): unhandled JSON data', o);
+                                                          log.error('DataService: getBuildingCollection(): unhandled JSON data', o);
                                                         }
                               });
   }
 
   getRollingCollection(id: string): void {
-    console.log('DataService: getRollingCollection():', id);
+    log.debug('DataService: getRollingCollection():', id);
     this.httpJsonStreamService.fetchStream(this.apiUrl + '/getrollingcollection/' + id)
                               .subscribe( (o: any) => {
                                                         if ('collection' in o) {
-                                                          // console.log("received collection update",o.collection);
+                                                          // log.debug("received collection update",o.collection);
                                                           this.collectionStateChanged.next(o.collection);
                                                         }
                                                         else if ('collectionUpdate' in o) {
@@ -194,13 +194,13 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                         }
                                                         else {
                                                           // there's data here that shouldn't be
-                                                          console.error('DataService: getRollingCollection(): unhandled JSON data', o);
+                                                          log.error('DataService: getRollingCollection(): unhandled JSON data', o);
                                                         }
                               });
   }
 
   deleteCollection(id: string): Promise<void> {
-    console.log('DataService: deleteCollection():', id);
+    log.debug('DataService: deleteCollection():', id);
     return this.http.delete(this.apiUrl + '/collection/' + id )
                 .toPromise()
                 .then( () => {} )
@@ -208,7 +208,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   deleteUser(id: string): Promise<void> {
-    console.log('DataService: deleteUser():', id);
+    log.debug('DataService: deleteUser():', id);
     return this.http.delete(this.apiUrl + '/user/' + id )
                 .toPromise()
                 .then(response => {
@@ -218,7 +218,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   deleteNwServer(id: string): Promise<void> {
-    console.log('DataService: deleteNwServer():', id);
+    log.debug('DataService: deleteNwServer():', id);
     return this.http.delete(this.apiUrl + '/nwserver/' + id )
                 .toPromise()
                 .then(response => {
@@ -228,55 +228,55 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   addUser(user: any): Promise<any> {
-    console.log('DataService: addUser()');
+    log.debug('DataService: addUser()');
     let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/adduser', user, options)
                 .toPromise()
                 .then(response => {
-                  console.log(response);
+                  log.debug(response);
                 })
                 .catch(e => this.handleError(e));
   }
 
   updateUser(user: any): Promise<any> {
-    console.log('DataService: updateUser()');
+    log.debug('DataService: updateUser()');
     let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/updateuser', user, options)
                 .toPromise()
                 .then(response => {
-                  console.log(response);
+                  log.debug(response);
                 })
                 .catch(e => this.handleError(e));
   }
 
   addNwServer(nwserver: NwServer): Promise<any> {
-    console.log('DataService: addNwServer()');
+    log.debug('DataService: addNwServer()');
     let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/addnwserver', nwserver, options)
                 .toPromise()
                 .then(response => {
-                  console.log(response);
+                  log.debug(response);
                 })
                 .catch(e => this.handleError(e));
   }
 
   addCollection(collection: any):  Promise<any> {
-    console.log('DataService: addCollection():', collection.id);
+    log.debug('DataService: addCollection():', collection.id);
     let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/addcollection', collection, options)
                 .toPromise()
                 .then(response => {
-                  console.log(response);
+                  log.debug(response);
                 })
                 .catch(e => this.handleError(e));
   }
 
   ping(): Promise<any> {
-    // console.log('DataService: ping()');
+    // log.debug('DataService: ping()');
     return this.http.get(this.apiUrl + '/ping')
                     .toPromise()
                     .then( () => {} )
@@ -289,7 +289,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
       return Promise.reject(error.message || error);
     }
     else {
-      console.error('ERROR: ', error);
+      log.error('ERROR: ', error);
       return Promise.reject(error.message || error);
     }
   }

@@ -14,13 +14,13 @@ export class FormatTimePipe implements PipeTransform {
     //t.setUTCSeconds(value);
     var t = moment(value * 1000);
     var formatter = "YYYY/MM/DD HH:mm:ss"; //default formatter
-    //console.log("args:", args)
+    //log.debug("args:", args)
     if (typeof args !== 'undefined') {
       formatter = args;
-      //console.log("formatter:", formatter);
+      //log.debug("formatter:", formatter);
     }
     return t.format(formatter);
-    //console.log(t);
+    //log.debug(t);
     //return t;
   }
 }

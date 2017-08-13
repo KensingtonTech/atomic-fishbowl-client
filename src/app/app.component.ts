@@ -31,7 +31,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
     this.authService.loggedInChanged.takeWhile(() => this.alive).subscribe( (loggedIn: boolean) => {
-                                                                          // console.log("loggedIn:", loggedIn);
+                                                                          // log.debug("loggedIn:", loggedIn);
                                                                           this.loggedIn = loggedIn;
                                                                         });
 

@@ -150,7 +150,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.getNwServers();
     this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
-                                                                      // console.log("AddCollectionModalComponent: prefs observable: ", prefs);
+                                                                      // log.debug("AddCollectionModalComponent: prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'defaultNwQuery' in prefs ) {
                                                                         this.defaultColQuery = prefs.defaultNwQuery;
@@ -186,7 +186,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   querySelected(e: any): void {
-    // console.log('AddCollectionModalComponent: querySelected(): e', e);
+    // log.debug('AddCollectionModalComponent: querySelected(): e', e);
     if (e.text === 'Default Query') {
       this.collectionFormModel.query = this.defaultColQuery;
     }
@@ -231,14 +231,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   cancelledEventReceived(): void {
-    console.log('AddCollectionModalComponent: cancelledEventReceived()');
+    log.debug('AddCollectionModalComponent: cancelledEventReceived()');
   }
 
   getNwServers(): void {
-    // console.log("AddCollectionModalComponent: getNwServers()");
+    // log.debug("AddCollectionModalComponent: getNwServers()");
     this.dataService.getNwServers().then(n => {
                                                 this.nwservers = n;
-                                                // console.log("AddCollectionModalComponent: getNwServers(): this.nwservers:", this.nwservers);
+                                                // log.debug("AddCollectionModalComponent: getNwServers(): this.nwservers:", this.nwservers);
                                                 this.collectionFormModel.nwserver = this.getFirstNwServer();
                                                 this.changeDetectionRef.markForCheck();
                                               });
@@ -246,14 +246,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   getFirstNwServer(): any { // a bit of a hack since dicts aren't really ordered
     for (let s in this.nwservers) {
-      // console.log(AddCollectionModalComponent: getFirstNwServer: s, s);
+      // log.debug(AddCollectionModalComponent: getFirstNwServer: s, s);
       return s;
     }
   }
 
   deleteNwServer(): void {
-    console.log('AddCollectionModalComponent: deleteNwServer(): this.collectionFormModel.nwserver', this.collectionFormModel.nwserver);
-    // console.log(this.nwservers[this.collectionFormModel.nwserver].friendlyName);
+    log.debug('AddCollectionModalComponent: deleteNwServer(): this.collectionFormModel.nwserver', this.collectionFormModel.nwserver);
+    // log.debug(this.nwservers[this.collectionFormModel.nwserver].friendlyName);
     this.dataService.deleteNwServer(this.collectionFormModel.nwserver).then ( () => this.getNwServers() );
   }
 
@@ -354,7 +354,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     let midterms: any = [];
     for (let i = 0; i < terms.length; i++) {
       let term = terms[i];
-      // console.log("term:", term);
+      // log.debug("term:", term);
       term = term.replace(/\s+$/g, '');
       term = term.replace(/^\s+/g, '');
       if ( ! term.match(/^\s*$/g) ) { // remove blank lines from array
@@ -366,12 +366,12 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
    grokHashingLines(v: string): any {
-     console.log('v:', v);
+     log.debug('v:', v);
     let n = v.split('\n'); // split by newline
-    console.log('n:', n);
+    log.debug('n:', n);
     let newArray = [];
     let hashTracker = []; // used for de-duplicating hash entries
-    // console.log('AddCollectionModalComponent: grokHashingLines(): n:', n);
+    // log.debug('AddCollectionModalComponent: grokHashingLines(): n:', n);
 
     for (let x = 0; x < n.length; x++) {
       // remove blank lines
@@ -379,24 +379,24 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         newArray.push(n[x]);
       }
     }
-    // console.log('AddCollectionModalComponent: grokHashingLines(): newArray:', newArray);
+    // log.debug('AddCollectionModalComponent: grokHashingLines(): newArray:', newArray);
 
     let keysArray = [];
 
     for (let i = 0; i < newArray.length; i++) {
       let x = {};
       let y = newArray[i].split(',');
-      // console.log('y:', y);
+      // log.debug('y:', y);
 
       y[0] = y[0].trim(); // remove trailing and leading whitespace from key name, if any
-      console.log('y[0]', y[0]);
+      log.debug('y[0]', y[0]);
 
       if (y[0].match(/\s/)) {
-        // console.log('got to 1');
+        // log.debug('got to 1');
         // We will skip this row if the key contains any remaining whitespace
         continue;
       }
-      // console.log('got to 2');
+      // log.debug('got to 2');
 
       if (!hashTracker.includes(y[0])) { // de-dupe hashes
         hashTracker.push(y[0]);
@@ -415,12 +415,12 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         keysArray.push(x);
       }
     }
-    console.log('AddCollectionModalComponent: grokHashingLines(): keysArray:', keysArray);
+    log.debug('AddCollectionModalComponent: grokHashingLines(): keysArray:', keysArray);
     return keysArray;
   }
 
   addCollectionSubmit(f: NgForm): void {
-    console.log('AddCollectionModalComponent: addCollectionSubmit(): f:', f);
+    log.debug('AddCollectionModalComponent: addCollectionSubmit(): f:', f);
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
     let newCollection = {
@@ -508,7 +508,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log('AddCollectionModalComponent: addCollectionSubmit(): newCollection:', newCollection);
+    log.debug('AddCollectionModalComponent: addCollectionSubmit(): newCollection:', newCollection);
     this.dataService.addCollection(newCollection)
                     .then( () => {
                                     this.executeCollection.emit(newCollection);
@@ -517,7 +517,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   addNwServerSubmit(f: NgForm): void {
-    // console.log("AddCollectionModalComponent: addNwServer(): f:", f);
+    // log.debug("AddCollectionModalComponent: addNwServer(): f:", f);
     this.hideServiceAddBox();
     let newServer = {
       host: f.value.hostname,
@@ -532,19 +532,19 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       // newServer.friendlyName = newServer.friendlyName + ':ssl';
       newServer.friendlyName = f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ':ssl' + ' (' + f.value.deviceNumber + ')';
     }
-    console.log('AddCollectionModalComponent: addNwServer() newServer:', newServer);
+    log.debug('AddCollectionModalComponent: addNwServer() newServer:', newServer);
     this.dataService.addNwServer(newServer).then( () => this.getNwServers() );
   }
 
   onOpen(): void {
-    console.log('AddCollectionModalComponent: onOpen()');
+    log.debug('AddCollectionModalComponent: onOpen()');
     this.dataService.getPreferences();
     this.nameBoxRef.first.nativeElement.focus();
   }
 
   timeValue(): void {
-    console.log('time1:', this.collectionFormModel.timeBegin.getTime() / 1000);
-    console.log('time2:', this.collectionFormModel.timeEnd.getTime() / 1000);
+    log.debug('time1:', this.collectionFormModel.timeBegin.getTime() / 1000);
+    log.debug('time2:', this.collectionFormModel.timeEnd.getTime() / 1000);
   }
 
 }

@@ -33,7 +33,7 @@ export class PanZoomConfigService {
   model = {};
 
   constructor() {
-    // console.log("Initializing PanZoomConfigService");
+    // log.debug("Initializing PanZoomConfigService");
     // initialize defaults
     // initialize models. Use passed properties when available, otherwise revert to defaults
     // NOTE: all times specified in seconds, all distances specified in pixels
@@ -54,7 +54,7 @@ export class PanZoomConfigService {
     this.initialPanY = this.initialPanY || 0;
     this.keepInBounds = this.keepInBounds ? this.keepInBounds : false;
     if (this.keepInBounds && this.neutralZoomLevel !== 0) {
-      console.warn('You have set keepInBounds to true and neutralZoomLevel to ' + this.neutralZoomLevel +
+      log.warn('You have set keepInBounds to true and neutralZoomLevel to ' + this.neutralZoomLevel +
         '. Be aware that the zoom level cannot below ' + this.neutralZoomLevel);
     }
     this.keepInBoundsRestoreForce = this.keepInBoundsRestoreForce !== undefined ? this.keepInBoundsRestoreForce : 0.5;

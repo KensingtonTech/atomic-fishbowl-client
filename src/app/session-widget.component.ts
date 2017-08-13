@@ -118,18 +118,18 @@ export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit() : void {
     this.enabledTrigger = 'disabled';
-    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { //console.log("sessionsChanged", s);
+    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { //log.debug("sessionsChanged", s);
                                                               this.sessions = s;
                                                               //this._changeDetectionRef.detectChanges();
                                                               //this._changeDetectionRef.markForCheck();
                                                             });
-    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  //console.log("sessionPublished", s);
+    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  //log.debug("sessionPublished", s);
                                                                 let sessionId = s.id;
                                                                 this.sessions[sessionId] = s;
                                                                 //this._changeDetectionRef.detectChanges();
                                                                 //this._changeDetectionRef.markForCheck();
                                                               });
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  //console.log("prefs observable: ", prefs);
+    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  //log.debug("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
@@ -148,7 +148,7 @@ export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
   private metaUpdated: boolean = false;
 
   getMetaForKey(k: string): any {
-    //console.log("getMetaForKey()", this.meta[k]);
+    //log.debug("getMetaForKey()", this.meta[k]);
     return this.meta[k];
   }
 
@@ -163,19 +163,19 @@ export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
   private blip: boolean = false;
 
   ngOnChanges(): void {
-    //console.log("SessionWidgetComponent ngOnChanges()", this.enabled);
+    //log.debug("SessionWidgetComponent ngOnChanges()", this.enabled);
 
     if (this.enabled ) { this.blip = true; this.enabledTrigger = 'enabled'; } //for some odd reason, we can't use shortcut syntax as it evidently doesn't change the var reference
     else { this.blip = false; this.enabledTrigger = 'disabled'}
-    console.log("enabled:", this.enabled);
-    console.log("blip:", this.blip);
-    console.log("enabledTrigger:", this.enabledTrigger);
+    log.debug("enabled:", this.enabled);
+    log.debug("blip:", this.blip);
+    log.debug("enabledTrigger:", this.enabledTrigger);
 
     //this._changeDetectionRef.markForCheck();
 
     if (this.sessionId) {
       if ( this.sessionId in this.sessions ) {
-        //console.log("session id " + this.sessionId + ' found');
+        //log.debug("session id " + this.sessionId + ' found');
         this.meta = this.sessions[this.sessionId].meta;
         this.toolService.newSession.next(this.sessions[this.sessionId]);
         //this.updated = this.updated + 1;
@@ -185,7 +185,7 @@ export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
         //this._changeDetectionRef.markForCheck();
       }
 //      else {
-//        console.log("session id " + this.sessionId + ' not found!');
+//        log.debug("session id " + this.sessionId + ' not found!');
 //      }
     }
     //this.enabledTrigger = this.enabled ? 'enabled' : 'disabled';

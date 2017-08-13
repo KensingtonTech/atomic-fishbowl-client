@@ -59,24 +59,24 @@ export class AccordionULComponent implements AfterViewInit {
   constructor (private _changeDetectionRef : ChangeDetectorRef) { }
 
   ngAfterViewInit(): void {
-    //console.log("itemList:", this.itemList);
+    //log.debug("itemList:", this.itemList);
     if ( this.itemList.nativeElement.children.length > 1 ) {
       this.multiValues = true;
       this.headerText = this.itemList.nativeElement.children[0].firstChild.textContent;
-      //console.log(this.headerText);
+      //log.debug(this.headerText);
     }
     if ( this.itemList.nativeElement.children.length === 1 ) {
       this.oneValue = true;
       this.multiValues = false;
       this.headerText = this.itemList.nativeElement.children[0].firstChild.textContent;
-      //console.log(this.headerText);
+      //log.debug(this.headerText);
     }
     this._changeDetectionRef.detectChanges(); //hack needed to not throw an exception
 
   }
 
   toggleList(): void {
-    //console.log("toggleList()");
+    //log.debug("toggleList()");
     var sel = getSelection().toString();
     if (!sel) {
         //this.hideHeader = (this.hideHeader === false ? true : false);

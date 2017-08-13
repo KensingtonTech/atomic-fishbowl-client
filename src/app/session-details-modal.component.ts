@@ -171,8 +171,8 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
                                 ]; // these are just defaults in case we can't get them from prefs
 
   ngOnInit(): void {
-    console.log('SessionDetailsModalComponent: ngOnInit()');
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  // console.log("prefs observable: ", prefs);
+    log.debug('SessionDetailsModalComponent: ngOnInit()');
+    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
@@ -184,14 +184,14 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     this.dataService.getPreferences();
 
     this.toolService.newSession.takeWhile(() => this.alive).subscribe( (session: any) => {
-      console.log('SessionDetailsModalComponent: newSessionSubscription: Got new session', session);
+      log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
       this.meta = session.meta;
       this.blip = true;
     });
 
     this.toolService.newImage.takeWhile(() => this.alive).subscribe( (image: any) => {
-      console.log('SessionDetailsModalComponent: newImageSubscription: Got new image:', image)
+      log.debug('SessionDetailsModalComponent: newImageSubscription: Got new image:', image)
       this.image = image;
       this.sessionId = this.image.session;
       // this.pdfFile = this.image.contentFile;
@@ -232,7 +232,7 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   }
 
   cancelled(): void {
-    console.log('SessionDetailsModalComponent: cancelled()');
+    log.debug('SessionDetailsModalComponent: cancelled()');
     this.modalService.close(this.id);
     setTimeout( () => this.blip = false );
     this.isOpen = false;
@@ -241,7 +241,7 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   reduceContentFile(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
-    console.log(match[0]);
+    log.debug(match[0]);
     return match[0];
   }
 

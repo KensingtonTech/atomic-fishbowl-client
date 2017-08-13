@@ -151,8 +151,8 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
                                 ]; // these are just defaults in case we can't get them from prefs
 
   ngOnInit(): void {
-    console.log('PdfViewerModalComponent: ngOnInit()');
-    this.dataService.preferencesChanged.takeWhile( () => this.alive ).subscribe( (prefs: any) => {  // console.log("prefs observable: ", prefs);
+    log.debug('PdfViewerModalComponent: ngOnInit()');
+    this.dataService.preferencesChanged.takeWhile( () => this.alive ).subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
@@ -164,13 +164,13 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     this.dataService.getPreferences();
 
     this.toolService.newSession.takeWhile(() => this.alive).subscribe( (session: any) => {
-      console.log('PdfViewerModalComponent: newSessionSubscription: Got new session', session);
+      log.debug('PdfViewerModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
       this.meta = session.meta;
     });
 
     this.toolService.newImage.takeWhile(() => this.alive).subscribe( (image: any) => {
-      console.log('PdfViewerModalComponent: newImageSubscription: Got new image:', image)
+      log.debug('PdfViewerModalComponent: newImageSubscription: Got new image:', image)
       this.image = image;
       this.sessionId = this.image.session;
       this.pdfFile = this.image.contentFile;
@@ -220,7 +220,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   }
 
   absorbPdfInfo(p: any): void {
-    // console.log('absorbPdfInfo', p);
+    // log.debug('absorbPdfInfo', p);
     this.numPages = p.numPages;
   }
 

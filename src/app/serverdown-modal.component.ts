@@ -35,8 +35,8 @@ export class ServerDownModalComponent implements OnInit {
   @Input() public id: string;// = 'serverdown-modal'
 
   ngOnInit(): void {
-    console.log("ServerDownModalComponent: ngOnInit()");
-    //console.log("modalService:", this.modalService);
+    log.debug("ServerDownModalComponent: ngOnInit()");
+    //log.debug("modalService:", this.modalService);
   }
 
 }

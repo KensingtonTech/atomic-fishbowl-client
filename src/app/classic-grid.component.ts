@@ -90,12 +90,12 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private lastMask = new ContentMask;
 
   ngOnDestroy(): void {
-    console.log('ClassicGridComponent: ngOnDestroy()');
+    log.debug('ClassicGridComponent: ngOnDestroy()');
     this.alive = false;
   }
 
   ngOnInit(): void {
-    console.log('ClassicGridComponent: ngOnInit()');
+    log.debug('ClassicGridComponent: ngOnInit()');
 
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
@@ -123,7 +123,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.maskChanged($event) );
 
     this.toolService.noCollections.takeWhile(() => this.alive).subscribe( () => {
-      console.log('MasonryGridComponent: noCollectionsSubscription');
+      log.debug('MasonryGridComponent: noCollectionsSubscription');
       this.destroyView = true;
       this.sessionsDefined = false;
       this.resetContent();
@@ -133,7 +133,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     });
 
     this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { // this triggers whenever we choose a new collection
-      console.log('ClassicGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
+      log.debug('ClassicGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
       this.destroyView = true;
       this.sessionsDefined = false;
       this.resetContent();
@@ -151,7 +151,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     });
 
     this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { // this triggers when a monitoring collection refreshes
-      console.log('ClassicGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
+      log.debug('ClassicGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
       if (collection.state === 'refreshing')  {
         this.destroyView = true;
         this.changeDetectionRef.detectChanges();
@@ -167,7 +167,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     });
 
     this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => {
-      console.log('ClassicGridComponent: sessionsChangedSubscription: sessionsChanged:', s); // when an a whole new collection is selected
+      log.debug('ClassicGridComponent: sessionsChangedSubscription: sessionsChanged:', s); // when an a whole new collection is selected
       this.sessionsDefined = true;
       this.sessions = s;
       this.changeDetectionRef.detectChanges();
@@ -175,13 +175,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     });
 
     this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
-      console.log('ClassicGridComponent: sessionPublishedSubscription: sessionPublished', s); // when an individual session is pushed from a building collection (or monitoring or rolling)
+      log.debug('ClassicGridComponent: sessionPublishedSubscription: sessionPublished', s); // when an individual session is pushed from a building collection (or monitoring or rolling)
       let sessionId = s.id;
       this.sessionsDefined = true;
       this.sessions[sessionId] = s;
     });
 
-    /*this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => { console.log('images:', i); // when a new collection is selected
+    /*this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => { log.debug('images:', i); // when a new collection is selected
                                                             i.sort(this.sortImages);
                                                             this.images = i;
                                                             this.displayedContent = i;
@@ -203,7 +203,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                                                           });*/
 
     this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => {
-      console.log('ClassicGridComponent: contentChangedSubscription: contentChanged:', i); // when a new collection is selected
+      log.debug('ClassicGridComponent: contentChangedSubscription: contentChanged:', i); // when a new collection is selected
       this.destroyView = true;
       i.sort(this.sortImages);
       this.content = i;
@@ -223,7 +223,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
 
     this.dataService.contentPublished.takeWhile(() => this.alive).subscribe( (newContent: any) =>  { // when content are pushed from a still-building, rolling, or monitoring collection
-      console.log('ClassicGridComponent: contentPublishedSubscription: contentPublished:', newContent);
+      log.debug('ClassicGridComponent: contentPublishedSubscription: contentPublished:', newContent);
 
       // update content counts here to save cycles not calculating image masks
       for (let i = 0; i < newContent.length; i++) {
@@ -251,28 +251,28 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  { // this receives complete search term data from complete collection
       this.search = s;
-      console.log('ClassicGridComponent: searchChangedSubscription: searchChanged:', this.search);
+      log.debug('ClassicGridComponent: searchChangedSubscription: searchChanged:', this.search);
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
     });
 
 
     this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => { // this receives a partial search term data from a building collection
-      console.log('ClassicGridComponent: searchPublishedSubscription: searchPublished:', s);
+      log.debug('ClassicGridComponent: searchPublishedSubscription: searchPublished:', s);
       for (let i = 0; i < s.length; i++) {
         this.search.push(s[i]);
       }
-      // console.log("ClassicGridComponent: searchPublishedSubscription: this.search:", this.search);
+      // log.debug("ClassicGridComponent: searchPublishedSubscription: this.search:", this.search);
       this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
     });
 
     this.dataService.sessionsPurged.takeWhile(() => this.alive).subscribe( (sessionsToPurge: number[]) =>  {
-      console.log('ClassicGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
-      // console.log("content", this.content);
-      // console.log("content length:",this.content.length);
-      // console.log("content:",JSON.parse(JSON.stringify(this.content)));
+      log.debug('ClassicGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
+      // log.debug("content", this.content);
+      // log.debug("content length:",this.content.length);
+      // log.debug("content:",JSON.parse(JSON.stringify(this.content)));
       let c = 0;
 
       let purgedImagePositions = [];
@@ -283,22 +283,22 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
         for (let i = 0; i < this.content.length; i++) {
           if (this.content[i].session === sidToPurge) {
-            console.log('ClassicGridComponent: sessionsPurgedSubscription: Removing image with session id', sidToPurge);
+            log.debug('ClassicGridComponent: sessionsPurgedSubscription: Removing image with session id', sidToPurge);
             purgedImagePositions.push(i);
           }
         }
 
         for (let i = 0; i < this.search.length; i++) {
           if (this.search[i].session === sidToPurge) {
-            console.log('ClassicGridComponent: sessionsPurgedSubscription: Removing search text with session id', sidToPurge);
+            log.debug('ClassicGridComponent: sessionsPurgedSubscription: Removing search text with session id', sidToPurge);
             purgedSearchPositions.push(i);
             c++;
           }
         }
       }
 
-      // console.log("purgedImagePositions:",purgedImagePositions);
-      // console.log("purgedSearchPositions:",purgedSearchPositions);
+      // log.debug("purgedImagePositions:",purgedImagePositions);
+      // log.debug("purgedSearchPositions:",purgedSearchPositions);
       purgedImagePositions.sort(this.sortNumber);
       for (let i = 0; i < purgedImagePositions.length; i++) {
         this.content.splice(purgedImagePositions[i], 1);
@@ -342,7 +342,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
 
   openPdfViewer(e: any): void {
-    console.log('ClassicGridComponent: openPdfViewer()');
+    log.debug('ClassicGridComponent: openPdfViewer()');
     this.modalService.open('pdf-viewer');
   }
 
@@ -355,15 +355,15 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.displayedContent = this.images;
     }
     else if ( showPdf && !showImage ) {
-      // console.log("got to 1");
+      // log.debug("got to 1");
       this.displayedContent = this.pdfImages;
     }
     else if ( !showPdf && showImage ) {
-      // console.log("got to 2");
+      // log.debug("got to 2");
       this.displayedContent = this.imageImages;
     }
     else if ( !showPdf && !showImage ) {
-      // console.log("got to 3");
+      // log.debug("got to 3");
       this.displayedContent = [];
     }
   }
@@ -371,7 +371,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
   maskChanged(e: ContentMask): void {
     this.lastMask = e;
-    console.log('ClassicGridComponent: maskChanged():', e);
+    log.debug('ClassicGridComponent: maskChanged():', e);
     // e = { showPdf: boolean, showImage: boolean, showDodgy: boolean, showHash: boolean }
 
     this.calculateContentMasks();
@@ -402,11 +402,11 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
 
     this.displayedContent = tempShownBricks;
-    // console.log('MasonryGridComponent: maskChanged: this.shownBricks:', this.shownBricks);
+    // log.debug('MasonryGridComponent: maskChanged: this.shownBricks:', this.shownBricks);
   }
 
   sessionWidgetDecider(): void {
-    console.log('ClassicGridComponent: sessionWidgetDecider():', this.panzoomModel.zoomLevel);
+    log.debug('ClassicGridComponent: sessionWidgetDecider():', this.panzoomModel.zoomLevel);
     let transitionZoomLevel = 3.9;
     let height = this.windowRef.nativeWindow.innerHeight;
     let width = this.windowRef.nativeWindow.innerWidth;
@@ -431,17 +431,17 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     //at around a zoomLevel of 4 (3.9) or greater, we want to show high res images for all onscreen
     if (this.panzoomModel.zoomLevel >= transitionZoomLevel) {
       let thumbnails = $(".image-gallery-thumbnail")
-      //console.log("thumbnails:", thumbnails);
+      //log.debug("thumbnails:", thumbnails);
       let onscreenThumbnails = [];
       for (let t=0; t < thumbnails.length; t++) {
-        //console.log("thumbnails[t]:", thumbnails[t]);
+        //log.debug("thumbnails[t]:", thumbnails[t]);
         if ( this.isElementInViewport(thumbnails[t])) {
           onscreenThumbnails.push(thumbnails[t]);
         }
 
       }
       //let onscreenElements = $(":onScreen")
-      console.log("onscreenThumbnails:", onscreenThumbnails);
+      log.debug("onscreenThumbnails:", onscreenThumbnails);
     }
 */
 
@@ -464,7 +464,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
   showSessionWidget(i: number): void {
-    // console.log("ClassicGridComponent: showSessionWidget()", i);
+    // log.debug("ClassicGridComponent: showSessionWidget()", i);
     this.hoveredContentSession = i;
     // this.sessionWidgetEnabled = true;
     this.sessionWidgetEnabled = true;
@@ -472,14 +472,14 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
   hideSessionWidget(): void {
-    // console.log("ClassicGridComponent: hideSessionWidget()");
+    // log.debug("ClassicGridComponent: hideSessionWidget()");
     // this.sessionWidgetEnabled = false;
     this.sessionWidgetEnabled = false;
     this.changeDetectionRef.detectChanges();
   }
 
   toggleCaseSensitiveSearch(): void {
-    console.log('ClassicGridComponent: toggleCaseSensitiveSearch()');
+    log.debug('ClassicGridComponent: toggleCaseSensitiveSearch()');
     this.caseSensitiveSearch = !this.caseSensitiveSearch;
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
   }
@@ -495,11 +495,11 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   /*oldsearchTermsChanged(e: any): void {
     let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
-    console.log('searchTerms update:', searchTerms);
+    log.debug('searchTerms update:', searchTerms);
     let matchedSessions = [];
     let matchedSessionIds = [];
     if (searchTerms === '') {
-      // console.log("matched!");
+      // log.debug("matched!");
       this.showOnlyImages = [];
       this.displayedContent = this.images;
       return;
@@ -508,43 +508,43 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       for (let i = 0; i < this.search.length; i++) {
         // all searches are case-insensitive for now
         if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) {
-          console.log('case insensitive');
+          log.debug('case insensitive');
           let sessionId = this.search[i].session;
-          console.log('matched session', sessionId);
+          log.debug('matched session', sessionId);
           matchedSessions.push(this.search[i]);
           matchedSessionIds.push(sessionId);
         }
         else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) {
-          console.log('case sensitive');
+          log.debug('case sensitive');
           let sessionId = this.search[i].session;
-          console.log('matched session', sessionId);
+          log.debug('matched session', sessionId);
           matchedSessions.push(this.search[i]);
           matchedSessionIds.push(sessionId);
         }
       }
     }
     if ( matchedSessions.length !== 0 ) {
-      console.log('matchedSessions:', matchedSessions);
-      console.log('matchedSessionIds:', matchedSessionIds);
+      log.debug('matchedSessions:', matchedSessions);
+      log.debug('matchedSessionIds:', matchedSessionIds);
       this.showOnlyImages = matchedSessions;
       this.displayedContent = [];
       for (let x = 0; x < matchedSessionIds.length; x++) {
         this.displayedContent.push(this.getImageById(matchedSessionIds[x]));
       }
-      console.log('displayedContent:', this.displayedContent);
+      log.debug('displayedContent:', this.displayedContent);
     }
     else {
-      console.log('no matches');
+      log.debug('no matches');
       this.showOnlyImages = [ 'none' ];
       this.displayedContent = [];
     }
   }*/
 
   searchTermsChanged(e: any): void {
-    // console.log('MasonryGridComponent: searchTermsChanged()');
+    // log.debug('MasonryGridComponent: searchTermsChanged()');
     let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
-    // console.log('MasonryGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
+    // log.debug('MasonryGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
     let matchedContent = [];
 
     if (searchTerms === '') {
@@ -555,7 +555,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     if (this.search.length > 0) {
       // Ok, we have a search term to do something with.  This block will generate matchedContent[]
-      // console.log('MasonryGridComponent: searchTermsChanged: this.search:', this.search);
+      // log.debug('MasonryGridComponent: searchTermsChanged: this.search:', this.search);
       for (let i = 0; i < this.search.length; i++) {
         if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
           // we found a match!
@@ -578,8 +578,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     if ( matchedContent.length !== 0 ) {
       // Let's now turn our matched session id's into shownBricks[]
-      // console.log('MasonryGridComponent: searchTermsChanged: Length of matchedContent:', matchedContent.length);
-      // console.log('MasonryGridComponent: searchTermsChanged: matchedContent:', matchedContent);
+      // log.debug('MasonryGridComponent: searchTermsChanged: Length of matchedContent:', matchedContent.length);
+      // log.debug('MasonryGridComponent: searchTermsChanged: matchedContent:', matchedContent);
       let localShownBricks = [];
       for (let x = 0; x < matchedContent.length; x++) {
         let img = this.getContentBySessionAndContentFile(matchedContent[x]);
@@ -640,7 +640,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   // count = 0;
   calculateContentMasks(): void {
     // this.count = this.count + 1;
-    // console.log('count:', this.count)
+    // log.debug('count:', this.count)
     this.imageContent = [];
     this.pdfContent = [];
     this.dodgyArchiveContent = [];

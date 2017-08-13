@@ -18,7 +18,7 @@ export class KMousewheel implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    //console.log("creating new hamster");
+    //log.debug("creating new hamster");
     this.hamster = Hamster(this.elRef.nativeElement); //new method of creating hamster object
   }
 

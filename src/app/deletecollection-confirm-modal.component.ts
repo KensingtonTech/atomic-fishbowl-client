@@ -59,7 +59,7 @@ export class DeleteCollectionConfirmModalComponent {
   }
 
   keyDownFunction(event: any): void {
-    console.log(event.keyCode);
+    log.debug(event.keyCode);
   }
 
 }

@@ -26,12 +26,12 @@ export class AuthenticationService {
   public loggedInUser: User;
 
   public logout(): void {
-    console.log('AuthenticationService: logout(): logging out');
+    log.debug('AuthenticationService: logout(): logging out');
     this.dataService.abortGetBuildingCollection();
     this.http.get(this.apiUrl + '/logout' )
                     .toPromise()
                     .then( () => {} )
-                    .catch( (err) => { console.error('AuthenticationService: logout(): ERROR during logout'); });
+                    .catch( (err) => { log.error('AuthenticationService: logout(): ERROR during logout'); });
 
     this.loggedInUser = null;
     this.loggedInChanged.next(false);
@@ -73,7 +73,7 @@ export class AuthenticationService {
                     .toPromise()
                     .then(response => {
                       let res = response.json();
-                      console.log('AuthenticationService: login(): Got login response:', res);
+                      log.debug('AuthenticationService: login(): Got login response:', res);
                       this.loggedInUser = res.user;
                       this.loggedInChanged.next(true);
                       this.router.navigate(['/']);
@@ -111,7 +111,7 @@ export class AuthenticationService {
       //this.loggedInUser = JSON.parse(localStorage.getItem("221b_user"));
       let parsedToken = this.parseJwt(token);
       this.loggedInUser = parsedToken._doc;
-      //console.log("loggedInUser:", this.loggedInUser);
+      //log.debug("loggedInUser:", this.loggedInUser);
       this.loggedInChanged.next(true);
 
     }
@@ -122,12 +122,12 @@ export class AuthenticationService {
       let base64Url = token.split('.')[1];
       let base64 = base64Url.replace('-', '+').replace('_', '/');
       let parsed = JSON.parse(window.atob(base64));
-      // console.log('AuthenticationService: parseJwt(): parsed:', parsed);
+      // log.debug('AuthenticationService: parseJwt(): parsed:', parsed);
       return parsed;
   }
 
   handleError(error: any): Promise<any> {
-    console.error('ERROR: ', error);
+    log.error('ERROR: ', error);
     return Promise.reject(error.message || error);
   }
 

@@ -11,7 +11,7 @@ export class FromEpochPipe implements PipeTransform {
     }
     let t = new Date(0);
     t.setUTCSeconds(value);
-    //console.log(t);
+    //log.debug(t);
     return t;
   }
 }

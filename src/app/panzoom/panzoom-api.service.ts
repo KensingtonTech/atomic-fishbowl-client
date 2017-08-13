@@ -10,7 +10,7 @@ export class PanZoomApiService {
   panZoomAPIs = {};
 
   registerAPI(key: string, panZoomAPI: any): void {
-    console.log("registerAPI()");
+    log.debug("registerAPI()");
 
     if (!this.panZoomAPIs[key]) {
       this.panZoomAPIs[key] = new Deferred<any>();

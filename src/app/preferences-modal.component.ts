@@ -103,7 +103,7 @@ export class PreferencesModalComponent {
       }
       keysArray.push(newArray[x]);
     }
-    // console.log('PreferencesModalComponent: setDisplayedKeysValue(): keysArray:', keysArray);
+    // log.debug('PreferencesModalComponent: setDisplayedKeysValue(): keysArray:', keysArray);
     return keysArray;
   }
 
@@ -111,7 +111,7 @@ export class PreferencesModalComponent {
   setMasonryKeysValue(v: string): any {
     let n = v.split('\n'); // split by newline
     let newArray = [];
-    // console.log('PreferencesModalComponent: setMasonryKeysValue(): n:', n);
+    // log.debug('PreferencesModalComponent: setMasonryKeysValue(): n:', n);
 
     for (let x = 0; x < n.length; x++) {
       //remove blank lines
@@ -119,14 +119,14 @@ export class PreferencesModalComponent {
         newArray.push(n[x]);
       }
     }
-    // console.log('PreferencesModalComponent: setMasonryKeysValue(): newArray:', newArray);
+    // log.debug('PreferencesModalComponent: setMasonryKeysValue(): newArray:', newArray);
 
     let keysArray = [];
 
     for (let i=0; i < newArray.length; i++) {
       let x = {};
       let y = newArray[i].split(',');
-      // console.log('y:', y);
+      // log.debug('y:', y);
 
       y[0] = y[0].replace(/\s+$/, '').replace(/^\s+/, ''); // remove trailing and leading whitespace from key name, if any
 
@@ -148,7 +148,7 @@ export class PreferencesModalComponent {
       }
       keysArray.push(x);
     }
-    // console.log('PreferencesModalComponent: setMasonryKeysValue(): keysArray:', keysArray);
+    // log.debug('PreferencesModalComponent: setMasonryKeysValue(): keysArray:', keysArray);
     return keysArray;
   }
 
@@ -162,14 +162,14 @@ export class PreferencesModalComponent {
   }
 
   cancelledEventReceived(): void {
-    // console.log('PreferencesModalComponent: cancelledEventReceived()';
+    // log.debug('PreferencesModalComponent: cancelledEventReceived()';
     // this.resetForm();
   }
 
   onOpen(): void {
-    console.log('PreferencesModalComponent: onOpen()');
+    log.debug('PreferencesModalComponent: onOpen()');
     this.dataService.getPreferences()
-                    .then( (prefs: any) => {  console.log('PreferencesModalComponent: onOpen(): prefs:', prefs);
+                    .then( (prefs: any) => {  log.debug('PreferencesModalComponent: onOpen(): prefs:', prefs);
                                               if ( 'nwInvestigateUrl' in prefs ) {
                                                 this.preferencesModel.nwInvestigateUrl = prefs.nwInvestigateUrl;
                                               }
@@ -211,11 +211,11 @@ export class PreferencesModalComponent {
                                               }
                                               this.changeDetectionRef.markForCheck();
                                             })
-                    .then( () => console.log(this.preferencesModel) );
+                    .then( () => log.debug(this.preferencesModel) );
   }
 
   submitPreferences(f: any): void {
-    console.log("PreferencesModalComponent: submitPreferences(): f", f);
+    log.debug("PreferencesModalComponent: submitPreferences(): f", f);
     let prefs = {
       nwInvestigateUrl: f.value.nwInvestigateUrl,
       defaultNwQuery: f.value.defaultNwQuery,

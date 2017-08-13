@@ -18,7 +18,7 @@ function passwordMatcher(c: AbstractControl) {
 }
 
 function userExists(c: AbstractControl) {
-  // console.log('userExists:', c);
+  // log.debug('userExists:', c);
   if (this.users) {
     for (let i = 0; i < this.users.length; i++) {
       const user = this.users[i];
@@ -49,13 +49,13 @@ function emailValidator(c: AbstractControl) {
 }
 
 function isNotLoggedInUser(c: AbstractControl) {
-  // console.log('isNotLoggedInUser', c);
+  // log.debug('isNotLoggedInUser', c);
   // if ( this.authService && c.get('username') && this.authService.loggedInUser.id !== c.get('username').value ) {
   if ( this.authService && this.editingUser &&  this.authService.loggedInUser.username === this.editingUser.username && c.value === false ) {
-    // console.log('returning isloggedinuser');
+    // log.debug('returning isloggedinuser');
     return { 'isloggedinuser': true}
   }
-  // console.log('returning null');
+  // log.debug('returning null');
   return null;
 }
 
@@ -140,7 +140,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public editUserForm: FormGroup;
 
   ngOnInit(): void {
-    console.log('ManageUsersModalComponent: ngOnInit');
+    log.debug('ManageUsersModalComponent: ngOnInit');
     this.getUsers();
     this.addUserForm = this.fb.group({
       username: ['', Validators.compose( [ Validators.required, spaceValidator, Validators.minLength(this.minUsernameLength), userExists.bind(this)]) ],
@@ -177,7 +177,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 /////////////////////////////////////////////////////////////////
 
   displayUserAddBox(): void {
-    console.log('ManageUsersModalComponent: displayUserAddBox(): this.addUserForm:', this.addUserForm);
+    log.debug('ManageUsersModalComponent: displayUserAddBox(): this.addUserForm:', this.addUserForm);
     this.errorDefined = false;
     this.displayUserAddForm = true;
     this.usersFormDisabled = true;
@@ -185,7 +185,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   addUserSubmit(): void {
-    console.log('ManageUsersModalComponent: addUserSubmit: this.addUserForm:', this.addUserForm);
+    log.debug('ManageUsersModalComponent: addUserSubmit: this.addUserForm:', this.addUserForm);
     this.hideUserAddBox();
     const newUser = {
       username: this.addUserForm.value.username,
@@ -194,7 +194,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       email: this.addUserForm.value.email,
       enabled: this.addUserForm.value.enabled
     };
-    console.log('ManageUsersModalComponent: addUserSubmit(): newUser:', newUser);
+    log.debug('ManageUsersModalComponent: addUserSubmit(): newUser:', newUser);
     this.addUserForm.patchValue({
       username: '',
       email: '',
@@ -216,11 +216,11 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   public addUserPasswordMatcher(control: FormControl, form: FormGroupDirective): boolean {
-    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
-    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
-    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
-    // console.log('addUserForm', this.addUserForm);
-    // console.log('control:', form.control.controls.passwords.get('password').dirty );
+    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
+    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
+    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
+    // log.debug('addUserForm', this.addUserForm);
+    // log.debug('control:', form.control.controls.passwords.get('password').dirty );
     if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
       return true;
     }
@@ -236,7 +236,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
                       // Edit User //
 /////////////////////////////////////////////////////////////////
   displayUserEditBox(user: any): void {
-    console.log('ManageUsersModalComponent: displayUserEditBox():', user);
+    log.debug('ManageUsersModalComponent: displayUserEditBox():', user);
 
     if (!this.displayUserAddForm) {
       this.errorDefined = false;
@@ -263,8 +263,8 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
   editUserSubmit(form: any): void {
     //const form = this.editUserForm;
-    console.log('ManageUsersModalComponent: editUserSubmit()', form);
-    // console.log('editUserForm:', this.editUserForm);
+    log.debug('ManageUsersModalComponent: editUserSubmit()', form);
+    // log.debug('editUserForm:', this.editUserForm);
     // this.errorDefined = false;
     let updatedUser: User = new User;
     updatedUser.id = this.editingUser.id;
@@ -273,7 +273,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     if ( this.editingUser.enabled !== form.value.enabled ) { updatedUser.enabled = form.value.enabled; }
     // if ('passwordConfirm' in form.value && form.value.passwordConfirm !== '') { updatedUser.password = form.value.password; }
     if ( form.controls.passwords.dirty && form.value.passwords.password.length !== 0 ) { updatedUser.password = form.value.passwords.password; }
-    // console.log('updatedUser:', updatedUser);
+    // log.debug('updatedUser:', updatedUser);
     this.dataService.updateUser(updatedUser)
                     .then( () => this.getUsers() );
     this.hideUserEditBox();
@@ -294,11 +294,11 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   public editUserPasswordMatcher(control: FormControl, form: FormGroupDirective): boolean {
-    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
-    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
-    // console.log('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
-    // console.log('addUserForm', this.addUserForm);
-    // console.log('control:', form.control.controls.passwords.get('password').dirty );
+    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
+    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
+    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
+    // log.debug('addUserForm', this.addUserForm);
+    // log.debug('control:', form.control.controls.passwords.get('password').dirty );
     if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
       return true;
     }
@@ -329,12 +329,12 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   cancelledEventReceived(): void {
-    console.log('ManageUsersModalComponent: cancelledEventReceived()');
+    log.debug('ManageUsersModalComponent: cancelledEventReceived()');
   }
 
   getUsers(): void {
     this.dataService.getUsers().then(n => {
-                                            // console.log("ManageUsersModalComponent: getUsers():", n);
+                                            // log.debug("ManageUsersModalComponent: getUsers():", n);
                                             this.users = n;
                                             // this.changeDetectionRef.markForCheck();
                                           });
@@ -348,7 +348,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   deleteUser(id: string): void {
-    console.log('ManageUsersModalComponent: deleteUser():', id);
+    log.debug('ManageUsersModalComponent: deleteUser():', id);
     if (!this.displayUserAddForm && !this.displayUserEditForm) {
       if (this.authService.loggedInUser.id !== id) {
         this.errorDefined = false;
@@ -356,7 +356,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
         this.modalService.open('confirm-user-delete-modal');
       }
       else {
-        // console.log("deleteUser(" + id + "): cannot delete logged in user!");
+        // log.debug("deleteUser(" + id + "): cannot delete logged in user!");
         this.errorMessage = 'Cannot delete logged in user!';
         this.errorDefined = true;
       }
@@ -364,13 +364,13 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   deleteUserConfirmed(id: string): void {
-    console.log('ManageUsersModalComponent: deleteUserConfirmed(id)', id);
+    log.debug('ManageUsersModalComponent: deleteUserConfirmed(id)', id);
     this.dataService.deleteUser(id)
                     .then ( () => this.getUsers() );
   }
 
   onOpen(): void {
-    console.log('ManageUsersModalComponent: onOpen()');
+    log.debug('ManageUsersModalComponent: onOpen()');
     this.errorDefined = false;
     this.getUsers();
   }

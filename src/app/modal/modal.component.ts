@@ -36,7 +36,7 @@ export class ModalComponent implements OnInit, OnDestroy {
                                                                   }
 
     @HostListener('window:keydown',['$event']) onEscape(event: KeyboardEvent ) {
-      //console.log("keyup event:", event);
+      //log.debug("keyup event:", event);
       event.stopPropagation();
       if (event.key === 'Escape' && this.enabledTrigger === 'enabled' && this.escapeEnabled === true) {
         this.cancelledEventEmitter.emit();
@@ -49,7 +49,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
         // ensure id attribute exists
         if (!this.id) {
-            console.error('modal must have an id');
+            log.error('modal must have an id');
             return;
         }
 

@@ -49,13 +49,13 @@ export class SplashScreenModal implements OnInit {
   public serverVersion: string;
 
   ngOnInit(): void {
-    console.log("SplashScreenModal: ngOnInit()");
+    log.debug("SplashScreenModal: ngOnInit()");
     this.dataService.getServerVersion()
                     .then( (ver: string) => this.serverVersion = ver);
   }
 
   onOpen(): void {
-    //console.log("SplashScreenModal: onOpen()");
+    //log.debug("SplashScreenModal: onOpen()");
     if (this.firstOpen) {
       setTimeout( () => {
         this.modalService.close(this.id);

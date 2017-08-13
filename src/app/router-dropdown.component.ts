@@ -65,13 +65,13 @@ export class RouterDropdownComponent implements OnInit {
   }
 
   collapseRouterOptions(): void {
-    //console.log('collapseRouterOptions()');
+    //log.debug('collapseRouterOptions()');
     //document.removeEventListener('click', () => this.collapseRouterOptions() );
     this.selectionExpanded = false;
   }
 
   expandRouterOptions(): void {
-    //console.log("expandRouterOptions()");
+    //log.debug("expandRouterOptions()");
     setTimeout( () => { this.selectionExpanded = true;
                         //this.changeDetectorRef.detectChanges();
                         this.changeDetectorRef.markForCheck();
@@ -79,7 +79,7 @@ export class RouterDropdownComponent implements OnInit {
   }
 
   routeSelected(e: any): void {
-    //console.log("routeSelected()", e);
+    //log.debug("routeSelected()", e);
     if (this.selectedRoute !== e) {
       this.selectedRoute = e;
       this.selectionExpanded = false;

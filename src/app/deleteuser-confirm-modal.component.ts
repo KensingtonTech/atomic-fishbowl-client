@@ -81,7 +81,7 @@ export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {
   }
 
   /*keyDownFunction(event: any): void {
-    console.log(event.keyCode);
+    log.debug(event.keyCode);
   }
   */
 

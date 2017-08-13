@@ -43,18 +43,18 @@ export class GridControlBarComponent implements OnInit {
   @Input('initialZoomHeight') initialZoomHeight: number;
 
   ngOnInit(): void {
-    console.log("ControlBarComponent: OnInit")
+    log.debug("ControlBarComponent: OnInit")
     this.panZoomApiService.getAPI('abc').then( (v: any) => {this.panZoomAPI = v;});
-    //console.log("deferred:",this.panZoomAPI);
+    //log.debug("deferred:",this.panZoomAPI);
   }
 
   zoomIn(): void {
-    //console.log("zoomIn");
+    //log.debug("zoomIn");
     this.panZoomAPI.zoomIn();
   }
 
   zoomOut(): void {
-    //console.log("zoomOut");
+    //log.debug("zoomOut");
     this.panZoomAPI.zoomOut();
   }
 

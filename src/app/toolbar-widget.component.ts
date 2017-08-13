@@ -172,11 +172,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (e: any) => this.selectedCollection = e.id );
     this.dataService.collectionsChanged.takeWhile(() => this.alive).subscribe( (c: string) => {
                                                                     this.collections = c;
-                                                                    console.log('ToolbarWidgetComponent: collectionsChangedSubscription: collections update', this.collections);
-                                                                    // console.log('selectedCollection:', this.selectedCollection);
+                                                                    log.debug('ToolbarWidgetComponent: collectionsChangedSubscription: collections update', this.collections);
+                                                                    // log.debug('selectedCollection:', this.selectedCollection);
                                                                   });
     this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
-                                                                              // console.log("collection", collection);
+                                                                              // log.debug("collection", collection);
                                                                               this.iconDecider(collection.state);
                                                                               this.collections[collection.id].state = collection.state;
                                                                             });
@@ -186,7 +186,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                       this.refreshed = true;
                       if (Object.keys(this.collections).length !== 0 ) { // we only select a collection if there are collections
                         this.selectedCollection = this.getFirstCollection();
-                        // console.log('ToolbarWidgetComponent: ngOnInit(): select collection 0');
+                        // log.debug('ToolbarWidgetComponent: ngOnInit(): select collection 0');
 
                         /*this.dataService.getCollectionData(this.collections[this.selectedCollection])
                           .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } ))
@@ -212,8 +212,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   buildTooltip(): string {
-    // console.log("selectedCollection:",this.selectedCollection);
-    // console.log("collection:", this.collections[this.selectedCollection]);
+    // log.debug("selectedCollection:",this.selectedCollection);
+    // log.debug("collection:", this.collections[this.selectedCollection]);
     // pTooltip="Query: {{collections[selectedCollection].query}}\nService: {{collections[selectedCollection].nwserverName}}\nImage Limit: {{collections[selectedCollection].imageLimit}}\nMin Dimensions: {{collections[selectedCollection].minX}} x {{collections[selectedCollection].minY}}\nMD5 Hashing: {{collections[selectedCollection].md5Enabled}}\nDistillation Enabled: {{collections[selectedCollection].distillationEnabled}}\nDistillation Terms: {{collections[selectedCollection].distillationTerms}}"
     let tt = 'Query: ' + this.collections[this.selectedCollection].query;
     tt = tt + '\nService: ' + this.collections[this.selectedCollection].nwserverName;
@@ -236,7 +236,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
         tt = tt + '\n  ' + this.collections[this.selectedCollection].regexDistillationTerms[x];
       }
     }
-    // console.log('tt:',tt);
+    // log.debug('tt:',tt);
     return tt;
   }
 
@@ -265,7 +265,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   iconDecider(state: string): void {
-    // console.log("iconDecider():",state);
+    // log.debug("iconDecider():",state);
     if (state === 'building' || state === 'rolling' || state === 'refreshing') {
       this.showSpinnerIcon();
       this.hideErrorIcon();
@@ -281,43 +281,43 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   getFirstCollection(): any { // a bit of a hack since dicts aren't really ordered
-    // console.log("getFirstCollection()");
+    // log.debug("getFirstCollection()");
     for (let c in this.collections) {
-      // console.log(c);
+      // log.debug(c);
       return c;
     }
   }
 
   addCollectionClick(): void {
-    // console.log("addCollectionClick()");
+    // log.debug("addCollectionClick()");
     this.modalService.open(this.addCollectionModalId);
   }
 
   preferencesButtonClick(): void {
-    // console.log("preferencesButtonClick()");
+    // log.debug("preferencesButtonClick()");
     this.modalService.open('preferences-modal');
   }
 
   accountsButtonClick(): void {
-    // console.log("preferencesButtonClick()");
+    // log.debug("preferencesButtonClick()");
     this.modalService.open('accounts-modal');
   }
 
   helpButtonClick(): void {
-    // console.log("helpButtonClick()");
+    // log.debug("helpButtonClick()");
     this.modalService.open('splashScreenModal');
   }
 
 
   closeModal(id: string): void {
-    console.log('ToolbarWidgetComponent: closeModal()');
+    log.debug('ToolbarWidgetComponent: closeModal()');
     this.modalService.close(id);
   }
 
 
 
   deleteConfirmed(): void {
-    console.log('ToolbarWidgetComponent: deleteConfirmed(): Received deleteConfirmed event');
+    log.debug('ToolbarWidgetComponent: deleteConfirmed(): Received deleteConfirmed event');
     this.dataService.abortGetBuildingCollection()
                     .then( () => this.dataService.deleteCollection(this.selectedCollection) )
                     .then( () => this.dataService.refreshCollections() )
@@ -331,7 +331,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                                     else {
                                       this.showCollections = true;
                                       this.selectedCollection = this.getFirstCollection();
-                                      // console.log('ToolbarWidgetComponent: deleteConfirmed(): select collection 1');
+                                      // log.debug('ToolbarWidgetComponent: deleteConfirmed(): select collection 1');
                                       this.collectionSelected(this.selectedCollection);
                                       // this.dataService.getCollectionData(this.collections[this.selectedCollection])
                                       //                .then( () => this.iconDecider(this.collections[this.selectedCollection].state) );
@@ -340,27 +340,27 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   deleteCollectionClick(): void {
-    // console.log('ToolbarWidgetComponent: deleteCollectionClick()');
+    // log.debug('ToolbarWidgetComponent: deleteCollectionClick()');
     this.modalService.open('collection-confirm-delete-modal');
   }
 
 
 /*  editCollectionClick(): void {
-    console.log("editCollectionClick()");
+    log.debug("editCollectionClick()");
   }
 */
 
 /*
   ngOnChanges(): void {
-    console.log("ToolbarWidgetComponent: ngOnChanges()");
+    log.debug("ToolbarWidgetComponent: ngOnChanges()");
   }
 */
 
   collectionSelected(id: any): void {
-    console.log('ToolbarWidgetComponent: collectionSelected():', this.collections[id]);
-    // console.log("collections:", this.collections);
-    // console.log(this.collections[id]);
-    // console.log("this.selectedCollection:", this.collections[this.selectedCollection]);
+    log.debug('ToolbarWidgetComponent: collectionSelected():', this.collections[id]);
+    // log.debug("collections:", this.collections);
+    // log.debug(this.collections[id]);
+    // log.debug("this.selectedCollection:", this.collections[this.selectedCollection]);
 
     this.dataService.abortGetBuildingCollection();
     if (this.showSearch) {
@@ -373,21 +373,21 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
 
     if (this.collections[id].type === 'rolling' || this.collections[id].type === 'monitoring') {
-      // console.log('select collection 2');
+      // log.debug('select collection 2');
       this.dataService.getCollectionData(this.collections[id])
                       .then( () => this.dataService.getRollingCollection(id) );
     }
     else { // fixed collections
-      // console.log('select collection 3');
-      // console.log("this.collections[id].state",  this.collections[id].state);
+      // log.debug('select collection 3');
+      // log.debug("this.collections[id].state",  this.collections[id].state);
       this.iconDecider(this.collections[id].state);
       if (this.collections[id].state === 'building') {
-        // console.log('select collection 4');
+        // log.debug('select collection 4');
         this.dataService.getCollectionData(this.collections[id])
                         .then( () => this.dataService.getBuildingCollection(id) );
         return;
       }
-      // console.log('select collection 5');
+      // log.debug('select collection 5');
       this.dataService.getCollectionData(this.collections[id]);
     }
   }
@@ -397,7 +397,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     //for(var i=0; i < this.collections.length; i++) {
     for(var i=0; i < this.dataService.collections.length; i++) {
       let col = this.dataService.collections[i];
-      //console.log("id: " + col.id);
+      //log.debug("id: " + col.id);
       if (col.id === id) {
         return i;
       }
@@ -406,33 +406,33 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 */
 
   showSpinnerIcon(): void {
-    // console.log("showSpinnerIcon()");
+    // log.debug("showSpinnerIcon()");
     setTimeout( () => this.renderer.setElementStyle(this.spinnerIconRef.nativeElement, 'display', 'inline-block'), 25 );
   }
 
   hideSpinnerIcon(): void {
-    // console.log("hideSpinnerIcon()");
+    // log.debug("hideSpinnerIcon()");
    setTimeout( () =>  this.renderer.setElementStyle(this.spinnerIconRef.nativeElement, 'display', 'none'), 25);
   }
 
   showErrorIcon(): void {
-    // console.log("showErrorIcon()");
+    // log.debug("showErrorIcon()");
     this.renderer.setElementStyle(this.errorIconRef.nativeElement, 'display', 'inline-block');
   }
 
   hideErrorIcon(): void {
-    // console.log("hideErrorIcon()");
+    // log.debug("hideErrorIcon()");
     setTimeout( () => this.renderer.setElementStyle(this.errorIconRef.nativeElement, 'display', 'none'), 25 );
   }
 
   getRollingCollection(id: string): void {
-    console.log('ToolbarWidgetComponent: getRollingCollection(id)');
+    log.debug('ToolbarWidgetComponent: getRollingCollection(id)');
     this.dataService.getRollingCollection(id);
   }
 
   collectionExecuted(e: any): void {
     let id = e.id;
-    console.log('ToolbarWidgetComponent: collectionExecuted():', id, e);
+    log.debug('ToolbarWidgetComponent: collectionExecuted():', id, e);
     // this.collectionSelected(id);
     this.refreshed = false;
     this.dataService.abortGetBuildingCollection()
@@ -451,14 +451,14 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 /*
                     .then( () =>  {
                                     if (this.collections[id].type === 'rolling' || this.collections[id].type === 'monitoring') {
-                                      console.log('select collection 5');
+                                      log.debug('select collection 5');
                                       this.dataService.getCollectionData(this.collections[this.selectedCollection])
                                                       .then( () => this.getRollingCollection(id) )
                                                       //.then( () => { this.showCreateFirstCollection = false; this.showCollections = true; })
                                                       .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber } ));
                                     }
                                     else { //fixed collections
-                                      console.log('select collection 6');
+                                      log.debug('select collection 6');
                                       this.dataService.getCollectionData(this.collections[this.selectedCollection])
                                                       .then( () => this.dataService.buildCollection(id) )
                                                       .then( () => this.dataService.getBuildingCollection(id) ) //they're all 'building' when we first execute a collection
@@ -471,7 +471,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
   // @HostListener('window:keydown',['$event']) onEscape(event: KeyboardEvent ) {
   onEscape(event: KeyboardEvent ) {
-    // console.log("keyup event:", event);
+    // log.debug("keyup event:", event);
     if (event.key === 'Escape' && this.showSearch) {
       this.toggleSearch();
     }
@@ -496,25 +496,25 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   searchTermsUpdate(): void {
-    console.log('ToolbarWidgetComponent: searchTermsUpdate()', this.searchTerms);
+    log.debug('ToolbarWidgetComponent: searchTermsUpdate()', this.searchTerms);
     this.toolService.searchTermsChanged.next( { searchTerms: this.searchTerms } );
   }
 
   toggleCaseSensitivity(): void {
-    console.log('ToolbarWidgetComponent: toggleCaseSensitivity()', this.caseSensitive);
+    log.debug('ToolbarWidgetComponent: toggleCaseSensitivity()', this.caseSensitive);
     this.caseSensitive = !this.caseSensitive;
     this.toolService.caseSensitiveSearchChanged.next();
   }
 
   getCollectionDataAgain(): void {
-    console.log('ToolbarWidgetComponent: getCollectionDataAgain()');
-    // console.log('select collection 7');
+    log.debug('ToolbarWidgetComponent: getCollectionDataAgain()');
+    // log.debug('select collection 7');
     this.dataService.getCollectionData(this.collections[this.selectedCollection])
                     .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } ));
   }
 
   logoutButtonClick(): void {
-    // console.log("ToolbarWidgetComponent: logoutButtonClick()");
+    // log.debug("ToolbarWidgetComponent: logoutButtonClick()");
     this.authService.logout();
   }
 

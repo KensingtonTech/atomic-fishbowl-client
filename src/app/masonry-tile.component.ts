@@ -163,9 +163,9 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
 */
 
   ngOnChanges(e: any): void {
-    // console.log("MasonryTileComponent: OnChanges():", e);
+    // log.debug("MasonryTileComponent: OnChanges():", e);
     /*if ('image' in e && e.image.currentValue) {
-     console.log('MasonryTileComponent: ngOnChanges: image:', e.image.currentValue);
+     log.debug('MasonryTileComponent: ngOnChanges: image:', e.image.currentValue);
     }*/
     if ('session' in e && e.session.currentValue != undefined) { // de-dupe meta keys
       for (let key in e.session.currentValue.meta) {
@@ -180,7 +180,7 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
   }
 
   onImgLoad(): void {
-    // console.log("Image loaded");
+    // log.debug("Image loaded");
     // moved temporarily to aftercontentinit
     // this.changeDetectionRef.reattach();
     /*if ( this.image ) {
@@ -194,11 +194,11 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
 
 
   onClick(e: any): void {
-    // console.log("onClick")
+    // log.debug("onClick")
     // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
     if (this.image.contentType === 'pdf') {
-      // console.log("display pdf");
-      // console.log("emitting openPDFViewerEmitter")
+      // log.debug("display pdf");
+      // log.debug("emitting openPDFViewerEmitter")
       this.toolService.newSession.next(this.session);
       this.toolService.newImage.next(this.image);
 
@@ -206,8 +206,8 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
       this.openPDFViewer.emit();
     }
     else {
-      // console.log("display pdf");
-      // console.log("emitting openPDFViewer")
+      // log.debug("display pdf");
+      // log.debug("emitting openPDFViewer")
       this.toolService.newSession.next(this.session);
       this.toolService.newImage.next(this.image);
       // this.openSessionDetails.emit( { image: this.image, session: this.session } );
@@ -216,7 +216,7 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
   }
 
   handleError(error: any): Promise<any> {
-    console.error('ERROR:', error);
+    log.error('ERROR:', error);
     return Promise.reject(error.message || error);
   }
 
@@ -232,7 +232,7 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
   reduceContentFile(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
-    // console.log(match[0]);
+    // log.debug(match[0]);
     return match[0];
   }
 
