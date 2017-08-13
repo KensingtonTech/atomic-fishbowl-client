@@ -8,7 +8,7 @@ export interface MasonryOptions {
       gutter?: number,
       horizontalOrder?: boolean,
       fitWidth?: boolean
-    }
+    };
     percentPosition?: boolean;
     stamp?: string;
     originLeft?: boolean;

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-//import 'rxjs/add/operator/toPromise';
+// import 'rxjs/add/operator/toPromise';
+declare var log: any;
 
 @Injectable()
 
@@ -32,8 +33,8 @@ export class PanZoomConfigService {
   model = {};
 
   constructor() {
-    //console.log("Initializing PanZoomConfigService");
-    //initialize defaults
+    // console.log("Initializing PanZoomConfigService");
+    // initialize defaults
     // initialize models. Use passed properties when available, otherwise revert to defaults
     // NOTE: all times specified in seconds, all distances specified in pixels
     this.disableZoomAnimation = this.disableZoomAnimation !== undefined ? this.disableZoomAnimation : false;

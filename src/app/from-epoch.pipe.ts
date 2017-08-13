@@ -1,11 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
-//import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Pipe({name: 'fromEpoch'})
 
 export class FromEpochPipe implements PipeTransform {
-
-  //constructor (private loggerService: LoggerService) {}
 
   transform(value: any, args:string[]) : any {
     if (!value) {

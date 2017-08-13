@@ -5,34 +5,33 @@ import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/toPromise';
 import { Headers, RequestOptions, Http } from '@angular/http';
 import { User } from './user';
-import { LoggerService } from './logger-service';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
+import { ToolService } from './tool.service';
 import { DataService } from './data.service';
+declare var log: any;
 
 @Injectable()
 
 export class AuthenticationService {
 
-  constructor(  private loggerService: LoggerService,
-                private dataService: DataService,
+  constructor(  private dataService: DataService,
                 private router: Router,
                 private http: Http,
-                private toolService: ToolWidgetCommsService ) {
+                private toolService: ToolService ) {
                   this.toolService.logout.subscribe( () => this.logout() );
                 }
-                //private dataService: DataService ) {}
+                // private dataService: DataService ) {}
 
   public loggedInChanged: Subject<boolean> = new Subject<boolean>();
-  private apiUrl : string = '/api';
+  private apiUrl = '/api';
   public loggedInUser: User;
 
   public logout(): void {
-    console.log("AuthenticationService: logout(): logging out");
+    console.log('AuthenticationService: logout(): logging out');
     this.dataService.abortGetBuildingCollection();
     this.http.get(this.apiUrl + '/logout' )
                     .toPromise()
                     .then( () => {} )
-                    .catch( (err) => {console.error("AuthenticationService: logout(): ERROR during logout"); });
+                    .catch( (err) => { console.error('AuthenticationService: logout(): ERROR during logout'); });
 
     this.loggedInUser = null;
     this.loggedInChanged.next(false);
@@ -43,7 +42,7 @@ export class AuthenticationService {
     return this.http
                 .get(this.apiUrl + '/users' )
                 .toPromise()
-                .then(response => response.json() as any )
+                .then(response => response.json() as User[] )
                 .catch(e => this.handleError(e));
   }
 
@@ -63,7 +62,7 @@ export class AuthenticationService {
                       this.loggedInUser = res.json();
                       return true;
                     })
-                    .catch( () => {return false} );
+                    .catch( () => false ); // check that this tslint-suggested change is kosher
   }
 
   public login(u: User): Promise<boolean> {
@@ -74,7 +73,7 @@ export class AuthenticationService {
                     .toPromise()
                     .then(response => {
                       let res = response.json();
-                      console.log("AuthenticationService: login(): Got login response:", res);
+                      console.log('AuthenticationService: login(): Got login response:', res);
                       this.loggedInUser = res.user;
                       this.loggedInChanged.next(true);
                       this.router.navigate(['/']);
@@ -123,12 +122,12 @@ export class AuthenticationService {
       let base64Url = token.split('.')[1];
       let base64 = base64Url.replace('-', '+').replace('_', '/');
       let parsed = JSON.parse(window.atob(base64));
-      //console.log("AuthenticationService: parseJwt(): parsed:", parsed);
+      // console.log('AuthenticationService: parseJwt(): parsed:', parsed);
       return parsed;
-  };
+  }
 
   handleError(error: any): Promise<any> {
-    console.error('ERROR: ',error);
+    console.error('ERROR: ', error);
     return Promise.reject(error.message || error);
   }
 

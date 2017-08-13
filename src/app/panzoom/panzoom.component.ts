@@ -5,6 +5,7 @@ import { PanZoomModelService } from './panzoom-model.service';
 import { WindowRefService } from './panzoom-windowref.service';
 // import * as $ from 'jquery';
 // declare var $: any;
+declare var log: any;
 
 @Component( {
   selector: 'panzoom',

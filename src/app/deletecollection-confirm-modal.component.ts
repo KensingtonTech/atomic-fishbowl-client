@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import { ModalService } from './modal/modal.service';
-import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Component({
   selector: 'delete-collection-confirm-modal',
@@ -39,8 +39,7 @@ import { LoggerService } from './logger-service';
 export class DeleteCollectionConfirmModalComponent {
 
   constructor(private modalService: ModalService,
-              private changeDetectionRef: ChangeDetectorRef,
-              private loggerService: LoggerService) {}
+              private changeDetectionRef: ChangeDetectorRef ) {}
 
   @Input('collectionName') collectionName: any;
   @Output('confirmDelete') confirmDeleteEvent: EventEmitter<any> = new EventEmitter();

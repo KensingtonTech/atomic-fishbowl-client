@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, Input, ViewEncapsulation } from '@angular/core';
-import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Component({
   selector: 'accordion-li',
@@ -20,7 +20,5 @@ import { LoggerService } from './logger-service';
 export class AccordionLIComponent {
 
   //@Input('updated') updated: number;
-
-  constructor(private loggerService: LoggerService) {}
 
 }

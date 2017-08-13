@@ -3,7 +3,7 @@ import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { defaultQueries } from './default-queries';
-import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Component({
   selector: 'preferences-modal',
@@ -21,8 +21,7 @@ export class PreferencesModalComponent {
 
   constructor(private dataService : DataService,
               private modalService: ModalService,
-              private changeDetectionRef: ChangeDetectorRef,
-              private loggerService: LoggerService ) {}
+              private changeDetectionRef: ChangeDetectorRef ) {}
 
   @Input('enabled') enabled: boolean;
   @ViewChild('topDiv') topDiv: ElementRef;

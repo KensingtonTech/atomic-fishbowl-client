@@ -1,0 +1,4 @@
+indent-string='  '
+
+#[MESSAGES CONTROL]
+#disable=too-many-instance-attributes

@@ -1,14 +1,14 @@
-export class Image {
+export class Content {
   session: number;
-  contentType?: string; // image, pdf, hash
+  contentType?: string;
   contentFile?: string;
-  // image?: string; // image file URL
-  thumbnail?: string; // thumbnail file URL
+  thumbnail?: string;
   pdfImage?: string;
   archiveFilename?: string;
   hashType?: string;
   hashValue?: string;
   hashFriendly?: string;
   fromArchive?: boolean;
+  isArchive?: boolean;
   archiveType: string;
 }

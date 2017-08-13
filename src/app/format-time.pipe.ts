@@ -1,12 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
-//import { LoggerService } from './logger-service';
 declare var moment: any;
+declare var log: any;
 
 @Pipe({name: 'formatTime'})
 
 export class FormatTimePipe implements PipeTransform {
-
-  //constructor(private loggerService: LoggerService) {}
 
   transform(value: any, args: string) : any {
     if (!value) {

@@ -4,8 +4,8 @@ import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
-import { LoggerService } from './logger-service';
 declare var moment: any;
+declare var log: any;
 import 'rxjs/add/operator/takeWhile';
 
 /*
@@ -60,17 +60,11 @@ String.prototype.isBlank = function(c) {
     .ui-radiobutton-box.ui-state-active {
       background-color: rgb(59, 153, 252);
     }
-/*
-    .ui-tooltip {
-      width: 275px;
-      word-wrap: normal;
+
+    .addCollectionTooltip.ui-tooltip .ui-tooltip-text {
+      white-space: pre-line;
+      width: 375px;
     }
-*/
-/*    /deep/ .ui-tooltip .ui-tooltip-text {
-      white-space: pre-line !important;
-      //width: 375px;
-    }
-*/
   `]
 })
 
@@ -78,13 +72,11 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
-//              private el: ElementRef,
               private renderer: Renderer,
-              private changeDetectionRef: ChangeDetectorRef,
-              private loggerService: LoggerService) {}
+              private changeDetectionRef: ChangeDetectorRef) {}
 
-  @Input('modalId') id: string;
-  @Output('executeCollection') executeCollectionEvent: EventEmitter<any> = new EventEmitter();
+  @Input() id: string;
+  @Output() executeCollection: EventEmitter<any> = new EventEmitter();
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
@@ -107,6 +99,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private defaultMd5Hashes = '';
   private defaultSha1Hashes = '';
   private defaultSha256Hashes = '';
+  private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
 
   public collectionFormModel = {
     name: this.defaultColName,
@@ -414,7 +407,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           let s = y[1].trim(); // remove leading and trailing whitespace
           x['friendly'] = s;
         }
-        
+
         /*else { //we don't want to define the file key if the user doesn't specify one
           // if not in CSV notation, save the key name as the file name
           x['file'] = y[0];
@@ -518,7 +511,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     console.log('AddCollectionModalComponent: addCollectionSubmit(): newCollection:', newCollection);
     this.dataService.addCollection(newCollection)
                     .then( () => {
-                                    this.executeCollectionEvent.emit(newCollection);
+                                    this.executeCollection.emit(newCollection);
                                     this.closeModal();
                                   });
   }

@@ -31,7 +31,8 @@
         "../node_modules/moment/min/moment-with-locales.min.js",
         "../node_modules/screenfull/dist/screenfull.js",
         "../node_modules/hamsterjs/hamster.js",
-        "../node_modules/imagesloaded/imagesloaded.pkgd.min.js"
+        "../node_modules/imagesloaded/imagesloaded.pkgd.min.js",
+        "../node_modules/loglevel/dist/loglevel.min.js"
       ],
       "environmentSource": "environments/environment.ts",
       "environments": {

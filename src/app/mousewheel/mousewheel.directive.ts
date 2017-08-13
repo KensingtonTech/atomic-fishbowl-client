@@ -1,5 +1,6 @@
 import { Directive, ElementRef, Output, EventEmitter, OnInit, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
 declare var Hamster: any;
+declare var log: any;
 
 @Directive({
   selector: '[kwheel]'

@@ -1,11 +1,11 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, OnChanges, Input, Renderer, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { NwSession } from './nwsession';
-import { Image } from './image';
+import { Content } from './content';
 import { ModalService } from './modal/modal.service';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
-import { LoggerService } from './logger-service';
-import "rxjs/add/operator/takeWhile";
+import { ToolService } from './tool.service';
+declare var log: any;
+import 'rxjs/add/operator/takeWhile';
 
 @Component({
   selector: 'pdf-viewer-modal',
@@ -90,9 +90,8 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService : DataService,
               private modalService: ModalService,
-              private toolService: ToolWidgetCommsService,
-              private renderer: Renderer,
-              private loggerService: LoggerService ) {}
+              private toolService: ToolService,
+              private renderer: Renderer ) {}
 
   @Input('id') public id: string;
   @Input('apiServerUrl') apiServerUrl: string;

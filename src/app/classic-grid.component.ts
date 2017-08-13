@@ -1,30 +1,31 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
+import { ToolService } from './tool.service';
 import { PanZoomConfigService } from './panzoom/panzoom-config.service';
 import { PanZoomModelService } from './panzoom/panzoom-model.service';
 import { PanZoomApiService } from './panzoom/panzoom-api.service';
 import { WindowRefService } from './panzoom/panzoom-windowref.service';
 import { DataService } from './data.service';
-import { Image } from './image';
+import { Content } from './content';
 import { ModalService } from './modal/modal.service';
-import { LoggerService } from './logger-service';
-// import * as $ from 'jquery';
-// declare var $: any;
-import "rxjs/add/operator/takeWhile";
+import { ContentCount } from './contentcount';
+import { ContentMask } from './contentmask';
+import 'rxjs/add/operator/takeWhile';
+declare var log: any;
 
 @Component({
   selector: 'classic-grid-view',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div style="position: relative; width: 100%; height: 100%;">
   <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;">
-    <div class="bg noselect items" style="width: 2400px;" *ngIf="images && sessions">
-      <img-tile *ngFor="let image of displayedImages" [highResSession]="hoveredImageSession" (openPDFViewer)="openPdfViewer()" [image]="image" [apiServerUrl]="apiServerUrl" [session]="sessions[image.session]"></img-tile>
+    <div class="bg noselect items" style="width: 2400px;" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
+      <img-tile *ngFor="let item of displayedContent" [highResSession]="hoveredContentSession" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]"></img-tile>
     </div>
   </panzoom>
   <grid-control-bar [canvasWidth]="canvasWidth" [initialZoomHeight]="initialZoomHeight" ></grid-control-bar>
   <pdf-viewer-modal [apiServerUrl]="apiServerUrl" id="pdf-viewer"></pdf-viewer-modal>
-  <session-widget [enabled]="sessionWidgetEnabled" [sessionId]="hoveredImageSession" #sessionWidget></session-widget>
+  <session-widget [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" #sessionWidget></session-widget>
 </div>
 `,
   styles: [`
@@ -49,14 +50,20 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                 private windowRef: WindowRefService,
                 private elRef: ElementRef,
                 private modalService: ModalService,
-                private _changeDetectionRef: ChangeDetectorRef,
-                private toolService: ToolWidgetCommsService,
-                private loggerService: LoggerService ) {}
+                private changeDetectionRef: ChangeDetectorRef,
+                private toolService: ToolService ) {}
 
   @ViewChild('sessionWidget') sessionWidget: ElementRef;
-  public images: Image[];
-  public sessionWidgetEnabled: boolean = false
-  public hoveredImageSession: number;
+
+  private content: Content[] = [];
+  private imageContent: Content[] = [];
+  private pdfContent: Content[] = [];
+  private dodgyArchiveContent: Content[] = [];
+  private hashContent: Content[] = [];
+  private contentCount = new ContentCount;
+
+  public sessionWidgetEnabled = false;
+  public hoveredContentSession: number;
   public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
   private panzoomModel = this.modelService.model;
@@ -64,73 +71,124 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private search: any = [];
   public canvasWidth = 2400;
   public initialZoomHeight = 1080;
-  private displayedImages: any = [];
-  private pdfImages: Image[] = [];
-  private imageImages: Image[] = [];
-  private imageCount: any; //{ images: number, pdfs: number, total: number }
-  public selectedSessionDetails: any;
+  private displayedContent: any = [];
+
   public sessions: any;
-  private alive: boolean = true;
+  private alive = true;
+  private pdfFile: string;
+  private imagesHidden = false;
+  private pdfsHidden = false;
+  private hoveredContentSessions: number[];
+  private caseSensitiveSearch = false;
+  private showOnlyImages: any = [];
+  private lastSearchTerm = '';
+  private selectedCollectionType: string;
+  private collectionId: number;
+  private sessionsDefined = false;
+  private destroyView = true;
+  private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
+  private lastMask = new ContentMask;
 
   ngOnDestroy(): void {
-    console.log("ClassicGridComponent: ngOnDestroy()");
+    console.log('ClassicGridComponent: ngOnDestroy()');
     this.alive = false;
   }
 
-  ngOnInit() : void {
-    console.log("ClassicGridComponent: ngOnInit()");
+  ngOnInit(): void {
+    console.log('ClassicGridComponent: ngOnInit()');
 
-    //bind ToolWidgetCommsService observables to our own variables
-    this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
-    this.toolService.searchTermsChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.searchTermsChanged($event) );
-    this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.maskChanged($event) );
-
+    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
+    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
+    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
     this.panzoomConfig.invertMouseWheel = true;
     this.panzoomConfig.useHardwareAcceleration = true;
     this.panzoomConfig.chromeUseTransform = true;
-
     this.panzoomConfig.zoomLevels = 10;
     this.panzoomConfig.scalePerZoomLevel = 2.0;
     this.panzoomConfig.zoomStepDuration = 0.2;
     this.panzoomConfig.initialZoomToFit = {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
-
-    //this.panzoomConfig.zoomLevels = 20;
-    //this.panzoomConfig.scalePerZoomLevel = 1.1;
-    //this.panzoomConfig.neutralZoomLevel = 5;
-    //this.panzoomConfig.zoomStepDuration = 0.01;
-
-
     this.panzoomConfig.haltSpeed = 100;
     this.panzoomConfig.modelChangedCallback = (model: any) => this.sessionWidgetDecider();
-    //this.panzoomConfig.keepInBounds = true;
+    this.panZoomApiService.getAPI('abc').then( (v: any) => {this.panZoomAPI = v; });
+    // this.panzoomConfig.zoomLevels = 20;
+    // this.panzoomConfig.scalePerZoomLevel = 1.1;
+    // this.panzoomConfig.neutralZoomLevel = 5;
+    // this.panzoomConfig.zoomStepDuration = 0.01;
+    // this.panzoomConfig.keepInBounds = true;
 
-    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
-                                                                              //console.log("collection", collection);
-                                                                              if (collection.state === 'refreshing')  {
-                                                                                //this.toolService.changingCollections.next(true);
-                                                                                //this.changeDetectionRef.markForCheck();
-                                                                                this.images = [];
-                                                                                this.displayedImages = [];
-                                                                                this.pdfImages = [];
-                                                                                this.imageImages = [];
-                                                                                this.search = [];
-                                                                                this.sessions=[];
-                                                                                this.imageCount = { images: 0, pdfs: 0, total: 0 };
-                                                                                this.toolService.imageCount.next( this.imageCount );
-                                                                                this.toolService.changingCollections.next(false);
-                                                                                this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight })
-                                                                                //this.changeDetectionRef.markForCheck();
-                                                                              }
-                                                                            });
 
-    this.dataService.imagesChanged.takeWhile(() => this.alive).subscribe( (i: any) => { console.log("images:", i); //when a new collection is selected
+    // Take subscriptions
+    this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
+    this.toolService.searchTermsChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.searchTermsChanged($event) );
+    this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.maskChanged($event) );
+
+    this.toolService.noCollections.takeWhile(() => this.alive).subscribe( () => {
+      console.log('MasonryGridComponent: noCollectionsSubscription');
+      this.destroyView = true;
+      this.sessionsDefined = false;
+      this.resetContent();
+      this.resetContentCount();
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+    this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { // this triggers whenever we choose a new collection
+      console.log('ClassicGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
+      this.destroyView = true;
+      this.sessionsDefined = false;
+      this.resetContent();
+      this.resetContentCount();
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+      this.selectedCollectionType = collection.type;
+      this.collectionId = collection.id;
+      /*if (this.selectedCollectionType === 'monitoring' || this.selectedCollectionType === 'rolling') { // not needed in classic view
+        this.loadAllBeforeLayout = false;
+      }
+      else {
+        this.loadAllBeforeLayout = true;
+      }*/
+    });
+
+    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { // this triggers when a monitoring collection refreshes
+      console.log('ClassicGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
+      if (collection.state === 'refreshing')  {
+        this.destroyView = true;
+        this.changeDetectionRef.detectChanges();
+        this.changeDetectionRef.markForCheck();
+        this.resetContent();
+        this.sessionsDefined = false;
+        this.resetContentCount();
+        this.toolService.changingCollections.next(false);
+        this.destroyView = false;
+        this.changeDetectionRef.detectChanges();
+        this.changeDetectionRef.markForCheck();
+      }
+    });
+
+    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => {
+      console.log('ClassicGridComponent: sessionsChangedSubscription: sessionsChanged:', s); // when an a whole new collection is selected
+      this.sessionsDefined = true;
+      this.sessions = s;
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
+      console.log('ClassicGridComponent: sessionPublishedSubscription: sessionPublished', s); // when an individual session is pushed from a building collection (or monitoring or rolling)
+      let sessionId = s.id;
+      this.sessionsDefined = true;
+      this.sessions[sessionId] = s;
+    });
+
+    /*this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => { console.log('images:', i); // when a new collection is selected
                                                             i.sort(this.sortImages);
                                                             this.images = i;
-                                                            this.displayedImages = i;
+                                                            this.displayedContent = i;
                                                             this.pdfImages = [];
                                                             this.imageImages = [];
-                                                            this.search = []; //testing this
-                                                            for (var x=0; x < this.images.length; x++) {  //pre-calculate image masks
+                                                            this.search = []; // testing this
+                                                            for (let x = 0; x < this.images.length; x++) {  // pre-calculate image masks
                                                               if (this.images[x].contentType === 'pdf') {
                                                                 this.pdfImages.push(this.images[x]);
                                                               }
@@ -138,116 +196,134 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                                                                 this.imageImages.push(this.images[x]);
                                                               }
                                                             }
-                                                            this.imageCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, total: this.images.length };
-                                                            this.toolService.imageCount.next( this.imageCount );
+                                                            this.contentCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, dodgyArchives: this.dodgyArchiveContent.length, hashes: this.hashContent.length, total: this.images.length };
+                                                            this.toolService.contentCount.next( this.contentCount );
                                                             this.sessionWidgetDecider();
                                                             this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
-                                                          });
-    this.dataService.imagePublished.takeWhile(() => this.alive).subscribe( (i: any) =>  { //when images are pushed from a still-building collection
-                                                              for (var img of i) {
-                                                                this.images.push(img);
-                                                                if (img.contentType === 'pdf') {
-                                                                  this.pdfImages.push(img);
-                                                                }
-                                                                if (img.contentType === 'image') {
-                                                                  this.imageImages.push(img);
-                                                                }
-                                                              }
-                                                              this.imageCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, total: this.images.length };
-                                                              this.toolService.imageCount.next( this.imageCount );
-                                                              this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-                                                            });
-    this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  { //this receives complete search term data from complete collection
-                                                                this.search = s;
-                                                                console.log('search update', this.search);
-                                                              });
-    this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
-                                                              console.log("search term published:", s);
-                                                              this.search.push(s);
-                                                              this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-                                                            }); //this receives a partial search term data from a building collection
+                                                          });*/
+
+    this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => {
+      console.log('ClassicGridComponent: contentChangedSubscription: contentChanged:', i); // when a new collection is selected
+      this.destroyView = true;
+      i.sort(this.sortImages);
+      this.content = i;
+      this.displayedContent = i;
+      this.search = [];
+      this.calculateContentMasks();
+      this.countContent();
+      this.destroyView = false;
+// !!! not sure if we need this first set of detectors here - test it later !!!
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+      this.sessionWidgetDecider();
+      this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+
+    this.dataService.contentPublished.takeWhile(() => this.alive).subscribe( (newContent: any) =>  { // when content are pushed from a still-building, rolling, or monitoring collection
+      console.log('ClassicGridComponent: contentPublishedSubscription: contentPublished:', newContent);
+
+      // update content counts here to save cycles not calculating image masks
+      for (let i = 0; i < newContent.length; i++) {
+        this.content.push(newContent[i]);
+        if (newContent[i].contentType === 'image' ) {
+          this.contentCount.images = this.contentCount.images + 1;
+        }
+        else if (newContent[i].contentType === 'pdf' ) {
+          this.contentCount.pdfs = this.contentCount.pdfs + 1;
+        }
+        else if (newContent[i].contentType === 'hash' ) {
+          this.contentCount.hashes = this.contentCount.hashes + 1;
+        }
+        else if ( this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType) ) {
+            this.contentCount.dodgyArchives = this.contentCount.dodgyArchives + 1;
+        }
+      }
+      this.contentCount.total = this.content.length;
+      this.toolService.contentCount.next( this.contentCount );
+
+      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+    this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  { // this receives complete search term data from complete collection
+      this.search = s;
+      console.log('ClassicGridComponent: searchChangedSubscription: searchChanged:', this.search);
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+
+    this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => { // this receives a partial search term data from a building collection
+      console.log('ClassicGridComponent: searchPublishedSubscription: searchPublished:', s);
+      for (let i = 0; i < s.length; i++) {
+        this.search.push(s[i]);
+      }
+      // console.log("ClassicGridComponent: searchPublishedSubscription: this.search:", this.search);
+      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
 
     this.dataService.sessionsPurged.takeWhile(() => this.alive).subscribe( (sessionsToPurge: number[]) =>  {
-                                                              console.log("sessions purged:", sessionsToPurge);
-                                                              let c=0;
+      console.log('ClassicGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
+      // console.log("content", this.content);
+      // console.log("content length:",this.content.length);
+      // console.log("content:",JSON.parse(JSON.stringify(this.content)));
+      let c = 0;
 
-                                                              let purgedImagePositions = [];
-                                                              let purgedSearchPositions = [];
+      let purgedImagePositions = [];
+      let purgedSearchPositions = [];
 
-                                                              for (let x=0; x < sessionsToPurge.length; x++) {
-                                                                var sidToPurge = sessionsToPurge[x];
-                                                                //console.log("s:", s);
+      for (let x = 0; x < sessionsToPurge.length; x++) {
+        let sidToPurge = sessionsToPurge[x];
 
-                                                                for (let i=0; i < this.images.length; i++) {
-                                                                  //console.log("this.images[i].session", this.images[i].session);
-                                                                  if (this.images[i].session === sidToPurge) {
-                                                                    console.log("removing image with session id", sidToPurge);
-                                                                    //this.images.splice(i, 1);
-                                                                    purgedImagePositions.push(i);
-                                                                  }
-                                                                }
+        for (let i = 0; i < this.content.length; i++) {
+          if (this.content[i].session === sidToPurge) {
+            console.log('ClassicGridComponent: sessionsPurgedSubscription: Removing image with session id', sidToPurge);
+            purgedImagePositions.push(i);
+          }
+        }
 
-                                                                for (let i=0; i < this.search.length; i++) {
-                                                                  if (this.search[i].session === sidToPurge) {
-                                                                    console.log("removing search text with session id", sidToPurge);
-                                                                    //this.search.splice(i, 1);
-                                                                    purgedSearchPositions.push(i);
-                                                                    c++;
-                                                                  }
-                                                                }
-                                                              }
+        for (let i = 0; i < this.search.length; i++) {
+          if (this.search[i].session === sidToPurge) {
+            console.log('ClassicGridComponent: sessionsPurgedSubscription: Removing search text with session id', sidToPurge);
+            purgedSearchPositions.push(i);
+            c++;
+          }
+        }
+      }
 
-                                                              purgedImagePositions.sort(this.sortNumber);
-                                                              for (let i=0; i < purgedImagePositions.length; i++) {
-                                                                this.images.splice(purgedImagePositions[i], 1);
-                                                              }
-                                                              purgedSearchPositions.sort(this.sortNumber);
-                                                              for (let i=0; i < purgedSearchPositions.length; i++) {
-                                                                this.search.splice(purgedSearchPositions[i], 1);
-                                                              }
+      // console.log("purgedImagePositions:",purgedImagePositions);
+      // console.log("purgedSearchPositions:",purgedSearchPositions);
+      purgedImagePositions.sort(this.sortNumber);
+      for (let i = 0; i < purgedImagePositions.length; i++) {
+        this.content.splice(purgedImagePositions[i], 1);
+      }
+      purgedSearchPositions.sort(this.sortNumber);
+      for (let i = 0; i < purgedSearchPositions.length; i++) {
+        this.search.splice(purgedSearchPositions[i], 1);
+      }
+// !!! this displayedContent line should be revisited so that it takes in to account last mask and search!!!
+      this.displayedContent = this.content;
+// !!!
+      this.maskChanged(this.lastMask);
+      this.pdfContent = [];
+      this.imageContent = [];
+      this.hashContent = [];
+      this.dodgyArchiveContent = [];
+      this.calculateContentMasks();
+      this.countContent();
+      if (c > 0) {
+        this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      }
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
 
-                                                              this.displayedImages = this.images;
-                                                              this.pdfImages = [];
-                                                              this.imageImages = [];
-                                                              this.search = []; //testing this
-                                                              for (var x=0; x < this.images.length; x++) {  //pre-calculate image masks
-                                                                if (this.images[x].contentType === 'pdf') {
-                                                                  this.pdfImages.push(this.images[x]);
-                                                                }
-                                                                //if (this.images[x].contentType === 'image' || this.images[x].contentType === 'encryptedRarEntry' || this.images[x].contentType === 'encryptedZipEntry') {
-                                                                if (this.images[x].contentType in ['image', 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry']) {
-                                                                  this.imageImages.push(this.images[x]);
-                                                                }
-                                                              }
-                                                              this.imageCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, total: this.images.length };
-                                                              this.toolService.imageCount.next( this.imageCount );
-                                                              this.sessionWidgetDecider();
-                                                              if (c > 0) {
-                                                                this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-                                                              }
-                                                            });
-
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
-
-    this.panZoomApiService.getAPI('abc').then( (v: any) => {this.panZoomAPI = v;});
-
-    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { console.log("sessionsChanged", s);
-                                                              this.sessions = s;
-                                                              //this.changeDetectionRef.detectChanges();
-                                                              //this.changeDetectionRef.markForCheck();
-                                                            });
-
-    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  //console.log("sessionPublished", s);
-                                                                let sessionId = s.id;
-                                                                this.sessions[sessionId] = s;
-                                                                //this.changeDetectionRef.detectChanges();
-                                                                //this.changeDetectionRef.markForCheck();
-                                                              });
-    //this.createListStyles( ".items img-tile:nth-child({0})", 556, 18);
-    //this.createListStyles( ".items div:nth-child({0})", 50, 18);
-    //this.createListStyles( ".item div:first-child", 50, 18);
   }
 
   sortNumber(a: number, b: number): number {
@@ -265,108 +341,87 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
 
-  //used by an experiment to animate thumbnail movements
-  createListStyles(rulePattern: any, rows: number, cols: number): void {
-    var rules = [];
-    var index = 0;
-    for (var rowIndex = 0; rowIndex < rows; rowIndex++) {
-        for (var colIndex = 0; colIndex < cols; colIndex++) {
-            var x = (colIndex * 100) + "%",
-                y = (rowIndex * 100) + "%",
-                transforms = "{ -webkit-transform: translate3d(" + x + ", " + y + ", 0); transform: translate3d(" + x + ", " + y + ", 0); }";
-            rules.push(rulePattern.replace("{0}", ++index) + transforms);
-        }
-    }
-    //console.log("rules:");
-    //for (var i=0; i < rules.length; i++) {
-    //  console.log(rules[i]);
-    //}
-
-    var headElem = document.getElementsByTagName("head")[0];
-    //console.log("headElem:", headElem)
-    var styleElem = $("<style>").attr("type", "text/css").appendTo(headElem)[0];
-    //if (styleElem.styleSheet) {
-    if ('styleSheet' in styleElem) {
-        styleElem['styleSheet'].cssText = rules.join("\n");
-    }
-    else {
-        styleElem.textContent = rules.join("\n");
-    }
-  }
-
-  private pdfFile: string;
-
   openPdfViewer(e: any): void {
-    this.selectedSessionDetails = e;
-    //this.pdfFile = e.pdfFile;
+    console.log('ClassicGridComponent: openPdfViewer()');
     this.modalService.open('pdf-viewer');
   }
 
-  private imagesHidden: boolean = false;
-
-  imageMaskChanged(e: any) : void {
-    this.imagesHidden = !this.imagesHidden;
-  }
-
-  private pdfsHidden: boolean = false;
-
-  maskChanged(e: any): void {
-    //e = { showPdf: boolean, showImage: boolean }
-    //console.log("mask:", e);
-    //console.log("e.showPdf", e.showPdf);
-    //console.log("e.showImage", e.showImage);
-    var showPdf = e.showPdf;
-    var showImage = e.showImage;
+  /*
+  oldmaskChanged(e: any): void {
+    // e = { showPdf: boolean, showImage: boolean }
+    let showPdf = e.showPdf;
+    let showImage = e.showImage;
     if (showPdf && showImage) {
-      this.displayedImages = this.images;
+      this.displayedContent = this.images;
     }
     else if ( showPdf && !showImage ) {
-      //console.log("got to 1");
-      this.displayedImages = this.pdfImages;
+      // console.log("got to 1");
+      this.displayedContent = this.pdfImages;
     }
     else if ( !showPdf && showImage ) {
-      //console.log("got to 2");
-      this.displayedImages = this.imageImages;
+      // console.log("got to 2");
+      this.displayedContent = this.imageImages;
     }
     else if ( !showPdf && !showImage ) {
-      //console.log("got to 3");
-      this.displayedImages = [];
+      // console.log("got to 3");
+      this.displayedContent = [];
     }
   }
+  */
 
-  pdfMaskChanged(e: any) : void {
-    this.pdfsHidden = !this.pdfsHidden;
-    var pdfs = [];
+  maskChanged(e: ContentMask): void {
+    this.lastMask = e;
+    console.log('ClassicGridComponent: maskChanged():', e);
+    // e = { showPdf: boolean, showImage: boolean, showDodgy: boolean, showHash: boolean }
 
-    if (!this.pdfsHidden) {
-      for (var x=0; x < this.images.length; x++) {
-        if (this.images[x].contentType === 'pdf') {
-          pdfs.push(this.images[x]);
-        }
+    this.calculateContentMasks();
+    let tempShownBricks = [];
+
+    if (e.showImage && this.imageContent.length !== 0) {
+      for (let i = 0; i < this.imageContent.length; i++) {
+        tempShownBricks.push( this.imageContent[i] );
       }
-      this.displayedImages = pdfs;
     }
+
+    if (e.showPdf && this.pdfContent.length !== 0) {
+      for (let i = 0; i < this.pdfContent.length; i++) {
+        tempShownBricks.push( this.pdfContent[i] );
+      }
+    }
+
+    if (e.showDodgy && this.dodgyArchiveContent.length !== 0) {
+      for (let i = 0; i < this.dodgyArchiveContent.length; i++) {
+        tempShownBricks.push( this.dodgyArchiveContent[i] );
+      }
+    }
+
+    if (e.showHash && this.hashContent.length !== 0) {
+      for (let i = 0; i < this.hashContent.length; i++) {
+        tempShownBricks.push( this.hashContent[i] );
+      }
+    }
+
+    this.displayedContent = tempShownBricks;
+    // console.log('MasonryGridComponent: maskChanged: this.shownBricks:', this.shownBricks);
   }
 
-  //sessionWidgetDecider(model: any): void {
   sessionWidgetDecider(): void {
-    console.log("sessionWidgetDecider():", this.panzoomModel.zoomLevel);
+    console.log('ClassicGridComponent: sessionWidgetDecider():', this.panzoomModel.zoomLevel);
     let transitionZoomLevel = 3.9;
-    //this._changeDetectionRef.markForCheck();
-    let height=this.windowRef.nativeWindow.innerHeight;
-    let width=this.windowRef.nativeWindow.innerWidth;
-    let center : any = {};
+    let height = this.windowRef.nativeWindow.innerHeight;
+    let width = this.windowRef.nativeWindow.innerWidth;
+    let center: any = {};
     center.x = width / 2;
     center.y = height / 2;
     let e = document.elementFromPoint(center.x, center.y);
-    var je: any = $(e);
-    if (!$(je).hasClass('image-gallery-thumbnail')) {
+    let je: any = $(e);
+    if (!$(je).hasClass('thumbnail')) {
       this.hideSessionWidget();
     }
     if (this.panzoomModel.zoomLevel <= transitionZoomLevel) {
       this.hideSessionWidget();
     }
-    if (this.panzoomModel.zoomLevel >= transitionZoomLevel && $(je).hasClass('image-gallery-thumbnail')) {
+    if (this.panzoomModel.zoomLevel >= transitionZoomLevel && $(je).hasClass('thumbnail')) {
       if (je[0].attributes.sessionid) {
         this.showSessionWidget(je[0].attributes.sessionid.value);
       }
@@ -393,107 +448,216 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
   isElementInViewport(el: any): any {
-
-      //special bonus for those using jQuery
-      if (typeof jQuery === "function" && el instanceof jQuery) {
+      // special bonus for those using jQuery
+      if (typeof jQuery === 'function' && el instanceof jQuery) {
           el = el[0];
       }
 
-      var rect = el.getBoundingClientRect();
+      let rect = el.getBoundingClientRect();
 
       return (
           rect.top >= 0 &&
-          rect.left >= 0 && //panzoom
-          //rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
-          rect.bottom <= ( $(".pan-zoom-frame").innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
-          //rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
-          rect.right <= ( $(".pan-zoom-frame").innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+          rect.left >= 0 && // panzoom
+          rect.bottom <= ( $('.pan-zoom-frame').innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+          rect.right <= ( $('.pan-zoom-frame').innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
       );
   }
 
-  private hoveredImageSessions: number[];
-
   showSessionWidget(i: number): void {
-    //console.log("showSessionWidget()", i);
-    this.hoveredImageSession = i;
-    //this.sessionWidgetEnabled = true;
+    // console.log("ClassicGridComponent: showSessionWidget()", i);
+    this.hoveredContentSession = i;
+    // this.sessionWidgetEnabled = true;
     this.sessionWidgetEnabled = true;
-    this._changeDetectionRef.detectChanges();
+    this.changeDetectionRef.detectChanges();
   }
 
   hideSessionWidget(): void {
-    //console.log("hideSessionWidget()");
-    //this.sessionWidgetEnabled = false;
+    // console.log("ClassicGridComponent: hideSessionWidget()");
+    // this.sessionWidgetEnabled = false;
     this.sessionWidgetEnabled = false;
-    this._changeDetectionRef.detectChanges();
+    this.changeDetectionRef.detectChanges();
   }
 
-  private caseSensitiveSearch: boolean = false;
-
   toggleCaseSensitiveSearch(): void {
-    console.log("toggleCaseSensitiveSearch()");
+    console.log('ClassicGridComponent: toggleCaseSensitiveSearch()');
     this.caseSensitiveSearch = !this.caseSensitiveSearch;
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
   }
 
-  private showOnlyImages: any = [];
-  private lastSearchTerm: string = '';
-
-  getImageById(n: number): any {
-    for (var x=0; x < this.images.length; x++) {
-      if (this.images[x].session === n) {
-        return this.images[x];
+  getContentBySessionAndContentFile(o: any): any {
+    for (let x = 0; x < this.content.length; x++) {
+      if (this.content[x].session === o.session && this.reduceContentFile(this.content[x].contentFile) === o.contentFile) {
+        return this.content[x];
       }
     }
   }
 
-
-  searchTermsChanged(e: any): void {
-    var searchTerms = e.searchTerms;
+  /*oldsearchTermsChanged(e: any): void {
+    let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
-    console.log("searchTerms update:", searchTerms);
-    var matchedSessions = [];
-    var matchedSessionIds = [];
+    console.log('searchTerms update:', searchTerms);
+    let matchedSessions = [];
+    let matchedSessionIds = [];
     if (searchTerms === '') {
-      //console.log("matched!");
+      // console.log("matched!");
       this.showOnlyImages = [];
-      this.displayedImages = this.images;
+      this.displayedContent = this.images;
       return;
     }
     if (this.search.length > 0) {
-      for (var i=0; i < this.search.length; i++) {
-        //all searches are case-insensitive for now
+      for (let i = 0; i < this.search.length; i++) {
+        // all searches are case-insensitive for now
         if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) {
-          console.log("case insensitive");
-          var sessionId = this.search[i].session;
-          console.log("matched session", sessionId);
+          console.log('case insensitive');
+          let sessionId = this.search[i].session;
+          console.log('matched session', sessionId);
           matchedSessions.push(this.search[i]);
           matchedSessionIds.push(sessionId);
         }
         else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) {
-          console.log("case sensitive");
-          var sessionId = this.search[i].session;
-          console.log("matched session", sessionId);
+          console.log('case sensitive');
+          let sessionId = this.search[i].session;
+          console.log('matched session', sessionId);
           matchedSessions.push(this.search[i]);
           matchedSessionIds.push(sessionId);
         }
       }
     }
-    if ( matchedSessions.length != 0 ) {
-      console.log("matchedSessions:", matchedSessions);
-      console.log("matchedSessionIds:", matchedSessionIds);
+    if ( matchedSessions.length !== 0 ) {
+      console.log('matchedSessions:', matchedSessions);
+      console.log('matchedSessionIds:', matchedSessionIds);
       this.showOnlyImages = matchedSessions;
-      this.displayedImages = [];
-      for (var x=0; x < matchedSessionIds.length; x++) {
-        this.displayedImages.push(this.getImageById(matchedSessionIds[x]));
+      this.displayedContent = [];
+      for (let x = 0; x < matchedSessionIds.length; x++) {
+        this.displayedContent.push(this.getImageById(matchedSessionIds[x]));
       }
-      console.log("displayedImages:", this.displayedImages)
+      console.log('displayedContent:', this.displayedContent);
     }
     else {
-      console.log("no matches");
+      console.log('no matches');
       this.showOnlyImages = [ 'none' ];
-      this.displayedImages = [];
-      //this.showOnlyImages.push('none');
+      this.displayedContent = [];
+    }
+  }*/
+
+  searchTermsChanged(e: any): void {
+    // console.log('MasonryGridComponent: searchTermsChanged()');
+    let searchTerms = e.searchTerms;
+    this.lastSearchTerm = searchTerms;
+    // console.log('MasonryGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
+    let matchedContent = [];
+
+    if (searchTerms === '') {
+      // if our search terms are null, then we set shownBricks to equal all bricks
+      this.maskChanged(this.lastMask);
+      return;
+    }
+
+    if (this.search.length > 0) {
+      // Ok, we have a search term to do something with.  This block will generate matchedContent[]
+      // console.log('MasonryGridComponent: searchTermsChanged: this.search:', this.search);
+      for (let i = 0; i < this.search.length; i++) {
+        if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
+          // we found a match!
+          let matchedSession = {
+            session: this.search[i].session,
+            contentFile: this.search[i].contentFile
+          };
+          matchedContent.push(matchedSession);
+        }
+        else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) { // case-sensitive search
+          // we found a match!
+          let matchedSession = {
+            session: this.search[i].session,
+            contentFile: this.search[i].contentFile
+          };
+          matchedContent.push(matchedSession);
+        }
+      }
+    }
+
+    if ( matchedContent.length !== 0 ) {
+      // Let's now turn our matched session id's into shownBricks[]
+      // console.log('MasonryGridComponent: searchTermsChanged: Length of matchedContent:', matchedContent.length);
+      // console.log('MasonryGridComponent: searchTermsChanged: matchedContent:', matchedContent);
+      let localShownBricks = [];
+      for (let x = 0; x < matchedContent.length; x++) {
+        let img = this.getContentBySessionAndContentFile(matchedContent[x]);
+        // let brick = this.contentToBricks( [img] );
+        localShownBricks.push( img );
+      }
+      this.displayedContent = localShownBricks;
+    }
+    else {
+      // There were no matches
+      this.displayedContent = [];
+    }
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+  }
+
+
+  reduceContentFile(s: string): string {
+    const RE = /([^/]*)$/;
+    let match = RE.exec(s);
+    return match[0];
+  }
+
+  resetContentCount(): void {
+    this.contentCount = {
+      images: 0,
+      pdfs: 0,
+      dodgyArchives: 0,
+      hashes: 0,
+      total: 0
+    };
+    this.toolService.contentCount.next( this.contentCount );
+  }
+
+  countContent(): void {
+    this.contentCount = {
+      images: this.imageContent.length,
+      pdfs: this.pdfContent.length,
+      dodgyArchives: this.dodgyArchiveContent.length,
+      hashes: this.hashContent.length,
+      total: this.content.length
+    };
+    this.toolService.contentCount.next( this.contentCount );
+  }
+
+  resetContent(): void {
+    this.displayedContent = [];
+    this.search = [];
+    this.sessions = {};
+
+    this.content = [];
+    this.pdfContent = [];
+    this.imageContent = [];
+    this.dodgyArchiveContent = [];
+    this.hashContent = [];
+  }
+
+  // count = 0;
+  calculateContentMasks(): void {
+    // this.count = this.count + 1;
+    // console.log('count:', this.count)
+    this.imageContent = [];
+    this.pdfContent = [];
+    this.dodgyArchiveContent = [];
+    this.hashContent = [];
+    for (let x = 0; x < this.content.length; x++) {  // pre-calculate content masks
+      if (this.content[x].contentType === 'image') {
+        this.imageContent.push(this.content[x]);
+      }
+      if (this.content[x].contentType === 'pdf') {
+        this.pdfContent.push(this.content[x]);
+      }
+      if (this.content[x].contentType === 'hash') {
+        this.hashContent.push(this.content[x]);
+      }
+      if ( this.dodgyArchivesIncludedTypes.includes(this.content[x].contentType)) {
+        this.dodgyArchiveContent.push(this.content[x]);
+      }
     }
   }
 

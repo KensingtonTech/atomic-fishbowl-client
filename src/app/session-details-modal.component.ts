@@ -1,9 +1,9 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
-import { LoggerService } from './logger-service';
-import "rxjs/add/operator/takeWhile";
+import { ToolService } from './tool.service';
+declare var log: any;
+import 'rxjs/add/operator/takeWhile';
 
 @Component({
   selector: 'session-details-modal',
@@ -138,8 +138,7 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
               private modalService: ModalService,
               private renderer: Renderer,
               private changeDetectionRef: ChangeDetectorRef,
-              private toolService: ToolWidgetCommsService,
-              private loggerService: LoggerService ) {}
+              private toolService: ToolService ) {}
 
   @Input('id') public id: string;
   @Input('apiServerUrl') apiServerUrl: string;

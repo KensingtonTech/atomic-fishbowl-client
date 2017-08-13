@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { appVersion } from './version';
-import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Component({
   selector: 'splash-screen-modal',
@@ -41,8 +41,7 @@ import { LoggerService } from './logger-service';
 export class SplashScreenModal implements OnInit {
 
   constructor(private modalService: ModalService,
-              private dataService: DataService,
-              private loggerService: LoggerService ) {}
+              private dataService: DataService ) {}
 
   public id: string = 'splashScreenModal';
   public firstOpen = true;

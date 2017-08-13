@@ -1,6 +1,7 @@
 import { Directive, Inject, ElementRef, forwardRef, OnDestroy, AfterViewInit, AfterContentInit } from '@angular/core';
 import { MasonryComponent } from './masonry.component';
 import { MasonryTileComponent } from '../masonry-tile.component';
+declare var log: any;
 
 interface MutationWindow extends Window {
   MutationObserver: any;

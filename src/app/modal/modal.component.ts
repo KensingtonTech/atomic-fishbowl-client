@@ -4,6 +4,7 @@ import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
 // import * as $ from 'jquery';
 // declare var $: any;
+declare var log: any;
 
 @Component({
   moduleId: module.id.toString(),

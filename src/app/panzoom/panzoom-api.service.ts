@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Deferred } from './deferred';
+declare var log: any;
 
 @Injectable()
 

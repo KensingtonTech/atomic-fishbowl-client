@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+declare var log: any;
 
 function getWindow (): any {
     return window;

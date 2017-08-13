@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
-import { LoggerService } from './logger-service';
+import { ToolService } from './tool.service';
+declare var log: any;
 // import * as $ from 'jquery';
 // declare var $: any;
 
@@ -40,10 +40,9 @@ import { LoggerService } from './logger-service';
 export class RouterDropdownComponent implements OnInit {
 
   constructor(private router: Router,
-              private toolService: ToolWidgetCommsService,
+              private toolService: ToolService,
               private changeDetectorRef: ChangeDetectorRef,
-              private el: ElementRef,
-              private loggerService: LoggerService ) {}
+              private el: ElementRef ) {}
 
   private routerOptions: any =  [
                                   { name: 'classicGrid', link: '/classicGrid', class: 'icon fa fa-th fa-2x fa-fw', tooltip: "Classic Grid" },

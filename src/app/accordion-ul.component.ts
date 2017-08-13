@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Component({
   selector: 'ul-accordion',
@@ -56,7 +56,7 @@ export class AccordionULComponent implements AfterViewInit {
   private hideHeader: boolean = false;
   private collapsed: string = 'true';
 
-  constructor (private _changeDetectionRef : ChangeDetectorRef, private loggerService: LoggerService) { }
+  constructor (private _changeDetectionRef : ChangeDetectorRef) { }
 
   ngAfterViewInit(): void {
     //console.log("itemList:", this.itemList);

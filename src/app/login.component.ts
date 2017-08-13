@@ -1,7 +1,7 @@
 import { Component, ElementRef, Renderer, OnInit, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { AuthenticationService } from './authentication.service'
 import { User } from './user';
-import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Component({
     selector: 'login-form',
@@ -42,8 +42,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   constructor(private authService: AuthenticationService,
               private elRef: ElementRef,
-              private renderer: Renderer,
-              private loggerService: LoggerService) {}
+              private renderer: Renderer ) {}
 
   ngOnInit(): void {
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');

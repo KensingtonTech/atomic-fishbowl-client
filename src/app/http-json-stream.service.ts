@@ -1,14 +1,11 @@
-import { Injectable }        from '@angular/core';
-import { Observable }        from 'rxjs/Observable';
-import { Subject }           from 'rxjs/Subject';
-import { LoggerService } from './logger-service';
-
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
+declare var log: any;
 declare var oboe: any;
 
 @Injectable()
 export class HttpJsonStreamService {
-
-  constructor(private loggerService: LoggerService) {}
 
   private oboeService: any;
 

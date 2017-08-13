@@ -1,9 +1,9 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, ViewChild, Input, Renderer, ViewEncapsulation } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { DataService } from './data.service';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
-import { LoggerService } from './logger-service';
-import "rxjs/add/operator/takeWhile";
+import { ToolService } from './tool.service';
+import 'rxjs/add/operator/takeWhile';
+declare var log: any;
 
 @Component( {
   selector: 'session-widget',
@@ -86,8 +86,7 @@ export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
               private renderer: Renderer,
               private _changeDetectionRef : ChangeDetectorRef,
               private el: ElementRef,
-              private toolService: ToolWidgetCommsService,
-              private loggerService: LoggerService) {}
+              private toolService: ToolService ) {}
 
   @ViewChild('topDiv') topDiv: ElementRef;
   @ViewChild('showAll') showAll: ElementRef;

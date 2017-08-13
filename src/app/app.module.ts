@@ -15,8 +15,7 @@ import { MdCardModule, MdInputModule, MdButtonModule, MdCheckboxModule } from '@
 // Our Services
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
-import { LoggerService } from './logger-service';
+import { ToolService } from './tool.service';
 import { HttpJsonStreamService } from './http-json-stream.service';
 
 // Our Pipes
@@ -30,7 +29,7 @@ import { ClickOutsideDirective } from './click-outside.directive';
 
 // Our Components
 import { AppComponent } from './app.component';
-import { ToolWidgetComponent } from './tool-widget.component';
+import { ToolbarWidgetComponent } from './toolbar-widget.component';
 import { SplashScreenModal } from './splashscreen-modal.component';
 import { AddCollectionModalComponent } from './addcollection-modal.component';
 import { DeleteCollectionConfirmModalComponent } from './deletecollection-confirm-modal.component';
@@ -54,7 +53,7 @@ import { ServerDownModalComponent } from './serverdown-modal.component';
 import { LoginComponent } from './login.component';
 
 // Other
-import 'hammerjs'; // required for Material gesture support.  Not sure that we need it but including for now.
+// import 'hammerjs'; // required for Material gesture support.  Not sure that we need it but including for now.
 import * as $ from 'jquery';
 
 @NgModule({
@@ -97,7 +96,7 @@ import * as $ from 'jquery';
                   ClassicGridComponent,
                   MasonryGridComponent,
                   SessionWidgetComponent,
-                  ToolWidgetComponent,
+                  ToolbarWidgetComponent,
                   FromEpochPipe,
                   FormatTimePipe,
                   MapValuesPipe,
@@ -124,8 +123,7 @@ import * as $ from 'jquery';
                 ],
   providers:    [ DataService,
                   AuthenticationService,
-                  ToolWidgetCommsService,
-                  LoggerService,
+                  ToolService,
                   HttpJsonStreamService
                 ],
   bootstrap:    [ AppComponent ]

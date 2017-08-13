@@ -8,9 +8,9 @@ import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators, FormG
 // import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { User } from './user';
-import { LoggerService } from './logger-service';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
+import { ToolService } from './tool.service';
 declare var moment: any;
+declare var log: any;
 import 'rxjs/add/operator/takeWhile';
 
 function passwordMatcher(c: AbstractControl) {
@@ -117,8 +117,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   constructor(private dataService: DataService,
               private modalService: ModalService,
               private renderer: Renderer,
-              private loggerService: LoggerService,
-              private toolService: ToolWidgetCommsService,
+              private toolService: ToolService,
               private authService: AuthenticationService,
               public fb: FormBuilder ) {}
 

@@ -1,11 +1,10 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input } from '@angular/core';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
-import { LoggerService } from './logger-service';
-import "rxjs/add/operator/takeWhile";
+import { ToolService } from './tool.service';
+import 'rxjs/add/operator/takeWhile';
+declare var log: any;
 
 @Component({
   selector: 'masonry-control-bar',
-  //changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div class="noselect" style="position: absolute; top: 20px; left: 10px; padding: 5px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px; z-index: 100;">
     <div style="position: absolute; left: 0;"><router-dropdown></router-dropdown></div>
@@ -34,10 +33,10 @@ import "rxjs/add/operator/takeWhile";
 
 export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
-  constructor(private toolService: ToolWidgetCommsService,
-              private loggerService: LoggerService) {}
+  constructor(private toolService: ToolService) {}
 
-  private alive: boolean = true;
+  private alive = true;
+  public scrollStarted = false;
 
   ngOnInit(): void {
     this.toolService.scrollToBottomRunning.takeWhile(() => this.alive).subscribe( () => this.scrollStarted = true );
@@ -47,8 +46,6 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   public ngOnDestroy() {
     this.alive = false;
   }
-
-  public scrollStarted: boolean = false;
 
   scrollToBottom(): void {
     this.scrollStarted = true;

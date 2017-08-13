@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit, Input } from '@angular/core';
 import { PanZoomApiService } from './panzoom/panzoom-api.service';
-import { LoggerService } from './logger-service';
+declare var log: any;
 
 @Component({
   selector: 'grid-control-bar',
@@ -34,8 +34,7 @@ import { LoggerService } from './logger-service';
 
 export class GridControlBarComponent implements OnInit {
   //private panzoomConfig: PanZoomConfigService
-  constructor(private panZoomApiService: PanZoomApiService,
-              private loggerService: LoggerService ) {}
+  constructor(private panZoomApiService: PanZoomApiService ) {}
 
   private panZoomAPI: any;
   //private canvasWidth = 2400;

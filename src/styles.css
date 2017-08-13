@@ -135,3 +135,8 @@ body .modal-open {
 .ng2-pdf-viewer--zoom {
   overflow-x: visible !important;
 }
+
+.wrap {
+  word-wrap: break-word;
+  white-space: normal;
+}

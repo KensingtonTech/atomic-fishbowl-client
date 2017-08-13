@@ -1,21 +1,21 @@
-import { Component, OnInit, OnDestroy, ViewChild, ComponentRef, ElementRef, Renderer, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
-import { ToolWidgetCommsService } from './tool-widget.comms.service';
+import { ToolService } from './tool.service';
 import { DataService } from './data.service';
-import { Image } from './image';
+import { Content } from './content';
+import { ContentCount } from './contentcount';
 import { ModalService } from './modal/modal.service';
 import { MasonryOptions } from './masonry/masonry-options';
 import { MasonryComponent } from './masonry/masonry.component';
-import { LoggerService } from './logger-service';
-// import * as $ from 'jquery';
-// declare var $: any;
+import { ContentMask } from './contentmask';
+import { Brick } from './brick';
 import 'rxjs/add/operator/takeWhile';
+declare var log: any;
 
 @Component({
   selector: 'masonry-grid-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // [ngStyle]="{'width.px': masonryColumnSize}"
   template: `
 <div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px; background-color: black;">
   <div style="position: absolute; left: 0; width: 100px; height: 100%;">
@@ -25,9 +25,9 @@ import 'rxjs/add/operator/takeWhile';
       <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="togglePauseMonitoring()"></i>
     </div>
   </div>
-  <div *ngIf="!destroyMasonry" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
-    <masonry class="grid" *ngIf="images && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [shownBricks]="shownBricks" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
-      <masonry-tile class="brick" [ngStyle]="{'width.px': masonryColumnSize}" *ngFor="let image of images" [image]="image" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[image.session]" [attr.contentFile]="image.contentFile" [attr.sessionid]="image.session" [attr.contentType]="image.contentType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
+  <div *ngIf="!destroyView" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
+    <masonry #masonry tabindex="-1" class="grid" *ngIf="content && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [shownBricks]="shownBricks" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
+      <masonry-tile class="brick" [ngStyle]="{'width.px': masonryColumnSize}" *ngFor="let image of content" [image]="image" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[image.session]" [attr.contentFile]="image.contentFile" [attr.sessionid]="image.session" [attr.contentType]="image.contentType" [attr.hashType]="image.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
     </masonry>
     <div class="scrollTarget"></div>
   </div>
@@ -39,13 +39,11 @@ import 'rxjs/add/operator/takeWhile';
   styles: [`
 
     .brick {
-      //width: 600px;
-      //margin: 5px;
       margin-top: 20px;
-      //padding: 15px;
-      //transform:translate3d(0,0,0);
-      //-webkit-transform:translate3d(0,0,0);
-      //-moz-transform:translate3d(0,0,0);
+    }
+
+    masonry:focus {
+      outline-width: 0;
     }
 
   `]
@@ -58,376 +56,306 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                 private elRef: ElementRef,
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
-                private toolService: ToolWidgetCommsService,
-                private ngZone: NgZone,
-                private loggerService: LoggerService ) {}
+                private toolService: ToolService,
+                private ngZone: NgZone ) {}
 
-  private images: Image[];
-  //private sessionWidgetEnabled: boolean = false
+  @ViewChildren('masonry') masonryRef: QueryList<any>;
+  @ViewChild(MasonryComponent) private masonryComponentRef: MasonryComponent;
   private hoveredImageSession: number;
   public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
-  private search: any = [];
-  private displayedImages: any = [];
-  private pdfImages: Image[] = [];
-  private imageImages: Image[] = [];
-  private imageCount: any; //{ images: number, pdfs: number, total: number }
-  //private deviceInfo = {};
-  //private pdfFile: string;
-  private caseSensitiveSearch: boolean = false;
-  private lastSearchTerm: string = '';
-  private masonryColumnSize: number = 350; //default is 350
-  //private masonryColumnSize: number;
-  private masonryOptions: MasonryOptions =  {  //columnWidth: this.masonryColumnSize,
+  private search: any = []; // 'search' is an array containing text extracted from PDF's which can be searched
+
+  private content: Content[] = [];
+  private imageContent: Content[] = [];
+  private pdfContent: Content[] = [];
+  private dodgyArchiveContent: Content[] = [];
+  private hashContent: Content[] = [];
+  private contentCount = new ContentCount; // { images: number, pdfs: number, dodgyArchives: number, hashes: number, total: number }
+
+  private caseSensitiveSearch = false;
+  private lastSearchTerm = '';
+  private pauseMonitoring = false;
+  private masonryColumnSize = 350; // default is 350
+  private masonryOptions: MasonryOptions =  {
                                     layoutMode: 'masonry',
                                     itemSelector: '.brick',
                                     initLayout: false,
                                     resize: true,
                                     masonry: {
                                                 columnWidth: this.masonryColumnSize,
-                                                //columnWidth: '.brick',
                                                 gutter: 20,
                                                 horizontalOrder: true,
                                                 fitWidth: true,
                                     }
                                   };
   private sessions: any;
-  private sessionsDefined: boolean = false;
+  private sessionsDefined = false;
   public selectedCollectionType: string;
   private collectionId: string;
-  public destroyMasonry: boolean = true;
-  private shownBricks: any = [];
-  private pixelsPerSecond: number = 200;
-  @ViewChild(MasonryComponent) private masonryComponentRef: MasonryComponent;
-  //@ViewChild('scrollTarget') scrollTarget: ElementRef;
-  //@ViewChild('scrollContainer') scrollContainer: ElementRef;
-  private loadAllBeforeLayout: boolean = true;
-  private imageIncludedTypes: any = ['image', 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'hash']; //we need to break out these other types
+  public destroyView = true;
+  private shownBricks: Brick[] = []; // shownBricks is bound to MasonryComponent so it knows which tiles to hide
+  private pixelsPerSecond = 200;
+  // @ViewChild('scrollTarget') scrollTarget: ElementRef;
+  // @ViewChild('scrollContainer') scrollContainer: ElementRef;
+  private loadAllBeforeLayout = true;
+  private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
   private masonryKeys: any;
-  private alive: boolean = true;
+  private alive = true;
+  private autoScrollRunning = false; // this tracks autoscroller state
+  private autoScrollerStopped = false; // this is for when a user stops the autoscroller
+  private lastMask = new ContentMask;
 
   ngOnDestroy(): void {
-    console.log("MasonryGridComponent: ngOnDestroy()");
+    console.log('MasonryGridComponent: ngOnDestroy()');
     this.alive = false;
   }
 
   ngOnInit(): void {
-    console.log("MasonryGridComponent: ngOnInit()");
+    console.log('MasonryGridComponent: ngOnInit()');
 
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
     this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
 
+    // Take subscriptions
+
     this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
       this.masonryKeys = prefs.masonryKeys;
-      //console.log('masonryKeys:', this.masonryKeys)
+      // console.log('masonryKeys:', this.masonryKeys)
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
 
-      if (this.masonryColumnSize != prefs.masonryColumnSize) {
-        console.log("MasonryGridComponent: preferencesChangedSubscription: Changing masonry column size to prefs.masonryColumnSize");
+      if (this.masonryColumnSize !== prefs.masonryColumnSize) {
+        console.log('MasonryGridComponent: preferencesChangedSubscription: Changing masonry column size to prefs.masonryColumnSize');
         this.masonryColumnSize = prefs.masonryColumnSize;
         this.changeDetectionRef.detectChanges();
         this.changeDetectionRef.markForCheck();
-        var newMasonryOptions: MasonryOptions = Object.assign({}, this.masonryOptions); //deep copy so that the reference is changed and can thus be detected
+        let newMasonryOptions: MasonryOptions = Object.assign({}, this.masonryOptions); // deep copy so that the reference is changed and can thus be detected
         newMasonryOptions.masonry.columnWidth = this.masonryColumnSize;
         this.masonryOptions = newMasonryOptions;
       }
       else {
-        if (this.masonryComponentRef) this.masonryComponentRef.layout(); //we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
+        if (this.masonryComponentRef) { this.masonryComponentRef.layout(); } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
       }
     });
 
-    this.toolService.noCollections.takeWhile(() => this.alive).subscribe( () => {
-                                                                                  console.log("MasonryGridComponent: noCollectionsSubscription");
-                                                                                  if (this.masonryComponentRef) this.masonryComponentRef.destroyMe();
-                                                                                  this.destroyMasonry = true;
-                                                                                  this.sessionsDefined = false;
-                                                                                  //this.changeDetectionRef.detectChanges();
-                                                                                  //this.changeDetectionRef.markForCheck();
-                                                                                  this.images = []; //undefined
-                                                                                  this.shownBricks = []; //undefined
-                                                                                  this.pdfImages = []; //undefined
-                                                                                  this.imageImages = []; //undefined
-                                                                                  this.search = []; //undefined
-                                                                                  this.sessions = {}; //undefined
-                                                                                  this.imageCount = { images: 0, pdfs: 0, total: 0 };
-                                                                                  this.toolService.imageCount.next( this.imageCount );
-                                                                                  this.changeDetectionRef.detectChanges();
-                                                                                  this.changeDetectionRef.markForCheck();
-                                                                                });
-
-
-    //bind ToolWidgetCommsService observables to our own variables
     this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
-
     this.toolService.searchTermsChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.searchTermsChanged($event) );
+    this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: ContentMask) => this.maskChanged($event) );
 
-    this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.maskChanged($event) );
+    this.toolService.noCollections.takeWhile(() => this.alive).subscribe( () => {
+      console.log('MasonryGridComponent: noCollectionsSubscription');
+      if (this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); }
+      this.destroyView = true;
+      this.sessionsDefined = false;
+      this.resetContent();
+      this.resetContentCount();
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
 
-    //this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumberUpdate($event) );
+    this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { // this triggers whenever we choose a new collection
+      console.log('MasonryGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
+      if (this.masonryComponentRef) {this.masonryComponentRef.destroyMe(); }
+      this.destroyView = true;
+      this.sessionsDefined = false;
+      this.resetContent();
+      this.resetContentCount();
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+      this.selectedCollectionType = collection.type;
+      this.collectionId = collection.id;
+      if (this.selectedCollectionType === 'monitoring' || this.selectedCollectionType === 'rolling') {
+        this.loadAllBeforeLayout = false;
+      }
+      else {
+        this.loadAllBeforeLayout = true;
+      }
+    });
 
-    this.toolService.scrollToBottom.takeWhile(() => this.alive).subscribe( () => {this.autoScrollerStopped = false; this.autoScroller();} );
+    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { // this triggers when a monitoring collection refreshes
+      console.log('MasonryGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
+      // this.stopAutoScroller();
+      if (collection.state === 'refreshing')  {
+        // this.masonryComponentRef.loadAllBeforeLayout = false;
+        if (this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); }
+        this.destroyView = true;
+        this.changeDetectionRef.detectChanges();
+        this.changeDetectionRef.markForCheck();
+        this.resetContent();
+        this.sessionsDefined = false;
+        this.resetContentCount();
+        this.toolService.changingCollections.next(false);
+        this.destroyView = false;
+        this.changeDetectionRef.detectChanges();
+        this.changeDetectionRef.markForCheck();
+      }
+    });
+
+    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => {
+      console.log('MasonryGridComponent: sessionsChangedSubscription: sessionsChanged:', s); // when an a whole new collection is selected
+      this.sessionsDefined = true;
+      this.sessions = s;
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
+      console.log('MasonryGridComponent: sessionPublishedSubscription: sessionPublished', s); // when an individual session is pushed from a building collection (or monitoring or rolling)
+      let sessionId = s.id;
+      this.sessionsDefined = true;
+      this.sessions[sessionId] = s;
+    });
+
+    this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => {
+      console.log('MasonryGridComponent: contentChangedSubscription: contentChanged:', i); // when a new collection is selected
+      this.stopAutoScroller();
+      if (i.length === 0 && this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); } // we need this when we remove the only collection and it is biggish.  Prevents performance issues
+      this.destroyView = true;
+      i.sort(this.sortImages);
+      this.content = i;
+      this.shownBricks = this.contentToBricks(this.content);
+      this.search = [];
+      this.calculateContentMasks();
+      this.countContent();
+      this.destroyView = false;
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+
+      setTimeout( () => {
+        if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnSize && !this.destroyView) { 
+          console.log('this.masonryRef', this.masonryRef);
+          this.masonryRef.first.el.nativeElement.focus();
+        }
+      }, 50);
+    });
+
+    this.dataService.contentPublished.takeWhile(() => this.alive).subscribe( (newContent: any) =>  { // when content are pushed from a still-building, rolling, or monitoring collection
+        console.log('MasonryGridComponent: contentPublishedSubscription: contentPublished:', newContent);
+
+        // update content counts here to save cycles not calculating image masks
+        for (let i = 0; i < newContent.length; i++) {
+          this.content.push(newContent[i]);
+          if (newContent[i].contentType === 'image' ) {
+            this.contentCount.images = this.contentCount.images + 1;
+          }
+          else if (newContent[i].contentType === 'pdf' ) {
+            this.contentCount.pdfs = this.contentCount.pdfs + 1;
+          }
+          else if (newContent[i].contentType === 'hash' ) {
+            this.contentCount.hashes = this.contentCount.hashes + 1;
+          }
+          else if ( this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType) ) {
+              this.contentCount.dodgyArchives = this.contentCount.dodgyArchives + 1;
+          }
+        }
+        this.contentCount.total = this.content.length;
+        this.toolService.contentCount.next( this.contentCount );
+
+        this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+        this.changeDetectionRef.detectChanges();
+        this.changeDetectionRef.markForCheck();
+      });
+
+    this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  { // this receives complete search term data from complete collection
+      this.search = s;
+      console.log('MasonryGridComponent: searchChangedSubscription: searchChanged:', this.search);
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+    this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => { // this receives a partial search term data from a building collection
+      console.log('MasonryGridComponent: searchPublishedSubscription: searchPublished:', s);
+      for (let i = 0; i < s.length; i++) {
+        this.search.push(s[i]);
+      }
+      // console.log("MasonryGridComponent: searchPublishedSubscription: this.search:", this.search);
+      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+    this.dataService.sessionsPurged.takeWhile(() => this.alive).subscribe( (sessionsToPurge: number[]) =>  {
+      console.log('MasonryGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
+      // console.log("content", this.content);
+      // console.log("content length:",this.content.length);
+      // console.log("content:",JSON.parse(JSON.stringify(this.content)));
+      let c = 0;
+
+      let purgedImagePositions = [];
+      let purgedSearchPositions = [];
+
+      for (let x = 0; x < sessionsToPurge.length; x++) {
+        let sidToPurge = sessionsToPurge[x];
+
+        for (let i = 0; i < this.content.length; i++) {
+          if (this.content[i].session === sidToPurge) {
+            console.log('MasonryGridComponent: sessionsPurgedSubscription: removing image with session id', sidToPurge);
+            purgedImagePositions.push(i);
+          }
+        }
+
+        for (let i = 0; i < this.search.length; i++) {
+          if (this.search[i].session === sidToPurge) {
+            console.log('MasonryGridComponent: sessionsPurgedSubscription: removing search text with session id', sidToPurge);
+            purgedSearchPositions.push(i);
+            c++;
+          }
+        }
+      }
+      // console.log("purgedImagePositions:",purgedImagePositions);
+      // console.log("purgedSearchPositions:",purgedSearchPositions);
+      purgedImagePositions.sort(this.sortNumber);
+      for (let i = 0; i < purgedImagePositions.length; i++) {
+        this.content.splice(purgedImagePositions[i], 1);
+      }
+      purgedSearchPositions.sort(this.sortNumber);
+      for (let i = 0; i < purgedSearchPositions.length; i++) {
+        this.search.splice(purgedSearchPositions[i], 1);
+      }
+
+// !!! this shownBricks line should be revisited so that it takes in to account last mask and search!!!
+      this.shownBricks = this.contentToBricks(this.content);
+// !!!
+      this.maskChanged(this.lastMask);
+      this.pdfContent = [];
+      this.imageContent = [];
+      this.hashContent = [];
+      this.dodgyArchiveContent = [];
+      this.calculateContentMasks();
+      this.countContent();
+      if (c > 0) {
+        this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      }
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    });
+
+
+    this.toolService.scrollToBottom.takeWhile(() => this.alive).subscribe( () => {this.autoScrollerStopped = false; this.autoScroller(); } );
 
     this.toolService.layoutComplete.takeWhile(() => this.alive).subscribe( () => {
-                                                        console.log("MasonryGridComponent: layoutCompleteSubscription: layoutComplete");
+                                                        console.log('MasonryGridComponent: layoutCompleteSubscription: layoutComplete');
                                                         if (this.selectedCollectionType === 'monitoring' && !this.autoScrollerStopped) {
                                                           this.autoScroller();
                                                         }
-                                                        //this.changeDetectionRef.detectChanges();
+                                                        // this.changeDetectionRef.detectChanges();
                                                         this.changeDetectionRef.markForCheck();
-                                                     });
-
-
+                                                      });
     this.toolService.stopScrollToBottom.takeWhile(() => this.alive).subscribe( () =>  {
                                                             this.autoScrollerStopped = true;
                                                             this.stopAutoScroller();
                                                           });
-    //this.toolService.selectedCollection.takeWhile(() => this.alive).subscribe( ($event: any) => {
 
-    this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { //this triggers whenever we choose a new collection
-                                                                      console.log("MasonryGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:", collection);
-                                                                      if (this.masonryComponentRef) this.masonryComponentRef.destroyMe();
-                                                                      this.destroyMasonry = true;
-                                                                      this.sessionsDefined = false;
-                                                                      //this.changeDetectionRef.detectChanges();
-                                                                      //this.changeDetectionRef.markForCheck();
-                                                                      this.images = []; //undefined
-                                                                      this.shownBricks = []; //undefined
-                                                                      this.pdfImages = []; //undefined
-                                                                      this.imageImages = []; //undefined
-                                                                      this.search = []; //undefined
-                                                                      this.sessions = {}; //undefined
-                                                                      this.imageCount = { images: 0, pdfs: 0, total: 0 };
-                                                                      this.toolService.imageCount.next( this.imageCount );
-                                                                      this.changeDetectionRef.detectChanges();
-                                                                      this.changeDetectionRef.markForCheck();
-                                                                      this.selectedCollectionType = collection.type;
-                                                                      this.collectionId = collection.id;
-                                                                      if (this.selectedCollectionType === 'monitoring' || this.selectedCollectionType === 'rolling') {
-                                                                        this.loadAllBeforeLayout = false;
-                                                                      }
-                                                                      else {
-                                                                        this.loadAllBeforeLayout = true;
-                                                                      }
-                                                                    });
-
-    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => { //this triggers when a monitoring collection refreshes
-                                                                              console.log("MasonryGridComponent: collectionStateChangedSubscription: collectionStateChanged:", collection.state);
-                                                                              //console.log("collection", collection);
-                                                                              //this.iconDecider(collection.state);
-                                                                              //this.collections[collection.id].state = collection.state;
-                                                                              //this.stopAutoScroller();
-                                                                              if (collection.state === 'refreshing')  {
-                                                                                //this.masonryComponentRef.loadAllBeforeLayout = false;
-                                                                                //this.toolService.changingCollections.next(true);
-                                                                                //setTimeout( () => this.destroyMasonry = true );
-                                                                                if (this.masonryComponentRef) this.masonryComponentRef.destroyMe();
-                                                                                this.destroyMasonry = true;
-                                                                                this.changeDetectionRef.detectChanges();
-                                                                                this.changeDetectionRef.markForCheck();
-                                                                                this.images = [];
-                                                                                //this.displayedImages = [];
-                                                                                this.shownBricks = [];
-                                                                                this.pdfImages = [];
-                                                                                this.imageImages = [];
-                                                                                this.search = [];
-                                                                                this.sessionsDefined = false;
-                                                                                this.sessions={};
-                                                                                this.imageCount = { images: 0, pdfs: 0, total: 0 };
-                                                                                this.toolService.imageCount.next( this.imageCount );
-                                                                                this.toolService.changingCollections.next(false);
-                                                                                //setTimeout( () => this.destroyMasonry = false );
-                                                                                this.destroyMasonry = false;
-                                                                                this.changeDetectionRef.detectChanges();
-                                                                                this.changeDetectionRef.markForCheck();
-                                                                              }
-                                                                            });
-
-    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => {
-                                                              console.log("MasonryGridComponent: sessionsChangedSubscription: sessionsChanged:", s); //when an a whole new collection is selected
-                                                              this.sessionsDefined = true;
-                                                              this.sessions = s;
-                                                              this.changeDetectionRef.detectChanges();
-                                                              this.changeDetectionRef.markForCheck();
-                                                              //setTimeout( () => this.sessions = s );
-                                                              //this.ngZone.run( () => this.sessions = s );
-                                                              //this.changeDetectionRef.detectChanges();
-                                                              //this.changeDetectionRef.markForCheck();
-                                                            });
-
-    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
-                                                                console.log("MasonryGridComponent: sessionPublishedSubscription: sessionPublished", s); //when an individual session is pushed from a building collection (or monitoring or rolling)
-                                                                let sessionId = s.id;
-                                                                //setTimeout( () => this.sessions[sessionId] = s );
-                                                                this.sessionsDefined = true;
-                                                                this.sessions[sessionId] = s;
-                                                                //this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-                                                                //this.changeDetectionRef.detectChanges();
-                                                                //this.changeDetectionRef.markForCheck();
-                                                              });
-
-    this.dataService.imagesChanged.takeWhile(() => this.alive).subscribe( (i: any) => {
-                                                            console.log("MasonryGridComponent: imagesChangedSubscription: imagesChanged:", i); //when a new collection is selected
-                                                            //this.toolService.changingCollections.next(true);
-                                                            this.stopAutoScroller();
-                                                            //setTimeout( () => {this.destroyMasonry = true}, 0 );
-                                                            if (i.length == 0 && this.masonryComponentRef) this.masonryComponentRef.destroyMe(); //we need this when we remove the only collection and it is biggish.  Prevents performance issues
-                                                            this.destroyMasonry = true;
-                                                            //this.changeDetectionRef.detectChanges();
-                                                            //this.changeDetectionRef.markForCheck();
-
-                                                            //console.log("masonryRef:", this.masonryRef);
-                                                            //if (this.masonryRef) this.masonryRef.destroy();
-                                                            i.sort(this.sortImages);
-                                                            this.images = i;
-                                                            this.shownBricks = this.imagesToBricks(i);
-                                                            this.pdfImages = [];
-                                                            this.imageImages = [];
-                                                            this.search = [];
-                                                            for (var x=0; x < this.images.length; x++) {  //pre-calculate image masks
-                                                              if (this.images[x].contentType === 'pdf') {
-                                                                this.pdfImages.push(this.images[x]);
-                                                              }
-                                                              if ( this.imageIncludedTypes.includes(this.images[x].contentType)) {
-                                                                this.imageImages.push(this.images[x]);
-                                                              }
-                                                            }
-                                                            this.imageCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, total: this.images.length };
-                                                            this.toolService.imageCount.next( this.imageCount );
-                                                            //this.toolService.changingCollections.next(false);
-                                                            //setTimeout( () => {this.destroyMasonry = false;}, 0 );
-                                                            this.destroyMasonry = false;
-                                                            //this.toolService.changingCollections.next(false);
-                                                            this.changeDetectionRef.detectChanges();
-                                                            this.changeDetectionRef.markForCheck();
-                                                          });
-
-    this.dataService.imagePublished.takeWhile(() => this.alive).subscribe( (imgs: any) =>  { //when images are pushed from a still-building, rolling, or monitoring collection \
-                                                              console.log("MasonryGridComponent: imagePublishedSubscription: imagePublished:", imgs);
-                                                              //for (var img of i) {
-
-                                                              for (let x=0; x < imgs.length; x++) {
-                                                                //setTimeout( () => this.images.push(img) );
-                                                                this.images.push(imgs[x]);
-                                                                //this.changeDetectionRef.detectChanges();
-                                                                if (imgs[x].contentType === 'pdf') {
-                                                                  this.pdfImages.push(imgs[x]);
-                                                                }
-                                                                if (this.imageIncludedTypes.includes(imgs[x].contentType)) {
-                                                                  this.imageImages.push(imgs[x]);
-                                                                }
-                                                              }
-
-                                                              this.imageCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, total: this.images.length };
-                                                              this.toolService.imageCount.next( this.imageCount );
-                                                              this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-                                                              //console.log("images length:",this.images.length);
-                                                              //console.log("images:",JSON.parse(JSON.stringify(this.images)));
-                                                              //console.log(JSON.stringify(obj));
-                                                              this.changeDetectionRef.detectChanges();
-                                                              this.changeDetectionRef.markForCheck();
-                                                            });
-
-    this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  { //this receives complete search term data from complete collection
-                                                                this.search = s;
-                                                                console.log('MasonryGridComponent: searchChangedSubscription: searchChanged:', this.search);
-                                                                this.changeDetectionRef.detectChanges();
-                                                                this.changeDetectionRef.markForCheck();
-                                                              });
-
-    this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
-                                                              console.log("MasonryGridComponent: searchPublishedSubscription: searchPublished:", s);
-                                                              for (let i = 0; i < s.length; i++) {
-                                                                this.search.push(s[i]);
-                                                              }
-                                                              // console.log("MasonryGridComponent: searchPublishedSubscription: this.search:", this.search);
-                                                              this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-                                                              this.changeDetectionRef.detectChanges();
-                                                              this.changeDetectionRef.markForCheck();
-                                                            }); //this receives a partial search term data from a building collection
-
-    this.dataService.sessionsPurged.takeWhile(() => this.alive).subscribe( (sessionsToPurge: number[]) =>  {
-                                                              console.log("MasonryGridComponent: sessionsPurgedSubscription: sessionsPurged:", sessionsToPurge);
-                                                              //console.log("images", this.images);
-                                                              //console.log("images length:",this.images.length);
-                                                              //console.log("images:",JSON.parse(JSON.stringify(this.images)));
-                                                              let c=0;
-
-                                                              let purgedImagePositions = [];
-                                                              let purgedSearchPositions = [];
-
-                                                              for (let x=0; x < sessionsToPurge.length; x++) {
-                                                                var sidToPurge = sessionsToPurge[x];
-                                                                //console.log("s:", s);
-
-                                                                for (let i=0; i < this.images.length; i++) {
-                                                                  //console.log("this.images[i].session", this.images[i].session);
-                                                                  if (this.images[i].session === sidToPurge) {
-                                                                    console.log("removing image with session id", sidToPurge);
-                                                                    //this.images.splice(i, 1);
-                                                                    purgedImagePositions.push(i);
-                                                                  }
-                                                                }
-
-                                                                for (let i=0; i < this.search.length; i++) {
-                                                                  if (this.search[i].session === sidToPurge) {
-                                                                    console.log("removing search text with session id", sidToPurge);
-                                                                    //this.search.splice(i, 1);
-                                                                    purgedSearchPositions.push(i);
-                                                                    c++;
-                                                                  }
-                                                                }
-                                                              }
-
-                                                              //console.log("purgedImagePositions:",purgedImagePositions);
-                                                              //console.log("purgedSearchPositions:",purgedSearchPositions);
-                                                              purgedImagePositions.sort(this.sortNumber);
-                                                              for (let i=0; i < purgedImagePositions.length; i++) {
-                                                                this.images.splice(purgedImagePositions[i], 1);
-                                                              }
-                                                              purgedSearchPositions.sort(this.sortNumber);
-                                                              for (let i=0; i < purgedSearchPositions.length; i++) {
-                                                                this.search.splice(purgedSearchPositions[i], 1);
-                                                              }
-
-
-                                                              //this.displayedImages = this.images;
-                                                              this.shownBricks = this.imagesToBricks(this.images);
-                                                              this.pdfImages = [];
-                                                              this.imageImages = [];
-                                                              this.search = []; //testing this
-                                                              for (let x=0; x < this.images.length; x++) {  //pre-calculate image masks
-                                                                if (this.images[x].contentType === 'pdf') {
-                                                                  this.pdfImages.push(this.images[x]);
-                                                                }
-                                                                if (this.imageIncludedTypes.includes(this.images[x].contentType)) {
-                                                                  this.imageImages.push(this.images[x]);
-                                                                }
-                                                              }
-                                                              //this.changeDetectionRef.detectChanges();
-                                                              //this.changeDetectionRef.markForCheck();
-                                                              this.imageCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, total: this.images.length };
-                                                              this.toolService.imageCount.next( this.imageCount );
-                                                              if (c > 0) {
-                                                                this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-                                                              }
-                                                              this.changeDetectionRef.detectChanges();
-                                                              this.changeDetectionRef.markForCheck();
-                                                            });
-    //setTimeout( () => {this.changeDetectionRef.detectChanges();  }, 5000);
-    //this.changeDetectionRef.detectChanges();
   }
-
-  private autoScrollRunning: boolean = false; // this tracks autoscroller state
-  private autoScrollerStopped: boolean = false; //this is for when a user stops the autoscroller
 
   sortNumber(a: number, b: number): number {
       return b - a;
   }
 
   stopAutoScroller(): void {
-    console.log("MasonryGridComponent: stopAutoScroller(): Stopping scroller");
+    console.log('MasonryGridComponent: stopAutoScroller(): Stopping scroller');
     $('.scrollContainer').stop(true, false);
     this.autoScrollRunning = false;
   }
@@ -440,9 +368,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.autoScrollRunning) {
       this.autoScrollRunning = true;
       let distance = Math.abs($('.scrollContainer').scrollTop( ) - $('.scrollTarget').offset( ).top);
-      //console.log("distance:", distance);
+      // console.log("distance:", distance);
       let scroll_duration = (distance / this.pixelsPerSecond) * 1000;
-      //console.log("scroll_duration:", scroll_duration);
+      // console.log("scroll_duration:", scroll_duration);
       $('.scrollContainer').animate({ 'scrollTop':   $('.scrollTarget').offset().top }, scroll_duration, 'linear');
     }
   }
@@ -457,8 +385,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
    }
    return 0;
   }
-
-  private pauseMonitoring: boolean = false;
 
   togglePauseMonitoring(): void {
     this.pauseMonitoring = !this.pauseMonitoring;
@@ -476,83 +402,94 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openPdfViewer(): void {
-    console.log("MasonryGridComponent: openPdfViewer():");
+    console.log('MasonryGridComponent: openPdfViewer()');
     this.modalService.open('pdf-viewer');
   }
 
 
   openSessionDetails(): void {
-    console.log("MasonryGridComponent: openSessionDetails():");
+    console.log('MasonryGridComponent: openSessionDetails()');
     this.modalService.open('sessionDetails');
   }
 
-  maskChanged(e: any): void {
-    console.log("MasonryGridComponent: maskChanged()", e);
-    //e = { showPdf: boolean, showImage: boolean }
-    //console.log("mask:", e);
-    //console.log("e.showPdf", e.showPdf);
-    //console.log("e.showImage", e.showImage);
-    var showPdf = e.showPdf;
-    var showImage = e.showImage;
-    if (showPdf && showImage) {
-      //this.displayedImages = this.images;
-      this.shownBricks = this.imagesToBricks(this.images);
+  maskChanged(e: ContentMask): void {
+    this.lastMask = e;
+    console.log('MasonryGridComponent: maskChanged():', e);
+    // e = { showPdf: boolean, showImage: boolean, showDodgy: boolean, showHash: boolean }
+
+    this.calculateContentMasks();
+    let tempShownBricks = [];
+
+    if (e.showImage && this.imageContent.length !== 0) {
+      let tmpcontentToBricks = this.contentToBricks(this.imageContent);
+      for (let i = 0; i < tmpcontentToBricks.length; i++) {
+        tempShownBricks.push( tmpcontentToBricks[i] );
+      }
     }
-    else if ( showPdf && !showImage ) {
-      //console.log("got to 1");
-      //this.displayedImages = this.pdfImages;
-      this.shownBricks = this.imagesToBricks(this.pdfImages);
+
+    if (e.showPdf && this.pdfContent.length !== 0) {
+      let tmpcontentToBricks = this.contentToBricks(this.pdfContent);
+      for (let i = 0; i < tmpcontentToBricks.length; i++) {
+        tempShownBricks.push( tmpcontentToBricks[i] );
+      }
     }
-    else if ( !showPdf && showImage ) {
-      //console.log("got to 2");
-      //this.displayedImages = this.imageImages;
-      this.shownBricks = this.imagesToBricks(this.imageImages);
+
+    if (e.showDodgy && this.dodgyArchiveContent.length !== 0) {
+      let tmpcontentToBricks = this.contentToBricks(this.dodgyArchiveContent);
+      for (let i = 0; i < tmpcontentToBricks.length; i++) {
+        tempShownBricks.push( tmpcontentToBricks[i] );
+      }
     }
-    else if ( !showPdf && !showImage ) {
-      //console.log("got to 3");
-      //this.displayedImages = [];
-      //this.shownBricks = this.imagesToBricks(this.images);
-      this.shownBricks = [];
+
+    if (e.showHash && this.hashContent.length !== 0) {
+      let tmpcontentToBricks = this.contentToBricks(this.hashContent);
+      for (let i = 0; i < tmpcontentToBricks.length; i++) {
+        tempShownBricks.push( tmpcontentToBricks[i] );
+      }
     }
+
+    this.shownBricks = tempShownBricks;
+    // console.log('MasonryGridComponent: maskChanged: this.shownBricks:', this.shownBricks);
   }
 
   toggleCaseSensitiveSearch(): void {
-    console.log("MasonryGridComponent: toggleCaseSensitiveSearch()");
+    console.log('MasonryGridComponent: toggleCaseSensitiveSearch()');
     this.caseSensitiveSearch = !this.caseSensitiveSearch;
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
   }
 
-  getImageBySession(n: number): any {
-    for (var x=0; x < this.images.length; x++) {
-      if (this.images[x].session === n) {
-        return this.images[x];
+  getContentBySession(n: number): any {
+    for (let x = 0; x < this.content.length; x++) {
+      if (this.content[x].session === n) {
+        return this.content[x];
       }
     }
   }
 
-  getImageBySessionAndContentFile(o: any): any {
-    for (var x=0; x < this.images.length; x++) {
-      if (this.images[x].session === o.session && this.reduceContentFile(this.images[x].contentFile) === o.contentFile) {
-        return this.images[x];
+  getContentBySessionAndContentFile(o: any): any {
+    for (let x = 0; x < this.content.length; x++) {
+      if (this.content[x].session === o.session && this.reduceContentFile(this.content[x].contentFile) === o.contentFile) {
+        return this.content[x];
       }
     }
   }
 
-  imagesToBricks(imgs: any): any {
-    // console.log('MasonryGridComponent: imagesToBricks: imgs:', imgs);
-    var retImgs = [];
-    for (let i=0; i < imgs.length; i++) {
-      let img = {
-                  contentFile: imgs[i].contentFile, //////////////////////////////////////////////////////////////check this!
-                  session: imgs[i].session,
-                  type: imgs[i].contentType
-                };
-      if ('hashType' in imgs[i]) {
-        img['hashType'] = imgs[i].hashType;
+  contentToBricks(content: Content[]): any {
+    // console.log('MasonryGridComponent: contentTocontent: content:', content);
+    let retBricks = new Array<Brick>();
+    for (let i = 0; i < content.length; i++) {
+      let brick: Brick = {
+                    contentFile: content[i].contentFile,
+                    session: content[i].session,
+                    type: content[i].contentType
+                  };
+      if ('hashType' in content[i]) {
+        brick['hashType'] = content[i].hashType;
       }
-      retImgs.push(img);
+      retBricks.push(brick);
     }
-    return retImgs;
+    // if (retBricks.length === 1) { return retBricks[0]; }
+    return retBricks;
   }
 
   searchTermsChanged(e: any): void {
@@ -560,26 +497,26 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
     // console.log('MasonryGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
-    let matchedSessions = [];
+    let matchedContent = [];
 
 
     if (searchTerms === '') {
       // if our search terms are null, then we set shownBricks to equal all bricks
-      this.shownBricks = this.imagesToBricks(this.images);
+      this.maskChanged(this.lastMask);
       return;
     }
 
     if (this.search.length > 0) {
-      // Ok, we have a search term to do something with.  This block will generate matchedSessions[]
+      // Ok, we have a search term to do something with.  This block will generate matchedContent[]
       // console.log('MasonryGridComponent: searchTermsChanged: this.search:', this.search);
-      for (let i=0; i < this.search.length; i++) {
+      for (let i = 0; i < this.search.length; i++) {
         if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
           // we found a match!
           let matchedSession = {
             session: this.search[i].session,
             contentFile: this.search[i].contentFile
           };
-          matchedSessions.push(matchedSession);
+          matchedContent.push(matchedSession);
         }
         else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) { // case-sensitive search
           // we found a match!
@@ -587,19 +524,19 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
             session: this.search[i].session,
             contentFile: this.search[i].contentFile
           };
-          matchedSessions.push(matchedSession);
+          matchedContent.push(matchedSession);
         }
       }
     }
 
-    if ( matchedSessions.length !== 0 ) {
+    if ( matchedContent.length !== 0 ) {
       // Let's now turn our matched session id's into shownBricks[]
-      // console.log('MasonryGridComponent: searchTermsChanged: Length of matchedSessions:', matchedSessions.length);
-      // console.log('MasonryGridComponent: searchTermsChanged: matchedSessions:', matchedSessions);
-      let localShownBricks = [];
-      for (let x=0; x < matchedSessions.length; x++) {
-        let img = this.getImageBySessionAndContentFile(matchedSessions[x]);
-        let brick = this.imagesToBricks( [img] )
+      // console.log('MasonryGridComponent: searchTermsChanged: Length of matchedContent:', matchedContent.length);
+      // console.log('MasonryGridComponent: searchTermsChanged: matchedContent:', matchedContent);
+      let localShownBricks: Brick[] = [];
+      for (let x = 0; x < matchedContent.length; x++) {
+        let img = this.getContentBySessionAndContentFile(matchedContent[x]);
+        let brick = this.contentToBricks( [img] );
         localShownBricks.push( brick[0] );
       }
       this.shownBricks = localShownBricks;
@@ -615,8 +552,65 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   reduceContentFile(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
-    //console.log(match[0]);
     return match[0];
+  }
+
+  resetContentCount(): void {
+    this.contentCount = {
+      images: 0,
+      pdfs: 0,
+      dodgyArchives: 0,
+      hashes: 0,
+      total: 0
+    };
+    this.toolService.contentCount.next( this.contentCount );
+  }
+
+  countContent(): void {
+    this.contentCount = {
+      images: this.imageContent.length,
+      pdfs: this.pdfContent.length,
+      dodgyArchives: this.dodgyArchiveContent.length,
+      hashes: this.hashContent.length,
+      total: this.content.length
+    };
+    this.toolService.contentCount.next( this.contentCount );
+  }
+
+  resetContent(): void {
+    this.shownBricks = [];
+    this.search = [];
+    this.sessions = {};
+
+    this.content = [];
+    this.pdfContent = [];
+    this.imageContent = [];
+    this.dodgyArchiveContent = [];
+    this.hashContent = [];
+  }
+
+  // count = 0;
+  calculateContentMasks(): void {
+    // this.count = this.count + 1;
+    // console.log('count:', this.count)
+    this.imageContent = [];
+    this.pdfContent = [];
+    this.dodgyArchiveContent = [];
+    this.hashContent = [];
+    for (let x = 0; x < this.content.length; x++) {  // pre-calculate content masks
+      if (this.content[x].contentType === 'image') {
+        this.imageContent.push(this.content[x]);
+      }
+      if (this.content[x].contentType === 'pdf') {
+        this.pdfContent.push(this.content[x]);
+      }
+      if (this.content[x].contentType === 'hash') {
+        this.hashContent.push(this.content[x]);
+      }
+      if ( this.dodgyArchivesIncludedTypes.includes(this.content[x].contentType)) {
+        this.dodgyArchiveContent.push(this.content[x]);
+      }
+    }
   }
 
 }
