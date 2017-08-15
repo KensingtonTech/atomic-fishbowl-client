@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, OnChanges, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
@@ -57,18 +57,18 @@ import 'rxjs/add/operator/takeWhile';
         </div>
 
 
-        <div style="position: absolute; height: 100%; top: 0px; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
+        <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
           <div style="width: 100%; height: 100%; overflow: hidden;" *ngIf="sessionId && meta">
             <h3 style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
 
-            <div *ngIf="hideAllMeta && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
-              <table>
-                <tr><td class="metalabel">time</td><td class="metavalue">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+            <div *ngIf="!showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+              <table class="wrap" style="width: 100%; table-layout: fixed;">
+                <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
                 <tr *ngFor="let key of displayedKeys">
                   <td class="metalabel">{{key}}</td>
                   <td>
-                    <ul-accordion *ngIf="meta[key]">
-                      <accordion-li *ngFor="let value of meta[key]">{{value}}</accordion-li>
+                    <ul-accordion class="metavalue" *ngIf="meta[key]">
+                      <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
                     </ul-accordion>
                     <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                   </td>
@@ -76,14 +76,14 @@ import 'rxjs/add/operator/takeWhile';
               </table>
             </div>
 
-            <div *ngIf="!hideAllMeta && blip" style="width: 100%; height: 90%; overflow: auto; padding-right: 20px;">
-              <table>
-                <tr><td class="metalabel">time</td><td class="metavalue">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+            <div *ngIf="showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+              <table class="wrap" style="width: 100%; table-layout: fixed;">
+                <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
                 <tr *ngFor="let key of getMetaKeys()">
                   <td class="metalabel">{{key}}</td>
                   <td>
-                    <ul-accordion>
-                      <accordion-li *ngFor="let value of meta[key]">{{value}}</accordion-li>
+                    <ul-accordion class="metavalue">
+                      <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
                     </ul-accordion>
                   </td>
                 </tr>
@@ -91,7 +91,7 @@ import 'rxjs/add/operator/takeWhile';
             </div>
 
             <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
-            <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i #showAll class="fa fa-eye-slash fa-2x fa-fw"></i></div>
+            <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
             <div *ngIf="preferences.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;"><a target="_blank" href="{{preferences.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
         </div>
       </div>
@@ -129,29 +129,31 @@ import 'rxjs/add/operator/takeWhile';
     word-break: break-all;
     text-align: left;
   }
+
+  .expanded {
+    background-color: rgb(186, 48, 141);;
+  }
   `]
 })
 
 export class SessionDetailsModalComponent implements OnInit, OnDestroy {
 
-  constructor(private dataService : DataService,
+  constructor(private dataService: DataService,
               private modalService: ModalService,
-              private renderer: Renderer,
-              private changeDetectionRef: ChangeDetectorRef,
               private toolService: ToolService ) {}
 
   @Input('id') public id: string;
   @Input('apiServerUrl') apiServerUrl: string;
-  @ViewChild('showAll') showAll: ElementRef;
 
-  private alive: boolean = true;
-  private blip: boolean = true;
+  public showAll = false;
+  private alive = true;
+  private blip = true;
   public image: any;
   private session: any;
   public meta: any;
   public sessionId: number;
-  public isOpen: boolean = false;
-  private hideAllMeta: boolean = true;
+  public isOpen = false;
+  private hideAllMeta = true;
   private preferences: any;
   private deviceNumber: number;
   private displayedKeys: any =  [
@@ -177,8 +179,6 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
                                                                       }
-                                                                      // this._changeDetectionRef.detectChanges();
-                                                                      // this._changeDetectionRef.markForCheck();
                                                                     });
     this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
     this.dataService.getPreferences();
@@ -191,7 +191,7 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     });
 
     this.toolService.newImage.takeWhile(() => this.alive).subscribe( (image: any) => {
-      log.debug('SessionDetailsModalComponent: newImageSubscription: Got new image:', image)
+      log.debug('SessionDetailsModalComponent: newImageSubscription: Got new image:', image);
       this.image = image;
       this.sessionId = this.image.session;
       // this.pdfFile = this.image.contentFile;
@@ -204,25 +204,15 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   }
 
   getMetaKeys(): any {
-    var a = [];
-    for (var k in this.meta) {
+    let a = [];
+    for (let k in this.meta) {
       a.push(k);
     }
     return a;
   }
 
   showAllClick(): void {
-    if ( this.hideAllMeta ) {
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye-slash', false);
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye', true);
-    }
-    else {
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye', false);
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye-slash', true);
-    }
-    this.hideAllMeta = !this.hideAllMeta;
-    // this._changeDetectionRef.detectChanges();
-    // this._changeDetectionRef.markForCheck();
+    this.showAll = !this.showAll;
   }
 
   opened(): void {

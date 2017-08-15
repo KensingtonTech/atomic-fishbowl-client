@@ -9,7 +9,6 @@ import 'rxjs/add/operator/takeWhile';
 
 @Component({
   selector: 'pdf-viewer-modal',
-  // changeDetection: ChangeDetectionStrategy.OnPush,
   // encapsulation: ViewEncapsulation.None,
   template: `
 <modal id="{{id}}" (opened)="opened()" (cancelled)="cancelled()">
@@ -88,7 +87,7 @@ import 'rxjs/add/operator/takeWhile';
 
 export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
-  constructor(private dataService : DataService,
+  constructor(private dataService: DataService,
               private modalService: ModalService,
               private toolService: ToolService,
               private renderer: Renderer ) {}
@@ -157,8 +156,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
                                                                       }
-                                                                      // this._changeDetectionRef.detectChanges();
-                                                                      // this._changeDetectionRef.markForCheck();
                                                                     });
     this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
     this.dataService.getPreferences();
@@ -170,7 +167,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     });
 
     this.toolService.newImage.takeWhile(() => this.alive).subscribe( (image: any) => {
-      log.debug('PdfViewerModalComponent: newImageSubscription: Got new image:', image)
+      log.debug('PdfViewerModalComponent: newImageSubscription: Got new image:', image);
       this.image = image;
       this.sessionId = this.image.session;
       this.pdfFile = this.image.contentFile;
@@ -184,7 +181,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
   getMetaKeys(): any {
     let a = [];
-    for (var k in this.meta) {
+    for (let k in this.meta) {
       a.push(k);
     }
     return a;
@@ -200,8 +197,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye-slash', true);
     }
     this.hideAllMeta = !this.hideAllMeta;
-    // this._changeDetectionRef.detectChanges();
-    // this._changeDetectionRef.markForCheck();
   }
 
   opened(): void {

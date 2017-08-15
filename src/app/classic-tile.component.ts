@@ -5,7 +5,7 @@ import { Content } from './content';
 declare var log: any;
 
 @Component({
-  selector: 'img-tile',
+  selector: 'classic-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div class="thumbnail-container">
@@ -41,6 +41,7 @@ declare var log: any;
       text-align:center;
       line-height:110px;
     }
+
     .thumbnail {
       max-width: 110px;
       max-height: 110px;
@@ -52,7 +53,6 @@ declare var log: any;
       border: solid 3px red;
     }
 
-    .disable {}
   `],
 /*
   animations: [
@@ -66,7 +66,7 @@ declare var log: any;
 */
 })
 
-export class ImgTileComponent implements OnChanges {
+export class ClassicTileComponent implements OnChanges {
 
   constructor(private el: ElementRef,
               private renderer: Renderer,

@@ -143,6 +143,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                private toolService: ToolService,
                private authService: AuthenticationService ) {}
 
+  @ViewChild('spinnerIcon') spinnerIconRef: ElementRef;
+  @ViewChild('errorIcon') errorIconRef: ElementRef;
+  @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
   private collections: any;
   private selectedCollection: string;
   public addCollectionModalId = 'add-collection-modal';
@@ -152,10 +155,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private searchTerms: string;
   private refreshed = false;
   private alive = true;
-
-  @ViewChild('spinnerIcon') spinnerIconRef: ElementRef;
-  @ViewChild('errorIcon') errorIconRef: ElementRef;
-  @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
   private contentCount = new ContentCount;
   private showImages = true;
   private maskState: ContentMask = { showPdf: true, showImage: true, showHash: true, showDodgy: true };
@@ -186,13 +185,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                       this.refreshed = true;
                       if (Object.keys(this.collections).length !== 0 ) { // we only select a collection if there are collections
                         this.selectedCollection = this.getFirstCollection();
-                        // log.debug('ToolbarWidgetComponent: ngOnInit(): select collection 0');
-
-                        /*this.dataService.getCollectionData(this.collections[this.selectedCollection])
-                          .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } ))
-                          .then( () => this.showCollections = true )
-                        */
-
                         this.collectionSelected(this.selectedCollection);
                         this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } );
                         this.showCollections = true;
@@ -344,18 +336,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.modalService.open('collection-confirm-delete-modal');
   }
 
-
-/*  editCollectionClick(): void {
-    log.debug("editCollectionClick()");
-  }
-*/
-
-/*
-  ngOnChanges(): void {
-    log.debug("ToolbarWidgetComponent: ngOnChanges()");
-  }
-*/
-
   collectionSelected(id: any): void {
     log.debug('ToolbarWidgetComponent: collectionSelected():', this.collections[id]);
     // log.debug("collections:", this.collections);
@@ -448,25 +428,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                                     this.showCollections = true;
                                   })
                     .then( () => this.collectionSelected(id) );
-/*
-                    .then( () =>  {
-                                    if (this.collections[id].type === 'rolling' || this.collections[id].type === 'monitoring') {
-                                      log.debug('select collection 5');
-                                      this.dataService.getCollectionData(this.collections[this.selectedCollection])
-                                                      .then( () => this.getRollingCollection(id) )
-                                                      //.then( () => { this.showCreateFirstCollection = false; this.showCollections = true; })
-                                                      .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber } ));
-                                    }
-                                    else { //fixed collections
-                                      log.debug('select collection 6');
-                                      this.dataService.getCollectionData(this.collections[this.selectedCollection])
-                                                      .then( () => this.dataService.buildCollection(id) )
-                                                      .then( () => this.dataService.getBuildingCollection(id) ) //they're all 'building' when we first execute a collection
-                                                      //.then( () => { this.showCreateFirstCollection = false; this.showCollections = true; })
-                                                      .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber } ));
-                                    }
-                                  });
-*/
   }
 
   // @HostListener('window:keydown',['$event']) onEscape(event: KeyboardEvent ) {
@@ -509,8 +470,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   getCollectionDataAgain(): void {
     log.debug('ToolbarWidgetComponent: getCollectionDataAgain()');
     // log.debug('select collection 7');
-    this.dataService.getCollectionData(this.collections[this.selectedCollection])
-                    .then( () => this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } ));
+    this.collectionSelected(this.selectedCollection);
+    this.toolService.deviceNumber.next( {
+                                          deviceNumber: this.collections[this.selectedCollection].deviceNumber,
+                                          nwserver:  this.collections[this.selectedCollection].nwserver
+                                        });
   }
 
   logoutButtonClick(): void {

@@ -17,26 +17,32 @@ declare var log: any;
   selector: 'classic-grid-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div style="position: relative; width: 100%; height: 100%;">
+<div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
   <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;">
-    <div class="bg noselect items" style="width: 2400px;" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
-      <img-tile *ngFor="let item of displayedContent" [highResSession]="hoveredContentSession" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]"></img-tile>
+    <div class="bg noselect items" style="position: relative; width: 2400px;" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
+      <classic-tile *ngFor="let item of displayedContent" [highResSession]="hoveredContentSession" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]"></classic-tile>
     </div>
   </panzoom>
   <grid-control-bar [canvasWidth]="canvasWidth" [initialZoomHeight]="initialZoomHeight" ></grid-control-bar>
   <pdf-viewer-modal [apiServerUrl]="apiServerUrl" id="pdf-viewer"></pdf-viewer-modal>
-  <session-widget [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" #sessionWidget></session-widget>
+  <classic-session-popup [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" #sessionWidget></classic-session-popup>
 </div>
 `,
   styles: [`
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
-    }
+
+  classic-tile {
+    display: inline-block;
+  }
+
+  .noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+  }
+
   `]
 })
 

@@ -39,10 +39,10 @@ import { ClassicGridComponent } from './classic-grid.component';
 import { MasonryGridComponent } from './masonry-grid.component';
 import { GridControlBarComponent } from './grid-controlbar.component';
 import { MasonryControlBarComponent } from './masonry-controlbar.component';
-import { SessionWidgetComponent } from './session-widget.component';
+import { ClassicSessionPopupComponent } from './classic-session-popup.component';
 import { PdfViewerComponent } from 'ng2-pdf-viewer';
 import { PdfViewerModalComponent } from './pdfviewer-modal.component';
-import { ImgTileComponent } from './img-tile.component';
+import { ClassicTileComponent } from './classic-tile.component';
 import { AccordionLIComponent } from './accordion-li.component';
 import { AccordionULComponent } from './accordion-ul.component';
 import { RouterDropdownComponent } from './router-dropdown.component';
@@ -95,7 +95,7 @@ import * as $ from 'jquery';
   declarations: [ AppComponent,
                   ClassicGridComponent,
                   MasonryGridComponent,
-                  SessionWidgetComponent,
+                  ClassicSessionPopupComponent,
                   ToolbarWidgetComponent,
                   FromEpochPipe,
                   FormatTimePipe,
@@ -107,7 +107,7 @@ import * as $ from 'jquery';
                   ToggleFullscreenDirective,
                   AccordionULComponent,
                   AccordionLIComponent,
-                  ImgTileComponent,
+                  ClassicTileComponent,
                   PdfViewerComponent,
                   PdfViewerModalComponent,
                   SplashScreenModal,

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy, Input } from '@angular/core';
 import { ToolService } from './tool.service';
 import 'rxjs/add/operator/takeWhile';
 declare var log: any;
@@ -14,12 +14,14 @@ declare var log: any;
 </div>
 `,
   styles: [`
-    .icon {
+
+  .icon {
       background-color: rgb(75,173,243);
       color: white;
       border-radius: 10px;
       padding: 3px;
     }
+
     .noselect {
       -webkit-touch-callout: none; /* iOS Safari */
       -webkit-user-select: none; /* Safari */
@@ -33,14 +35,23 @@ declare var log: any;
 
 export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
-  constructor(private toolService: ToolService) {}
+  constructor(private toolService: ToolService,
+              private changeDetectionRef: ChangeDetectorRef) {}
 
   private alive = true;
   public scrollStarted = false;
 
   ngOnInit(): void {
-    this.toolService.scrollToBottomRunning.takeWhile(() => this.alive).subscribe( () => this.scrollStarted = true );
-    this.toolService.scrollToBottomStopped.takeWhile(() => this.alive).subscribe( () => this.scrollStarted = false );
+    this.toolService.scrollToBottomRunning.takeWhile(() => this.alive).subscribe( () => {
+      log.debug('MasonryControlBarComponent: scrollToBottomRunningSubscription: scrollToBottomRunning');
+      this.scrollStarted = true;
+      this.changeDetectionRef.markForCheck();
+    });
+    this.toolService.scrollToBottomStopped.takeWhile(() => this.alive).subscribe( () => {
+      log.debug('MasonryControlBarComponent: scrollToBottomStoppedSubscription: scrollToBottomStopped');
+      this.scrollStarted = false;
+      this.changeDetectionRef.markForCheck();
+    });
   }
 
   public ngOnDestroy() {

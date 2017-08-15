@@ -1,6 +1,5 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Renderer, Input, Output, EventEmitter, OnChanges, AfterContentInit, AfterViewInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { NgStyle } from '@angular/common';
-// import { trigger, state, style, animate, transition } from '@angular/animations';
 // import { MasonryOptions } from 'angular2-masonry';
 import { ToolService } from './tool.service';
 declare var log: any;
@@ -29,8 +28,8 @@ declare var log: any;
         </div>
       </div>
 
-      <img *ngIf="image.contentType == 'image'" class="separator" (click)="onClick($event)" (load)="onImgLoad()" [src]="apiServerUrl + image.thumbnail" draggable="false">
-      <img *ngIf="image.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" (load)="onImgLoad()" [src]="apiServerUrl + image.thumbnail" draggable="false">
+      <img *ngIf="image.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="apiServerUrl + image.thumbnail" draggable="false">
+      <img *ngIf="image.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="apiServerUrl + image.thumbnail" draggable="false">
       <img *ngIf="image.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
       <img *ngIf="image.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
       <img *ngIf="image.contentType == 'encryptedRarEntry' || image.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
@@ -122,26 +121,17 @@ declare var log: any;
 
     }
 
+    .pdf {
+      box-sizing: border-box;
+      border: solid 3px red;
+    }
 
-
-  `],
-
-/*
-  animations: [
-    trigger('faderAnimation', [
-      //state('enabled',  style({ opacity: 1, display: 'inline-block' })),
-      state('enabled',  style({ opacity: 1 })),
-      state('disabled', style({ opacity: 0 })),
-      transition('* => *', animate('1s')),
-    ])
-  ]
-*/
+  `]
 })
 
-export class MasonryTileComponent implements OnChanges, AfterViewInit {
+export class MasonryTileComponent implements OnChanges {
 
   constructor(  public el: ElementRef,
-                private renderer: Renderer,
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService ) {} // this.changeDetectionRef.detach(); private http: Http
 
@@ -167,31 +157,12 @@ export class MasonryTileComponent implements OnChanges, AfterViewInit {
     /*if ('image' in e && e.image.currentValue) {
      log.debug('MasonryTileComponent: ngOnChanges: image:', e.image.currentValue);
     }*/
-    if ('session' in e && e.session.currentValue != undefined) { // de-dupe meta keys
+    if ('session' in e && e.session.currentValue !== undefined) { // de-dupe meta keys
       for (let key in e.session.currentValue.meta) {
         this.session.meta[key] = this.unique(e.session.currentValue.meta[key]);
       }
     }
   }
-
-  ngAfterViewInit(): void {
-    // this.changeDetectionRef.detectChanges();
-    // this.changeDetectionRef.markForCheck();
-  }
-
-  onImgLoad(): void {
-    // log.debug("Image loaded");
-    // moved temporarily to aftercontentinit
-    // this.changeDetectionRef.reattach();
-    /*if ( this.image ) {
-      if (this.image.contentType === 'pdf') {
-        this.isPdf = true;
-      }
-    }*/
-    // this.changeDetectionRef.reattach();
-    // this.changeDetectionRef.markForCheck();
-  }
-
 
   onClick(e: any): void {
     // log.debug("onClick")

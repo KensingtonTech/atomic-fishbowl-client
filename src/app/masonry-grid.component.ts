@@ -21,8 +21,8 @@ declare var log: any;
   <div style="position: absolute; left: 0; width: 100px; height: 100%;">
     <masonry-control-bar></masonry-control-bar>
     <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 15px; top: 100px; color: white; z-index: 100;">
-      <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="togglePauseMonitoring()"></i>
-      <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="togglePauseMonitoring()"></i>
+      <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
+      <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
     </div>
   </div>
   <div *ngIf="!destroyView" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
@@ -105,6 +105,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private autoScrollRunning = false; // this tracks autoscroller state
   private autoScrollerStopped = false; // this is for when a user stops the autoscroller
   private lastMask = new ContentMask;
+  private lastWindowHeight = $('masonry').height();
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
@@ -224,7 +225,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
 
       setTimeout( () => {
-        if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnSize && !this.destroyView) { 
+        if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnSize && !this.destroyView) {
           log.debug('this.masonryRef', this.masonryRef);
           this.masonryRef.first.el.nativeElement.focus();
         }
@@ -333,31 +334,37 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
 
-    this.toolService.scrollToBottom.takeWhile(() => this.alive).subscribe( () => {this.autoScrollerStopped = false; this.autoScroller(); } );
+    this.toolService.scrollToBottom.takeWhile(() => this.alive).subscribe( () => {
+      // runs autoScroller() when someone clicks the arrow button on the toolbar
+      this.autoScrollerStopped = false;
+      this.autoScroller();
+    });
+
+    this.toolService.stopScrollToBottom.takeWhile(() => this.alive).subscribe( () =>  {
+      // stops the autoScroller with stopAutoScroller() when someone clicks the stop button on the toolbar
+      this.autoScrollerStopped = true;
+      this.stopAutoScroller();
+    });
 
     this.toolService.layoutComplete.takeWhile(() => this.alive).subscribe( () => {
-                                                        log.debug('MasonryGridComponent: layoutCompleteSubscription: layoutComplete');
-                                                        if (this.selectedCollectionType === 'monitoring' && !this.autoScrollerStopped) {
-                                                          this.autoScroller();
-                                                        }
-                                                        // this.changeDetectionRef.detectChanges();
-                                                        this.changeDetectionRef.markForCheck();
-                                                      });
-    this.toolService.stopScrollToBottom.takeWhile(() => this.alive).subscribe( () =>  {
-                                                            this.autoScrollerStopped = true;
-                                                            this.stopAutoScroller();
-                                                          });
+      log.debug('MasonryGridComponent: layoutCompleteSubscription: layoutComplete');
+      // log.debug(`MasonryGridComponent: layoutCompleteSubscription: lastWindowHeight: ${this.lastWindowHeight}`)
+      let windowHeight = $('masonry').height();
+      // log.debug(`MasonryGridComponent: layoutCompleteSubscription: windowHeight: ${windowHeight}`)
+      if (this.selectedCollectionType === 'monitoring' && !this.autoScrollerStopped && windowHeight > this.lastWindowHeight ) {
+        this.autoScroller();
+      }
+      this.lastWindowHeight = windowHeight;
+      this.changeDetectionRef.markForCheck();
+    });
 
-  }
-
-  sortNumber(a: number, b: number): number {
-      return b - a;
   }
 
   stopAutoScroller(): void {
     log.debug('MasonryGridComponent: stopAutoScroller(): Stopping scroller');
     $('.scrollContainer').stop(true, false);
     this.autoScrollRunning = false;
+    this.toolService.scrollToBottomStopped.next();
   }
 
   autoScroller(): void {
@@ -366,15 +373,34 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.autoScrollRunning = false;
     }
     if (!this.autoScrollRunning) {
+      this.toolService.scrollToBottomRunning.next();
       this.autoScrollRunning = true;
-      let distance = Math.abs($('.scrollContainer').scrollTop( ) - $('.scrollTarget').offset( ).top);
-      // log.debug("distance:", distance);
-      let scroll_duration = (distance / this.pixelsPerSecond) * 1000;
-      // log.debug("scroll_duration:", scroll_duration);
-      $('.scrollContainer').animate({ 'scrollTop':   $('.scrollTarget').offset().top }, scroll_duration, 'linear');
+      let scrollTop = $('.scrollContainer').scrollTop();  // the number of pixels hidden from view above the scrollable area
+      // let offset = $('.scrollTarget').offset().top; // orig
+      let offset = $('.scrollTarget').position().top; // how far the scrolltarget is from the top
+      // log.debug('scrollTop:', scrollTop);
+      // log.debug('offset:', offset);
+
+      // let distance = Math.abs($('.scrollContainer').scrollTop() - $('.scrollTarget').offset().top);
+      // let distance = $('.scrollContainer').scrollTop() - $('.scrollTarget').offset().top;
+      // let distance = Math.abs( scrollTop - offset );
+      let distance = Math.ceil(offset) - $('.scrollContainer').height();
+      // log.debug('distance:', distance);
+
+      let scroll_duration = ( distance / this.pixelsPerSecond ) * 1000;
+      // log.debug('scroll_duration:', scroll_duration);
+
+      // $('.scrollContainer').animate({ 'scrollTop':   $('.scrollTarget').offset().top }, scroll_duration, 'linear');
+      // $('.scrollContainer').animate( { scrollTop: offset }, scroll_duration, 'linear'); // orig
+      $('.scrollContainer').animate( { scrollTop: `+=${offset}` }, scroll_duration, 'linear', () => { this.toolService.scrollToBottomStopped.next(); } );
+      // $('body, html').animate({ 'scrollTop':   offset }, scroll_duration, 'linear');
+      // $('.scrollContainer').animate({ 'scrollTop':   distance }, scroll_duration, 'linear');
     }
   }
 
+  sortNumber(a: number, b: number): number {
+    return b - a;
+  }
 
   sortImages(a: any, b: any): number {
    if (a.session < b.session) {
@@ -395,6 +421,18 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     else {
       this.dataService.getRollingCollection(this.collectionId);
     }
+  }
+
+  suspendMonitoring(): void {
+    this.pauseMonitoring = true;
+    this.dataService.abortGetBuildingCollection();
+    this.stopAutoScroller();
+  }
+
+  resumeMonitoring(): void {
+    this.pauseMonitoring = false;
+    this.dataService.getRollingCollection(this.collectionId);
+    this.toolService.scrollToBottomRunning.next();
   }
 
   ngAfterViewInit(): void {

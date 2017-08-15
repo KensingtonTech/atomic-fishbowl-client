@@ -6,17 +6,17 @@ declare var log: any;
 
 export class PanZoomApiService {
 
-  overlayEnabled: boolean = false;
+  overlayEnabled = false;
   panZoomAPIs = {};
 
   registerAPI(key: string, panZoomAPI: any): void {
-    log.debug("registerAPI()");
+    log.debug('registerAPI()');
 
     if (!this.panZoomAPIs[key]) {
       this.panZoomAPIs[key] = new Deferred<any>();
     }
 
-    var deferred: Deferred<any> = this.panZoomAPIs[key];
+    let deferred: Deferred<any> = this.panZoomAPIs[key];
 
     if (deferred.hasBeenResolved) {
       throw 'Internal error: attempt to register a panzoom API but key was already used. Did you declare two <panzoom> directives with the same id?';
@@ -29,7 +29,7 @@ export class PanZoomApiService {
 
   unregisterAPI(key: string) {
     delete this.panZoomAPIs[key];
-  };
+  }
 
   getAPI(key: string) {
     if (!this.panZoomAPIs[key]) {
@@ -37,6 +37,6 @@ export class PanZoomApiService {
     }
 
     return this.panZoomAPIs[key].promise;
-  };
+  }
 
 }

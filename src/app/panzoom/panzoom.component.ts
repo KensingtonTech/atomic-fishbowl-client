@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, AfterContentInit, OnDestroy, ElementRef, ViewChild, Input, Renderer, NgZone, AfterViewChecked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, AfterContentInit, OnDestroy, ElementRef, ViewChild, Input, Renderer, NgZone, AfterViewChecked } from '@angular/core';
 import { PanZoomApiService } from './panzoom-api.service';
 import { PanZoomConfigService } from './panzoom-config.service';
 import { PanZoomModelService } from './panzoom-model.service';
@@ -66,7 +66,6 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
                 private windowRef: WindowRefService,
                 private renderer: Renderer,
                 private modelService: PanZoomModelService,
-                private _changeDetectionRef: ChangeDetectorRef,
                 private zone: NgZone )
     {
       this.element = el.nativeElement;
@@ -650,8 +649,10 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
     let scale = this.getCssScale(this.model.zoomLevel);
     let scaleString = 'scale3d(' + scale + ', ' + scale + ', ' + scale + ')';
 
-    // here's where the rubber hits the road - this applies the animation.  it consists of using the
-    if (navigator.userAgent.indexOf('Chrome') !== -1) {
+    // here's where the rubber hits the road - this applies the animation
+
+    // handle zoom here
+    if (navigator.userAgent.indexOf('Chrome') !== -1) { // Chrome scaling
       // this is all scaling
       // log.debug("syncModelToDOM: Chrome");
       // For Chrome, use the zoom style by default, as it doesn't handle nested SVG very well
@@ -680,7 +681,7 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
         // this.renderer.setElementStyle(this.zoomElement, '-webkit-transform', scaleString );
       }
     }
-    else {
+    else { // not Chrome scaling
       // log.debug("syncModelToDOM: zoom (not chrome)");
       // Special handling of IE, as it doesn't support the zoom style
       // http://caniuse.com/#search=transform
@@ -702,8 +703,8 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
       this.renderer.setElementStyle(this.zoomElement, 'transform', scaleString);
     }
 
+    // Handle panning here
     if (this.config.useHardwareAcceleration) {
-      // this is all panning
       // log.debug("syncModelToDOM: pan using hardware acceleration");
       let translate3d = 'translate3d(' + this.model.pan.x + 'px, ' + this.model.pan.y + 'px, 0)';
       this.renderer.setElementStyle(this.panElement, '-webkit-transform', translate3d);

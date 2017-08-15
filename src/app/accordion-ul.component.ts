@@ -1,22 +1,21 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, AfterViewInit, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 declare var log: any;
 
 @Component({
   selector: 'ul-accordion',
-  //changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   template: `
-<div *ngIf="oneValue" class="metavalue">
+<div *ngIf="oneValue">
   <a>{{headerText}}</a>
 </div>
 <div style="height: auto; overflow: hidden;" *ngIf="multiValues" (click)="toggleList()">
   <div [class.hide]="hideHeader">
     <ul>
-      <li class="metavalue"><span class="multiValues">{{headerText}}</span></li>
+      <li><span class="multiValues">{{headerText}}</span></li>
     </ul>
   </div>
-  <div [@slideInOut]="collapsed">
+  <div [@slideInOut]="collapsed" style="display: none;">
     <ul #itemList>
       <ng-content></ng-content>
     </ul>
@@ -47,45 +46,44 @@ declare var log: any;
 
 export class AccordionULComponent implements AfterViewInit {
 
-  @ViewChild('itemList') itemList : ElementRef;
-  //@Input('updated') updated: number;
+  constructor ( private changeDetectionRef: ChangeDetectorRef ) {}
 
-  private headerText: string =  '';
-  public oneValue: boolean = false;
-  public multiValues: boolean = true;
-  private hideHeader: boolean = false;
-  private collapsed: string = 'true';
+  @ViewChild('itemList') itemList: ElementRef;
 
-  constructor (private _changeDetectionRef : ChangeDetectorRef) { }
+  private headerText =  '';
+  public oneValue = false;
+  public multiValues = true;
+  private hideHeader = false;
+  private collapsed = 'true';
 
   ngAfterViewInit(): void {
-    //log.debug("itemList:", this.itemList);
+    // log.debug("itemList:", this.itemList);
     if ( this.itemList.nativeElement.children.length > 1 ) {
       this.multiValues = true;
       this.headerText = this.itemList.nativeElement.children[0].firstChild.textContent;
-      //log.debug(this.headerText);
+      // log.debug(this.headerText);
     }
     if ( this.itemList.nativeElement.children.length === 1 ) {
       this.oneValue = true;
       this.multiValues = false;
       this.headerText = this.itemList.nativeElement.children[0].firstChild.textContent;
-      //log.debug(this.headerText);
+      // log.debug(this.headerText);
     }
-    this._changeDetectionRef.detectChanges(); //hack needed to not throw an exception
+    this.changeDetectionRef.detectChanges(); // hack needed to not throw an exception
 
   }
 
   toggleList(): void {
-    //log.debug("toggleList()");
-    var sel = getSelection().toString();
+    // log.debug("toggleList()");
+    let sel = getSelection().toString();
     if (!sel) {
-        //this.hideHeader = (this.hideHeader === false ? true : false);
+        // this.hideHeader = (this.hideHeader === false ? true : false);
         this.hideHeader = !this.hideHeader;
-        //this.collapsed = !this.collapsed;
+        // this.collapsed = !this.collapsed;
         this.collapsed = (this.collapsed === 'true' ? 'false' : 'true');
     }
-    this._changeDetectionRef.detectChanges();
-    this._changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
   }
 
 }
