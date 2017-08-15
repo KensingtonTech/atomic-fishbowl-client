@@ -49,6 +49,12 @@ declare var log: any;
       <div *ngIf="image.contentType == 'hash'">
         <b>Found executable matching {{toCaps(image.hashType)}} hash value</b>
       </div>
+      <div *ngIf="image.contentType == 'pdf' && image.textDistillationEnabled && image.textTermsMatched?.length > 0">
+        <b>Found PDF document containing text term</b>
+      </div>
+      <div *ngIf="image.contentType == 'pdf' && image.regexDistillationEnabled && image.regexTermsMatched?.length > 0">
+        <b>Found PDF document matching Regex term</b>
+      </div>
       <table class="selectable" style="width: 100%;">
         <tr *ngFor="let key of masonryKeys">
           <td *ngIf="session.meta[key.key]" class="column1">{{key.friendly}}</td>
@@ -81,6 +87,14 @@ declare var log: any;
         <tr *ngIf="image.fromArchive">
           <td class="column1">Archive Filename:</td>
           <td class="value">{{reduceContentFile(image.archiveFilename)}}</td>
+        </tr>
+        <tr *ngIf="image.textDistillationEnabled && image.textTermsMatched?.length > 0">
+          <td class="column1">Matched Text Terms:</td>
+          <td class="value">{{image.textTermsMatched}}</td>
+        </tr>
+        <tr *ngIf="image.regexDistillationEnabled && image.regexTermsMatched?.length > 0">
+          <td class="column1">Matched RegEx Terms:</td>
+          <td class="value">{{image.regexTermsMatched}}</td>
         </tr>
       </table>
     </div>

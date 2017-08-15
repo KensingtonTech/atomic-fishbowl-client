@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
@@ -29,7 +29,7 @@ String.prototype.isBlank = function(c) {
 
 @Component({
   selector: 'add-collection-modal',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 
   templateUrl: './addcollection-modal.component.html',
@@ -115,7 +115,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     timeBegin: new Date(),
     timeEnd: new Date(),
     type: this.defaultCollectionType,
-    lastHours: 24,
+    lastHours: 1,
     md5Enabled: false,
     md5Hashes: this.defaultMd5Hashes,
     sha1Enabled: false,
@@ -139,43 +139,55 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     password: this.defaultPassword,
     deviceNumber: this.defaultDeviceNumber
   };
-  public defaultQueries = defaultQueries;
-  public selectedQuery: any = this.defaultQueries[2];
+  public queryList = defaultQueries;
+  public selectedQuery: any = this.queryList[2];
   private preferences: any;
   private timeframes: any = ['Last 5 Minutes', 'Last 10 Minutes', 'Last 15 Minutes', 'Last 30 Minutes', 'Last Hour', 'Last 3 Hours', 'Last 6 Hours', 'Last 12 Hours', 'Last 24 Hours', 'Last 48 Hours', 'Last 5 Days (120 Hours)', 'Today', 'Yesterday', 'This Week', 'Last Week', 'Custom'];
   private selectedTimeframe = 'Last Hour';
   public displayCustomTimeframeSelector = false;
+  private firstRun = true;
 
 
   ngOnInit(): void {
     this.getNwServers();
     this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
-                                                                      // log.debug("AddCollectionModalComponent: prefs observable: ", prefs);
+                                                                      log.debug('AddCollectionModalComponent: prefs observable: ', prefs);
                                                                       this.preferences = prefs;
+
+                                                                      // We can update this every time
                                                                       if ( 'defaultNwQuery' in prefs ) {
                                                                         this.defaultColQuery = prefs.defaultNwQuery;
-                                                                        this.collectionFormModel.query = prefs.defaultNwQuery;
-                                                                      }
-                                                                      if ( 'minX' in prefs && 'minY' in prefs ) {
-                                                                        this.collectionFormModel.minX = prefs.minX;
-                                                                        this.collectionFormModel.minY = prefs.minY;
+                                                                        // this.collectionFormModel.query = prefs.defaultNwQuery;
                                                                       }
 
-                                                                      if ( 'defaultImageLimit' in prefs ) {
-                                                                        this.collectionFormModel.imageLimit = prefs.defaultImageLimit;
-                                                                      }
-                                                                      if ( 'defaultRollingHours' in prefs ) {
-                                                                        this.collectionFormModel.lastHours = prefs.defaultRollingHours;
-                                                                      }
-                                                                      if ( 'defaultQuerySelection' in prefs ) {
-                                                                        for (let q = 0; q < this.defaultQueries.length; q++) {
-                                                                          if (this.defaultQueries[q].text === prefs.defaultQuerySelection) {
-                                                                            setTimeout(() => this.selectedQuery = this.defaultQueries[q]);
-                                                                            this.collectionFormModel.query = this.defaultQueries[q].queryString;
-                                                                            break;
+                                                                      if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone
+                                                                        if ( 'defaultQuerySelection' in prefs ) {
+                                                                          for (let q = 0; q < this.queryList.length; q++) {
+                                                                            if (this.queryList[q].text === prefs.defaultQuerySelection) {
+                                                                              setTimeout(() => this.selectedQuery = this.queryList[q]); // changes the query in the query select box dropdown
+                                                                              this.collectionFormModel.query = this.queryList[q].queryString; // changes the query string in the query string input
+                                                                              break;
+                                                                            }
                                                                           }
                                                                         }
+                                                                        if ( 'minX' in prefs && 'minY' in prefs ) {
+                                                                          this.collectionFormModel.minX = prefs.minX;
+                                                                          this.collectionFormModel.minY = prefs.minY;
+                                                                        }
+                                                                        if ( 'defaultImageLimit' in prefs ) {
+                                                                          this.collectionFormModel.imageLimit = prefs.defaultImageLimit;
+                                                                        }
+                                                                        if ( 'defaultRollingHours' in prefs ) {
+                                                                          this.collectionFormModel.lastHours = prefs.defaultRollingHours;
+                                                                        }
+                                                                        if ( 'defaultNwQuery' in prefs ) {
+                                                                          // this.defaultColQuery = prefs.defaultNwQuery;
+                                                                          this.collectionFormModel.query = prefs.defaultNwQuery; // changes the query string in the query string input
+                                                                        }
                                                                       }
+
+
+                                                                      this.firstRun = false;
                                                                       this.changeDetectionRef.markForCheck();
                                                                     });
     this.dataService.getPreferences();

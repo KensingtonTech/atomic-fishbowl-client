@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, OnChanges, Input, Renderer, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, Input, Renderer, ViewChild, ElementRef } from '@angular/core';
 import { DataService } from './data.service';
 import { NwSession } from './nwsession';
 import { Content } from './content';
@@ -16,39 +16,47 @@ import 'rxjs/add/operator/takeWhile';
     <div class="modal-body" *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
 
       <div style="position: absolute; left: 0; right: 365px; height: 30px;">
-        <div style="position: absolute; top: 2px; left: 10px; width: 85%; white-space: nowrap;">
-          {{getFileNameFromPath(pdfFile)}}
+
+        <div style="position: absolute; top: 0; bottom: 0; left: 10px; width: 85%; white-space: nowrap;">
+          <a (click)="downloadLinkClicked(pdfFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download PDF Document" showDelay="750"></a>
+          <span style="vertical-align: middle;">{{getFileNameFromPath(pdfFile)}}</span>
         </div>
-        <div class="noselect" style="position: absolute; top: 2px; right: 40px;">
-          <span>Zoom
-            <select [(ngModel)]="pdfZoom"> <!--(ngModelChange)="collectionSelected($event)"-->
+
+        <div class="noselect" style="position: absolute; top: 0; bottom: 0; right: 40px;">
+          <span style="vertical-align: middle">
+            <b>Zoom</b>
+          </span>
+          <span style="vertical-align: middle">
+            <select [(ngModel)]="pdfZoom">
               <option *ngFor="let zoomLevel of zoomLevels" [ngValue]="zoomLevel.value">{{zoomLevel.text}}</option>
             </select>
             &nbsp;&nbsp;
           </span>
-          <i (click)="rotate()" class="fa fa-repeat fa-lg"></i>&nbsp;&nbsp;{{numPages}} pages
+          <span style="vertical-align: middle">
+            <i (click)="rotate()" class="fa fa-repeat fa-lg"></i>&nbsp;&nbsp;{{numPages}} pages
+          </span>
         </div>
+
       </div>
 
-      <div style="position: absolute; top: 30px; bottom: 10px; left: 0; right: 365px;"> <!--overflow-y: scroll; overflow-x: auto;-->
+      <div style="position: absolute; top: 40px; bottom: 10px; left: 0; right: 365px;"> <!--overflow-y: scroll; overflow-x: auto;-->
         <div style="position: relative; width: 100%; height: 100%; overflow-x: scroll; overflow-y: scroll;">
           <pdf-viewer [rotation]="rotation" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)" [src]="pdfFile" [original-size]="false" [show-all]="true" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
         </div>
       </div> <!--overflow: auto;-->
 
-
-      <div style="position: absolute; height: 100%; top: 0px; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
+      <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
         <div style="width: 100%; height: 100%; overflow: hidden;" *ngIf="sessionId && meta">
           <h3 style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
 
-          <div *ngIf="hideAllMeta && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
-            <table>
-              <tr><td class="metalabel">time</td><td class="metavalue">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+          <div *ngIf="!showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+            <table class="wrap" style="width: 100%; table-layout: fixed;">
+              <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
               <tr *ngFor="let key of displayedKeys">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <ul-accordion *ngIf="meta[key]">
-                    <accordion-li *ngFor="let value of meta[key]">{{value}}</accordion-li>
+                  <ul-accordion class="metavalue" *ngIf="meta[key]">
+                    <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
                   </ul-accordion>
                   <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                 </td>
@@ -56,32 +64,51 @@ import 'rxjs/add/operator/takeWhile';
             </table>
           </div>
 
-          <div *ngIf="!hideAllMeta && blip" style="width: 100%; height: 90%; overflow: auto; padding-right: 20px;">
-            <table>
-              <tr><td class="metalabel">time</td><td class="metavalue">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+          <div *ngIf="showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+            <table class="wrap" style="width: 100%; table-layout: fixed;">
+              <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
               <tr *ngFor="let key of getMetaKeys()">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <ul-accordion>
-                    <accordion-li *ngFor="let value of meta[key]">{{value}}</accordion-li>
+                  <ul-accordion class="metavalue">
+                    <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
                   </ul-accordion>
                 </td>
               </tr>
             </table>
           </div>
 
-          <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i #showAll class="fa fa-eye-slash fa-2x fa-fw"></i></div>
+          <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
+          <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
           <div *ngIf="preferences.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;"><a target="_blank" href="{{preferences.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
         </div>
-        <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
       </div>
-
 
     </div>
   </div>
 </modal>
+<downloadfile-confirm-modal></downloadfile-confirm-modal>
   `,
   styles: [`
+
+  .column1 {
+    white-space: nowrap;
+    width: 1px;
+    font-weight: bold;
+    vertical-align: top;
+    text-align: right;
+  }
+
+  .value {
+    word-wrap: break-word;
+    word-break: break-all;
+    text-align: left;
+  }
+
+  .expanded {
+    background-color: rgb(186, 48, 141);;
+  }
+
   `]
 })
 
@@ -173,6 +200,8 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       this.pdfFile = this.image.contentFile;
       // this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
     });
+
+    this.toolService.confirmDownloadFile.takeWhile(() => this.alive).subscribe( (f: string) => this.downloadConfirmed(f) );
   }
 
   public ngOnDestroy() {
@@ -232,6 +261,21 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     else if (this.rotation === 270) {
       this.rotation = 0;
     }
+  }
+
+  downloadLinkClicked(file: string): void {
+    log.debug('PdfViewerModalComponent: downloadLinkClicked(): file', file);
+    this.toolService.fileToDownload.next(file);
+    this.modalService.open('downloadfile-confirm-modal');
+  }
+
+  downloadConfirmed(file: string): void {
+    /*log.debug('PdfViewerModalComponent: downloadConfirmed(): file', file);
+      var text = $("#textarea").val();
+      var filename = $("#input-fileName").val()
+      var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+      saveAs(blob, filename+".txt");*/
+    
   }
 
 }

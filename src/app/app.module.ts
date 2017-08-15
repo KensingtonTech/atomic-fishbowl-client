@@ -51,6 +51,7 @@ import { SessionDetailsModalComponent } from './session-details-modal.component'
 import { DeleteUserConfirmModalComponent } from './deleteuser-confirm-modal.component';
 import { ServerDownModalComponent } from './serverdown-modal.component';
 import { LoginComponent } from './login.component';
+import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.component';
 
 // Other
 // import 'hammerjs'; // required for Material gesture support.  Not sure that we need it but including for now.
@@ -119,7 +120,8 @@ import * as $ from 'jquery';
                   LoginComponent,
                   ManageUsersModalComponent,
                   DeleteUserConfirmModalComponent,
-                  ServerDownModalComponent
+                  ServerDownModalComponent,
+                  DownloadFileConfirmModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

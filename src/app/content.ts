@@ -11,4 +11,8 @@ export class Content {
   fromArchive?: boolean;
   isArchive?: boolean;
   archiveType: string;
+  textDistillationEnabled?: boolean;
+  regexDistillationEnabled?: boolean;
+  textTermsMatched?: string[];
+  regexTermsMatched?: string[];
 }
