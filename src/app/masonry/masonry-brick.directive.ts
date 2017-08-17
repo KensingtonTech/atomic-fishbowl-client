@@ -1,6 +1,5 @@
-import { Directive, Inject, ElementRef, forwardRef, OnDestroy, AfterViewInit, AfterContentInit } from '@angular/core';
+import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit } from '@angular/core';
 import { MasonryComponent } from './masonry.component';
-import { MasonryTileComponent } from '../masonry-tile.component';
 declare var log: any;
 
 interface MutationWindow extends Window {
@@ -11,30 +10,31 @@ interface MutationWindow extends Window {
 declare var window: MutationWindow;
 
 @Directive({
-  selector: '[masonry-brick], masonry-brick',
+  // tslint:disable-next-line:directive-selector
+  selector: '[masonry-brick]'
 })
 
-export class AngularMasonryBrick implements OnDestroy, AfterViewInit {
+export class MasonryBrickDirective implements OnDestroy, AfterViewInit {
 
-  constructor(  private el: ElementRef,
-                @Inject(forwardRef(() => MasonryComponent)) private parent: MasonryComponent,
-                @Inject(forwardRef(() => MasonryTileComponent)) private masonryTileComponent: MasonryTileComponent
-             ) {
-                  //log.debug("el:", this.el);
-                  //log.debug("masonryDisplayComponent:", this.masonryDisplayComponent);
-               }
+  // Enable mutation observer with [masonry-brick]="'true'"
+
+  constructor(private el: ElementRef,
+              @Inject(forwardRef(() => MasonryComponent)) private parent: MasonryComponent ) {}
+
+  // tslint:disable-next-line:no-input-rename
+  @Input('masonry-brick') private enableObserver = false;
 
   ngAfterViewInit(): void {
-  //ngAfterContentInit(): void {
-    //this.parent.add(this.el.nativeElement);
-    this.parent.add(this.masonryTileComponent.el.nativeElement);
-    //this.watchForHtmlChanges(); //enable mutation watcher
+    this.parent.add(this.el.nativeElement);
+    if (this.enableObserver) {
+      // enable mutation watcher
+      log.debug('MasonryBrickDirective: ngAfterViewInit(): Enabling mutation observer');
+      this.watchForHtmlChanges(); }
   }
 
   ngOnDestroy(): void {
-    //this.parent.remove(this.el.nativeElement);
-    //log.debug("AngularMasonryBrick: ngOnDestroy() removing brick");
-    this.parent.remove(this.masonryTileComponent.el.nativeElement);
+    // log.debug("AngularMasonryBrick: ngOnDestroy() removing brick");
+    this.parent.remove(this.el.nativeElement);
   }
 
   /** When HTML in brick changes dynamically, observe that and change layout */
@@ -50,8 +50,7 @@ export class AngularMasonryBrick implements OnDestroy, AfterViewInit {
 
       // define what element should be observed by the observer
       // and what types of mutations trigger the callback
-      //observer.observe(this.el.nativeElement, {
-      observer.observe(this.masonryTileComponent.el.nativeElement, {
+      observer.observe(this.el.nativeElement, {
         subtree: true,
         childList: true
       });

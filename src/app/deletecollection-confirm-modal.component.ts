@@ -15,7 +15,7 @@ declare var log: any;
               <p>This operation cannot be undone.</p>
             </div>
             <div style="float: right;">
-              <button (click)="confirmDelete()">Confirm</button>
+              <button (click)="deleteConfirmed()">Confirm</button>
               <button (click)="cancelDelete()">Cancel</button>
             </div>
           </div>
@@ -23,17 +23,7 @@ declare var log: any;
     </div>
     <div class="modal-background"></div>
 </modal>
-  `,
-  styles: [`
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
-    }
-  `]
+  `
 })
 
 export class DeleteCollectionConfirmModalComponent {
@@ -41,12 +31,12 @@ export class DeleteCollectionConfirmModalComponent {
   constructor(private modalService: ModalService,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
-  @Input('collectionName') collectionName: any;
-  @Output('confirmDelete') confirmDeleteEvent: EventEmitter<any> = new EventEmitter();
-  public id: string = 'collection-confirm-delete-modal';
+  @Input() collectionName: any;
+  @Output() confirmDelete: EventEmitter<any> = new EventEmitter();
+  public id = 'collection-confirm-delete-modal';
 
-  confirmDelete(): void {
-    this.confirmDeleteEvent.emit();
+  deleteConfirmed(): void {
+    this.confirmDelete.emit();
     this.closeModal();
   }
 

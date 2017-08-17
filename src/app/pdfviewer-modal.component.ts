@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, OnChanges, Input, Renderer, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, Input, ViewChild, ElementRef } from '@angular/core';
 import { DataService } from './data.service';
 import { NwSession } from './nwsession';
 import { Content } from './content';
@@ -15,24 +15,24 @@ import 'rxjs/add/operator/takeWhile';
   <div class="modal">
     <div class="modal-body" *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
 
-      <div style="position: absolute; left: 0; right: 365px; height: 30px;">
+      <div style="position: absolute; left: 0; right: 365px; top: 0; height: 30px;">
 
         <div style="position: absolute; top: 0; bottom: 0; left: 10px; width: 85%; white-space: nowrap;">
-          <a (click)="downloadLinkClicked(pdfFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download PDF Document" showDelay="750"></a>
+          <!--<a (click)="downloadLinkClicked(pdfFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download PDF Document" showDelay="750"></a>-->
           <span style="vertical-align: middle;">{{getFileNameFromPath(pdfFile)}}</span>
         </div>
 
         <div class="noselect" style="position: absolute; top: 0; bottom: 0; right: 40px;">
-          <span style="vertical-align: middle">
+          <span style="line-height: 2em; display: inline-block; vertical-align: middle;">
             <b>Zoom</b>
           </span>
-          <span style="vertical-align: middle">
+          <span style="line-height: 2em; display: inline-block; vertical-align: middle;">
             <select [(ngModel)]="pdfZoom">
               <option *ngFor="let zoomLevel of zoomLevels" [ngValue]="zoomLevel.value">{{zoomLevel.text}}</option>
             </select>
             &nbsp;&nbsp;
           </span>
-          <span style="vertical-align: middle">
+          <span style="line-height: 2em; display: inline-block; vertical-align: middle;">
             <i (click)="rotate()" class="fa fa-repeat fa-lg"></i>&nbsp;&nbsp;{{numPages}} pages
           </span>
         </div>
@@ -44,6 +44,11 @@ import 'rxjs/add/operator/takeWhile';
           <pdf-viewer [rotation]="rotation" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)" [src]="pdfFile" [original-size]="false" [show-all]="true" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
         </div>
       </div> <!--overflow: auto;-->
+
+      <div *ngIf="content.fromArchive" style="position: absolute; top: 25px; right: 400px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <span style="display: inline-block; vertical-align: middle;">{{pathToFilename(content.archiveFilename)}}&nbsp;</span>
+        <span class="fa fa-file-archive-o" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
+      </div>
 
       <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
         <div style="width: 100%; height: 100%; overflow: hidden;" *ngIf="sessionId && meta">
@@ -116,13 +121,12 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
-              private toolService: ToolService,
-              private renderer: Renderer ) {}
+              private toolService: ToolService ) {}
 
   @Input('id') public id: string;
   @Input('apiServerUrl') apiServerUrl: string;
-  @ViewChild('showAll') showAll: ElementRef;
 
+  public showAll = false;
   private alive = true;
   private pdfFile: string;
   private pdfFilename: string;
@@ -134,10 +138,9 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   private session: any;
   private meta: any;
   private sessionId: number;
-  private hideAllMeta = true;
   private preferences: any;
   private deviceNumber: number;
-  private image: any;
+  public content: any;
   private rotation = 0;
   private blip = true;
   public pdfZoom = 1;
@@ -193,11 +196,11 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       this.meta = session.meta;
     });
 
-    this.toolService.newImage.takeWhile(() => this.alive).subscribe( (image: any) => {
-      log.debug('PdfViewerModalComponent: newImageSubscription: Got new image:', image);
-      this.image = image;
-      this.sessionId = this.image.session;
-      this.pdfFile = this.image.contentFile;
+    this.toolService.newImage.takeWhile(() => this.alive).subscribe( (content: any) => {
+      log.debug('PdfViewerModalComponent: newImageSubscription: Got new content:', content);
+      this.content = content;
+      this.sessionId = this.content.session;
+      this.pdfFile = this.content.contentFile;
       // this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
     });
 
@@ -217,15 +220,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   }
 
   showAllClick(): void {
-    if ( this.hideAllMeta ) {
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye-slash', false);
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye', true);
-    }
-    else {
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye', false);
-      this.renderer.setElementClass(this.showAll.nativeElement, 'fa-eye-slash', true);
-    }
-    this.hideAllMeta = !this.hideAllMeta;
+    this.showAll = !this.showAll;
   }
 
   opened(): void {
@@ -275,7 +270,13 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       var filename = $("#input-fileName").val()
       var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
       saveAs(blob, filename+".txt");*/
-    
+  }
+
+  pathToFilename(s: string): string {
+    const RE = /([^/]*)$/;
+    let match = RE.exec(s);
+    log.debug(match[0]);
+    return match[0];
   }
 
 }

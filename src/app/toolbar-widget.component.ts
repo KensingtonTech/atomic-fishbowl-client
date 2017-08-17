@@ -1,4 +1,4 @@
-import { Component, Output, OnInit, OnChanges, AfterViewInit, OnDestroy, ElementRef, ViewChild, ViewChildren, ContentChild, Input, Renderer, ViewContainerRef, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, Output, OnInit, OnChanges, AfterViewInit, OnDestroy, ElementRef, ViewChild, ViewChildren, ContentChild, Input, Renderer2, ViewContainerRef, QueryList, ViewEncapsulation } from '@angular/core';
 import { ToolService } from './tool.service';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -112,16 +112,6 @@ import { ContentMask } from './contentmask';
       display: none;
     }
 
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
-    }
-
-
     /*.ui-tooltip {
       width: 375px;
       word-wrap: normal;
@@ -139,7 +129,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
   constructor (private dataService: DataService,
                private modalService: ModalService,
-               private renderer: Renderer,
+               private renderer: Renderer2,
                private toolService: ToolService,
                private authService: AuthenticationService ) {}
 
@@ -348,8 +338,16 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     if (this.collections[id].deviceNumber) {
-      this.toolService.deviceNumber.next( { deviceNumber: this.collections[id].deviceNumber, nwserver: this.collections[id].nwserver } );
+      setTimeout( () => { this.toolService.deviceNumber.next( { deviceNumber: this.collections[id].deviceNumber, nwserver: this.collections[id].nwserver } ); }, 50);
     }
+
+    // Reset content masks
+    this.showImages = true;
+    this.showPdfs = true;
+    this.showHashes = true;
+    this.showDodgyArchives = true;
+    this.maskState = { showPdf: true, showImage: true, showHash: true, showDodgy: true };
+    this.toolService.maskChanged.next(this.maskState);
 
 
     if (this.collections[id].type === 'rolling' || this.collections[id].type === 'monitoring') {
@@ -387,22 +385,22 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
   showSpinnerIcon(): void {
     // log.debug("showSpinnerIcon()");
-    setTimeout( () => this.renderer.setElementStyle(this.spinnerIconRef.nativeElement, 'display', 'inline-block'), 25 );
+    setTimeout( () => this.renderer.setStyle(this.spinnerIconRef.nativeElement, 'display', 'inline-block'), 25 );
   }
 
   hideSpinnerIcon(): void {
     // log.debug("hideSpinnerIcon()");
-   setTimeout( () =>  this.renderer.setElementStyle(this.spinnerIconRef.nativeElement, 'display', 'none'), 25);
+   setTimeout( () =>  this.renderer.setStyle(this.spinnerIconRef.nativeElement, 'display', 'none'), 25);
   }
 
   showErrorIcon(): void {
     // log.debug("showErrorIcon()");
-    this.renderer.setElementStyle(this.errorIconRef.nativeElement, 'display', 'inline-block');
+    this.renderer.setStyle(this.errorIconRef.nativeElement, 'display', 'inline-block');
   }
 
   hideErrorIcon(): void {
     // log.debug("hideErrorIcon()");
-    setTimeout( () => this.renderer.setElementStyle(this.errorIconRef.nativeElement, 'display', 'none'), 25 );
+    setTimeout( () => this.renderer.setStyle(this.errorIconRef.nativeElement, 'display', 'none'), 25 );
   }
 
   getRollingCollection(id: string): void {

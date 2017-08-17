@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer2, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Router, NavigationStart } from '@angular/router';
 import { NgStyle } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
@@ -27,7 +28,7 @@ declare var log: any;
   </div>
   <div *ngIf="!destroyView" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
     <masonry #masonry tabindex="-1" class="grid" *ngIf="content && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [shownBricks]="shownBricks" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
-      <masonry-tile class="brick" [ngStyle]="{'width.px': masonryColumnSize}" *ngFor="let image of content" [image]="image" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[image.session]" [attr.contentFile]="image.contentFile" [attr.sessionid]="image.session" [attr.contentType]="image.contentType" [attr.hashType]="image.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
+      <masonry-tile *ngFor="let item of content" masonry-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[item.session]" [attr.contentFile]="item.contentFile" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
     </masonry>
     <div class="scrollTarget"></div>
   </div>
@@ -52,12 +53,13 @@ declare var log: any;
 export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(  private dataService: DataService,
-                private renderer: Renderer,
+                private renderer: Renderer2,
                 private elRef: ElementRef,
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService,
-                private ngZone: NgZone ) {}
+                private ngZone: NgZone,
+                private router: Router ) {}
 
   @ViewChildren('masonry') masonryRef: QueryList<any>;
   @ViewChild(MasonryComponent) private masonryComponentRef: MasonryComponent;
@@ -115,11 +117,20 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     log.debug('MasonryGridComponent: ngOnInit()');
 
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
 
     // Take subscriptions
+
+    // Take action to destroy masonry when we navigate away - saves us loads of time waiting for all the bricks to be removed and isotope to be destroyed
+    this.router.events.takeWhile(() => this.alive).subscribe( (val: any) => {
+      // log.debug('MasonryGridComponent: routerEventSubscription: received val:', val);
+      if (val instanceof NavigationStart) {
+        log.debug('MasonryGridComponent: routerEventSubscription: manually destroying masonry');
+        if (this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); }
+      }
+    });
 
     this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
       this.masonryKeys = prefs.masonryKeys;
@@ -284,7 +295,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       // log.debug("content:",JSON.parse(JSON.stringify(this.content)));
       let c = 0;
 
-      let purgedImagePositions = [];
+      let purgedContentPositions = [];
       let purgedSearchPositions = [];
 
       for (let x = 0; x < sessionsToPurge.length; x++) {
@@ -293,7 +304,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
         for (let i = 0; i < this.content.length; i++) {
           if (this.content[i].session === sidToPurge) {
             log.debug('MasonryGridComponent: sessionsPurgedSubscription: removing image with session id', sidToPurge);
-            purgedImagePositions.push(i);
+            purgedContentPositions.push(i);
           }
         }
 
@@ -305,11 +316,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         }
       }
-      // log.debug("purgedImagePositions:",purgedImagePositions);
+      // log.debug("purgedContentPositions:",purgedContentPositions);
       // log.debug("purgedSearchPositions:",purgedSearchPositions);
-      purgedImagePositions.sort(this.sortNumber);
-      for (let i = 0; i < purgedImagePositions.length; i++) {
-        this.content.splice(purgedImagePositions[i], 1);
+      purgedContentPositions.sort(this.sortNumber);
+      for (let i = 0; i < purgedContentPositions.length; i++) {
+        this.content.splice(purgedContentPositions[i], 1);
       }
       purgedSearchPositions.sort(this.sortNumber);
       for (let i = 0; i < purgedSearchPositions.length; i++) {
@@ -506,7 +517,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getContentBySessionAndContentFile(o: any): any {
     for (let x = 0; x < this.content.length; x++) {
-      if (this.content[x].session === o.session && this.reduceContentFile(this.content[x].contentFile) === o.contentFile) {
+      if (this.content[x].session === o.session && this.pathToFilename(this.content[x].contentFile) === o.contentFile) {
         return this.content[x];
       }
     }
@@ -587,7 +598,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.changeDetectionRef.markForCheck();
   }
 
-  reduceContentFile(s: string): string {
+  pathToFilename(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
     return match[0];

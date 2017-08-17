@@ -27,25 +27,18 @@ declare var log: any;
 </modal>
   `,
   styles: [`
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
-    }
-    
-    .confirm-user-delete-modal .modal {
+
+  .confirm-user-delete-modal .modal {
       z-index: 1100;
     }
 
-    .confirm-user-delete-modal .modal-background {
-      opacity: 0.85;
+  .confirm-user-delete-modal .modal-background {
+    opacity: 0.85;
 
-      /* z-index must be below .modal and above everything else  */
-      z-index: 1050 !important;
-    }
+    /* z-index must be below .modal and above everything else  */
+    z-index: 1050 !important;
+  }
+
   `]
 })
 
@@ -54,10 +47,9 @@ export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  //@Input('collectionName') collectionName: any;
-  public id: string = 'confirm-user-delete-modal';
+  public id = 'confirm-user-delete-modal';
   public user: User;
-  private alive: boolean = true;
+  private alive = true;
 
   ngOnInit(): void {
     this.toolService.userToDelete.takeWhile(() => this.alive).subscribe( (u: User) => {this.user = u;} );

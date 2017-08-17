@@ -13,8 +13,8 @@ declare var log: any;
     <i (click)="expandRouterOptions()" class="{{selectedRoute.class}}"></i><br>
   </div>
   <div *ngIf="selectionExpanded">
-    <div *ngFor="let o of routerOptions" style="margin-bottom: 2px;">
-      <i (click)="routeSelected(o)" class="{{o.class}}" pTooltip="{{o.tooltip}}" tooltipPosition="right"></i>
+    <div *ngFor="let option of routerOptions" style="margin-bottom: 2px;">
+      <i (click)="routeSelected(option)" class="{{option.class}}" pTooltip="{{option.tooltip}}" tooltipPosition="right"></i>
     </div>
   </div>
 </div>
@@ -25,14 +25,6 @@ declare var log: any;
       color: white;
       border-radius: 10px;
       padding: 3px;
-    }
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
     }
   `],
 })
@@ -45,18 +37,18 @@ export class RouterDropdownComponent implements OnInit {
               private el: ElementRef ) {}
 
   private routerOptions: any =  [
-                                  { name: 'classicGrid', link: '/classicGrid', class: 'icon fa fa-th fa-2x fa-fw', tooltip: "Classic Grid" },
-                                  { name: 'masonryGrid', link: '/masonryGrid', class: 'icon fa fa-th-large fa-2x fa-fw', tooltip: "Masonry Grid" }
+                                  { name: 'masonryGrid', link: '/masonryGrid', class: 'icon fa fa-th-large fa-2x fa-fw', tooltip: 'Masonry Grid' },
+                                  { name: 'classicGrid', link: '/classicGrid', class: 'icon fa fa-th fa-2x fa-fw', tooltip: 'Classic Grid' }
                                 ];
   public selectedRoute: any;
-  private selectionExpanded: boolean = false;
+  private selectionExpanded = false;
 
   ngOnInit(): void {
     this.selectedRoute  = this.getSelectedRoute();
   }
 
   getSelectedRoute(): any {
-    var route = this.router.url;
+    let route = this.router.url;
     for ( let i = 0; i < this.routerOptions.length; i++ ) {
       if (this.routerOptions[i].link === route) {
         return this.routerOptions[i];
@@ -65,25 +57,26 @@ export class RouterDropdownComponent implements OnInit {
   }
 
   collapseRouterOptions(): void {
-    //log.debug('collapseRouterOptions()');
-    //document.removeEventListener('click', () => this.collapseRouterOptions() );
+    // log.debug('collapseRouterOptions()');
+    // document.removeEventListener('click', () => this.collapseRouterOptions() );
     this.selectionExpanded = false;
   }
 
   expandRouterOptions(): void {
-    //log.debug("expandRouterOptions()");
-    setTimeout( () => { this.selectionExpanded = true;
-                        //this.changeDetectorRef.detectChanges();
-                        this.changeDetectorRef.markForCheck();
-                      }, 10);
+    // log.debug("expandRouterOptions()");
+    setTimeout( () => {
+      this.selectionExpanded = true;
+      // this.changeDetectorRef.detectChanges();
+      this.changeDetectorRef.markForCheck();
+    }, 10);
   }
 
   routeSelected(e: any): void {
-    //log.debug("routeSelected()", e);
+    // log.debug("routeSelected()", e);
     if (this.selectedRoute !== e) {
       this.selectedRoute = e;
       this.selectionExpanded = false;
-      //execute route
+      // execute route
       this.router.navigate([e.link]);
       this.changeDetectorRef.markForCheck();
       this.toolService.getCollectionDataAgain.next();

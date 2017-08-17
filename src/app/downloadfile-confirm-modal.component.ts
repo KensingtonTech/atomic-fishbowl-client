@@ -17,7 +17,7 @@ declare var log: any;
       </div>
 
       <div style="position: absolute; left: 100px; right: 10px; top: 0; bottom: 0; font-size: 10pt;">
-        <p>Are you sure you want to download file '<b>{{reduceContentFile(file)}}</b>'?</p>
+        <p>Are you sure you want to download file '<b>{{pathToFilename(file)}}</b>'?</p>
         <p>This is potentially unsafe.  Be sure you know what you're doing!</p>
         <div style="float: right;">
           <button (click)="confirm()">Confirm</button>
@@ -79,7 +79,7 @@ export class DownloadFileConfirmModalComponent implements OnInit, OnDestroy {
     this.modalService.close(this.id);
   }
 
-  reduceContentFile(s: string): string {
+  pathToFilename(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
     return match[0];

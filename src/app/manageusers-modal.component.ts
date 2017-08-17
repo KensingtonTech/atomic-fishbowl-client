@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
@@ -106,7 +106,6 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
-              private renderer: Renderer,
               private toolService: ToolService,
               private authService: AuthenticationService,
               public fb: FormBuilder ) {}

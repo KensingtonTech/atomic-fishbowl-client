@@ -8,98 +8,101 @@ declare var log: any;
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<masonry-brick>
-  <div *ngIf="masonryColumnSize" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
-    <div style="position: relative; min-height: 50px;">
-      <div class="selectable">
-        <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-          {{session.meta['time'] | formatTime}}
-        </div>
-        <div style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-          {{session.id}}
-        </div>
-        <div style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-          {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
-        </div>
-        <div *ngIf="image.fromArchive || image.isArchive || image.contentType == 'pdf'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-          <i *ngIf="image.fromArchive || image.isArchive" class="fa fa-file-archive-o fa-2x"></i>
-          <i *ngIf="image.contentType == 'encryptedZipEntry' || image.contentType == 'unsupportedZipEntry' || image.contentType == 'encryptedRarEntry' || image.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
-          <i *ngIf="image.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
-        </div>
+<div *ngIf="masonryColumnSize" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
+  <div style="position: relative; min-height: 50px;">
+    <div class="selectable">
+      <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        {{session.meta['time'] | formatTime}}
       </div>
-
-      <img *ngIf="image.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="apiServerUrl + image.thumbnail" draggable="false">
-      <img *ngIf="image.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="apiServerUrl + image.thumbnail" draggable="false">
-      <img *ngIf="image.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
-      <img *ngIf="image.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
-      <img *ngIf="image.contentType == 'encryptedRarEntry' || image.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
-      <img *ngIf="image.contentType == 'hash'" class="separator" (click)="onClick($event)" src="/resources/executable_hash_icon.png" draggable="false">
-
+      <div style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        {{session.id}}
+      </div>
+      <div style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
+      </div>
+      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
+        <i *ngIf="content.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
+      </div>
     </div>
-    <div class="textArea" *ngIf="session && masonryKeys" style="position: relative;">
-      <div *ngIf="image.contentType == 'encryptedRarEntry' || image.contentType == 'encryptedZipEntry'">
-        <b>Encrypted file within a {{toCaps(image.archiveType)}} archive</b>
-      </div>
-      <div *ngIf="image.contentType == 'unsupportedZipEntry'">
-        <b>Unsupported ZIP format</b>
-      </div>
-      <div *ngIf="image.contentType == 'encryptedRarTable'">
-        <b>RAR archive has an encrypted table</b>
-      </div>
-      <div *ngIf="image.contentType == 'hash'">
-        <b>Found executable matching {{toCaps(image.hashType)}} hash value</b>
-      </div>
-      <div *ngIf="image.contentType == 'pdf' && image.textDistillationEnabled && image.textTermsMatched?.length > 0">
-        <b>Found PDF document containing text term</b>
-      </div>
-      <div *ngIf="image.contentType == 'pdf' && image.regexDistillationEnabled && image.regexTermsMatched?.length > 0">
-        <b>Found PDF document matching Regex term</b>
-      </div>
-      <table class="selectable" style="width: 100%;">
-        <tr *ngFor="let key of masonryKeys">
-          <td *ngIf="session.meta[key.key]" class="column1">{{key.friendly}}</td>
-          <td *ngIf="session.meta[key.key]" class="value">{{session.meta[key.key]}}</td>
-        </tr>
-        <tr *ngIf="image.contentType == 'hash'">
-          <td class="column1">{{toCaps(image.hashType)}} Hash:</td>
-          <td class="value">{{image.hashValue}}</td>
-        </tr>
-        <tr *ngIf="image.contentType == 'hash' && image.hashFriendly">
-          <td class="column1">{{toCaps(image.hashType)}} Description:</td>
-          <td class="value">{{image.hashFriendly}}</td>
-        </tr>
-        <tr *ngIf="image.contentType == 'hash'">
-          <td class="column1">Filename:</td>
-          <td class="value">{{reduceContentFile(image.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="image.contentType =='pdf' && image.contentFile">
-          <td class="column1">PDF Filename:</td>
-          <td class="value">{{reduceContentFile(image.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="image.contentType == 'encryptedZipEntry' || image.contentType == 'encryptedRarEntry'">
-          <td class="column1">Encrypted File:</td>
-          <td class="value">{{reduceContentFile(image.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="image.isArchive">
-          <td class="column1">Archive File:</td>
-          <td class="value">{{reduceContentFile(image.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="image.fromArchive">
-          <td class="column1">Archive Filename:</td>
-          <td class="value">{{reduceContentFile(image.archiveFilename)}}</td>
-        </tr>
-        <tr *ngIf="image.textDistillationEnabled && image.textTermsMatched?.length > 0">
-          <td class="column1">Matched Text Terms:</td>
-          <td class="value">{{image.textTermsMatched}}</td>
-        </tr>
-        <tr *ngIf="image.regexDistillationEnabled && image.regexTermsMatched?.length > 0">
-          <td class="column1">Matched RegEx Terms:</td>
-          <td class="value">{{image.regexTermsMatched}}</td>
-        </tr>
-      </table>
-    </div>
+
+    <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
+    <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
+    <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
+    <img *ngIf="content.contentType == 'hash'" class="separator" (click)="onClick($event)" src="/resources/executable_hash_icon.png" draggable="false">
+
   </div>
-</masonry-brick>
+
+  <div class="textArea" *ngIf="session && masonryKeys" style="position: relative;">
+
+    <div *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
+      <b>Encrypted file within a {{toCaps(content.archiveType)}} archive</b>
+    </div>
+    <div *ngIf="content.contentType == 'unsupportedZipEntry'">
+      <b>Unsupported ZIP format</b>
+    </div>
+    <div *ngIf="content.contentType == 'encryptedRarTable'">
+      <b>RAR archive has an encrypted table</b>
+    </div>
+    <div *ngIf="content.contentType == 'hash'">
+      <b>Found executable matching {{toCaps(content.hashType)}} hash value</b>
+    </div>
+    <div *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
+      <b>Found PDF document containing text term</b>
+    </div>
+    <div *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
+      <b>Found PDF document matching Regex term</b>
+    </div>
+
+    <table class="selectable" style="width: 100%;">
+      <tr *ngFor="let key of masonryKeys">
+        <td *ngIf="session.meta[key.key]" class="column1">{{key.friendly}}</td>
+        <td *ngIf="session.meta[key.key]" class="value">{{session.meta[key.key]}}</td>
+      </tr>
+      <tr *ngIf="content.contentType == 'hash'">
+        <td class="column1">{{toCaps(content.hashType)}} Hash:</td>
+        <td class="value">{{content.hashValue}}</td>
+      </tr>
+      <tr *ngIf="content.contentType == 'hash' && content.hashFriendly">
+        <td class="column1">{{toCaps(content.hashType)}} Description:</td>
+        <td class="value">{{content.hashFriendly}}</td>
+      </tr>
+      <tr *ngIf="content.contentType == 'hash'">
+        <td class="column1">Filename:</td>
+        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+      </tr>
+      <tr *ngIf="content.contentType =='pdf' && content.contentFile">
+        <td class="column1">PDF Filename:</td>
+        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+      </tr>
+      <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
+        <td class="column1">Encrypted File:</td>
+        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+      </tr>
+      <tr *ngIf="content.isArchive">
+        <td class="column1">Archive File:</td>
+        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+      </tr>
+      <tr *ngIf="content.fromArchive">
+        <td class="column1">Archive Filename:</td>
+        <td class="value">{{pathToFilename(content.archiveFilename)}}</td>
+      </tr>
+      <tr *ngIf="content.textDistillationEnabled && content.textTermsMatched?.length > 0">
+        <td class="column1">Matched Text:</td>
+        <td class="value">{{content.textTermsMatched}}</td>
+      </tr>
+      <tr *ngIf="content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
+        <td class="column1">Matched RegEx:</td>
+        <td class="value">{{content.regexTermsMatched}}</td>
+      </tr>
+    </table>
+
+  </div>
+
+</div>
   `,
 
   styles: [`
@@ -150,15 +153,15 @@ export class MasonryTileComponent implements OnChanges {
                 private toolService: ToolService ) {} // this.changeDetectionRef.detach(); private http: Http
 
   @Input() private apiServerUrl: string;
-  @Input() private image: any;
+  @Input() private content: any;
   @Input() private session: any;
   @Input() private masonryKeys: any;
   @Input() public masonryColumnSize: number;
+  private originalSession: any; // Session data that hasn't been de-duped
   @Output() public openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
   @Output() private openSessionDetails: EventEmitter<any> = new EventEmitter<any>();
   private enabledTrigger = 'disabled';
   private data: any = {}; // prevent opening pdf modal if dragging the view
-
 /*
   private displayedMetaKeys = [ {key: 'alias.host', name: 'Hostname'},
                                 {key: 'service', name: 'Service'},
@@ -168,10 +171,11 @@ export class MasonryTileComponent implements OnChanges {
 
   ngOnChanges(e: any): void {
     // log.debug("MasonryTileComponent: OnChanges():", e);
-    /*if ('image' in e && e.image.currentValue) {
-     log.debug('MasonryTileComponent: ngOnChanges: image:', e.image.currentValue);
+    /*if ('content' in e && e.content.currentValue) {
+     log.debug('MasonryTileComponent: ngOnChanges: content:', e.content.currentValue);
     }*/
     if ('session' in e && e.session.currentValue !== undefined) { // de-dupe meta keys
+      this.originalSession = JSON.parse(JSON.stringify(e.session.currentValue)); // silly way of copying an object, but it works
       for (let key in e.session.currentValue.meta) {
         this.session.meta[key] = this.unique(e.session.currentValue.meta[key]);
       }
@@ -181,21 +185,20 @@ export class MasonryTileComponent implements OnChanges {
   onClick(e: any): void {
     // log.debug("onClick")
     // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
-    if (this.image.contentType === 'pdf') {
+    if (this.content.contentType === 'pdf') {
       // log.debug("display pdf");
       // log.debug("emitting openPDFViewerEmitter")
-      this.toolService.newSession.next(this.session);
-      this.toolService.newImage.next(this.image);
+      this.toolService.newSession.next(this.originalSession);
+      this.toolService.newImage.next(this.content);
 
-      // this.openPDFViewer.emit( { pdfFile: this.image.contentFile, session: this.session, image: this.image } );
+      // this.openPDFViewer.emit( { pdfFile: this.content.contentFile, session: this.session, content: this.content } );
       this.openPDFViewer.emit();
     }
     else {
       // log.debug("display pdf");
       // log.debug("emitting openPDFViewer")
-      this.toolService.newSession.next(this.session);
-      this.toolService.newImage.next(this.image);
-      // this.openSessionDetails.emit( { image: this.image, session: this.session } );
+      this.toolService.newSession.next(this.originalSession);
+      this.toolService.newImage.next(this.content);
       this.openSessionDetails.emit();
     }
   }
@@ -214,7 +217,7 @@ export class MasonryTileComponent implements OnChanges {
     return unique;
   }
 
-  reduceContentFile(s: string): string {
+  pathToFilename(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
     // log.debug(match[0]);

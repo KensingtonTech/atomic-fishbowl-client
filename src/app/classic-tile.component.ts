@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Renderer, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 // import { trigger, state, style, animate, transition } from '@angular/animations';
 import { ToolService } from './tool.service';
 import { Content } from './content';
@@ -69,7 +69,6 @@ declare var log: any;
 export class ClassicTileComponent implements OnChanges {
 
   constructor(private el: ElementRef,
-              private renderer: Renderer,
               private changeDetectionRef: ChangeDetectorRef,
               private toolService: ToolService ) {} // private imgcacheService: ImgcacheService, private http: Http
 
@@ -92,25 +91,14 @@ export class ClassicTileComponent implements OnChanges {
 
   enableMe(): void {
     // log.debug("enableMe");
-    // this.renderer.setElementStyle(this.el.nativeElement, 'display', 'inline-block');
-    // this.renderer.setElementStyle(this.el.nativeElement, 'display', 'block');
     this.enabledTrigger = 'enabled';
-    // this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();
-    // this.viewContainer.createEmbeddedView(this.templateRef);
   }
 
   disableMe(): void {
     // log.debug('disableMe()')
     this.enabledTrigger = 'disabled';
-    // this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();
-    // setTimeout(() => this.renderer.setElementStyle(this.el.nativeElement, 'display', 'none'), 1000 )
-    // setTimeout(() => this.renderer.setElementStyle(this.el.nativeElement, 'display', 'none'), 1000 )
-    // this.renderer.setElementStyle(this.el.nativeElement, 'display', 'none');
-    // this.viewContainer.clear();
-    // this.renderer.destroyView(this.el.nativeElement);
-    // this.renderer.detachFragment(this.el.nativeElement);
   }
 
   ngOnChanges(o: any): void {

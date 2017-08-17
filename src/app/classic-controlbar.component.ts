@@ -3,7 +3,7 @@ import { PanZoomApiService } from './panzoom/panzoom-api.service';
 declare var log: any;
 
 @Component({
-  selector: 'grid-control-bar',
+  selector: 'classic-control-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div class="noselect" style="position: absolute; top: 20px; left: 10px; padding: 5px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px;">
@@ -21,46 +21,34 @@ declare var log: any;
       border-radius: 10px;
       padding: 3px;
     }
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
-    }
   `]
 })
 
-export class GridControlBarComponent implements OnInit {
-  //private panzoomConfig: PanZoomConfigService
+export class ClassicControlBarComponent implements OnInit {
+
   constructor(private panZoomApiService: PanZoomApiService ) {}
 
+  @Input() canvasWidth: number;
+  @Input() initialZoomHeight: number;
   private panZoomAPI: any;
-  //private canvasWidth = 2400;
-  //private initialZoomHeight = 1080;
-  @Input('canvasWidth') canvasWidth: number;
-  @Input('initialZoomHeight') initialZoomHeight: number;
 
   ngOnInit(): void {
-    log.debug("ControlBarComponent: OnInit")
-    this.panZoomApiService.getAPI('abc').then( (v: any) => {this.panZoomAPI = v;});
-    //log.debug("deferred:",this.panZoomAPI);
+    log.debug('ClassicControlBarComponent: OnInit');
+    this.panZoomApiService.getAPI('abc').then( (v: any) => { this.panZoomAPI = v; });
   }
 
   zoomIn(): void {
-    //log.debug("zoomIn");
+    // log.debug("zoomIn");
     this.panZoomAPI.zoomIn();
   }
 
   zoomOut(): void {
-    //log.debug("zoomOut");
+    // log.debug("zoomOut");
     this.panZoomAPI.zoomOut();
   }
 
   zoomToFit(): void {
     this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight } );
-    //this.panZoomAPI.zoomToFit( this.panzoomConfig.initialZoomToFit );
   }
 
 }

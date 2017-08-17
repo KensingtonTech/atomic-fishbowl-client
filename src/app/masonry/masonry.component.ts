@@ -60,14 +60,14 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   ngOnChanges(e: any): void {
     // log.debug("MasonryComponent: ngOnChanges()", e);
 
-    if ('options' in e && this.isotope != undefined ) {
+    if ('options' in e && this.isotope !== undefined ) {
       // log.debug("MasonryComponent: ngOnChanges() Got options", e.options.currentValue);
        this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
     }
 
 
-    setTimeout( () => {
-      if ('shownBricks' in e) {
+    if ('shownBricks' in e) {
+      setTimeout( () => { // we wrap this loop in a setTimeout to give the bricks time to hit the DOM
         // log.debug("MasonryComponent: ngOnChanges(): this.shownBricks", this.shownBricks);
         let parent = $('masonry');
         let elementsToHide: any = [];
@@ -117,8 +117,8 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
           // this.changeDetectionRef.detectChanges();
           // this.changeDetectionRef.markForCheck();
         }
-      }
-    }, 50);
+      }, 50);
+    }
   }
 
   ngOnDestroy(): void {
@@ -134,11 +134,6 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     }
   }
 
-  public layout() {
-    // log.debug('MasonryComponent: layout());
-    this.ngZone.runOutsideAngular( () => this.isotope.arrange() );
-  }
-
   ngAfterContentInit(): void {
     if (this.loadAllBeforeLayout) {
       imagesLoaded('.grid', (instance: any) => {
@@ -148,48 +143,58 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     }
   }
 
+  public layout() {
+    log.debug('MasonryComponent: layout()');
+    this.changeDetectionRef.detectChanges();
+    // this.ngZone.runOutsideAngular( () => this.isotope.arrange() );
+    this.ngZone.runOutsideAngular( () => this.isotope.layout() );
+    this.changeDetectionRef.markForCheck();
+  }
 
   public add(element: HTMLElement) {
 
-    let isFirstItem = false;
-
+    /*let isFirstItem = false;
     // Check if first item
     if (this.isotope.items.length === 0){
         isFirstItem = true;
     }
+    */
 
-    if (!this.loadAllBeforeLayout) {
-      log.debug('MasonryComponent: add(): Appending element with layout');
+    if (!this.loadAllBeforeLayout) { // rolling/monitoring/still-building-fixed collections - we will append each image to the view, only calling layout after the first item
+      log.debug('MasonryComponent: add(): Appending element with layout (rolling/monitoring/still-building-fixed collections)');
       imagesLoaded(element, (instance: any) => {
-        this.el.nativeElement.appendChild(element);
+        this.el.nativeElement.appendChild(element); // add brick to shadow dom
 
-        // Tell Masonry that a child element has been added
-        this.ngZone.runOutsideAngular( () => this.isotope.insert(element) );
+        // Tell Isotope that a child brick has been added
+        // this.ngZone.runOutsideAngular( () => this.isotope.insert(element) );
+        this.ngZone.runOutsideAngular( () => this.isotope.appended(element) ); // this will only layout the new item
+        // this.ngZone.runOutsideAngular( () => this.isotope.prepended(element) );
+        this.changeDetectionRef.markForCheck();
 
         // layout if first item
-        if (isFirstItem) { this.layout(); }
+        // I don't think we need this code now.  It seems to work perfectly well without it
+        // if (this.isFirstItem) { this.layout(); }
+        // this.isFirstItem = false;
       });
     }
-    else { // let all images load before calling layout (done elsewhere)
-      log.debug('MasonryComponent: add(): Adding element without layout');
+    else { // complete fixed collections - let all images load before calling layout (done with imagesLoaded run from ngAfterContentInit)
+      log.debug('MasonryComponent: add(): Adding element without layout (complete fixed collections)');
       this.el.nativeElement.appendChild(element);
       this.ngZone.runOutsideAngular( () => this.isotope.addItems(element) );
+      // this.changeDetectionRef.markForCheck();
     }
 
   }
 
-
-
   public remove(element: HTMLElement) {
-    // Tell Masonry that a child element has been removed
-    // log.debug("MasonryComponent: removing element", element);
+    // Tell Isotope that a child brick has been removed
     if (!this.isDestroyed ) {
-      this.ngZone.runOutsideAngular( () => this.isotope.remove(element));
-
-      // Layout items
+      log.debug('MasonryComponent: remove(): removing brick:', element);
+      this.el.nativeElement.remove(element); // remove brick from shadow dom
+      this.ngZone.runOutsideAngular( () => this.isotope.remove(element)); // tell isotope that the brick has been removed
+      // Layout bricks
       this.layout();
     }
-    // log.debug('MasonryComponent:', 'Brick removed');
   }
 
 }

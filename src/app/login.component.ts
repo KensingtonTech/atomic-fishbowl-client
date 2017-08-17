@@ -1,4 +1,4 @@
-import { Component, ElementRef, Renderer, OnInit, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, Renderer2, OnInit, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { AuthenticationService } from './authentication.service'
 import { User } from './user';
 declare var log: any;
@@ -37,15 +37,15 @@ declare var log: any;
 export class LoginComponent implements OnInit, AfterViewInit {
 
   public user: User = { username: '', password: '' };
-  public errorMsg: string = '';
+  public errorMsg = '';
   @ViewChildren('userName') userNameRef: QueryList<any>;
 
   constructor(private authService: AuthenticationService,
               private elRef: ElementRef,
-              private renderer: Renderer ) {}
+              private renderer: Renderer2 ) {}
 
   ngOnInit(): void {
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
   }
 
   ngAfterViewInit(): void {
@@ -56,7 +56,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.errorMsg = '';
     this.authService.login(this.user)
                     .then( (res: boolean) => {
-                      if (!res) this.errorMsg = 'Failed to login';
+                      if (!res) { this.errorMsg = 'Failed to login'; }
                     });
 
   }

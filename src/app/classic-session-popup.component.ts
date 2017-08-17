@@ -164,9 +164,9 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
 
     if (this.enabled ) { this.blip = true; this.enabledTrigger = 'enabled'; } // for some odd reason, we can't use shortcut syntax as it evidently doesn't change the var reference
     else { this.blip = false; this.enabledTrigger = 'disabled'; }
-    log.debug('enabled:', this.enabled);
-    log.debug('blip:', this.blip);
-    log.debug('enabledTrigger:', this.enabledTrigger);
+    // log.debug('ClassicSessionPopupComponent: ngOnChanges(): enabled:', this.enabled);
+    // log.debug('ClassicSessionPopupComponent: ngOnChanges(): blip:', this.blip);
+    // log.debug('ClassicSessionPopupComponent: ngOnChanges(): enabledTrigger:', this.enabledTrigger);
 
     if (this.sessionId) {
       if ( this.sessionId in this.sessions ) {

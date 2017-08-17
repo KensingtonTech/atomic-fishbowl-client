@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer2, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
@@ -34,18 +34,10 @@ String.prototype.isBlank = function(c) {
 
   templateUrl: './addcollection-modal.component.html',
   styles: [`
+
     .column1 {
       white-space: nowrap;
       width: 1px;
-    }
-
-    .noselect {
-      -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-      -khtml-user-select: none; /* Konqueror HTML */
-      -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-      user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
     }
 
     .ourFont {
@@ -72,7 +64,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
-              private renderer: Renderer,
+              private renderer: Renderer2,
               private changeDetectionRef: ChangeDetectorRef) {}
 
   @Input() id: string;
@@ -85,6 +77,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public collectionFormDisabled = false;
 
   private defaultColName = '';
+  // tslint:disable-next-line:quotemark
   private defaultColQuery = "vis.level exists || content = 'application/pdf'";
   private defaultColImageLimit = 1000;
   private defaultColService: any = undefined;
@@ -218,14 +211,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   displayServiceAddBox(): void {
-    this.renderer.setElementStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
+    this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
     this.collectionFormDisabled = true;
     // setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
     this.hostNameRef.first.nativeElement.focus();
   }
 
   hideServiceAddBox(): void {
-    this.renderer.setElementStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
+    this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
     this.serviceFormModel.hostname = this.defaultHostname;
     this.serviceFormModel.restPort = this.defaultRestPort;
     this.serviceFormModel.ssl = this.defaultSSL;

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, AfterContentInit, OnDestroy, ElementRef, ViewChild, Input, Renderer, NgZone, AfterViewChecked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, AfterContentInit, OnDestroy, ElementRef, ViewChild, Input, Renderer2, NgZone, AfterViewChecked } from '@angular/core';
 import { PanZoomApiService } from './panzoom-api.service';
 import { PanZoomConfigService } from './panzoom-config.service';
 import { PanZoomModelService } from './panzoom-model.service';
@@ -7,7 +7,7 @@ declare var log: any;
 
 @Component( {
   selector: 'panzoom',
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div #panzoomElement class="pan-zoom-frame" (dblclick)="onDblClick($event)" (mousedown)="onMousedown($event)" (kwheel)="onMouseWheel($event)"  style="position:relative; overflow: hidden;">
   <div #panElement style="position: absolute; left: 0px; top: 0px;">
@@ -64,9 +64,10 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
                 private config: PanZoomConfigService,
                 private el: ElementRef,
                 private windowRef: WindowRefService,
-                private renderer: Renderer,
+                private renderer: Renderer2,
                 private modelService: PanZoomModelService,
-                private zone: NgZone )
+                private zone: NgZone,
+                private changeDetectionRef: ChangeDetectorRef )
     {
       this.element = el.nativeElement;
       this.window = this.windowRef.nativeWindow;
@@ -112,7 +113,7 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
   ngOnInit(): void {
     log.debug('ngOnInit(): initializing PanZoomComponent');
     let frameStyle = this.frameElementRef.nativeElement.attributes.style.value;
-    this.renderer.setElementAttribute(this.frameElementRef.nativeElement, 'style', frameStyle + this.addStyle);
+    this.renderer.setAttribute(this.frameElementRef.nativeElement, 'style', frameStyle + this.addStyle);
 
     if (this.config.initialZoomToFit) {
       this.base = this.calcZoomToFit(this.config.initialZoomToFit);
@@ -206,7 +207,8 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
       }
     });
     // this.$document.find('.cdk-overlay-pane ').css('pointer-events', 'none'); //allow pointer events to propagate through the overlay divs
-    this.renderer.setElementStyle(this.panzoomOverlay, 'pointer-events', 'none');
+    this.renderer.setStyle(this.panzoomOverlay, 'pointer-events', 'none');
+    this.changeDetectionRef.markForCheck();
   }
 
   ngOnDestroy(): void {
@@ -333,7 +335,8 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
     this.onTouchMoveRemoveFunc();
 
     // Set the overlay to noneblocking again:
-    this.renderer.setElementStyle(this.panzoomOverlay, 'display', 'none');
+    this.renderer.setStyle(this.panzoomOverlay, 'display', 'none');
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -466,7 +469,8 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
       // because the browser stops evaluating hits against the elements displayed inside the pan zoom view.
       // Besides this, mouse events will not be sent to any other elements,
       // this prevents issues like selecting elements while dragging.
-      this.renderer.setElementStyle(this.panzoomOverlay, 'display', 'block');
+      this.renderer.setStyle(this.panzoomOverlay, 'display', 'block');
+      this.changeDetectionRef.markForCheck();
     }
 
 
@@ -652,33 +656,33 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
     // here's where the rubber hits the road - this applies the animation
 
     // handle zoom here
-    if (navigator.userAgent.indexOf('Chrome') !== -1) { // Chrome scaling
+    if (navigator.userAgent.indexOf('Chrome') !== -1) {  // Chrome scaling
       // this is all scaling
       // log.debug("syncModelToDOM: Chrome");
       // For Chrome, use the zoom style by default, as it doesn't handle nested SVG very well
       // when using transform
       if ( this.config.chromeUseTransform ) {
         // log.debug("syncModelToDOM: zoom using chrome transform");
-        // this.renderer.setElementStyle(this.zoomElement, 'transformOrigin', '0 0');
-        // this.renderer.setElementStyle(this.zoomElement, 'transform', scaleString);
+        // this.renderer.setStyle(this.zoomElement, 'transformOrigin', '0 0');
+        // this.renderer.setStyle(this.zoomElement, 'transform', scaleString);
         // example: scale(0.8218728816747501)
         // example1: -webkit-transform: scale(0.8218728816747501)
-        // this.renderer.setElementStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
-        // this.renderer.setElementStyle(this.zoomElement, '-webkit-transform', scaleString );
+        // this.renderer.setStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
+        // this.renderer.setStyle(this.zoomElement, '-webkit-transform', scaleString );
 
         // try this for 3d
-        this.renderer.setElementStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
-        this.renderer.setElementStyle(this.zoomElement, '-webkit-transform', scaleString );
+        this.renderer.setStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
+        this.renderer.setStyle(this.zoomElement, '-webkit-transform', scaleString );
       }
       else {
         // log.debug("syncModelToDOM: zoom without using chrome transform");
         // http://caniuse.com/#search=zoom
         // this.zoomElementDOM.style.zoom = scale;
-        this.renderer.setElementStyle(this.zoomElement, 'zoom', scale.toString());
-        // this.renderer.setElementStyle(this.zoomElement, 'transform-origin', '0 0');
-        // this.renderer.setElementStyle(this.zoomElement, 'transform', scaleString);
-        // this.renderer.setElementStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
-        // this.renderer.setElementStyle(this.zoomElement, '-webkit-transform', scaleString );
+        this.renderer.setStyle(this.zoomElement, 'zoom', scale.toString());
+        // this.renderer.setStyle(this.zoomElement, 'transform-origin', '0 0');
+        // this.renderer.setStyle(this.zoomElement, 'transform', scaleString);
+        // this.renderer.setStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
+        // this.renderer.setStyle(this.zoomElement, '-webkit-transform', scaleString );
       }
     }
     else { // not Chrome scaling
@@ -687,38 +691,40 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
       // http://caniuse.com/#search=transform
 
       // Firefox
-      this.renderer.setElementStyle(this.zoomElement, '-moz-transform-origin', '0 0');
-      this.renderer.setElementStyle(this.zoomElement, '-moz-transform', scaleString);
+      this.renderer.setStyle(this.zoomElement, '-moz-transform-origin', '0 0');
+      this.renderer.setStyle(this.zoomElement, '-moz-transform', scaleString);
 
       // Safari etc..
-      this.renderer.setElementStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
-      this.renderer.setElementStyle(this.zoomElement, '-webkit-transform', scaleString);
+      this.renderer.setStyle(this.zoomElement, '-webkit-transform-origin', '0 0');
+      this.renderer.setStyle(this.zoomElement, '-webkit-transform', scaleString);
 
       // IE 9.0
-      this.renderer.setElementStyle(this.zoomElement, '-ms-transform-origin', '0 0');
-      this.renderer.setElementStyle(this.zoomElement, '-ms-transform', scaleString);
+      this.renderer.setStyle(this.zoomElement, '-ms-transform-origin', '0 0');
+      this.renderer.setStyle(this.zoomElement, '-ms-transform', scaleString);
 
       // IE > 9.0
-      this.renderer.setElementStyle(this.zoomElement, 'transform-origin', '0 0');
-      this.renderer.setElementStyle(this.zoomElement, 'transform', scaleString);
+      this.renderer.setStyle(this.zoomElement, 'transform-origin', '0 0');
+      this.renderer.setStyle(this.zoomElement, 'transform', scaleString);
     }
+    // this.changeDetectionRef.markForCheck();
 
     // Handle panning here
     if (this.config.useHardwareAcceleration) {
       // log.debug("syncModelToDOM: pan using hardware acceleration");
       let translate3d = 'translate3d(' + this.model.pan.x + 'px, ' + this.model.pan.y + 'px, 0)';
-      this.renderer.setElementStyle(this.panElement, '-webkit-transform', translate3d);
-      this.renderer.setElementStyle(this.panElement, '-moz-transform', translate3d);
-      this.renderer.setElementStyle(this.panElement, '-ms-transform', translate3d);
-      this.renderer.setElementStyle(this.panElement, 'transform', translate3d);
+      this.renderer.setStyle(this.panElement, '-webkit-transform', translate3d);
+      this.renderer.setStyle(this.panElement, '-moz-transform', translate3d);
+      this.renderer.setStyle(this.panElement, '-ms-transform', translate3d);
+      this.renderer.setStyle(this.panElement, 'transform', translate3d);
     }
     else {
       // log.debug("syncModelToDOM: pan without hardware acceleration");
       // this.panElementDOM.style.left = this.model.pan.x + 'px';
       // this.panElementDOM.style.top = this.model.pan.y + 'px';
-      this.renderer.setElementStyle(this.panElement, 'left', this.model.pan.x + 'px');
-      this.renderer.setElementStyle(this.panElement, 'top', this.model.pan.y + 'px');
+      this.renderer.setStyle(this.panElement, 'left', this.model.pan.x + 'px');
+      this.renderer.setStyle(this.panElement, 'top', this.model.pan.y + 'px');
     }
+    this.changeDetectionRef.markForCheck();
   }
 
 

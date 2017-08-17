@@ -19,9 +19,9 @@ import { ToolService } from './tool.service';
 import { HttpJsonStreamService } from './http-json-stream.service';
 
 // Our Pipes
-import { FromEpochPipe } from './from-epoch.pipe';
-import { FormatTimePipe } from './format-time.pipe';
-import { MapValuesPipe } from './mapValues.pipe';
+import { FromEpochPipe } from './pipes/from-epoch.pipe';
+import { FormatTimePipe } from './pipes/format-time.pipe';
+import { MapValuesPipe } from './pipes/mapValues.pipe';
 
 // Our Directives
 import { ToggleFullscreenDirective } from './fullscreen.directive';
@@ -37,7 +37,7 @@ import { PreferencesModalComponent } from './preferences-modal.component';
 import { ManageUsersModalComponent } from './manageusers-modal.component';
 import { ClassicGridComponent } from './classic-grid.component';
 import { MasonryGridComponent } from './masonry-grid.component';
-import { GridControlBarComponent } from './grid-controlbar.component';
+import { ClassicControlBarComponent } from './classic-controlbar.component';
 import { MasonryControlBarComponent } from './masonry-controlbar.component';
 import { ClassicSessionPopupComponent } from './classic-session-popup.component';
 import { PdfViewerComponent } from 'ng2-pdf-viewer';
@@ -103,7 +103,7 @@ import * as $ from 'jquery';
                   MapValuesPipe,
                   AddCollectionModalComponent,
                   DeleteCollectionConfirmModalComponent,
-                  GridControlBarComponent,
+                  ClassicControlBarComponent,
                   PreferencesModalComponent,
                   ToggleFullscreenDirective,
                   AccordionULComponent,

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
 import { PanZoomConfigService } from './panzoom/panzoom-config.service';
@@ -23,7 +23,7 @@ declare var log: any;
       <classic-tile *ngFor="let item of displayedContent" [highResSession]="hoveredContentSession" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]"></classic-tile>
     </div>
   </panzoom>
-  <grid-control-bar [canvasWidth]="canvasWidth" [initialZoomHeight]="initialZoomHeight" ></grid-control-bar>
+  <classic-control-bar [canvasWidth]="canvasWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
   <pdf-viewer-modal [apiServerUrl]="apiServerUrl" id="pdf-viewer"></pdf-viewer-modal>
   <classic-session-popup [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" #sessionWidget></classic-session-popup>
 </div>
@@ -32,15 +32,6 @@ declare var log: any;
 
   classic-tile {
     display: inline-block;
-  }
-
-  .noselect {
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-    -khtml-user-select: none; /* Konqueror HTML */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
   }
 
   `]
@@ -52,7 +43,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                 private panZoomApiService: PanZoomApiService,
                 private modelService: PanZoomModelService,
                 private dataService: DataService,
-                private renderer: Renderer,
+                private renderer: Renderer2,
                 private windowRef: WindowRefService,
                 private elRef: ElementRef,
                 private modalService: ModalService,
@@ -103,9 +94,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     log.debug('ClassicGridComponent: ngOnInit()');
 
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
-    this.renderer.setElementStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
     this.panzoomConfig.invertMouseWheel = true;
     this.panzoomConfig.useHardwareAcceleration = true;
     this.panzoomConfig.chromeUseTransform = true;
@@ -492,7 +483,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
   getContentBySessionAndContentFile(o: any): any {
     for (let x = 0; x < this.content.length; x++) {
-      if (this.content[x].session === o.session && this.reduceContentFile(this.content[x].contentFile) === o.contentFile) {
+      if (this.content[x].session === o.session && this.pathToFilename(this.content[x].contentFile) === o.contentFile) {
         return this.content[x];
       }
     }
@@ -603,7 +594,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
 
-  reduceContentFile(s: string): string {
+  pathToFilename(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
     return match[0];
