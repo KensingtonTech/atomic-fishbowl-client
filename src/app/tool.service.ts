@@ -7,6 +7,7 @@ declare var log: any;
 export class ToolService {
   public caseSensitiveSearchChanged: Subject<any> = new Subject<any>();
   public searchTermsChanged: Subject<any> = new Subject<any>();
+  public searchBarOpen: Subject<any> = new Subject<any>();
   public maskChanged: Subject<any> = new Subject<any>();
   public deviceNumber: Subject<any> = new Subject<any>();
   public contentCount: Subject<any> = new Subject<any>();

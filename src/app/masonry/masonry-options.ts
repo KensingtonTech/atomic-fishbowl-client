@@ -18,4 +18,5 @@ export interface MasonryOptions {
     resize?: boolean;
     initLayout?: boolean;
     layoutMode?: string;
+    filter?: string;
 }

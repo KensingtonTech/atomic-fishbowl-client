@@ -1,4 +1,5 @@
 export class Content {
+  id: string;
   session: number;
   contentType?: string;
   contentFile?: string;

@@ -53,6 +53,30 @@ String.prototype.isBlank = function(c) {
       background-color: rgb(59, 153, 252);
     }
 
+    .minDimensionsTooltip.ui-tooltip .ui-tooltip-text {
+      width: 350px;
+    }
+
+    .contentLimitDistillationTooltip.ui-tooltip .ui-tooltip-text {
+      width: 300px;
+    }
+
+    .textDistillationTooltip.ui-tooltip .ui-tooltip-text {
+      width: 300px;
+    }
+
+    .regexDistillationTooltip.ui-tooltip .ui-tooltip-text {
+      width: 400px;
+    }
+
+    .hashingTooltip.ui-tooltip .ui-tooltip-text {
+      width: 405px;
+    }
+
+    .hashing256Tooltip.ui-tooltip .ui-tooltip-text {
+      width: 425px;
+    }
+
     .addCollectionTooltip.ui-tooltip .ui-tooltip-text {
       white-space: pre-line;
       width: 375px;

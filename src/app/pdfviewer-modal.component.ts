@@ -19,6 +19,7 @@ import 'rxjs/add/operator/takeWhile';
 
         <div style="position: absolute; top: 0; bottom: 0; left: 10px; width: 85%; white-space: nowrap;">
           <!--<a (click)="downloadLinkClicked(pdfFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download PDF Document" showDelay="750"></a>-->
+          <a style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download PDF Document" showDelay="750" href="{{pdfFile}}"></a>
           <span style="vertical-align: middle;">{{getFileNameFromPath(pdfFile)}}</span>
         </div>
 

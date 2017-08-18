@@ -57,7 +57,7 @@
             </tr>
             <tr>
               <td class="column1" style="vertical-align: top;">
-                <b>Query</b> <span class="fa fa-info-circle fa-fw" pTooltip="The query defines which NetWitness sessions from which to extract content.  It does not, however, limit the types of content which will be pulled into the collection.  For instance, if one queries for PDF documents, and a matching NetWitness session returned from the query also happens to contain an image, the image will also be displayed." tooltipPosition="bottom" escape="false" tooltipStyleClass="addCollectionTooltip"></span>
+                <b>Query</b> <span class="fa fa-info-circle fa-fw" pTooltip="The query defines which NetWitness sessions to extract content from.  It does not, however, limit the types of content which will be pulled into the collection.  For instance, if one queries for PDF documents, and a matching NetWitness session returned from the query also happens to contain an image, the image will also be displayed." tooltipPosition="bottom" escape="false" tooltipStyleClass="addCollectionTooltip"></span>
               </td>
               <td>
                 <div>
@@ -72,7 +72,7 @@
             </tr>
             <tr>
               <td>
-                <b>Image Limit</b>
+                <span pTooltip="Limits the amount of content items to pull into the collection in a single query" tooltipStyleClass="contentLimitDistillationTooltip"><b>Content Limit</b></span>
               </td>
               <td>
                 <input type="number" name="imageLimit" [(ngModel)]="collectionFormModel.imageLimit" style="width: 60px;" required>
@@ -80,7 +80,7 @@
             </tr>
             <tr>
               <td class="column1">
-                <b>Min. Dimensions</b>
+                <span pTooltip="Image files with dimensions smaller than this will not be pulled into the collection" tooltipStyleClass="minDimensionsTooltip"><b>Min. Dimensions</b></span>
               </td>
               <td>
                 <input type="number" name="minX" [(ngModel)]="collectionFormModel.minX" style="width: 40px;" required> width x &nbsp;<input type="number" name="minY" [(ngModel)]="collectionFormModel.minY" style="width: 40px;" required> height
@@ -88,7 +88,7 @@
             </tr>
             <tr>
               <td class="column1">
-                <b>Text Distillation</b>
+                <span pTooltip="Searches documents for text keywords" tooltipStyleClass="textDistillationTooltip"><b>Text Distillation</b></span>
               </td>
               <td>
                  <input [(ngModel)]="collectionFormModel.distillationEnabled" type="checkbox" name="distillationEnabled">
@@ -111,7 +111,7 @@
 
             <tr>
               <td class="column1">
-                <b>Regex Distillation</b>&nbsp;&nbsp;&nbsp;&nbsp;
+                <span pTooltip="Searches documents for Regular Expression matches" tooltipStyleClass="regexDistillationTooltip"><b>Regex Distillation</b>&nbsp;&nbsp;&nbsp;&nbsp;</span>
               </td>
               <td>
                  <input [(ngModel)]="collectionFormModel.regexDistillationEnabled" type="checkbox" name="regexDistillationEnabled">
@@ -133,7 +133,7 @@
             </tr>
             <tr>
               <td class="column1">
-                <b>SHA1 Hashing</b>
+                <span pTooltip="Searches for executables matching a SHA1 hash value" tooltipStyleClass="hashingTooltip"><b>SHA1 Hashing</b></span>
               </td>
               <td>
                  <input [(ngModel)]="collectionFormModel.sha1Enabled" type="checkbox" name="sha1Enabled">
@@ -155,7 +155,7 @@
             </tr>
             <tr>
               <td class="column1">
-                <b>SHA256 Hashing</b>
+                <span pTooltip="Searches for executables matching a SHA256 hash value" tooltipStyleClass="hashing256Tooltip"><b>SHA256 Hashing</b></span>
               </td>
               <td>
                  <input [(ngModel)]="collectionFormModel.sha256Enabled" type="checkbox" name="sha256Enabled">
@@ -177,7 +177,7 @@
             </tr>
             <tr>
               <td class="column1">
-                <b>MD5 Hashing</b>
+                <span pTooltip="Searches for executables matching a MD5 hash value" tooltipStyleClass="hashingTooltip"><b>MD5 Hashing</b></span>
               </td>
               <td>
                  <input [(ngModel)]="collectionFormModel.md5Enabled" type="checkbox" name="md5Enabled">

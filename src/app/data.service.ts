@@ -30,6 +30,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public contentChanged: Subject<any> = new Subject<any>();
   public searchChanged: Subject<any> = new Subject<any>();
   public searchPublished: Subject<any> = new Subject<any>();
+  public errorPublished: Subject<any> = new Subject<any>();
   public preferencesChanged: Subject<any> = new Subject<any>();
   public sessionsPurged: Subject<any> = new Subject<any>();
   private apiUrl = '/api';
@@ -150,14 +151,17 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                           this.collectionStateChanged.next(o.collection);
                                                         }
                                                         else if (o.collectionUpdate) {
-                                                          if (o.collectionUpdate.session) {
+                                                          if ('session' in o.collectionUpdate) {
                                                             this.sessionPublished.next(o.collectionUpdate.session);
                                                           }
-                                                          if (o.collectionUpdate.images) {
+                                                          if ('images' in o.collectionUpdate) {
                                                             this.contentPublished.next(o.collectionUpdate.images);
                                                           }
-                                                          if (o.collectionUpdate.search) {
-                                                            this.searchPublished.next(o.collectionUpdate.search[0]);
+                                                          if ('search' in o.collectionUpdate) {
+                                                            this.searchPublished.next(o.collectionUpdate.search);
+                                                          }
+                                                          if ('error' in o.collectionUpdate) {
+                                                            this.errorPublished.next(o.collectionUpdate.error);
                                                           }
                                                         }
                                                         else {
@@ -185,12 +189,12 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                           if ('search' in o.collectionUpdate) {
                                                             this.searchPublished.next(o.collectionUpdate.search);
                                                           }
+                                                          if ('error' in o.collectionUpdate) {
+                                                            this.errorPublished.next(o.collectionUpdate.error);
+                                                          }
                                                         }
                                                         else if ('collectionPurge' in o) {
                                                           this.sessionsPurged.next(o.collectionPurge);
-                                                        }
-                                                        else if ('keepalive' in o) {
-                                                          // do nothing
                                                         }
                                                         else {
                                                           // there's data here that shouldn't be
