@@ -19,11 +19,11 @@ export class AuthenticationService {
                 private toolService: ToolService ) {
                   this.toolService.logout.subscribe( () => this.logout() );
                 }
-                // private dataService: DataService ) {}
 
   public loggedInChanged: Subject<boolean> = new Subject<boolean>();
   private apiUrl = '/api';
   public loggedInUser: User;
+  public sessionId: number;
 
   public logout(): void {
     log.debug('AuthenticationService: logout(): logging out');
@@ -58,8 +58,11 @@ export class AuthenticationService {
   isLoggedIn(): Promise<boolean> {
     return this.http.get(this.apiUrl + '/isloggedin' )
                     .toPromise()
-                    .then( (res: any) => {
-                      this.loggedInUser = res.json();
+                    .then( (response: any) => {
+                      let res = response.json();
+                      this.loggedInUser = res.user;
+                      this.sessionId = res.sessionId;
+                      this.toolService.sessionId.next(this.sessionId);
                       return true;
                     })
                     .catch( () => false ); // check that this tslint-suggested change is kosher
@@ -75,6 +78,8 @@ export class AuthenticationService {
                       let res = response.json();
                       log.debug('AuthenticationService: login(): Got login response:', res);
                       this.loggedInUser = res.user;
+                      this.sessionId = res.sessionId;
+                      this.toolService.sessionId.next(this.sessionId);
                       this.loggedInChanged.next(true);
                       this.router.navigate(['/']);
                       return true;
@@ -118,6 +123,7 @@ export class AuthenticationService {
   }
 */
 
+  /*
   parseJwt(token: any): any {
       let base64Url = token.split('.')[1];
       let base64 = base64Url.replace('-', '+').replace('_', '/');
@@ -125,6 +131,7 @@ export class AuthenticationService {
       // log.debug('AuthenticationService: parseJwt(): parsed:', parsed);
       return parsed;
   }
+  */
 
   handleError(error: any): Promise<any> {
     log.error('ERROR: ', error);

@@ -19,7 +19,12 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   constructor(private http: Http,
               private httpJsonStreamService: HttpJsonStreamService,
-              private toolService: ToolService ) {}
+              private toolService: ToolService ) {
+    this.toolService.sessionId.subscribe( (sessionId: number) => {
+      log.debug(`DataService: sessionIdSubscription(): got sessionId: ${sessionId}`);
+      this.sessionId = sessionId;
+    });
+  }
 
   public contentPublished: Subject<any> = new Subject<any>();
   public sessionPublished: Subject<any> = new Subject<any>();
@@ -36,6 +41,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   private apiUrl = '/api';
   sessionWidgetElement: ElementRef;
   public globalPreferences: any;
+  private sessionId: number;
 
   setSessionWidget(el: ElementRef): void {
     this.sessionWidgetElement = el;
@@ -109,9 +115,9 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
-  buildCollection(id: string): Promise<void> {
-    log.debug('DataService: buildCollection():', id);
-    return this.http.get(this.apiUrl + '/buildcollection/' + id )
+  buildFixedCollection(id: string): Promise<void> {
+    log.debug('DataService: buildFixedCollection():', id);
+    return this.http.get(this.apiUrl + '/buildfixedcollection/' + id )
                     .toPromise()
                     .catch(e => this.handleError(e));
   }
@@ -142,9 +148,9 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
 
-  getBuildingCollection(id: string): void {
-    log.debug('DataService: getBuildingCollection():', id);
-    this.httpJsonStreamService.fetchStream(this.apiUrl + '/getbuildingcollection/' + id)
+  getBuildingFixedCollection(id: string): void {
+    log.debug('DataService: getBuildingFixedCollection():', id);
+    this.httpJsonStreamService.fetchStream(this.apiUrl + '/getbuildingfixedcollection/' + id)
                               .subscribe( (o: any) => {
                                                         if (o.collection) {
                                                           // log.debug("received collection update",o.collection);
@@ -166,14 +172,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                         }
                                                         else {
                                                           // there's data here that shouldn't be
-                                                          log.error('DataService: getBuildingCollection(): unhandled JSON data', o);
+                                                          log.error('DataService: getBuildingFixedCollection(): unhandled JSON data', o);
                                                         }
                               });
   }
 
   getRollingCollection(id: string): void {
     log.debug('DataService: getRollingCollection():', id);
-    this.httpJsonStreamService.fetchStream(this.apiUrl + '/getrollingcollection/' + id)
+    this.httpJsonStreamService.fetchStream(this.apiUrl + '/getrollingcollection/' + id, {'twosessionid': this.sessionId} )
                               .subscribe( (o: any) => {
                                                         if ('collection' in o) {
                                                           // log.debug("received collection update",o.collection);

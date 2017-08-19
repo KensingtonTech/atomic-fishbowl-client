@@ -26,4 +26,5 @@ export class ToolService {
   public logout: Subject<any> = new Subject<any>();
   public fileToDownload: Subject<any> = new Subject<any>();
   public confirmDownloadFile: Subject<any> = new Subject<any>();
+  public sessionId: Subject<any> = new Subject<any>();
 }

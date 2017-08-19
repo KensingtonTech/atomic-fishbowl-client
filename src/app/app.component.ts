@@ -31,29 +31,36 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
     this.authService.loggedInChanged.takeWhile(() => this.alive).subscribe( (loggedIn: boolean) => {
-                                                                          // log.debug("loggedIn:", loggedIn);
-                                                                          this.loggedIn = loggedIn;
-                                                                        });
+      // log.debug("loggedIn:", loggedIn);
+      this.loggedIn = loggedIn;
+    });
 
     // run initial ping to see if server is reachable
     this.dataService.ping()
                       .then( () => {
-                                      this.serverReachable = true;
-                                      this.authService.checkCredentials();
-                                      this.credentialsChecked = true;
-                                    })
-                      .catch( () => {this.modalService.open('serverDownModal'); });
+                        this.serverReachable = true;
+                        this.authService.checkCredentials();
+                        this.credentialsChecked = true;
+                      })
+                      .catch( () => {
+                        this.serverReachable = false;
+                        this.modalService.open('serverDownModal');
+                      });
 
     // schedule a ping every 10 seconds and display error modal if it becomes unreachable
     setInterval( () => {
       this.dataService.ping()
                       .then( () => {
-                                      this.modalService.close('serverDownModal');
-                                      this.serverReachable = true;
-                                      if (!this.credentialsChecked) { this.authService.checkCredentials(); }
+                        this.modalService.close('serverDownModal');
+                        this.serverReachable = true;
+                        if (!this.credentialsChecked) {
+                          this.authService.checkCredentials();
+                        }
                       })
-                      .catch( () => {this.modalService.open('serverDownModal'); });
-
+                      .catch( () => {
+                        this.serverReachable = false;
+                        this.modalService.open('serverDownModal');
+                      });
     }, 10000);
 
   }

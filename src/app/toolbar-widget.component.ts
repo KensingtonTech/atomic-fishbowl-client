@@ -362,7 +362,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
       if (this.collections[id].state === 'building') {
         // log.debug('select collection 4');
         this.dataService.getCollectionData(this.collections[id])
-                        .then( () => this.dataService.getBuildingCollection(id) );
+                        .then( () => this.dataService.getBuildingFixedCollection(id) );
         return;
       }
       // log.debug('select collection 5');
@@ -416,7 +416,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.dataService.abortGetBuildingCollection()
                     .then( () => this.dataService.refreshCollections() )
                     .then( () => {
-                      if (this.collections[id].type === 'fixed') { this.dataService.buildCollection(id); }
+                      if (this.collections[id].type === 'fixed') { this.dataService.buildFixedCollection(id); }
                     })
                     .then( () => this.dataService.refreshCollections() )
                     .then( () => {

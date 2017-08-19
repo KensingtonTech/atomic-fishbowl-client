@@ -9,15 +9,18 @@ export class HttpJsonStreamService {
 
   private oboeService: any;
 
-  fetchStream(url: string) : Observable<any> {
+  fetchStream(url: string, headers = {} ): Observable<any> {
     log.debug('HttpJsonStreamService: fetchStream()');
-    var subject: Subject<any> = new Subject<any>();
-    var config = {
-      //headers: {'Authorization': 'Bearer ' +  token},
+    let subject: Subject<any> = new Subject<any>();
+    let config = {
+      // headers: {'Authorization': 'Bearer ' +  token},
       'url': url,
-      'method': "GET",
+      'method': 'GET',
       'body': '',
       'cached': false
+    };
+    if (Object.keys(headers).length !== 0) {
+      config['headers'] = headers;
     }
     this.oboeService = oboe(config);
     this.oboeService.node('!', (o: any) => {
@@ -30,7 +33,7 @@ export class HttpJsonStreamService {
     try {
       this.oboeService.abort();
     }
-    catch(e) {
+    catch (e) {
       return;
     }
   }
