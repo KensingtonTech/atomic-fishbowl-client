@@ -210,7 +210,8 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     log.debug('SessionDetailsModalComponent: ngOnInit()');
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
+    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {
+                                                                      // log.debug("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
@@ -267,7 +268,6 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   pathToFilename(s: string): string {
     const RE = /([^/]*)$/;
     let match = RE.exec(s);
-    log.debug(match[0]);
     return match[0];
   }
 

@@ -24,6 +24,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
       log.debug(`DataService: sessionIdSubscription(): got sessionId: ${sessionId}`);
       this.sessionId = sessionId;
     });
+    this.toolService.HttpJsonStreamServiceConnected.subscribe( (connected: boolean) => this.httpJsonStreamServiceConnected = connected );
   }
 
   public contentPublished: Subject<any> = new Subject<any>();
@@ -42,6 +43,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   sessionWidgetElement: ElementRef;
   public globalPreferences: any;
   private sessionId: number;
+  public httpJsonStreamServiceConnected = false;
 
   setSessionWidget(el: ElementRef): void {
     this.sessionWidgetElement = el;
@@ -130,6 +132,30 @@ export class DataService { // Manages NwSession objects and also Image objects i
     });
   }
 
+  pauseMonitoringCollection(id: string): Promise<void> {
+    log.debug('DataService: pauseMonitoringCollection()');
+
+    let headers = new Headers({ 'twosessionid': this.sessionId });
+    let options = new RequestOptions({ headers: headers });
+
+    return this.http.get(this.apiUrl + '/pausemonitoringcollection/' + id, options)
+                    .toPromise()
+                    // .then( response => {} )
+                    .catch(e => this.handleError(e));
+  }
+
+  unpauseMonitoringCollection(id: string): Promise<void> {
+    log.debug('DataService: unpauseMonitoringCollection()');
+
+    let headers = new Headers({ 'twosessionid': this.sessionId });
+    let options = new RequestOptions({ headers: headers });
+
+    return this.http.get(this.apiUrl + '/unpausemonitoringcollection/' + id, options)
+                    .toPromise()
+                    // .then( response => {} )
+                    .catch(e => this.handleError(e));
+  }
+
   getCollectionData(collection: any): Promise<string> {
     let id = collection.id;
     log.debug('DataService: getCollectionData(' + id + '):', collection);
@@ -170,6 +196,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                             this.errorPublished.next(o.collectionUpdate.error);
                                                           }
                                                         }
+                                                        else if ('close' in o) { return; }
                                                         else {
                                                           // there's data here that shouldn't be
                                                           log.error('DataService: getBuildingFixedCollection(): unhandled JSON data', o);
@@ -199,6 +226,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                             this.errorPublished.next(o.collectionUpdate.error);
                                                           }
                                                         }
+                                                        else if ('close' in o) { return; }
                                                         else if ('collectionPurge' in o) {
                                                           this.sessionsPurged.next(o.collectionPurge);
                                                         }

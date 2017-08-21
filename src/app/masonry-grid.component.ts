@@ -465,12 +465,22 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   suspendMonitoring(): void {
     this.pauseMonitoring = true;
-    this.dataService.abortGetBuildingCollection();
+    // this.dataService.abortGetBuildingCollection();
+    this.dataService.pauseMonitoringCollection(this.collectionId);
   }
 
   resumeMonitoring(): void {
     this.pauseMonitoring = false;
-    this.dataService.getRollingCollection(this.collectionId);
+
+    // We must now check whether our collection has disconnected, and if not - call unpauseMonitoringCollection.  If so, call getRollingCollection
+    if (this.dataService.httpJsonStreamServiceConnected) {
+      // We're still connected
+      this.dataService.unpauseMonitoringCollection(this.collectionId);
+    }
+    else {
+      // We're disconnected
+      this.dataService.getRollingCollection(this.collectionId);
+    }
   }
 
   ngAfterViewInit(): void {
