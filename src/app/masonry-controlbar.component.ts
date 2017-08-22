@@ -5,9 +5,10 @@ declare var log: any;
 
 @Component({
   selector: 'masonry-control-bar',
+  // pToolpTooltip="View selector"
   template: `
 <div class="noselect" style="position: absolute; top: 20px; left: 10px; padding: 5px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px; z-index: 100;">
-  <div style="position: absolute; left: 0;" pTooltip="View selector"><router-dropdown></router-dropdown></div>
+  <div style="position: absolute; left: 0;"><router-dropdown></router-dropdown></div>
   <div style="position: absolute; left: 40px;" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></div>
   <div *ngIf="!scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-level-down fa-2x fa-fw" (click)="scrollToBottom()" pTooltip="Autoscroller"></div>
   <div *ngIf="scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-stop fa-2x fa-fw" (click)="stopScrollToBottom()"></div>

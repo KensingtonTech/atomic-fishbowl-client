@@ -30,7 +30,7 @@ import { ClickOutsideDirective } from './click-outside.directive';
 // Our Components
 import { AppComponent } from './app.component';
 import { ToolbarWidgetComponent } from './toolbar-widget.component';
-import { SplashScreenModal } from './splashscreen-modal.component';
+import { SplashScreenModalComponent } from './splashscreen-modal.component';
 import { AddCollectionModalComponent } from './addcollection-modal.component';
 import { DeleteCollectionConfirmModalComponent } from './deletecollection-confirm-modal.component';
 import { PreferencesModalComponent } from './preferences-modal.component';
@@ -111,7 +111,7 @@ import * as $ from 'jquery';
                   ClassicTileComponent,
                   PdfViewerComponent,
                   PdfViewerModalComponent,
-                  SplashScreenModal,
+                  SplashScreenModalComponent,
                   RouterDropdownComponent,
                   MasonryControlBarComponent,
                   ClickOutsideDirective,

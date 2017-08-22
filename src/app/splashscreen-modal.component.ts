@@ -6,13 +6,11 @@ declare var log: any;
 
 @Component({
   selector: 'splash-screen-modal',
-  //encapsulation: ViewEncapsulation.None,
-
   template: `
 <modal id="{{id}}" (opened)="onOpen()">
   <div class="modal">
     <div class="modal-body splash-body" style="position: relative; width: 400px; background-color: rgba(0,0,0,.9); color: white; font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;">
-      <h1 align="left" style="margin-bottom: 0px;">221B Beta</h1>
+      <h1 align="left" style="margin-bottom: 0px;">221B</h1>
       <span>Client Version {{version}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span *ngIf="serverVersion">Server Version {{serverVersion}}</span>
       <p align="center"><img src="resources/221B_logo.png" style="width: 350px; height: auto;"><img style="float: left; width: 75px; height: auto;" src="resources/logo-medium.png"></p>
       <p align="right" style="font-size: 9pt;">Copyright &copy; 2017 Kensington Technology Associates<br>
@@ -38,24 +36,24 @@ declare var log: any;
 
 })
 
-export class SplashScreenModal implements OnInit {
+export class SplashScreenModalComponent implements OnInit {
 
   constructor(private modalService: ModalService,
               private dataService: DataService ) {}
 
-  public id: string = 'splashScreenModal';
+  public id = 'splashScreenModal';
   public firstOpen = true;
   public version = appVersion;
   public serverVersion: string;
 
   ngOnInit(): void {
-    log.debug("SplashScreenModal: ngOnInit()");
+    log.debug('SplashScreenModalComponent: ngOnInit()');
     this.dataService.getServerVersion()
                     .then( (ver: string) => this.serverVersion = ver);
   }
 
   onOpen(): void {
-    //log.debug("SplashScreenModal: onOpen()");
+    // log.debug("SplashScreenModalComponent: onOpen()");
     if (this.firstOpen) {
       setTimeout( () => {
         this.modalService.close(this.id);

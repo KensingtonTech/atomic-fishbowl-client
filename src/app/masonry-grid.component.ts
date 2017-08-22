@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer2, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer2, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationStart } from '@angular/router';
 import { NgStyle } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
@@ -25,10 +25,12 @@ declare var log: any;
       <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
     </div>
   </div>
-  <div *ngIf="!destroyView" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
-    <masonry #masonry tabindex="-1" class="grid" *ngIf="content && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [filter]="filter" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
-      <masonry-tile *ngFor="let item of content" masonry-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[item.session]" [attr.contentFile]="item.contentFile" [attr.id]="item.id" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
-    </masonry>
+  <div class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
+    <div *ngIf="!destroyView">
+      <masonry #masonry tabindex="-1" class="grid" *ngIf="content && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [filter]="filter" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
+        <masonry-tile *ngFor="let item of content" masonry-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[item.session]" [attr.contentFile]="item.contentFile" [attr.id]="item.id" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
+      </masonry>
+    </div>
     <div class="scrollTarget"></div>
   </div>
 </div>
@@ -57,14 +59,12 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService,
-                private ngZone: NgZone,
                 private router: Router ) {}
 
   @ViewChildren('masonry') masonryRef: QueryList<any>;
   @ViewChild(MasonryComponent) private masonryComponentRef: MasonryComponent;
-  private hoveredImageSession: number;
   public apiServerUrl: string = '//' + window.location.hostname;
-  private deviceNumber: number;
+  //private deviceNumber: number;
 
   private search: any = []; // 'search' is an array containing text extracted from PDF's which can be searched
   private content: Content[] = [];
@@ -78,25 +78,23 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private masonryColumnSize = 350; // default is 350
   public filter = '*';
   private masonryOptions: MasonryOptions =  {
-                                    layoutMode: 'masonry',
-                                    itemSelector: '.brick',
-                                    initLayout: false,
-                                    resize: true,
-                                    // filter: this.filter,
-                                    masonry: {
-                                                columnWidth: this.masonryColumnSize,
-                                                gutter: 20,
-                                                horizontalOrder: true,
-                                                fitWidth: true,
-                                    }
-                                  };
+    layoutMode: 'masonry',
+    itemSelector: '.brick',
+    initLayout: false,
+    resize: true,
+    // filter: this.filter,
+    masonry: {
+      columnWidth: this.masonryColumnSize,
+      gutter: 20,
+      horizontalOrder: true,
+      fitWidth: true,
+    }
+  };
 
   public selectedCollectionType: string;
   private collectionId: string;
   public destroyView = true;
   private pixelsPerSecond = 200;
-  // @ViewChild('scrollTarget') scrollTarget: ElementRef;
-  // @ViewChild('scrollContainer') scrollContainer: ElementRef;
   private loadAllBeforeLayout = true;
   private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
   private masonryKeys: any;
@@ -246,7 +244,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       log.debug('MasonryGridComponent: contentChangedSubscription: contentChanged:', i);
       if (i.length === 0 && this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); } // we need this when we remove the only collection and it is biggish.  Prevents performance issues
       this.destroyView = true;
-      i.sort(this.sortImages);
+      i.sort(this.sortContent);
       this.content = i;
       this.search = [];
       this.countContent();
@@ -255,6 +253,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
 
       setTimeout( () => {
+        // Sets keyboard focus
         if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnSize && !this.destroyView) {
           log.debug('MasonryGridComponent: contentChangedSubscription: this.masonryRef', this.masonryRef);
           this.masonryRef.first.el.nativeElement.focus();
@@ -453,7 +452,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     return b - a;
   }
 
-  sortImages(a: any, b: any): number {
+  sortContent(a: any, b: any): number {
    if (a.session < b.session) {
     return -1;
    }

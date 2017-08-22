@@ -5,9 +5,10 @@ declare var log: any;
 @Component({
   selector: 'classic-control-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // pTooltip="View selector"
   template: `
 <div class="noselect" style="position: absolute; top: 20px; left: 10px; padding: 5px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px;">
-    <div style="position: absolute; left: 0;" pTooltip="View selector"><router-dropdown></router-dropdown></div>
+    <div style="position: absolute; left: 0;"><router-dropdown></router-dropdown></div>
     <div style="position: absolute; left: 40px;" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></div>
     <div style="position: absolute; left: 80px;" (click)="zoomToFit()" class="icon fa fa-home fa-2x fa-fw"></div>
     <div style="position: absolute; left: 120px;" (click)="zoomOut()" class="icon fa fa-search-minus fa-2x fa-fw"></div>

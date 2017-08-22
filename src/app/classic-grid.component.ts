@@ -53,10 +53,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   @ViewChild('sessionWidget') sessionWidget: ElementRef;
 
   private content: Content[] = [];
-  private imageContent: Content[] = [];
-  private pdfContent: Content[] = [];
-  private dodgyArchiveContent: Content[] = [];
-  private hashContent: Content[] = [];
+  // private imageContent: Content[] = [];
+  // private pdfContent: Content[] = [];
+  // private dodgyArchiveContent: Content[] = [];
+  // private hashContent: Content[] = [];
   private contentCount = new ContentCount;
 
   public sessionWidgetEnabled = false;
@@ -68,7 +68,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private search: any = [];
   public canvasWidth = 2400;
   public initialZoomHeight = 1080;
-  private displayedContent: any = [];
+  private displayedContent: Content[] = [];
 
   public sessions: any;
   private alive = true;
@@ -85,6 +85,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private destroyView = true;
   private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
   private lastMask = new ContentMask;
+  private searchBarOpen = false;
 
   ngOnDestroy(): void {
     log.debug('ClassicGridComponent: ngOnDestroy()');
@@ -114,13 +115,19 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     // this.panzoomConfig.keepInBounds = true;
 
 
+
     // Take subscriptions
+
+    this.toolService.searchBarOpen.takeWhile(() => this.alive).subscribe( (state: boolean) => {
+      this.searchBarOpen = state;
+    });
+
     this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
     this.toolService.searchTermsChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.searchTermsChanged($event) );
     this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: any) => this.maskChanged($event) );
 
     this.toolService.noCollections.takeWhile(() => this.alive).subscribe( () => {
-      log.debug('MasonryGridComponent: noCollectionsSubscription');
+      log.debug('ClassicGridComponent: noCollectionsSubscription');
       this.destroyView = true;
       this.sessionsDefined = false;
       this.resetContent();
@@ -178,35 +185,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.sessions[sessionId] = s;
     });
 
-    /*this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => { log.debug('images:', i); // when a new collection is selected
-                                                            i.sort(this.sortImages);
-                                                            this.images = i;
-                                                            this.displayedContent = i;
-                                                            this.pdfImages = [];
-                                                            this.imageImages = [];
-                                                            this.search = []; // testing this
-                                                            for (let x = 0; x < this.images.length; x++) {  // pre-calculate image masks
-                                                              if (this.images[x].contentType === 'pdf') {
-                                                                this.pdfImages.push(this.images[x]);
-                                                              }
-                                                              if (this.images[x].contentType === 'image') {
-                                                                this.imageImages.push(this.images[x]);
-                                                              }
-                                                            }
-                                                            this.contentCount = { images: this.imageImages.length, pdfs: this.pdfImages.length, dodgyArchives: this.dodgyArchiveContent.length, hashes: this.hashContent.length, total: this.images.length };
-                                                            this.toolService.contentCount.next( this.contentCount );
-                                                            this.sessionWidgetDecider();
-                                                            this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
-                                                          });*/
-
     this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => {
       log.debug('ClassicGridComponent: contentChangedSubscription: contentChanged:', i); // when a new collection is selected
       this.destroyView = true;
-      i.sort(this.sortImages);
+      i.sort(this.sortContent);
       this.content = i;
-      this.displayedContent = i;
+      this.displayedContent = i.sort(this.sortContent);
       this.search = [];
-      this.calculateContentMasks();
       this.countContent();
       this.destroyView = false;
 // !!! not sure if we need this first set of detectors here - test it later !!!
@@ -226,22 +211,22 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       for (let i = 0; i < newContent.length; i++) {
         this.content.push(newContent[i]);
         if (newContent[i].contentType === 'image' ) {
-          this.contentCount.images = this.contentCount.images + 1;
+          this.contentCount.images++;
         }
         else if (newContent[i].contentType === 'pdf' ) {
-          this.contentCount.pdfs = this.contentCount.pdfs + 1;
+          this.contentCount.pdfs++;
         }
         else if (newContent[i].contentType === 'hash' ) {
-          this.contentCount.hashes = this.contentCount.hashes + 1;
+          this.contentCount.hashes++;
         }
         else if ( this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType) ) {
-            this.contentCount.dodgyArchives = this.contentCount.dodgyArchives + 1;
+            this.contentCount.dodgyArchives++;
         }
       }
       this.contentCount.total = this.content.length;
       this.toolService.contentCount.next( this.contentCount );
 
-      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
     });
@@ -260,7 +245,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
         this.search.push(s[i]);
       }
       // log.debug("ClassicGridComponent: searchPublishedSubscription: this.search:", this.search);
-      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      // this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
     });
@@ -272,7 +257,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       // log.debug("content:",JSON.parse(JSON.stringify(this.content)));
       let c = 0;
 
-      let purgedImagePositions = [];
+      let purgedContentPositions = [];
       let purgedSearchPositions = [];
 
       for (let x = 0; x < sessionsToPurge.length; x++) {
@@ -281,7 +266,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
         for (let i = 0; i < this.content.length; i++) {
           if (this.content[i].session === sidToPurge) {
             log.debug('ClassicGridComponent: sessionsPurgedSubscription: Removing image with session id', sidToPurge);
-            purgedImagePositions.push(i);
+            purgedContentPositions.push(i);
           }
         }
 
@@ -294,27 +279,30 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
         }
       }
 
-      // log.debug("purgedImagePositions:",purgedImagePositions);
+      // log.debug("purgedContentPositions:",purgedContentPositions);
       // log.debug("purgedSearchPositions:",purgedSearchPositions);
-      purgedImagePositions.sort(this.sortNumber);
-      for (let i = 0; i < purgedImagePositions.length; i++) {
-        this.content.splice(purgedImagePositions[i], 1);
+      purgedContentPositions.sort(this.sortNumber);
+      for (let i = 0; i < purgedContentPositions.length; i++) {
+        this.content.splice(purgedContentPositions[i], 1);
       }
       purgedSearchPositions.sort(this.sortNumber);
       for (let i = 0; i < purgedSearchPositions.length; i++) {
         this.search.splice(purgedSearchPositions[i], 1);
       }
 // !!! this displayedContent line should be revisited so that it takes in to account last mask and search!!!
-      this.displayedContent = this.content;
+      this.displayedContent = this.content.sort(this.sortContent);
 // !!!
+
+
+      // this.pdfContent = [];
+      // this.imageContent = [];
+      // this.hashContent = [];
+      // this.dodgyArchiveContent = [];
+      // this.calculateContentMasks();
+
       this.maskChanged(this.lastMask);
-      this.pdfContent = [];
-      this.imageContent = [];
-      this.hashContent = [];
-      this.dodgyArchiveContent = [];
-      this.calculateContentMasks();
       this.countContent();
-      if (c > 0) {
+      if (c > 0 && this.searchBarOpen) {
         this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
       }
       this.changeDetectionRef.detectChanges();
@@ -327,7 +315,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       return b - a;
   }
 
-  sortImages(a: any, b: any): number {
+  sortContent(a: any, b: any): number {
    if (a.session < b.session) {
     return -1;
    }
@@ -343,30 +331,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.modalService.open('pdf-viewer');
   }
 
-  /*
-  oldmaskChanged(e: any): void {
-    // e = { showPdf: boolean, showImage: boolean }
-    let showPdf = e.showPdf;
-    let showImage = e.showImage;
-    if (showPdf && showImage) {
-      this.displayedContent = this.images;
-    }
-    else if ( showPdf && !showImage ) {
-      // log.debug("got to 1");
-      this.displayedContent = this.pdfImages;
-    }
-    else if ( !showPdf && showImage ) {
-      // log.debug("got to 2");
-      this.displayedContent = this.imageImages;
-    }
-    else if ( !showPdf && !showImage ) {
-      // log.debug("got to 3");
-      this.displayedContent = [];
-    }
-  }
-  */
-
-  maskChanged(e: ContentMask): void {
+  /*oldmaskChanged(e: ContentMask): void {
     this.lastMask = e;
     log.debug('ClassicGridComponent: maskChanged():', e);
     // e = { showPdf: boolean, showImage: boolean, showDodgy: boolean, showHash: boolean }
@@ -399,7 +364,43 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
 
     this.displayedContent = tempShownBricks;
-    // log.debug('MasonryGridComponent: maskChanged: this.shownBricks:', this.shownBricks);
+    // log.debug('ClassicGridComponent: maskChanged: this.shownBricks:', this.shownBricks);
+  }*/
+
+  maskChanged(e: ContentMask): void {
+    this.lastMask = e;
+    log.debug('MasonryGridComponent: maskChanged():', e);
+
+    if (e.showImage && e.showPdf && e.showHash && e.showDodgy) {
+      this.displayedContent = this.content.sort(this.sortContent);
+      return;
+    }
+
+    let tempDisplayedContent: Content[] = [];
+
+    if (e.showImage) {
+      // tempFilter.push('[contentType="image"]');
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('image'));
+    }
+    if (e.showPdf) {
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('pdf'));
+    }
+    if (e.showHash) {
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('hash'));
+    }
+    if (e.showDodgy) {
+      // tempFilter.push('[contentType="unsupportedZipEntry"],[contentType="encryptedZipEntry"],[contentType="encryptedRarEntry"],[contentType="encryptedRarTable"]');
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('unsupportedZipEntry'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedZipEntry'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedRarEntry'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedRarTable'));
+    }
+    if (tempDisplayedContent.length > 0) {
+      this.displayedContent = tempDisplayedContent.sort(this.sortContent);
+    }
+    else {
+      this.displayedContent = [];
+    }
   }
 
   sessionWidgetDecider(): void {
@@ -490,58 +491,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
   /*oldsearchTermsChanged(e: any): void {
+    // log.debug('ClassicGridComponent: searchTermsChanged()');
     let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
-    log.debug('searchTerms update:', searchTerms);
-    let matchedSessions = [];
-    let matchedSessionIds = [];
-    if (searchTerms === '') {
-      // log.debug("matched!");
-      this.showOnlyImages = [];
-      this.displayedContent = this.images;
-      return;
-    }
-    if (this.search.length > 0) {
-      for (let i = 0; i < this.search.length; i++) {
-        // all searches are case-insensitive for now
-        if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) {
-          log.debug('case insensitive');
-          let sessionId = this.search[i].session;
-          log.debug('matched session', sessionId);
-          matchedSessions.push(this.search[i]);
-          matchedSessionIds.push(sessionId);
-        }
-        else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) {
-          log.debug('case sensitive');
-          let sessionId = this.search[i].session;
-          log.debug('matched session', sessionId);
-          matchedSessions.push(this.search[i]);
-          matchedSessionIds.push(sessionId);
-        }
-      }
-    }
-    if ( matchedSessions.length !== 0 ) {
-      log.debug('matchedSessions:', matchedSessions);
-      log.debug('matchedSessionIds:', matchedSessionIds);
-      this.showOnlyImages = matchedSessions;
-      this.displayedContent = [];
-      for (let x = 0; x < matchedSessionIds.length; x++) {
-        this.displayedContent.push(this.getImageById(matchedSessionIds[x]));
-      }
-      log.debug('displayedContent:', this.displayedContent);
-    }
-    else {
-      log.debug('no matches');
-      this.showOnlyImages = [ 'none' ];
-      this.displayedContent = [];
-    }
-  }*/
-
-  searchTermsChanged(e: any): void {
-    // log.debug('MasonryGridComponent: searchTermsChanged()');
-    let searchTerms = e.searchTerms;
-    this.lastSearchTerm = searchTerms;
-    // log.debug('MasonryGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
+    // log.debug('ClassicGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
     let matchedContent = [];
 
     if (searchTerms === '') {
@@ -552,7 +505,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     if (this.search.length > 0) {
       // Ok, we have a search term to do something with.  This block will generate matchedContent[]
-      // log.debug('MasonryGridComponent: searchTermsChanged: this.search:', this.search);
+      // log.debug('ClassicGridComponent: searchTermsChanged: this.search:', this.search);
       for (let i = 0; i < this.search.length; i++) {
         if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
           // we found a match!
@@ -575,8 +528,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     if ( matchedContent.length !== 0 ) {
       // Let's now turn our matched session id's into shownBricks[]
-      // log.debug('MasonryGridComponent: searchTermsChanged: Length of matchedContent:', matchedContent.length);
-      // log.debug('MasonryGridComponent: searchTermsChanged: matchedContent:', matchedContent);
+      // log.debug('ClassicGridComponent: searchTermsChanged: Length of matchedContent:', matchedContent.length);
+      // log.debug('ClassicGridComponent: searchTermsChanged: matchedContent:', matchedContent);
       let localShownBricks = [];
       for (let x = 0; x < matchedContent.length; x++) {
         let img = this.getContentBySessionAndContentFile(matchedContent[x]);
@@ -591,6 +544,54 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
     this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();
+  }*/
+
+  searchTermsChanged(e: any): void {
+    let searchTerms = e.searchTerms;
+    this.lastSearchTerm = searchTerms;
+    let matchedIds = [];
+
+
+    if (searchTerms === '') {
+      this.maskChanged(this.lastMask);
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+      return;
+    }
+
+    if (this.search.length > 0) {
+      for (let i = 0; i < this.search.length; i++) {
+        if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
+          // we found a match!
+          let matchedId = this.search[i].id;
+          matchedIds.push(matchedId);
+        }
+        else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) { // case-sensitive search
+          // we found a match!
+          let matchedId = this.search[i].id;
+          matchedIds.push(matchedId);
+        }
+      }
+    }
+
+    let tempDisplayedContent: Content[] = [];
+
+    if (matchedIds.length === 0) {
+      this.displayedContent = [];
+    }
+    else {
+      // this.filter = matchedIds.join(',');
+      for (let i = 0; i < this.content.length; i++) {
+        let item = this.content[i];
+        if (matchedIds.includes(item.id) ) {
+          tempDisplayedContent.push(item);
+        }
+      }
+      this.displayedContent = tempDisplayedContent.sort(this.sortContent);
+    }
+
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -601,28 +602,31 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
   resetContentCount(): void {
-    this.contentCount = {
-      images: 0,
-      pdfs: 0,
-      dodgyArchives: 0,
-      hashes: 0,
-      total: 0
-    };
+    this.contentCount = new ContentCount;
     this.toolService.contentCount.next( this.contentCount );
   }
 
   countContent(): void {
-    this.contentCount = {
-      images: this.imageContent.length,
-      pdfs: this.pdfContent.length,
-      dodgyArchives: this.dodgyArchiveContent.length,
-      hashes: this.hashContent.length,
-      total: this.content.length
-    };
+    this.contentCount = new ContentCount;
+
+    for (let i = 0; i < this.content.length; i++) {
+      if (this.content[i].contentType === 'image') {
+        this.contentCount.images++;
+      }
+      if (this.content[i].contentType === 'hash') {
+        this.contentCount.hashes++;
+      }
+      if (this.content[i].contentType === 'pdf') {
+        this.contentCount.pdfs++;
+      }
+      if (this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
+        this.contentCount.dodgyArchives++;
+      }
+    }
     this.toolService.contentCount.next( this.contentCount );
   }
 
-  resetContent(): void {
+  /*oldresetContent(): void {
     this.displayedContent = [];
     this.search = [];
     this.sessions = {};
@@ -632,10 +636,28 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.imageContent = [];
     this.dodgyArchiveContent = [];
     this.hashContent = [];
+  }*/
+
+  resetContent(): void {
+    this.displayedContent = [];
+    this.search = [];
+    this.sessions = {};
+    this.content = [];
+  }
+
+  private getContentByType(type: string): Content[] {
+    let temp: Content[] = [];
+    for (let i = 0; i < this.content.length; i++) {
+      let item = this.content[i];
+      if (item.contentType === type) {
+        temp.push(item);
+      }
+    }
+    return temp;
   }
 
   // count = 0;
-  calculateContentMasks(): void {
+  /*calculateContentMasks(): void {
     // this.count = this.count + 1;
     // log.debug('count:', this.count)
     this.imageContent = [];
@@ -656,6 +678,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
         this.dodgyArchiveContent.push(this.content[x]);
       }
     }
-  }
+  }*/
 
 }
