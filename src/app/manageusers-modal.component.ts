@@ -2,16 +2,12 @@ import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, 
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
-// import { FormsModule, NgForm } from '@angular/forms';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators, FormGroupDirective } from '@angular/forms';
-// import { AbstractControl, FormArray, FormBuilder, }
-// import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { User } from './user';
 import { ToolService } from './tool.service';
 declare var moment: any;
 declare var log: any;
-import 'rxjs/add/operator/takeWhile';
 
 function passwordMatcher(c: AbstractControl) {
   return c.get('password').value === c.get('passwordConfirm').value ? null : {'nomatch': true};
@@ -117,7 +113,6 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public usersFormDisabled = false;
   public errorDefined = false;
   private errorMessage: string;
-  private alive = true;
   private editingUser: User;
   public users: User[];
   public minPasswordLength = 8;
@@ -127,6 +122,8 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
   public addUserForm: FormGroup;
   public editUserForm: FormGroup;
+
+  private confirmUserDeleteSubscription: any;
 
   ngOnInit(): void {
     log.debug('ManageUsersModalComponent: ngOnInit');
@@ -153,11 +150,12 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       }, { validator: passwordMatcher }),
       enabled: [true, isNotLoggedInUser.bind(this)]
     });
-    this.toolService.confirmUserDelete.takeWhile(() => this.alive).subscribe( (id: string) => { this.deleteUserConfirmed(id); } );
+
+    this.confirmUserDeleteSubscription = this.toolService.confirmUserDelete.subscribe( (id: string) => { this.deleteUserConfirmed(id); } );
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.confirmUserDeleteSubscription.unsubscribe();
   }
 
 

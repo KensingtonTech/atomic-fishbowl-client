@@ -1,6 +1,5 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy, Input } from '@angular/core';
 import { ToolService } from './tool.service';
-import 'rxjs/add/operator/takeWhile';
 declare var log: any;
 
 @Component({
@@ -31,25 +30,27 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   constructor(private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef) {}
 
-  private alive = true;
   public scrollStarted = false;
+  private scrollToBottomStoppedSubscription: any;
+  // private scrollToBottomRunningSubscription: any;
 
   ngOnInit(): void {
 
-    /*this.toolService.scrollToBottomRunning.takeWhile(() => this.alive).subscribe( () => {
+    /*this.scrollToBottomRunningSubscription = this.toolService.scrollToBottomRunning.subscribe( () => {
       log.debug('MasonryControlBarComponent: scrollToBottomRunningSubscription: scrollToBottomRunning');
       this.scrollStarted = true;
       this.changeDetectionRef.markForCheck();
     });*/
-    this.toolService.scrollToBottomStopped.takeWhile(() => this.alive).subscribe( () => {
+    this.scrollToBottomStoppedSubscription = this.toolService.scrollToBottomStopped.subscribe( () => {
       log.debug('MasonryControlBarComponent: scrollToBottomStoppedSubscription: scrollToBottomStopped');
       this.scrollStarted = false;
       this.changeDetectionRef.markForCheck();
     });
   }
 
-  public ngOnDestroy() {
-    this.alive = false;
+  ngOnDestroy(): void {
+    this.scrollToBottomStoppedSubscription.unsubscribe();
+    // this.scrollToBottomRunningSubscription.unsubscribe();
   }
 
   scrollToBottom(): void {

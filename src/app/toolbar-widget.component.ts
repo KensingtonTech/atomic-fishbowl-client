@@ -9,7 +9,6 @@ import { HostListener } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { AuthenticationService } from './authentication.service';
 declare var log: any;
-import 'rxjs/add/operator/takeWhile';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 
@@ -144,7 +143,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   public showSearch = false;
   private searchTerms: string;
   private refreshed = false;
-  private alive = true;
   private contentCount = new ContentCount;
   private showImages = true;
   private maskState: ContentMask = { showPdf: true, showImage: true, showHash: true, showDodgy: true };
@@ -154,21 +152,29 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private oldSearchTerms: string;
   private caseSensitive = false;
 
+  // Subscriptions
+  private contentCountSubscription: any;
+  private getCollectionDataAgainSubscription: any;
+  private selectedCollectionChangedSubscription: any;
+  private collectionsChangedSubscription: any;
+  private collectionStateChangedSubscription: any;
+
+
   ngOnInit(): void {
     // take subscriptions
-    this.toolService.contentCount.takeWhile(() => this.alive).subscribe( (c: any) => this.contentCount = c );
-    this.toolService.getCollectionDataAgain.takeWhile(() => this.alive).subscribe( () => this.getCollectionDataAgain() );
-    this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (e: any) => this.selectedCollection = e.id );
-    this.dataService.collectionsChanged.takeWhile(() => this.alive).subscribe( (c: string) => {
-                                                                    this.collections = c;
-                                                                    log.debug('ToolbarWidgetComponent: collectionsChangedSubscription: collections update', this.collections);
-                                                                    // log.debug('selectedCollection:', this.selectedCollection);
-                                                                  });
-    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
-                                                                              // log.debug("collection", collection);
-                                                                              this.iconDecider(collection.state);
-                                                                              this.collections[collection.id].state = collection.state;
-                                                                            });
+    this.contentCountSubscription = this.toolService.contentCount.subscribe( (c: any) => this.contentCount = c );
+    this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
+    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollection = e.id );
+    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (c: string) => {
+      this.collections = c;
+      log.debug('ToolbarWidgetComponent: collectionsChangedSubscription: collections update', this.collections);
+      // log.debug('selectedCollection:', this.selectedCollection);
+    });
+    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => {
+      // log.debug("collection", collection);
+      this.iconDecider(collection.state);
+      this.collections[collection.id].state = collection.state;
+    });
 
     this.dataService.refreshCollections()
                     .then( () => {
@@ -186,7 +192,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.contentCountSubscription.unsubscribe();
+    this.getCollectionDataAgainSubscription.unsubscribe();
+    this.selectedCollectionChangedSubscription.unsubscribe();
+    this.collectionsChangedSubscription.unsubscribe();
+    this.collectionStateChangedSubscription.unsubscribe();
   }
 
   ngAfterViewInit(): void {
@@ -338,7 +348,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     if (this.collections[id].deviceNumber) {
-      setTimeout( () => { this.toolService.deviceNumber.next( { deviceNumber: this.collections[id].deviceNumber, nwserver: this.collections[id].nwserver } ); }, 50);
+      this.toolService.deviceNumber.next( { deviceNumber: this.collections[id].deviceNumber, nwserver: this.collections[id].nwserver } );
     }
 
     // Reset content masks
@@ -428,7 +438,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                     .then( () => this.collectionSelected(id) );
   }
 
-  // @HostListener('window:keydown',['$event']) onEscape(event: KeyboardEvent ) {
   onEscape(event: KeyboardEvent ) {
     // log.debug("keyup event:", event);
     if (event.key === 'Escape' && this.showSearch) {

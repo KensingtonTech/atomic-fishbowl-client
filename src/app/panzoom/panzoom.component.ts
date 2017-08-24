@@ -1,8 +1,6 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, AfterContentInit, OnDestroy, ElementRef, ViewChild, Input, Renderer2, NgZone, AfterViewChecked } from '@angular/core';
-import { PanZoomApiService } from './panzoom-api.service';
-import { PanZoomConfigService } from './panzoom-config.service';
-import { PanZoomModelService } from './panzoom-model.service';
-import { WindowRefService } from './panzoom-windowref.service';
+import { PanZoomConfig } from './panzoom-config';
+
 declare var log: any;
 
 @Component( {
@@ -16,7 +14,7 @@ declare var log: any;
     </div>
   </div>
 </div>
-<div #panzoomOverlay style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0; display: none;"></div>
+<div #panzoomOverlay style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0; display: none; pointer-events: none;"></div>
   `,
 
 /*can't use angular 2 animations yet as you insanely can't bind an value to a class property.  https://github.com/angular/angular/issues/9668
@@ -60,18 +58,13 @@ declare var log: any;
 
 export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
 
-  constructor ( private panZoomApiService: PanZoomApiService,
-                private config: PanZoomConfigService,
-                private el: ElementRef,
-                private windowRef: WindowRefService,
+  constructor ( private el: ElementRef,
                 private renderer: Renderer2,
-                private modelService: PanZoomModelService,
                 private zone: NgZone,
                 private changeDetectionRef: ChangeDetectorRef )
     {
       this.element = el.nativeElement;
-      this.window = this.windowRef.nativeWindow;
-      this.model = this.modelService.model;
+      // this.model = this.modelService.model;
     }
 
   @ViewChild('panElement') panElementRef: ElementRef;
@@ -80,8 +73,9 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
   @ViewChild('panzoomOverlay') panzoomOverlayRef: ElementRef;
   @Input() id: string;
   @Input() addStyle: string; // gets appended to style attribute of div.#panzoomElement
+  @Input() private config: PanZoomConfig;
 
-  $document: any;
+  model: any = {};
   api: any;
   viewportHeight: any;
   viewportWidth: any;
@@ -93,9 +87,6 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
   panVelocity: any = undefined;
   zoomAnimation: any = undefined;
   element: any;
-  jElement: any;
-  window: any;
-  model: any;
   tick: any;
   frameElement: any;
   panElement: any;
@@ -108,10 +99,11 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
   onMouseUpRemoveFunc: Function;
   onTouchEndRemoveFunc: Function;
   onTouchMoveRemoveFunc: Function;
+  touchStartRemoveFunc: Function;
   hasPanned: boolean;
 
   ngOnInit(): void {
-    log.debug('ngOnInit(): initializing PanZoomComponent');
+    log.debug('PanZoomComponent: ngOnInit(): initializing PanZoomComponent');
     let frameStyle = this.frameElementRef.nativeElement.attributes.style.value;
     this.renderer.setAttribute(this.frameElementRef.nativeElement, 'style', frameStyle + this.addStyle);
 
@@ -149,27 +141,25 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
       getViewPosition: this.getViewPosition.bind(this),
       getModelPosition: this.getModelPosition.bind(this)
     };
-    if (this.id) {
-      this.panZoomApiService.registerAPI(this.id, this.api);
-    }
+
+    this.config.newApi.next(this.api);
 
   }
 
   ngAfterContentInit(): void {
-    // log.debug("ngAfterContentInit()");
+    log.debug('PanZoomComponent: ngAfterContentInit()');
 
-    this.$document = $(this.window.document);
-    this.jElement = this.$document.find('.pan-zoom-frame');
+    this.frameElement = $('.pan-zoom-frame');
 
-    this.viewportHeight = this.jElement.find('.zoom-element').children().height();
-    this.viewportWidth = this.jElement.find('.zoom-element').children().width();
+    this.viewportHeight = this.frameElement.find('.zoom-element').children().height();
+    this.viewportWidth = this.frameElement.find('.zoom-element').children().width();
 
 
-    this.renderer.listen(this.element, 'touchstart', ($event: any) => this.onTouchStart($event) );
+    this.touchStartRemoveFunc = this.renderer.listen(this.element, 'touchstart', ($event: any) => this.onTouchStart($event) );
     this.panElement = this.panElementRef.nativeElement;
     this.zoomElement = this.zoomElementRef.nativeElement;
     this.panzoomOverlay = this.panzoomOverlayRef.nativeElement;
-    this.frameElement = this.jElement;
+
     this.animationFrame =   window.requestAnimationFrame ||
                             (<any>window).webkitRequestAnimationFrame ||
                             (<any>window).mozRequestAnimationFrame ||
@@ -197,28 +187,29 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
       this.tick = new (<any>this.AnimationTick()).bind(this);
       // this.tick = new (<any>this.AnimationTick()).bind(this);
       if (this.animationFrame) {
-        // log.debug('Got animation frame');
+        // log.debug('PanZoomComponent: ngAfterContentInit(): Got animation frame');
         this.animationFrame(this.tick);
       }
       else {
         // tslint:disable-next-line:quotemark
-        log.debug("Didn't get animation frame.  Reverting to jquery");
+        log.debug("PanZoomComponent: ngAfterContentInit(): Didn't get animation frame.  Reverting to jquery");
         (<any>$.fx).timer(this.tick);
       }
     });
-    // this.$document.find('.cdk-overlay-pane ').css('pointer-events', 'none'); //allow pointer events to propagate through the overlay divs
-    this.renderer.setStyle(this.panzoomOverlay, 'pointer-events', 'none');
+
     this.changeDetectionRef.markForCheck();
   }
 
   ngOnDestroy(): void {
-    log.debug('ngOnDestroy()');
-    this.panZoomApiService.unregisterAPI(this.id);
+    log.debug('PanZoomComponent: ngOnDestroy()');
+    this.touchStartRemoveFunc();
+    this.frameElement = undefined;
+    this.animationFrame = undefined;
     this.scopeIsDestroyed = true;
   }
 
 
-////////////////////////////END OF LIFECYCLE HOOKS////////////////////////////
+  ////////////////////////////END OF LIFECYCLE HOOKS////////////////////////////
 
 
   onMouseWheel(e: any): void {
@@ -499,11 +490,11 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
 
 
   AnimationTick(): Function {
-    // log.debug("AnimationTick()");
+    // log.debug('PanZoomComponent: AnimationTick()');
     let lastTick: any = null;
 
     return function(timestamp: any) {
-      // log.debug("AnimationTick: returnedFunc");
+      // log.debug('PanZoomComponent: AnimationTick: anonTickerFunc()');
       let now = $.now();
 
       let deltaTime = lastTick ? (now - lastTick) / 1000 : 0;
@@ -520,9 +511,7 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
           this.base.pan.x = this.model.pan.x;
           this.base.pan.y = this.model.pan.y;
           this.zoomAnimation = undefined;
-          if (this.config.modelChangedCallback) {
-            this.config.modelChangedCallback(this.model);
-          }
+          this.config.modelChanged.next(this.model);
         }
       }
 
@@ -539,11 +528,7 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
           let speed = this.panVelocity.length;
           if (speed < this.config.haltSpeed) {
             this.panVelocity = undefined;
-
-            if (this.config.modelChangedCallback) {
-              this.config.modelChangedCallback(this.model);
-            }
-
+            this.config.modelChanged.next(this.model);
             break;
           }
         }
@@ -573,7 +558,7 @@ export class PanZoomComponent implements OnInit, AfterContentInit, OnDestroy {
       this.syncModelToDOM();
 
       if (this.dragging) {
-        this.config.modelChangedCallback(this.model);
+        this.config.modelChanged.next(this.model);
       }
 
       if (this.animationFrame && !this.scopeIsDestroyed) {

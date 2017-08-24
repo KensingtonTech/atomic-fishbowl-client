@@ -1,10 +1,8 @@
-import { Injectable } from '@angular/core';
-// import 'rxjs/add/operator/toPromise';
+import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 declare var log: any;
 
-@Injectable()
-
-export class PanZoomConfigService {
+export class PanZoomConfig {
 
   chromeUseTransform: boolean;
   disableZoomAnimation: boolean;
@@ -18,7 +16,6 @@ export class PanZoomConfigService {
   keepInBounds: boolean;
   keepInBoundsDragPullback: number;
   keepInBoundsRestoreForce: number;
-  modelChangedCallback: Function;
   neutralZoomLevel: number;
   panOnClickDrag: boolean;
   scalePerZoomLevel: number;
@@ -29,8 +26,8 @@ export class PanZoomConfigService {
   zoomOnMouseWheel: boolean;
   zoomStepDuration: number;
   zoomToFitZoomLevelFactor: number;
-
-  model = {};
+  modelChanged: Subject<any> = new Subject<any>();
+  newApi: BehaviorSubject<any> = new BehaviorSubject<any>({});
 
   constructor() {
     // log.debug("Initializing PanZoomConfigService");

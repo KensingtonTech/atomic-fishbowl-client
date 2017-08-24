@@ -3,7 +3,6 @@ import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
 import { User } from './user';
-import 'rxjs/add/operator/takeWhile';
 declare var log: any;
 
 @Component({
@@ -49,14 +48,14 @@ export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {
 
   public id = 'confirm-user-delete-modal';
   public user: User;
-  private alive = true;
+  private userToDeleteSubscription: any;
 
   ngOnInit(): void {
-    this.toolService.userToDelete.takeWhile(() => this.alive).subscribe( (u: User) => {this.user = u;} );
+    this.userToDeleteSubscription = this.toolService.userToDelete.subscribe( (u: User) => { this.user = u; });
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.userToDeleteSubscription.unsubscribe();
   }
 
   confirmDelete(): void {
@@ -64,17 +63,12 @@ export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {
     this.closeModal();
   }
 
-  cancelDelete() : void {
+  cancelDelete(): void {
     this.modalService.close(this.id);
   }
 
   closeModal(): void {
     this.modalService.close(this.id);
   }
-
-  /*keyDownFunction(event: any): void {
-    log.debug(event.keyCode);
-  }
-  */
 
 }

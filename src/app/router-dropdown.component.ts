@@ -2,8 +2,6 @@ import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementR
 import { Router } from '@angular/router';
 import { ToolService } from './tool.service';
 declare var log: any;
-// import * as $ from 'jquery';
-// declare var $: any;
 
 @Component({
   selector: 'router-dropdown',

@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
-import 'rxjs/add/operator/takeWhile';
 declare var log: any;
 
 @Component({
@@ -56,14 +55,14 @@ export class DownloadFileConfirmModalComponent implements OnInit, OnDestroy {
 
   public id = 'downloadfile-confirm-modal';
   public file: string;
-  private alive = true;
+  private fileToDownloadSubscription: any;
 
   ngOnInit(): void {
-    this.toolService.fileToDownload.takeWhile(() => this.alive).subscribe( (f: string) => { this.file = f; });
+    this.fileToDownloadSubscription = this.toolService.fileToDownload.subscribe( (f: string) => { this.file = f; });
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.fileToDownloadSubscription.unsubscribe();
   }
 
   confirm(): void {
@@ -84,10 +83,5 @@ export class DownloadFileConfirmModalComponent implements OnInit, OnDestroy {
     let match = RE.exec(s);
     return match[0];
   }
-
-  /*keyDownFunction(event: any): void {
-    log.debug(event.keyCode);
-  }
-  */
 
 }

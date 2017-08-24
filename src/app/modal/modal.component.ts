@@ -2,8 +2,6 @@
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
-// import * as $ from 'jquery';
-// declare var $: any;
 declare var log: any;
 
 @Component({
@@ -23,11 +21,11 @@ declare var log: any;
 
 export class ModalComponent implements OnInit, OnDestroy {
     @Input() id: string;
-    @Input() private escapeEnabled: boolean = true; //pass escapeEnabled="false" to <modal> to disable escape
+    @Input() private escapeEnabled = true; // pass escapeEnabled="false" to <modal> to disable escape
     private element: JQuery;
-    public enabledTrigger: string = 'disabled';
-    @Output('cancelled') cancelledEventEmitter: EventEmitter<void> = new EventEmitter<void>();
-    @Output('opened') openedEventEmitter: EventEmitter<void> = new EventEmitter<void>();
+    public enabledTrigger = 'disabled';
+    @Output() cancelled: EventEmitter<void> = new EventEmitter<void>();
+    @Output() opened: EventEmitter<void> = new EventEmitter<void>();
 
     constructor(  private modalService: ModalService,
                   private el: ElementRef,
@@ -35,11 +33,11 @@ export class ModalComponent implements OnInit, OnDestroy {
                                                                     this.element = $(el.nativeElement);
                                                                   }
 
-    @HostListener('window:keydown',['$event']) onEscape(event: KeyboardEvent ) {
-      //log.debug("keyup event:", event);
+    @HostListener('window:keydown', ['$event']) onEscape(event: KeyboardEvent ) {
+      // log.debug("keyup event:", event);
       event.stopPropagation();
       if (event.key === 'Escape' && this.enabledTrigger === 'enabled' && this.escapeEnabled === true) {
-        this.cancelledEventEmitter.emit();
+        this.cancelled.emit();
         this.close();
       }
     }
@@ -49,7 +47,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
         // ensure id attribute exists
         if (!this.id) {
-            log.error('modal must have an id');
+            log.error('ModalComponent: ngOnInit(): Modal must have an id');
             return;
         }
 
@@ -69,7 +67,6 @@ export class ModalComponent implements OnInit, OnDestroy {
         // add self (this modal instance) to the modal service so it's accessible from controllers
         this.modalService.add(this);
 
-        //this.window.addEventListener('keydown', (event: any) => { if (event.key === 'Escape' && this.enabledTrigger === 'enabled') {this.close();} });
     }
 
     // remove self from modal service when directive is destroyed
@@ -85,15 +82,13 @@ export class ModalComponent implements OnInit, OnDestroy {
         this.enabledTrigger = 'enabled';
         this.changeDetectionRef.markForCheck();
         this.changeDetectionRef.detectChanges();
-        this.openedEventEmitter.emit();
+        this.opened.emit();
     }
 
     // close modal
     close(): void {
         this.enabledTrigger = 'disabled';
         this.changeDetectionRef.markForCheck();
-        //this.element.hide();
-        //$('body').removeClass('modal-open');
         setTimeout( () => {this.element.hide(); $('body').removeClass('modal-open'); }, 250);
 
     }

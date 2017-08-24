@@ -6,7 +6,6 @@ import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
 declare var moment: any;
 declare var log: any;
-import 'rxjs/add/operator/takeWhile';
 
 /*
 declare global {
@@ -96,7 +95,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
-  private alive = true;
   private enabledTrigger: string;
   public collectionFormDisabled = false;
 
@@ -164,54 +162,57 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public displayCustomTimeframeSelector = false;
   private firstRun = true;
 
+  private preferencesChangedSubscription: any;
+
 
   ngOnInit(): void {
     this.getNwServers();
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
-                                                                      log.debug('AddCollectionModalComponent: prefs observable: ', prefs);
-                                                                      this.preferences = prefs;
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
+      log.debug('AddCollectionModalComponent: prefs observable: ', prefs);
+      this.preferences = prefs;
 
-                                                                      // We can update this every time
-                                                                      if ( 'defaultNwQuery' in prefs ) {
-                                                                        this.defaultColQuery = prefs.defaultNwQuery;
-                                                                        // this.collectionFormModel.query = prefs.defaultNwQuery;
-                                                                      }
+      // We can update this every time
+      if ( 'defaultNwQuery' in prefs ) {
+        this.defaultColQuery = prefs.defaultNwQuery;
+        // this.collectionFormModel.query = prefs.defaultNwQuery;
+      }
 
-                                                                      if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone
-                                                                        if ( 'defaultQuerySelection' in prefs ) {
-                                                                          for (let q = 0; q < this.queryList.length; q++) {
-                                                                            if (this.queryList[q].text === prefs.defaultQuerySelection) {
-                                                                              setTimeout(() => this.selectedQuery = this.queryList[q]); // changes the query in the query select box dropdown
-                                                                              this.collectionFormModel.query = this.queryList[q].queryString; // changes the query string in the query string input
-                                                                              break;
-                                                                            }
-                                                                          }
-                                                                        }
-                                                                        if ( 'minX' in prefs && 'minY' in prefs ) {
-                                                                          this.collectionFormModel.minX = prefs.minX;
-                                                                          this.collectionFormModel.minY = prefs.minY;
-                                                                        }
-                                                                        if ( 'defaultImageLimit' in prefs ) {
-                                                                          this.collectionFormModel.imageLimit = prefs.defaultImageLimit;
-                                                                        }
-                                                                        if ( 'defaultRollingHours' in prefs ) {
-                                                                          this.collectionFormModel.lastHours = prefs.defaultRollingHours;
-                                                                        }
-                                                                        if ( 'defaultNwQuery' in prefs ) {
-                                                                          // this.defaultColQuery = prefs.defaultNwQuery;
-                                                                          this.collectionFormModel.query = prefs.defaultNwQuery; // changes the query string in the query string input
-                                                                        }
-                                                                      }
+      if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone
+        if ( 'defaultQuerySelection' in prefs ) {
+          for (let q = 0; q < this.queryList.length; q++) {
+            if (this.queryList[q].text === prefs.defaultQuerySelection) {
+              setTimeout(() => this.selectedQuery = this.queryList[q]); // changes the query in the query select box dropdown
+              this.collectionFormModel.query = this.queryList[q].queryString; // changes the query string in the query string input
+              break;
+            }
+          }
+        }
+        if ( 'minX' in prefs && 'minY' in prefs ) {
+          this.collectionFormModel.minX = prefs.minX;
+          this.collectionFormModel.minY = prefs.minY;
+        }
+        if ( 'defaultImageLimit' in prefs ) {
+          this.collectionFormModel.imageLimit = prefs.defaultImageLimit;
+        }
+        if ( 'defaultRollingHours' in prefs ) {
+          this.collectionFormModel.lastHours = prefs.defaultRollingHours;
+        }
+        if ( 'defaultNwQuery' in prefs ) {
+          // this.defaultColQuery = prefs.defaultNwQuery;
+          this.collectionFormModel.query = prefs.defaultNwQuery; // changes the query string in the query string input
+        }
+      }
 
 
-                                                                      this.firstRun = false;
-                                                                      this.changeDetectionRef.markForCheck();
-                                                                    });
+      this.firstRun = false;
+      this.changeDetectionRef.markForCheck();
+    });
+
     this.dataService.getPreferences();
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.preferencesChangedSubscription.unsubscribe();
   }
 
   querySelected(e: any): void {

@@ -1,7 +1,6 @@
-import { Component, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, ViewChild, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, ViewChild, Input, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
-import 'rxjs/add/operator/takeWhile';
 declare var log: any;
 
 @Component( {
@@ -13,14 +12,12 @@ declare var log: any;
       <div style="flex-grow: 1; overflow: auto;">
 
         <div *ngIf="!showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
-          <table *ngIf="blip" class="wrap" style="width: 100%; table-layout: fixed;">
+          <table class="wrap" style="width: 100%; table-layout: fixed;">
             <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
             <tr *ngFor="let key of displayedKeys">
               <td class="metalabel">{{key}}</td>
               <td>
-                <ul-accordion *ngIf="meta[key]" class="metavalue">
-                  <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-                </ul-accordion>
+                <meta-accordion *ngIf="meta[key]" class="metavalue" [items]="meta[key]"></meta-accordion>
                 <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
               </td>
             </tr>
@@ -28,14 +25,12 @@ declare var log: any;
         </div>
 
         <div *ngIf="showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
-          <table *ngIf="blip" class="wrap" style="width: 100%; table-layout: fixed;">
+          <table class="wrap" style="width: 100%; table-layout: fixed;">
             <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | fromEpoch}}</td></tr>
             <tr *ngFor="let key of getMetaKeys()">
               <td class="metalabel">{{key}}</td>
               <td>
-                <ul-accordion class="metavalue">
-                  <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-                </ul-accordion>
+                <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
               </td>
             </tr>
           </table>
@@ -49,7 +44,7 @@ declare var log: any;
 
 })
 
-export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
+export class SessionWidgetComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private changeDetectionRef: ChangeDetectorRef,
@@ -57,12 +52,10 @@ export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
               private toolService: ToolService ) {}
 
   @Input('sessionId') sessionId: number;
-  private alive = true;
   public showAll = false;
 
   private sessions: any;
   public meta: any;
-  private blip = false;
   private preferences: any;
   private deviceNumber: number;
   private displayedKeys: any =  [
@@ -81,36 +74,39 @@ export class SessionWidgetComponent implements OnInit, OnDestroy, OnChanges {
     'client'
   ];
 
+  // Subscriptions
+  private sessionsChangedSubscription: any;
+  private sessionPublishedSubscription: any;
+  private preferencesChangedSubscription: any;
+  private deviceNumberSubscription: any;
+
   ngOnInit(): void {
-    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { // log.debug("sessionsChanged", s);
+    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => { // log.debug("sessionsChanged", s);
       this.sessions = s;
     });
 
-    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  // log.debug("sessionPublished", s);
+    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {  // log.debug("sessionPublished", s);
       let sessionId = s.id;
       this.sessions[sessionId] = s;
     });
 
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
       this.preferences = prefs;
       if ( 'displayedKeys' in prefs ) {
         this.displayedKeys = prefs.displayedKeys;
       }
     });
 
-    this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+    this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
 
     this.dataService.getPreferences();
   }
 
   ngOnDestroy() {
-    this.alive = false;
-  }
-
-  ngOnChanges(e: any): void {
-    if (e.sessionId && 'currenvValue' in e.sessionId) {
-
-    }
+    this.sessionsChangedSubscription.unsubscribe();
+    this.sessionPublishedSubscription.unsubscribe();
+    this.preferencesChangedSubscription.unsubscribe();
+    this.deviceNumberSubscription.unsubscribe();
   }
 
   getMetaKeys(): any {

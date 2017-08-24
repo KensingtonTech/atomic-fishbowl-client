@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { NgStyle } from '@angular/common';
-// import { MasonryOptions } from 'angular2-masonry';
 import { ToolService } from './tool.service';
 declare var log: any;
 
@@ -158,8 +157,6 @@ export class MasonryTileComponent implements OnChanges {
   @Input() private masonryKeys: any;
   @Input() public masonryColumnSize: number;
   private originalSession: any; // Session data that hasn't been de-duped
-  @Output() public openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
-  @Output() private openSessionDetails: EventEmitter<any> = new EventEmitter<any>();
   private enabledTrigger = 'disabled';
   private data: any = {}; // prevent opening pdf modal if dragging the view
 /*
@@ -185,21 +182,17 @@ export class MasonryTileComponent implements OnChanges {
   onClick(e: any): void {
     // log.debug("onClick")
     // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
+
+    this.toolService.newSession.next(this.originalSession);
+    this.toolService.newImage.next(this.content);
+
     if (this.content.contentType === 'pdf') {
       // log.debug("display pdf");
-      // log.debug("emitting openPDFViewerEmitter")
-      this.toolService.newSession.next(this.originalSession);
-      this.toolService.newImage.next(this.content);
-
-      // this.openPDFViewer.emit( { pdfFile: this.content.contentFile, session: this.session, content: this.content } );
-      this.openPDFViewer.emit();
+      this.toolService.openPDFViewer.next();
     }
     else {
       // log.debug("display pdf");
-      // log.debug("emitting openPDFViewer")
-      this.toolService.newSession.next(this.originalSession);
-      this.toolService.newImage.next(this.content);
-      this.openSessionDetails.emit();
+      this.toolService.openSessionViewer.next();
     }
   }
 

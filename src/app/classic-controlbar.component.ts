@@ -1,5 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, Input } from '@angular/core';
-import { PanZoomApiService } from './panzoom/panzoom-api.service';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input } from '@angular/core';
 declare var log: any;
 
 @Component({
@@ -25,17 +24,26 @@ declare var log: any;
   `]
 })
 
-export class ClassicControlBarComponent implements OnInit {
+export class ClassicControlBarComponent implements OnInit, OnDestroy {
 
-  constructor(private panZoomApiService: PanZoomApiService ) {}
+  constructor() {}
 
   @Input() canvasWidth: number;
   @Input() initialZoomHeight: number;
+  @Input() panzoomConfig: any;
   private panZoomAPI: any;
+  private newApiSubscription: any;
 
   ngOnInit(): void {
     log.debug('ClassicControlBarComponent: OnInit');
-    this.panZoomApiService.getAPI('abc').then( (v: any) => { this.panZoomAPI = v; });
+    this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: any) => {
+      log.debug('ClassicControlBarComponent: newApiSubscription: Got new API');
+      this.panZoomAPI = api;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.newApiSubscription.unsubscribe();
   }
 
   zoomIn(): void {

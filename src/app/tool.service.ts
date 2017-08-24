@@ -1,5 +1,6 @@
 import { Injectable, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 declare var log: any;
 
 @Injectable()
@@ -9,7 +10,7 @@ export class ToolService {
   public searchTermsChanged: Subject<any> = new Subject<any>();
   public searchBarOpen: Subject<any> = new Subject<any>();
   public maskChanged: Subject<any> = new Subject<any>();
-  public deviceNumber: Subject<any> = new Subject<any>();
+  public deviceNumber: BehaviorSubject<any> = new BehaviorSubject<any>(0);
   public contentCount: Subject<any> = new Subject<any>();
   public getCollectionDataAgain: Subject<any> = new Subject<any>();
   public changingCollections: Subject<any> = new Subject<any>();
@@ -28,4 +29,6 @@ export class ToolService {
   public confirmDownloadFile: Subject<any> = new Subject<any>();
   public sessionId: Subject<any> = new Subject<any>();
   public HttpJsonStreamServiceConnected: Subject<any> = new Subject<any>();
+  public openPDFViewer: Subject<any> = new Subject<any>();
+  public openSessionViewer: Subject<any> = new Subject<any>();
 }

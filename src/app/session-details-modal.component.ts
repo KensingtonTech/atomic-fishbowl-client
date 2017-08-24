@@ -1,13 +1,12 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, OnChanges, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 declare var log: any;
-import 'rxjs/add/operator/takeWhile';
 
 @Component({
   selector: 'session-details-modal',
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   // encapsulation: ViewEncapsulation.None,
   // {{meta.time | fromEpoch}}
   template: `
@@ -99,30 +98,26 @@ import 'rxjs/add/operator/takeWhile';
         <div style="width: 100%; height: 100%; overflow: hidden;" *ngIf="sessionId && meta">
           <h3 style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
 
-          <div *ngIf="!showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+          <div *ngIf="!showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
               <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
               <tr *ngFor="let key of displayedKeys">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <ul-accordion class="metavalue" *ngIf="meta[key]">
-                    <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-                  </ul-accordion>
+                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]"></meta-accordion>
                   <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                 </td>
               </tr>
             </table>
           </div>
 
-          <div *ngIf="showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+          <div *ngIf="showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
               <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
               <tr *ngFor="let key of getMetaKeys()">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <ul-accordion class="metavalue">
-                    <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-                  </ul-accordion>
+                  <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
                 </td>
               </tr>
             </table>
@@ -176,14 +171,13 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
-              private toolService: ToolService ) {}
+              private toolService: ToolService,
+              private changeDetectionRef: ChangeDetectorRef ) {}
 
   @Input('id') public id: string;
   @Input('apiServerUrl') apiServerUrl: string;
 
   public showAll = false;
-  private alive = true;
-  private blip = true;
   public content: any;
   private session: any;
   public meta: any;
@@ -193,51 +187,68 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   private preferences: any;
   private deviceNumber: number;
   private displayedKeys: any =  [
-                                  'size',
-                                  'service',
-                                  'ip.src',
-                                  'ip.dst',
-                                  'alias.host',
-                                  'city.dst',
-                                  'country.dst',
-                                  'action',
-                                  'content',
-                                  'ad.username.src',
-                                  'ad.computer.src',
-                                  'filename',
-                                  'client'
-                                ]; // these are just defaults in case we can't get them from prefs
+    // these are just defaults in case we can't get them from prefs
+    'size',
+    'service',
+    'ip.src',
+    'ip.dst',
+    'alias.host',
+    'city.dst',
+    'country.dst',
+    'action',
+    'content',
+    'ad.username.src',
+    'ad.computer.src',
+    'filename',
+    'client'
+  ];
+
+  // Subscriptions
+  private deviceNumberSubscription: any;
+  private preferencesChangedSubscription: any;
+  private newSessionSubscription: any;
+  private newImageSubscription: any;
+
 
   ngOnInit(): void {
     log.debug('SessionDetailsModalComponent: ngOnInit()');
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {
                                                                       // log.debug("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
+                                                                        this.changeDetectionRef.markForCheck();
                                                                       }
                                                                     });
-    this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+    this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => {
+      this.deviceNumber = $event.deviceNumber;
+      this.changeDetectionRef.markForCheck();
+    });
+
     this.dataService.getPreferences();
 
-    this.toolService.newSession.takeWhile(() => this.alive).subscribe( (session: any) => {
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
       log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
       this.meta = session.meta;
-      this.blip = true;
+      this.changeDetectionRef.markForCheck();
     });
 
-    this.toolService.newImage.takeWhile(() => this.alive).subscribe( (content: any) => {
+    this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => {
       log.debug('SessionDetailsModalComponent: newcontentSubscription: Got new content:', content);
       this.content = content;
       this.sessionId = this.content.session;
+      this.changeDetectionRef.markForCheck();
       // this.pdfFile = this.content.contentFile;
       // this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
     });
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.preferencesChangedSubscription.unsubscribe();
+    this.deviceNumberSubscription.unsubscribe();
+    this.newSessionSubscription.unsubscribe();
+    this.newImageSubscription.unsubscribe();
   }
 
   getMetaKeys(): any {
@@ -255,13 +266,11 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   opened(): void {
     this.dataService.getPreferences();
     this.isOpen = true;
-    setTimeout( () => this.blip = true );
   }
 
   cancelled(): void {
     log.debug('SessionDetailsModalComponent: cancelled()');
     this.modalService.close(this.id);
-    setTimeout( () => this.blip = false );
     this.isOpen = false;
   }
 

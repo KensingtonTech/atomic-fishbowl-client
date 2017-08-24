@@ -43,8 +43,7 @@ import { ClassicSessionPopupComponent } from './classic-session-popup.component'
 import { PdfViewerComponent } from 'ng2-pdf-viewer';
 import { PdfViewerModalComponent } from './pdfviewer-modal.component';
 import { ClassicTileComponent } from './classic-tile.component';
-import { AccordionLIComponent } from './accordion-li.component';
-import { AccordionULComponent } from './accordion-ul.component';
+import { MetaAccordionComponent } from './meta-accordion.component';
 import { RouterDropdownComponent } from './router-dropdown.component';
 import { MasonryTileComponent } from './masonry-tile.component';
 import { SessionDetailsModalComponent } from './session-details-modal.component';
@@ -52,6 +51,9 @@ import { DeleteUserConfirmModalComponent } from './deleteuser-confirm-modal.comp
 import { ServerDownModalComponent } from './serverdown-modal.component';
 import { LoginComponent } from './login.component';
 import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.component';
+
+// Not yet used but imported to prevent compiler error
+import { SessionWidgetComponent } from './session-widget.component';
 
 // Other
 // import 'hammerjs'; // required for Material gesture support.  Not sure that we need it but including for now.
@@ -106,8 +108,7 @@ import * as $ from 'jquery';
                   ClassicControlBarComponent,
                   PreferencesModalComponent,
                   ToggleFullscreenDirective,
-                  AccordionULComponent,
-                  AccordionLIComponent,
+                  MetaAccordionComponent,
                   ClassicTileComponent,
                   PdfViewerComponent,
                   PdfViewerModalComponent,
@@ -121,7 +122,8 @@ import * as $ from 'jquery';
                   ManageUsersModalComponent,
                   DeleteUserConfirmModalComponent,
                   ServerDownModalComponent,
-                  DownloadFileConfirmModalComponent
+                  DownloadFileConfirmModalComponent,
+                  SessionWidgetComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

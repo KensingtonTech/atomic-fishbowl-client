@@ -5,7 +5,6 @@ import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 declare var log: any;
-import 'rxjs/add/operator/takeWhile';
 
 @Component({
   selector: 'pdf-viewer-modal',
@@ -55,30 +54,26 @@ import 'rxjs/add/operator/takeWhile';
         <div style="width: 100%; height: 100%; overflow: hidden;" *ngIf="sessionId && meta">
           <h3 style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
 
-          <div *ngIf="!showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+          <div *ngIf="!showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
               <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
               <tr *ngFor="let key of displayedKeys">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <ul-accordion class="metavalue" *ngIf="meta[key]">
-                    <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-                  </ul-accordion>
+                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]"></meta-accordion>
                   <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                 </td>
               </tr>
             </table>
           </div>
 
-          <div *ngIf="showAll && blip" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
+          <div *ngIf="showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
               <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
               <tr *ngFor="let key of getMetaKeys()">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <ul-accordion class="metavalue">
-                    <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-                  </ul-accordion>
+                  <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
                 </td>
               </tr>
             </table>
@@ -128,7 +123,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   @Input('apiServerUrl') apiServerUrl: string;
 
   public showAll = false;
-  private alive = true;
   private pdfFile: string;
   private pdfFilename: string;
   private page = 1;
@@ -143,7 +137,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   private deviceNumber: number;
   public content: any;
   private rotation = 0;
-  private blip = true;
   public pdfZoom = 1;
   /*public zoomLevels = [ {text: '25%', value: .25}, // the way it should be
                         {text: '50%', value: .5},
@@ -155,49 +148,58 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
                         {text: '200%', value: 2}
                       ];
 */
-  public zoomLevels = [ {text: '25%', value: 1.75}, // this is ass-backwards thanks to a bug in the library https://github.com/VadimDez/ng2-pdf-viewer/issues/95
-                        {text: '50%', value: 1.5},
-                        {text: '75%', value: 1.25},
-                        {text: '100%', value: 1},
-                        {text: '125%', value: 0.75},
-                        {text: '150%', value: 0.5},
-                        {text: '175%', value: 0.25},
-                        {text: '200%', value: 0}
-                      ];
+  public zoomLevels = [
+    {text: '25%', value: 1.75}, // this is ass-backwards thanks to a bug in the library https://github.com/VadimDez/ng2-pdf-viewer/issues/95
+    {text: '50%', value: 1.5},
+    {text: '75%', value: 1.25},
+    {text: '100%', value: 1},
+    {text: '125%', value: 0.75},
+    {text: '150%', value: 0.5},
+    {text: '175%', value: 0.25},
+    {text: '200%', value: 0}
+  ];
   private displayedKeys: any =  [
-                                  'size',
-                                  'service',
-                                  'ip.src',
-                                  'ip.dst',
-                                  'alias.host',
-                                  'city.dst',
-                                  'country.dst',
-                                  'action',
-                                  'content',
-                                  'ad.username.src',
-                                  'ad.computer.src',
-                                  'filename',
-                                  'client'
-                                ]; // these are just defaults in case we can't get them from prefs
+    'size',
+    'service',
+    'ip.src',
+    'ip.dst',
+    'alias.host',
+    'city.dst',
+    'country.dst',
+    'action',
+    'content',
+    'ad.username.src',
+    'ad.computer.src',
+    'filename',
+    'client'
+  ]; // these are just defaults in case we can't get them from prefs
+
+  // Subscriptions
+  private preferencesChangedSubscription: any;
+  private deviceNumberSubscription: any;
+  private newSessionSubscription: any;
+  private newImageSubscription: any;
+  private confirmDownloadFileSubscription: any;
 
   ngOnInit(): void {
     log.debug('PdfViewerModalComponent: ngOnInit()');
-    this.dataService.preferencesChanged.takeWhile( () => this.alive ).subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
-                                                                      this.preferences = prefs;
-                                                                      if ( 'displayedKeys' in prefs ) {
-                                                                        this.displayedKeys = prefs.displayedKeys;
-                                                                      }
-                                                                    });
-    this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => { 
+      // log.debug("prefs observable: ", prefs);
+      this.preferences = prefs;
+      if ( 'displayedKeys' in prefs ) {
+        this.displayedKeys = prefs.displayedKeys;
+      }
+    });
+    this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
     this.dataService.getPreferences();
 
-    this.toolService.newSession.takeWhile(() => this.alive).subscribe( (session: any) => {
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
       log.debug('PdfViewerModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
       this.meta = session.meta;
     });
 
-    this.toolService.newImage.takeWhile(() => this.alive).subscribe( (content: any) => {
+    this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => {
       log.debug('PdfViewerModalComponent: newImageSubscription: Got new content:', content);
       this.content = content;
       this.sessionId = this.content.session;
@@ -205,11 +207,15 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       // this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
     });
 
-    this.toolService.confirmDownloadFile.takeWhile(() => this.alive).subscribe( (f: string) => this.downloadConfirmed(f) );
+    this.confirmDownloadFileSubscription = this.toolService.confirmDownloadFile.subscribe( (f: string) => this.downloadConfirmed(f) );
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.preferencesChangedSubscription.unsubscribe();
+    this.deviceNumberSubscription.unsubscribe();
+    this.newSessionSubscription.unsubscribe();
+    this.newImageSubscription.unsubscribe();
+    this.confirmDownloadFileSubscription.unsubscribe();
   }
 
   getMetaKeys(): any {
@@ -226,12 +232,10 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
   opened(): void {
     this.isOpen = true;
-    setTimeout( () => this.blip = true );
   }
 
   cancelled(): void {
     this.modalService.close(this.id);
-    setTimeout( () => this.blip = false );
     this.isOpen = false;
   }
 

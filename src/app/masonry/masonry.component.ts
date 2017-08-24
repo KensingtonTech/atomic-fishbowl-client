@@ -85,8 +85,9 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   public destroyMe(): void {
     log.debug('MasonryComponent: destroyMe():  Manually destroying isotope');
     if (this.isotope) {
-      // this.ngZone.runOutsideAngular( () => this.isotope.destroy() );
-      this.isotope = undefined;
+      this.ngZone.runOutsideAngular( () => { this.isotope.off( 'layoutComplete', () => this.toolService.layoutComplete.next() ); } );
+      this.ngZone.runOutsideAngular( () => this.isotope.destroy() );
+      // this.isotope = undefined;
       this.isDestroyed = true;
     }
   }
@@ -121,17 +122,31 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     }
     */
 
+    if (this.loadAllBeforeLayout) {
+      // complete fixed collections - let all images load before calling layout (done with imagesLoaded run from ngAfterContentInit)
+      log.debug('MasonryComponent: add(): Adding element without layout (complete fixed collections)');
+      this.el.nativeElement.appendChild(element);
+
+      this.ngZone.runOutsideAngular( () => this.isotope.addItems(element) );
+      // this.ngZone.runOutsideAngular( () => this.isotope.insert(element) );
+      // this.ngZone.runOutsideAngular( () => this.isotope.arrange() );
+      // this.changeDetectionRef.markForCheck();
+    }
+
+
     if (!this.loadAllBeforeLayout) {
-      // rolling/monitoring/still-building-fixed collections - we will append each image to the view, only calling layout after the first item
+      // rolling/monitoring/still-building-fixed collections - we will append each image to the view, only calling layout after every item has loaded
       log.debug('MasonryComponent: add(): Appending element with layout (rolling/monitoring/still-building-fixed collections)');
+
       imagesLoaded(element, (instance: any) => {
-        this.el.nativeElement.appendChild(element); // add brick to shadow dom
+        // this.el.nativeElement.appendChild(element); // add brick to shadow dom
 
         // Tell Isotope that a child brick has been added
         this.ngZone.runOutsideAngular( () => this.isotope.insert(element) );
+        // this.ngZone.runOutsideAngular( () => this.isotope.addItems(element) ); // this will only layout the new item
         // this.ngZone.runOutsideAngular( () => this.isotope.appended(element) ); // this will only layout the new item
         // this.ngZone.runOutsideAngular( () => this.isotope.prepended(element) );
-        this.changeDetectionRef.markForCheck();
+        // this.changeDetectionRef.markForCheck(); // we don't need this as we run it after layout anyway
 
         // layout if first item
         // I don't think we need this code now.  It seems to work perfectly well without it
@@ -141,28 +156,24 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
       });
     }
 
-    else {
-      // complete fixed collections - let all images load before calling layout (done with imagesLoaded run from ngAfterContentInit)
-      log.debug('MasonryComponent: add(): Adding element without layout (complete fixed collections)');
-      this.el.nativeElement.appendChild(element);
-      this.ngZone.runOutsideAngular( () => this.isotope.addItems(element) );
-      // this.ngZone.runOutsideAngular( () => this.isotope.insert(element) );
-      this.ngZone.runOutsideAngular( () => this.isotope.arrange() );
-      this.changeDetectionRef.markForCheck();
-    }
+
 
   }
 
 
 
   public remove(element: HTMLElement) {
+    log.debug('MasonryComponent: remove()');
+    this.el.nativeElement.remove(element); // remove brick from shadow dom
+
     // Tell Isotope that a child brick has been removed
     if (!this.isDestroyed ) {
-      log.debug('MasonryComponent: remove(): removing brick:', element);
-      this.el.nativeElement.remove(element); // remove brick from shadow dom
+      // log.debug('MasonryComponent: remove(): removing brick:', element);
+      log.debug('MasonryComponent: remove(): removing brick:');
       this.ngZone.runOutsideAngular( () => this.isotope.remove(element)); // tell isotope that the brick has been removed
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
+      // this.el.nativeElement.remove(element); // remove brick from shadow dom
+      // this.changeDetectionRef.detectChanges();
+      // this.changeDetectionRef.markForCheck();
       // Layout bricks
       this.layout();
     }

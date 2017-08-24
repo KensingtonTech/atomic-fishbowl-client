@@ -10,12 +10,12 @@ import { ModalService } from './modal/modal.service';
 import { MasonryOptions } from './masonry/masonry-options';
 import { MasonryComponent } from './masonry/masonry.component';
 import { ContentMask } from './contentmask';
-import 'rxjs/add/operator/takeWhile';
 declare var log: any;
 
 @Component({
   selector: 'masonry-grid-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()"
   template: `
 <div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px; background-color: black;">
   <div style="position: absolute; left: 0; width: 100px; height: 100%;">
@@ -28,7 +28,7 @@ declare var log: any;
   <div class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
     <div *ngIf="!destroyView">
       <masonry #masonry tabindex="-1" class="grid" *ngIf="content && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [filter]="filter" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
-        <masonry-tile *ngFor="let item of content" masonry-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [apiServerUrl]="apiServerUrl" (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()" [session]="sessions[item.session]" [attr.contentFile]="item.contentFile" [attr.id]="item.id" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
+        <masonry-tile *ngFor="let item of content" masonry-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [attr.contentFile]="item.contentFile" [attr.id]="item.id" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
       </masonry>
     </div>
     <div class="scrollTarget"></div>
@@ -64,7 +64,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('masonry') masonryRef: QueryList<any>;
   @ViewChild(MasonryComponent) private masonryComponentRef: MasonryComponent;
   public apiServerUrl: string = '//' + window.location.hostname;
-  //private deviceNumber: number;
 
   private search: any = []; // 'search' is an array containing text extracted from PDF's which can be searched
   private content: Content[] = [];
@@ -98,7 +97,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadAllBeforeLayout = true;
   private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
   private masonryKeys: any;
-  private alive = true;
   private autoScrollStarted = false;
   private autoScrollAnimationRunning = false; // this tracks autoscroller state
   private lastMask = new ContentMask;
@@ -106,9 +104,52 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private searchBarOpen = false;
   private collectionState = '';
 
+  // Subscription holders
+  private searchBarOpenSubscription: any;
+  private caseSensitiveSearchChangedSubscription: any;
+  private searchTermsChangedSubscription: any;
+  private maskChangedSubscription: any;
+  private noCollectionsSubscription: any;
+  private selectedCollectionChangedSubscription: any;
+  private collectionStateChangedSubscription: any;
+  private sessionsChangedSubscription: any;
+  private sessionPublishedSubscription: any;
+  private contentChangedSubscription: any;
+  private contentPublishedSubscription: any;
+  private searchChangedSubscription: any;
+  private searchPublishedSubscription: any;
+  private sessionsPurgedSubscription: any;
+  private routerEventsSubscription: any;
+  private preferencesChangedSubscription: any;
+  private scrollToBottomSubscription: any;
+  private stopScrollToBottomSubscription: any;
+  private layoutCompleteSubscription: any;
+  private openPDFViewerSubscription: any;
+  private openSessionViewerSubscription: any;
+
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
-    this.alive = false;
+    this.searchBarOpenSubscription.unsubscribe();
+    this.caseSensitiveSearchChangedSubscription.unsubscribe();
+    this.searchTermsChangedSubscription.unsubscribe();
+    this.maskChangedSubscription.unsubscribe();
+    this.noCollectionsSubscription.unsubscribe();
+    this.selectedCollectionChangedSubscription.unsubscribe();
+    this.collectionStateChangedSubscription.unsubscribe();
+    this.sessionsChangedSubscription.unsubscribe();
+    this.sessionPublishedSubscription.unsubscribe();
+    this.contentChangedSubscription.unsubscribe();
+    this.contentPublishedSubscription.unsubscribe();
+    this.searchChangedSubscription.unsubscribe();
+    this.searchPublishedSubscription.unsubscribe();
+    this.sessionsPurgedSubscription.unsubscribe();
+    this.routerEventsSubscription.unsubscribe();
+    this.preferencesChangedSubscription.unsubscribe();
+    this.scrollToBottomSubscription.unsubscribe();
+    this.stopScrollToBottomSubscription.unsubscribe();
+    this.layoutCompleteSubscription.unsubscribe();
+    this.openPDFViewerSubscription.unsubscribe();
+    this.openSessionViewerSubscription.unsubscribe();
   }
 
   ngOnInit(): void {
@@ -120,11 +161,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Take subscriptions
 
-    this.toolService.searchBarOpen.takeWhile(() => this.alive).subscribe( (state: boolean) => {
+    this.searchBarOpenSubscription = this.toolService.searchBarOpen.subscribe( (state: boolean) => {
       this.searchBarOpen = state;
     });
 
-    this.router.events.takeWhile(() => this.alive).subscribe( (val: any) => {
+    this.routerEventsSubscription = this.router.events.subscribe( (val: any) => {
       // Take action to destroy masonry when we navigate away - saves us loads of time waiting for all the bricks to be removed and isotope to be destroyed
       // log.debug('MasonryGridComponent: routerEventSubscription: received val:', val);
       if (val instanceof NavigationStart) {
@@ -133,7 +174,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) =>  {
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
       this.masonryKeys = prefs.masonryKeys;
       // log.debug('masonryKeys:', this.masonryKeys)
       this.changeDetectionRef.detectChanges();
@@ -148,28 +189,30 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
         newMasonryOptions.masonry.columnWidth = this.masonryColumnSize;
         this.masonryOptions = newMasonryOptions;
       }
-      else {
+      /*else {
+        // not sure why I had this here - we only need to trigger layout when the column size changes
+        log.debug('MasonryGridComponent: preferencesChangedSubscription: calling layout');
         if (this.masonryComponentRef) { this.masonryComponentRef.layout(); } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
-      }
+      }*/
     });
 
-    this.toolService.caseSensitiveSearchChanged.takeWhile(() => this.alive).subscribe( () => this.toggleCaseSensitiveSearch() );
+    this.caseSensitiveSearchChangedSubscription = this.toolService.caseSensitiveSearchChanged.subscribe( () => this.toggleCaseSensitiveSearch() );
 
-    this.toolService.searchTermsChanged.takeWhile(() => this.alive).subscribe( ($event: any) => {
+    this.searchTermsChangedSubscription = this.toolService.searchTermsChanged.subscribe( ($event: any) => {
       if (this.autoScrollStarted) {
         this.stopAutoScroll();
       }
       this.searchTermsChanged($event);
     });
 
-    this.toolService.maskChanged.takeWhile(() => this.alive).subscribe( ($event: ContentMask) => {
+    this.maskChangedSubscription = this.toolService.maskChanged.subscribe( ($event: ContentMask) => {
       if (this.autoScrollStarted) {
         this.stopAutoScroll();
       }
       this.maskChanged($event);
      });
 
-    this.toolService.noCollections.takeWhile(() => this.alive).subscribe( () => {
+    this.noCollectionsSubscription = this.toolService.noCollections.subscribe( () => {
       log.debug('MasonryGridComponent: noCollectionsSubscription');
       if (this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); }
       this.destroyView = true;
@@ -180,7 +223,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.dataService.selectedCollectionChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
+    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: any) => {
       // this triggers when a user chooses a new collection
       log.debug('MasonryGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
       if (this.masonryComponentRef) {this.masonryComponentRef.destroyMe(); }
@@ -192,8 +235,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
       this.selectedCollectionType = collection.type;
+      this.collectionState = collection.state;
       this.collectionId = collection.id;
-      if (this.selectedCollectionType === 'monitoring' || this.selectedCollectionType === 'rolling' || ( this.selectedCollectionType === 'fixed' && this.collectionState === 'building' )) {
+      if (collection.type === 'monitoring' || collection.type === 'rolling' || ( collection.type === 'fixed' && collection.state === 'building' )) {
         this.loadAllBeforeLayout = false;
       }
       else {
@@ -201,7 +245,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    this.dataService.collectionStateChanged.takeWhile(() => this.alive).subscribe( (collection: any) => {
+    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => {
       // this triggers when a monitoring collection refreshes
       log.debug('MasonryGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
       this.collectionState = collection.state;
@@ -222,7 +266,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => {
+    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => {
       // when a whole new sessions collection is received
       log.debug('MasonryGridComponent: sessionsChangedSubscription: sessionsChanged:', s);
       this.sessionsDefined = true;
@@ -231,7 +275,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {
+    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {
       // when an individual session is pushed from a building collection (or monitoring or rolling)
       log.debug('MasonryGridComponent: sessionPublishedSubscription: sessionPublished', s);
       let sessionId = s.id;
@@ -239,7 +283,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.sessions[sessionId] = s;
     });
 
-    this.dataService.contentChanged.takeWhile(() => this.alive).subscribe( (i: any) => {
+    this.contentChangedSubscription = this.dataService.contentChanged.subscribe( (i: any) => {
        // when a whole new content collection is received
       log.debug('MasonryGridComponent: contentChangedSubscription: contentChanged:', i);
       if (i.length === 0 && this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); } // we need this when we remove the only collection and it is biggish.  Prevents performance issues
@@ -261,7 +305,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }, 50);
     });
 
-    this.dataService.contentPublished.takeWhile(() => this.alive).subscribe( (newContent: any) =>  {
+    this.contentPublishedSubscription = this.dataService.contentPublished.subscribe( (newContent: any) =>  {
       // when a content object is pushed from a still-building fixed, rolling, or monitoring collection
       log.debug('MasonryGridComponent: contentPublishedSubscription: contentPublished:', newContent);
 
@@ -289,7 +333,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.dataService.searchChanged.takeWhile(() => this.alive).subscribe( (s: any) =>  {
+    this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: any) =>  {
       // this receives complete search term data from complete collection
       this.search = s;
       log.debug('MasonryGridComponent: searchChangedSubscription: searchChanged:', this.search);
@@ -297,7 +341,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.dataService.searchPublished.takeWhile(() => this.alive).subscribe( (s: any) => { // this receives a partial search term data from a building collection
+    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: any) => { // this receives a partial search term data from a building collection
       log.debug('MasonryGridComponent: searchPublishedSubscription: searchPublished:', s);
       for (let i = 0; i < s.length; i++) {
         this.search.push(s[i]);
@@ -308,7 +352,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.dataService.sessionsPurged.takeWhile(() => this.alive).subscribe( (sessionsToPurge: number[]) =>  {
+    this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) =>  {
       log.debug('MasonryGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
       // log.debug("content", this.content);
       // log.debug("content length:",this.content.length);
@@ -358,19 +402,19 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
 
-    this.toolService.scrollToBottom.takeWhile(() => this.alive).subscribe( () => {
+    this.scrollToBottomSubscription = this.toolService.scrollToBottom.subscribe( () => {
       // runs autoScroller() when someone clicks the arrow button on the toolbar
       this.autoScrollStarted = true;
       this.autoScroller();
     });
 
-    this.toolService.stopScrollToBottom.takeWhile(() => this.alive).subscribe( () =>  {
+    this.stopScrollToBottomSubscription = this.toolService.stopScrollToBottom.subscribe( () =>  {
       // stops the autoScroller with stopAutoScrollerAnimation() when someone clicks the stop button on the toolbar
       this.autoScrollStarted = false;
       this.stopAutoScrollerAnimation();
     });
 
-    this.toolService.layoutComplete.takeWhile(() => this.alive).subscribe( () => {
+    this.layoutCompleteSubscription = this.toolService.layoutComplete.subscribe( () => {
       log.debug('MasonryGridComponent: layoutCompleteSubscription: layoutComplete');
       // log.debug(`MasonryGridComponent: layoutCompleteSubscription: lastWindowHeight: ${this.lastWindowHeight}`)
       let windowHeight = $('masonry').height();
@@ -379,7 +423,16 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
         this.autoScroller();
       }
       this.lastWindowHeight = windowHeight;
-      this.changeDetectionRef.markForCheck();
+      // this.changeDetectionRef.markForCheck();
+    });
+
+
+    this.openPDFViewerSubscription = this.toolService.openPDFViewer.subscribe( () => {
+      this.openPdfViewer();
+    });
+
+    this.openSessionViewerSubscription = this.toolService.openSessionViewer.subscribe( () => {
+      this.openSessionDetails();
     });
 
   }

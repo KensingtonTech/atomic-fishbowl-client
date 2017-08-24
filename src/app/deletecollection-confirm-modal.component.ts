@@ -40,7 +40,7 @@ export class DeleteCollectionConfirmModalComponent {
     this.closeModal();
   }
 
-  cancelDelete() : void {
+  cancelDelete(): void {
     this.modalService.close(this.id);
   }
 
@@ -48,8 +48,8 @@ export class DeleteCollectionConfirmModalComponent {
     this.modalService.close(this.id);
   }
 
-  keyDownFunction(event: any): void {
+  /*keyDownFunction(event: any): void {
     log.debug(event.keyCode);
-  }
+  }*/
 
 }

@@ -1,26 +1,34 @@
-import { Component, ChangeDetectorRef, AfterViewInit, ViewChild, ElementRef, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, Input, ViewEncapsulation } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 declare var log: any;
 
 @Component({
-  selector: 'ul-accordion',
+  selector: 'meta-accordion',
   encapsulation: ViewEncapsulation.None,
   template: `
-<div *ngIf="oneValue">
-  <a>{{headerText}}</a>
+
+<div *ngIf="items.length == 1">
+  {{items[0]}}
 </div>
-<div style="height: auto; overflow: hidden;" *ngIf="multiValues" (click)="toggleList()">
+
+<div *ngIf="items.length > 1" style="height: auto; overflow: hidden;" (click)="toggleList()">
+
   <div [class.hide]="hideHeader">
     <ul>
-      <li><span class="multiValues">{{headerText}}</span></li>
+      <li><span class="multiValues">{{items[0]}}</span></li>
     </ul>
   </div>
+
   <div [@slideInOut]="collapsed" style="display: none;">
     <ul #itemList>
-      <ng-content></ng-content>
+      <li *ngFor="let item of items">
+        <span class="expanded">{{item}}</span>
+      </li>
     </ul>
   </div>
-</div>`,
+
+</div>
+  `,
 
   styles: [`
     ul {
@@ -44,34 +52,14 @@ declare var log: any;
   ]
 })
 
-export class AccordionULComponent implements AfterViewInit {
+export class MetaAccordionComponent {
 
   constructor ( private changeDetectionRef: ChangeDetectorRef ) {}
 
-  @ViewChild('itemList') itemList: ElementRef;
+  @Input() public items: string[] = [];
 
-  private headerText =  '';
-  public oneValue = false;
-  public multiValues = true;
   private hideHeader = false;
   private collapsed = 'true';
-
-  ngAfterViewInit(): void {
-    // log.debug("itemList:", this.itemList);
-    if ( this.itemList.nativeElement.children.length > 1 ) {
-      this.multiValues = true;
-      this.headerText = this.itemList.nativeElement.children[0].firstChild.textContent;
-      // log.debug(this.headerText);
-    }
-    if ( this.itemList.nativeElement.children.length === 1 ) {
-      this.oneValue = true;
-      this.multiValues = false;
-      this.headerText = this.itemList.nativeElement.children[0].firstChild.textContent;
-      // log.debug(this.headerText);
-    }
-    this.changeDetectionRef.detectChanges(); // hack needed to not throw an exception
-
-  }
 
   toggleList(): void {
     // log.debug("toggleList()");
@@ -82,9 +70,15 @@ export class AccordionULComponent implements AfterViewInit {
         // this.collapsed = !this.collapsed;
         this.collapsed = (this.collapsed === 'true' ? 'false' : 'true');
     }
-    this.changeDetectionRef.detectChanges();
+    // this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();
   }
+
+  /*ngOnChanges(c: any): void {
+    if ('items' in c) {
+      log.debug('MetaAccordionComponent: ngOnChanges: items:', c.items.currentValue);
+    }
+  }*/
 
 }
 

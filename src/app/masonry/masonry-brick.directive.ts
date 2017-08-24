@@ -45,6 +45,7 @@ export class MasonryBrickDirective implements OnDestroy, AfterViewInit {
       /** Watch for any changes to subtree */
       let self = this;
       let observer = new MutationObserver(function(mutations, observerFromElement) {
+        log.debug('MasonryBrickDirective: watchForHtmlChanges: MutationObserver: calling layout()');
         self.parent.layout();
       });
 

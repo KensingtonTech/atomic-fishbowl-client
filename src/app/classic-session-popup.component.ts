@@ -2,7 +2,6 @@ import { Component, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef,
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
-import 'rxjs/add/operator/takeWhile';
 declare var log: any;
 
 @Component( {
@@ -16,14 +15,13 @@ declare var log: any;
     <div style="flex-grow: 1; overflow: auto;">
 
       <div *ngIf="!showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
-        <table *ngIf="blip" class="wrap" style="width: 100%; table-layout: fixed;">
+        <table class="wrap" style="width: 100%; table-layout: fixed;">
           <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
           <tr *ngFor="let key of displayedKeys">
             <td class="metalabel">{{key}}</td>
             <td>
-              <ul-accordion *ngIf="meta[key]" class="metavalue">
-                <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-              </ul-accordion>
+              <meta-accordion *ngIf="meta[key]" [items]="meta[key]" class="metavalue">
+              </meta-accordion>
               <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
             </td>
           </tr>
@@ -31,14 +29,13 @@ declare var log: any;
       </div>
 
       <div *ngIf="showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
-        <table *ngIf="blip" class="wrap" style="width: 100%; table-layout: fixed;">
+        <table class="wrap" style="width: 100%; table-layout: fixed;">
           <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | fromEpoch}}</td></tr>
           <tr *ngFor="let key of getMetaKeys()">
             <td class="metalabel">{{key}}</td>
             <td>
-              <ul-accordion class="metavalue">
-                <accordion-li *ngFor="let value of meta[key]"><span class="expanded">{{value}}</span></accordion-li>
-              </ul-accordion>
+              <meta-accordion class="metavalue" [items]="meta[key]">
+              </meta-accordion>
             </td>
           </tr>
         </table>
@@ -96,7 +93,6 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   @Input('sessionId') sessionId: number;
   @Input('enabled') enabled: number;
   public showAll = false;
-  private alive = true;
   private deviceNumber: number;
   public enabledTrigger: string;
   private preferences: any;
@@ -104,46 +100,60 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   public meta: any;
   private nativeElement = this.el.nativeElement;
   private metaUpdated = false;
-  private blip = false;
   private hideAllMeta = true;
   private displayedKeys: any =  [
-                                  'size',
-                                  'service',
-                                  'ip.src',
-                                  'ip.dst',
-                                  'alias.host',
-                                  'city.dst',
-                                  'country.dst',
-                                  'action',
-                                  'content',
-                                  'ad.username.src',
-                                  'ad.computer.src',
-                                  'filename',
-                                  'client'
-                                ];
+    'size',
+    'service',
+    'ip.src',
+    'ip.dst',
+    'alias.host',
+    'city.dst',
+    'country.dst',
+    'action',
+    'content',
+    'ad.username.src',
+    'ad.computer.src',
+    'filename',
+    'client'
+  ];
+
+  private sessionsChangedSubscription: any;
+  private sessionPublishedSubscription: any;
+  private preferencesChangedSubscription: any;
+  private deviceNumberSubscription: any;
 
 
   ngOnInit(): void {
     this.enabledTrigger = 'disabled';
-    this.dataService.sessionsChanged.takeWhile(() => this.alive).subscribe( (s: any) => { // log.debug("sessionsChanged", s);
-                                                              this.sessions = s;
-                                                            });
-    this.dataService.sessionPublished.takeWhile(() => this.alive).subscribe( (s: any) => {  // log.debug("sessionPublished", s);
-                                                                let sessionId = s.id;
-                                                                this.sessions[sessionId] = s;
-                                                              });
-    this.dataService.preferencesChanged.takeWhile(() => this.alive).subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
-                                                                      this.preferences = prefs;
-                                                                      if ( 'displayedKeys' in prefs ) {
-                                                                        this.displayedKeys = prefs.displayedKeys;
-                                                                      }
-                                                                    });
-    this.toolService.deviceNumber.takeWhile(() => this.alive).subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+
+    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => { // log.debug("sessionsChanged", s);
+      this.sessions = s;
+    });
+
+    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {  // log.debug("sessionPublished", s);
+      let sessionId = s.id;
+      this.sessions[sessionId] = s;
+    });
+
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
+      this.preferences = prefs;
+      if ( 'displayedKeys' in prefs ) {
+        this.displayedKeys = prefs.displayedKeys;
+      }
+    });
+
+    this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+
     this.dataService.getPreferences();
   }
 
-  public ngOnDestroy() {
-    this.alive = false;
+  ngOnDestroy(): void {
+    log.debug('ClassicSessionPopupComponent: ngOnDestroy()');
+
+    this.sessionsChangedSubscription.unsubscribe();
+    this.sessionPublishedSubscription.unsubscribe();
+    this.preferencesChangedSubscription.unsubscribe();
+    this.deviceNumberSubscription.unsubscribe();
   }
 
   getMetaForKey(k: string): any {
@@ -162,11 +172,13 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   ngOnChanges(): void {
     // log.debug("SessionWidgetComponent ngOnChanges()", this.enabled);
 
-    if (this.enabled ) { this.blip = true; this.enabledTrigger = 'enabled'; } // for some odd reason, we can't use shortcut syntax as it evidently doesn't change the var reference
-    else { this.blip = false; this.enabledTrigger = 'disabled'; }
-    // log.debug('ClassicSessionPopupComponent: ngOnChanges(): enabled:', this.enabled);
-    // log.debug('ClassicSessionPopupComponent: ngOnChanges(): blip:', this.blip);
-    // log.debug('ClassicSessionPopupComponent: ngOnChanges(): enabledTrigger:', this.enabledTrigger);
+    if (this.enabled ) {
+      // for some odd reason, we can't use shortcut syntax as it evidently doesn't change the var reference
+      this.enabledTrigger = 'enabled';
+    }
+    else {
+      this.enabledTrigger = 'disabled';
+    }
 
     if (this.sessionId) {
       if ( this.sessionId in this.sessions ) {

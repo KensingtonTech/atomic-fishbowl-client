@@ -2,25 +2,20 @@ import {Directive, ElementRef, Output, EventEmitter, HostListener} from '@angula
 declare var log: any;
 
 @Directive({
+    // tslint:disable-next-line:directive-selector
     selector: '[clickOutside]'
 })
 export class ClickOutsideDirective {
-    constructor(private _elementRef : ElementRef ) {}
+    constructor(private el: ElementRef ) {}
 
     @Output() public clickOutside = new EventEmitter();
 
 
     @HostListener('document:click', ['$event']) public onClick(event: any) {
-      var targetElement = event.target;
-      //log.debug("event:", event)
-      //log.debug("targetElement:", targetElement);
-      //log.debug(this._elementRef);
-        const clickedInside = this._elementRef.nativeElement.contains(targetElement);
+      let targetElement = event.target;
+        const clickedInside = this.el.nativeElement.contains(targetElement);
         if (!clickedInside) {
             this.clickOutside.emit(null);
         }
-        //else {
-        //  log.debug("clicked inside");
-        //}
     }
 }

@@ -66,7 +66,8 @@ export class HttpJsonStreamService {
     });*/
 
     this.oboeService.node('!.*', (o: any) => {
-      subject.next(o);
+      subject.next( JSON.parse(JSON.stringify(o)) );
+      return oboe.drop;
     });
 
     return subject;

@@ -2,11 +2,10 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
-import 'rxjs/add/operator/takeWhile';
 declare var log: any;
 
 @Component({
-  selector: 'my-app',
+  selector: 'twoTwoOneB-app',
   template: `
 <div *ngIf="serverReachable" style="position: relative; width: 100vw; height: 100vh;">
   <toolbar-widget *ngIf="loggedIn"></toolbar-widget>
@@ -26,11 +25,11 @@ export class AppComponent implements OnInit, OnDestroy {
   public loggedIn = false;
   public serverReachable = false;
   private credentialsChecked = false;
-  private alive = true;
+  private loggedInChangedSubscription: any;
 
   ngOnInit(): void {
 
-    this.authService.loggedInChanged.takeWhile(() => this.alive).subscribe( (loggedIn: boolean) => {
+    this.loggedInChangedSubscription = this.authService.loggedInChanged.subscribe( (loggedIn: boolean) => {
       // log.debug("loggedIn:", loggedIn);
       this.loggedIn = loggedIn;
     });
@@ -66,7 +65,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy() {
-    this.alive = false;
+    this.loggedInChangedSubscription.unsubscribe();
   }
 
 }
