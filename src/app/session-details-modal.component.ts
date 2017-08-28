@@ -21,6 +21,7 @@ declare var log: any;
           <img class="myImg" *ngIf="content.contentType == 'encryptedZipEntry'"  src="/resources/zip_icon_locked.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'unsupportedZipEntry'"  src="/resources/zip_icon_unknown.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedRarEntry'"  src="/resources/rar_icon_locked.png" draggable="false">
+          <img class="myImg" *ngIf="content.contentType == 'encryptedRarTable'"  src="/resources/rar_icon_locked.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'hash'" src="/resources/executable_hash_icon.png" draggable="false">
 
           <div *ngIf="content.fromArchive || content.isArchive" style="position: absolute; top: 5px; right: 15px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
@@ -225,8 +226,6 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.dataService.getPreferences();
-
     this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
       log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
@@ -264,7 +263,6 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   }
 
   opened(): void {
-    this.dataService.getPreferences();
     this.isOpen = true;
   }
 

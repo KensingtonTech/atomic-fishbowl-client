@@ -98,8 +98,6 @@ export class SessionWidgetComponent implements OnInit, OnDestroy {
     });
 
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
-
-    this.dataService.getPreferences();
   }
 
   ngOnDestroy() {

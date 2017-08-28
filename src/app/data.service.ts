@@ -1,14 +1,13 @@
-import { Injectable, ElementRef } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Injectable } from '@angular/core';
+// import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/toPromise';
 import { Headers, RequestOptions, Http } from '@angular/http';
 
-import { Content } from './content';
-import { NwSession } from './nwsession';
 import { Collection } from './collection';
 import { NwServer } from './nwserver';
-import { HttpJsonStreamService } from './http-json-stream.service';
+import { HttpJsonStream } from './http-json-stream';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
 declare var log: any;
@@ -18,15 +17,17 @@ declare var log: any;
 export class DataService { // Manages NwSession objects and also Image objects in grid and the image's association with Session objects.  Adds more objects as they're added
 
   constructor(private http: Http,
-              private httpJsonStreamService: HttpJsonStreamService,
+              // private httpJsonStreamService: HttpJsonStream,
               private toolService: ToolService ) {
     this.toolService.sessionId.subscribe( (sessionId: number) => {
       log.debug(`DataService: sessionIdSubscription(): got sessionId: ${sessionId}`);
       this.sessionId = sessionId;
     });
-    this.toolService.HttpJsonStreamServiceConnected.subscribe( (connected: boolean) => this.httpJsonStreamServiceConnected = connected );
+    this.toolService.HttpJsonStreamConnected.subscribe( (connected: boolean) => this.httpJsonStreamServiceConnected = connected );
+    this.getPreferences();  // Populate preferencesChanged BehaviorSubject
   }
 
+  private httpJsonStreamService: HttpJsonStream = new HttpJsonStream(this.toolService);
   public contentPublished: Subject<any> = new Subject<any>();
   public sessionPublished: Subject<any> = new Subject<any>();
   public collectionsChanged: Subject<any> = new Subject<any>();
@@ -37,17 +38,12 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public searchChanged: Subject<any> = new Subject<any>();
   public searchPublished: Subject<any> = new Subject<any>();
   public errorPublished: Subject<any> = new Subject<any>();
-  public preferencesChanged: Subject<any> = new Subject<any>();
+  public preferencesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
   public sessionsPurged: Subject<any> = new Subject<any>();
   private apiUrl = '/api';
-  sessionWidgetElement: ElementRef;
-  public globalPreferences: any;
   private sessionId: number;
   public httpJsonStreamServiceConnected = false;
-
-  setSessionWidget(el: ElementRef): void {
-    this.sessionWidgetElement = el;
-  }
+  public queryResultsCountUpdated: Subject<any> = new Subject<any>();
 
   getServerVersion(): Promise<any> {
     return this.http
@@ -81,7 +77,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .get(this.apiUrl + '/preferences' )
                 .toPromise()
                 .then( (response: any) => { let prefs = response.json();
-                                            this.globalPreferences = prefs;
                                             this.preferencesChanged.next(prefs);
                                             return prefs;
                                           })
@@ -91,7 +86,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
   setPreferences(prefs: any): Promise<void> {
     let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
-    this.globalPreferences = prefs;
     this.preferencesChanged.next(prefs);
     return this.http.post(this.apiUrl + '/setpreferences', prefs, options)
                     .toPromise()
@@ -178,11 +172,17 @@ export class DataService { // Manages NwSession objects and also Image objects i
     log.debug('DataService: getBuildingFixedCollection():', id);
     this.httpJsonStreamService.fetchStream(this.apiUrl + '/getbuildingfixedcollection/' + id)
                               .subscribe( (o: any) => {
-                                                        if (o.collection) {
+                                                        if ('collection' in o) {
                                                           // log.debug("received collection update",o.collection);
                                                           this.collectionStateChanged.next(o.collection);
                                                         }
-                                                        else if (o.collectionUpdate) {
+                                                        else if ('error' in o) {
+                                                          this.errorPublished.next(o.error);
+                                                        }
+                                                        else if ('queryResultsCount' in o) {
+                                                          this.queryResultsCountUpdated.next(o.queryResultsCount);
+                                                        }
+                                                        else if ('collectionUpdate' in o) {
                                                           if ('session' in o.collectionUpdate) {
                                                             this.sessionPublished.next(o.collectionUpdate.session);
                                                           }
@@ -191,9 +191,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                           }
                                                           if ('search' in o.collectionUpdate) {
                                                             this.searchPublished.next(o.collectionUpdate.search);
-                                                          }
-                                                          if ('error' in o.collectionUpdate) {
-                                                            this.errorPublished.next(o.collectionUpdate.error);
                                                           }
                                                         }
                                                         else if ('close' in o) { return; }
@@ -212,6 +209,12 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                           // log.debug("received collection update",o.collection);
                                                           this.collectionStateChanged.next(o.collection);
                                                         }
+                                                        else if ('error' in o) {
+                                                          this.errorPublished.next(o.error);
+                                                        }
+                                                        else if ('queryResultsCount' in o) {
+                                                          this.queryResultsCountUpdated.next(o.queryResultsCount);
+                                                        }
                                                         else if ('collectionUpdate' in o) {
                                                           if ('session' in o.collectionUpdate) {
                                                             this.sessionPublished.next(o.collectionUpdate.session);
@@ -221,9 +224,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                           }
                                                           if ('search' in o.collectionUpdate) {
                                                             this.searchPublished.next(o.collectionUpdate.search);
-                                                          }
-                                                          if ('error' in o.collectionUpdate) {
-                                                            this.errorPublished.next(o.collectionUpdate.error);
                                                           }
                                                         }
                                                         else if ('close' in o) { return; }

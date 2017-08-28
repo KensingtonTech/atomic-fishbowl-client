@@ -191,7 +191,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       }
     });
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
-    this.dataService.getPreferences();
 
     this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
       log.debug('PdfViewerModalComponent: newSessionSubscription: Got new session', session);

@@ -1,14 +1,13 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
-
 import { PanZoomConfig } from './panzoom/panzoom-config';
-
 import { DataService } from './data.service';
 import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
+import { Search } from './search';
 declare var log: any;
 
 @Component({
@@ -53,7 +52,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private deviceNumber: number;
   private panzoomModel: any = {};
   private panZoomAPI: any;
-  private search: any = [];
+  private search: Search[] = [];
   public canvasWidth = 2400;
   public initialZoomHeight = 1080;
   public displayedContent: Content[] = [];
@@ -256,19 +255,19 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.toolService.contentCount.next( this.contentCount );
 
       if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
+      // this.changeDetectionRef.detectChanges();
+      // this.changeDetectionRef.markForCheck();
     });
 
-    this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: any) =>  { // this receives complete search term data from complete collection
+    this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: Search[]) =>  { // this receives complete search term data from complete collection
       this.search = s;
       log.debug('ClassicGridComponent: searchChangedSubscription: searchChanged:', this.search);
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
+      // this.changeDetectionRef.detectChanges();
+      // this.changeDetectionRef.markForCheck();
     });
 
 
-    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: any) => { // this receives a partial search term data from a building collection
+    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: Search[]) => { // this receives a partial search term data from a building collection
       log.debug('ClassicGridComponent: searchPublishedSubscription: searchPublished:', s);
       for (let i = 0; i < s.length; i++) {
         this.search.push(s[i]);
@@ -281,61 +280,20 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) =>  {
       log.debug('ClassicGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
-      // log.debug("content", this.content);
-      // log.debug("content length:",this.content.length);
-      // log.debug("content:",JSON.parse(JSON.stringify(this.content)));
-      let c = 0;
 
-      let purgedContentPositions = [];
-      let purgedSearchPositions = [];
+      let searchRemoved = this.purgeSessions(sessionsToPurge);
 
-      for (let x = 0; x < sessionsToPurge.length; x++) {
-        let sidToPurge = sessionsToPurge[x];
-
-        for (let i = 0; i < this.content.length; i++) {
-          if (this.content[i].session === sidToPurge) {
-            log.debug('ClassicGridComponent: sessionsPurgedSubscription: Removing image with session id', sidToPurge);
-            purgedContentPositions.push(i);
-          }
-        }
-
-        for (let i = 0; i < this.search.length; i++) {
-          if (this.search[i].session === sidToPurge) {
-            log.debug('ClassicGridComponent: sessionsPurgedSubscription: Removing search text with session id', sidToPurge);
-            purgedSearchPositions.push(i);
-            c++;
-          }
-        }
-      }
-
-      // log.debug("purgedContentPositions:",purgedContentPositions);
-      // log.debug("purgedSearchPositions:",purgedSearchPositions);
-      purgedContentPositions.sort(this.sortNumber);
-      for (let i = 0; i < purgedContentPositions.length; i++) {
-        this.content.splice(purgedContentPositions[i], 1);
-      }
-      purgedSearchPositions.sort(this.sortNumber);
-      for (let i = 0; i < purgedSearchPositions.length; i++) {
-        this.search.splice(purgedSearchPositions[i], 1);
-      }
 // !!! this displayedContent line should be revisited so that it takes in to account last mask and search!!!
-      this.displayedContent = this.content.sort(this.sortContent);
+      // this.displayedContent = this.content.sort(this.sortContent);
 // !!!
-
-
-      // this.pdfContent = [];
-      // this.imageContent = [];
-      // this.hashContent = [];
-      // this.dodgyArchiveContent = [];
-      // this.calculateContentMasks();
 
       this.maskChanged(this.lastMask);
       this.countContent();
-      if (c > 0 && this.searchBarOpen) {
+      if (searchRemoved > 0 && this.searchBarOpen) {
         this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
       }
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
+      // this.changeDetectionRef.detectChanges();
+      // this.changeDetectionRef.markForCheck();
     });
 
   }
@@ -657,6 +615,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
         this.contentCount.dodgyArchives++;
       }
     }
+    this.contentCount.total = this.content.length;
     this.toolService.contentCount.next( this.contentCount );
   }
 
@@ -688,6 +647,56 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       }
     }
     return temp;
+  }
+
+  private purgeSessions(sessionsToPurge: number[]): number {
+    let searchRemoved = 0;
+    while (sessionsToPurge.length !== 0) {
+      let sessionToPurge = sessionsToPurge.shift();
+
+      let contentsToPurge = [];
+      for (let i = 0; i < this.content.length; i++) {
+        // Purge content
+        let content = this.content[i];
+        if (content.session === sessionToPurge) {
+          contentsToPurge.push(content);
+        }
+      }
+      while (contentsToPurge.length !== 0) {
+        let contentToPurge = contentsToPurge.shift();
+        for (let i = 0; i < this.content.length; i++) {
+          let content = this.content[i];
+          if (contentToPurge.session === content.session && contentToPurge.contentFile === content.contentFile && contentToPurge.contentType === content.contentType) {
+            // Purge content
+            log.debug('MasonryGridComponent: purgeSessions(): purging content', content.session);
+            this.content.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+      let searchesToPurge: Search[] = [];
+      for (let i = 0; i < this.search.length; i++) {
+        let search = this.search[i];
+        if (search.session === sessionToPurge) {
+          searchesToPurge.push(search);
+        }
+      }
+      while (searchesToPurge.length !== 0) {
+        let searchToPurge = searchesToPurge.shift();
+        for (let i = 0; i < this.search.length; i++) {
+          let search = this.search[i];
+          if (searchToPurge.session === search.session && searchToPurge.contentFile === search.contentFile) {
+            // Purge search
+            log.debug('MasonryGridComponent: purgeSessions(): purging search', search.session);
+            this.search.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+    }
+    return searchRemoved;
   }
 
   // count = 0;

@@ -16,7 +16,6 @@ import { MdCardModule, MdInputModule, MdButtonModule, MdCheckboxModule } from '@
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
-import { HttpJsonStreamService } from './http-json-stream.service';
 
 // Our Pipes
 import { FromEpochPipe } from './pipes/from-epoch.pipe';
@@ -127,8 +126,7 @@ import * as $ from 'jquery';
                 ],
   providers:    [ DataService,
                   AuthenticationService,
-                  ToolService,
-                  HttpJsonStreamService
+                  ToolService
                 ],
   bootstrap:    [ AppComponent ]
 

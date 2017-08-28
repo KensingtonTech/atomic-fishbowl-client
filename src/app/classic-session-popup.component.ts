@@ -143,8 +143,6 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
     });
 
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
-
-    this.dataService.getPreferences();
   }
 
   ngOnDestroy(): void {

@@ -101,6 +101,7 @@ export class AuthenticationService {
           }
           else {
             this.loggedInChanged.next(true);
+            this.dataService.getPreferences();
           }
         });
   }

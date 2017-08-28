@@ -28,7 +28,7 @@ export class ToolService {
   public fileToDownload: Subject<any> = new Subject<any>();
   public confirmDownloadFile: Subject<any> = new Subject<any>();
   public sessionId: Subject<any> = new Subject<any>();
-  public HttpJsonStreamServiceConnected: Subject<any> = new Subject<any>();
+  public HttpJsonStreamConnected: Subject<any> = new Subject<any>();
   public openPDFViewer: Subject<any> = new Subject<any>();
   public openSessionViewer: Subject<any> = new Subject<any>();
 }

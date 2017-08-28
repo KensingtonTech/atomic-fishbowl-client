@@ -1,12 +1,10 @@
-import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { ToolService } from './tool.service';
 declare var log: any;
 declare var oboe: any;
 
-@Injectable()
-export class HttpJsonStreamService {
+export class HttpJsonStream {
 
   constructor(private toolService: ToolService) {}
 
@@ -14,32 +12,32 @@ export class HttpJsonStreamService {
   public connected = false;
 
   private startCallback = () => {
-    log.debug('HttpJsonStreamService: start event');
-    // log.debug('HttpJsonStreamService: oboeService', this.oboeService);
+    log.debug('HttpJsonStream: start event');
+    // log.debug('HttpJsonStream: oboeService', this.oboeService);
     this.connected = true;
     // this.oboeService.removeListener('start', this.failCallback);
-    this.toolService.HttpJsonStreamServiceConnected.next(this.connected);
+    this.toolService.HttpJsonStreamConnected.next(this.connected);
   }
 
   private doneCallback = () => {
-    log.debug('HttpJsonStreamService: done event');
+    log.debug('HttpJsonStream: done event');
     this.connected = false;
-    // log.debug('HttpJsonStreamService: oboeService', this.oboeService);
+    // log.debug('HttpJsonStream: oboeService', this.oboeService);
     // this.oboeService.removeListener('done', this.doneCallback);
     // this.oboeService.removeListener('fail', this.failCallback);
-    this.toolService.HttpJsonStreamServiceConnected.next(this.connected);
+    this.toolService.HttpJsonStreamConnected.next(this.connected);
   }
 
   private failCallback = () => {
-    log.debug('HttpJsonStreamService: fail event');
+    log.debug('HttpJsonStream: fail event');
     this.connected = false;
     // this.oboeService.removeListener('done', this.doneCallback);
     // this.oboeService.removeListener('fail', this.failCallback);
-    this.toolService.HttpJsonStreamServiceConnected.next(this.connected);
+    this.toolService.HttpJsonStreamConnected.next(this.connected);
   }
 
   fetchStream(url: string, headers = {} ): Observable<any> {
-    log.debug('HttpJsonStreamService: fetchStream()');
+    log.debug('HttpJsonStream: fetchStream()');
     let subject: Subject<any> = new Subject<any>();
     let config = {
       // headers: {'Authorization': 'Bearer ' +  token},

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, AfterContentInit, OnDestroy, ElementRef, ViewChild, Input, Renderer2, NgZone, AfterViewChecked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, AfterContentInit, OnDestroy, ElementRef, ViewChild, Input, Renderer2, NgZone, AfterViewChecked, ViewEncapsulation } from '@angular/core';
 import { PanZoomConfig } from './panzoom-config';
 
 declare var log: any;
@@ -6,6 +6,7 @@ declare var log: any;
 @Component( {
   selector: 'panzoom',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
   template: `
 <div #panzoomElement class="pan-zoom-frame" (dblclick)="onDblClick($event)" (mousedown)="onMousedown($event)" (kwheel)="onMouseWheel($event)"  style="position:relative; overflow: hidden;">
   <div #panElement style="position: absolute; left: 0px; top: 0px;">

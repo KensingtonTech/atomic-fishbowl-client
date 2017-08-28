@@ -1,16 +1,13 @@
-import { Component, Output, OnInit, OnChanges, AfterViewInit, OnDestroy, ElementRef, ViewChild, ViewChildren, ContentChild, Input, Renderer2, ViewContainerRef, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChildren, Input, QueryList, ViewEncapsulation } from '@angular/core';
 import { ToolService } from './tool.service';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
 import { DataService } from './data.service';
 import { Collection } from './collection';
 import { NwServer } from './nwserver';
-import { HostListener } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { AuthenticationService } from './authentication.service';
-declare var log: any;
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
+declare var log: any;
 
 @Component( {
   selector: 'toolbar-widget',
@@ -24,9 +21,11 @@ import { ContentMask } from './contentmask';
         <select style="width: 200px;" [(ngModel)]="selectedCollection" (ngModelChange)="collectionSelected($event)">
           <option *ngFor="let collection of collections | mapValues" [ngValue]="collection.id">{{collection.name}}</option>
         </select></span>
-        <span #spinnerIcon class="fa fa-refresh fa-spin fa-lg fa-fw" style="display: none;"></span>
-        <span #errorIcon class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow; display: none;"></span>
-        <span #stopIcon class="fa fa-ban fa-lg fa-fw" style="color: black; display: none;"></span>
+        <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" style="display: inline-block;" pTooltip="Building collection"></span>
+        <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow; display: inline-block;" [pTooltip]="errorMessage"></span>
+        <span *ngIf="queryingIcon" class="fa fa-question fa-spin fa-lg fa-fw" style="display: inline-block;" pTooltip="Querying NetWitness data"></span>
+        <span *ngIf="queryResultsCount == 0 && collections[selectedCollection].state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red; display: inline-block;" pTooltip="0 results were returned from the query"></span>
+        <span *ngIf="queryResultsCount == 0 && collections[selectedCollection].state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="display: inline-block;" pTooltip="0 results were returned from the latest query"></span>
         <span (click)="addCollectionClick()" class="fa fa-plus fa-lg fa-fw"></span>
         <span (click)="deleteCollectionClick()" class="fa fa-minus fa-lg fa-fw"></span>
         <span class="collectionTooltip" *ngIf="refreshed && selectedCollection && collections" #infoIcon [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
@@ -128,12 +127,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
   constructor (private dataService: DataService,
                private modalService: ModalService,
-               private renderer: Renderer2,
                private toolService: ToolService,
                private authService: AuthenticationService ) {}
 
-  @ViewChild('spinnerIcon') spinnerIconRef: ElementRef;
-  @ViewChild('errorIcon') errorIconRef: ElementRef;
   @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
   private collections: any;
   private selectedCollection: string;
@@ -151,6 +147,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private showDodgyArchives = true;
   private oldSearchTerms: string;
   private caseSensitive = false;
+  public queryingIcon = false;
+  public spinnerIcon = false;
+  public errorIcon = false;
+  public errorMessage = '';
+  public queryResultsCount = 0;
 
   // Subscriptions
   private contentCountSubscription: any;
@@ -158,11 +159,16 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private selectedCollectionChangedSubscription: any;
   private collectionsChangedSubscription: any;
   private collectionStateChangedSubscription: any;
+  private errorPublishedSubscription: any;
+  private queryResultsCountUpdatedSubscription: any;
 
 
   ngOnInit(): void {
     // take subscriptions
-    this.contentCountSubscription = this.toolService.contentCount.subscribe( (c: any) => this.contentCount = c );
+    this.contentCountSubscription = this.toolService.contentCount.subscribe( (c: any) => {
+      log.debug('ToolbarWidgetComponent: ngOnInit(): contentCount:', c);
+      this.contentCount = c;
+    });
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
     this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollection = e.id );
     this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (c: string) => {
@@ -175,6 +181,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
       this.iconDecider(collection.state);
       this.collections[collection.id].state = collection.state;
     });
+    this.errorPublishedSubscription = this.dataService.errorPublished.subscribe( (e: string) => this.errorMessage = e );
+    this.queryResultsCountUpdatedSubscription = this.dataService.queryResultsCountUpdated.subscribe( (count: number) => this.queryResultsCount = count);
+
 
     this.dataService.refreshCollections()
                     .then( () => {
@@ -189,6 +198,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                         this.showCreateFirstCollection = true;
                       }
                     });
+
   }
 
   public ngOnDestroy() {
@@ -197,6 +207,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.selectedCollectionChangedSubscription.unsubscribe();
     this.collectionsChangedSubscription.unsubscribe();
     this.collectionStateChangedSubscription.unsubscribe();
+    this.errorPublishedSubscription.unsubscribe();
+    this.queryResultsCountUpdatedSubscription.unsubscribe();
   }
 
   ngAfterViewInit(): void {
@@ -257,19 +269,22 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   iconDecider(state: string): void {
-    // log.debug("iconDecider():",state);
+    this.queryingIcon = false;
+    this.spinnerIcon = false;
+    this.errorIcon = false;
+
+    if (state === 'querying') {
+      this.queryingIcon = true;
+    }
+
     if (state === 'building' || state === 'rolling' || state === 'refreshing') {
-      this.showSpinnerIcon();
-      this.hideErrorIcon();
+      this.spinnerIcon = true;
     }
     else if (state === 'error') {
-      this.hideSpinnerIcon();
-      this.showErrorIcon();
+      this.errorIcon = true;
     }
-    else if (state === 'complete' || state === 'resting') {
-      this.hideSpinnerIcon();
-      this.hideErrorIcon();
-    }
+    // else if (state === 'complete' || state === 'resting') {
+    // }
   }
 
   getFirstCollection(): any { // a bit of a hack since dicts aren't really ordered
@@ -392,26 +407,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
 */
-
-  showSpinnerIcon(): void {
-    // log.debug("showSpinnerIcon()");
-    setTimeout( () => this.renderer.setStyle(this.spinnerIconRef.nativeElement, 'display', 'inline-block'), 25 );
-  }
-
-  hideSpinnerIcon(): void {
-    // log.debug("hideSpinnerIcon()");
-   setTimeout( () =>  this.renderer.setStyle(this.spinnerIconRef.nativeElement, 'display', 'none'), 25);
-  }
-
-  showErrorIcon(): void {
-    // log.debug("showErrorIcon()");
-    this.renderer.setStyle(this.errorIconRef.nativeElement, 'display', 'inline-block');
-  }
-
-  hideErrorIcon(): void {
-    // log.debug("hideErrorIcon()");
-    setTimeout( () => this.renderer.setStyle(this.errorIconRef.nativeElement, 'display', 'none'), 25 );
-  }
 
   getRollingCollection(id: string): void {
     log.debug('ToolbarWidgetComponent: getRollingCollection(id)');

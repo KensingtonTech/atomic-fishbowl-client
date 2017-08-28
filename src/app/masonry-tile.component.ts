@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges, ViewEncapsulation } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
 declare var log: any;
@@ -6,6 +6,7 @@ declare var log: any;
 @Component({
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // encapsulation: ViewEncapsulation.None,
   template: `
 <div *ngIf="masonryColumnSize" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
   <div style="position: relative; min-height: 50px;">
@@ -131,7 +132,7 @@ declare var log: any;
       color: black;
     }
 
-     img {
+    img {
       width: 100%;
       height: auto;
 
@@ -148,7 +149,7 @@ declare var log: any;
 export class MasonryTileComponent implements OnChanges {
 
   constructor(  public el: ElementRef,
-                private changeDetectionRef: ChangeDetectorRef,
+                // private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService ) {} // this.changeDetectionRef.detach(); private http: Http
 
   @Input() private apiServerUrl: string;

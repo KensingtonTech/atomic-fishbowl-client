@@ -208,7 +208,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.dataService.getPreferences();
   }
 
   public ngOnDestroy() {
@@ -568,7 +567,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   onOpen(): void {
     log.debug('AddCollectionModalComponent: onOpen()');
-    this.dataService.getPreferences();
     this.nameBoxRef.first.nativeElement.focus();
   }
 
