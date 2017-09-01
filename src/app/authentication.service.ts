@@ -81,6 +81,7 @@ export class AuthenticationService {
                       this.sessionId = res.sessionId;
                       this.toolService.sessionId.next(this.sessionId);
                       this.loggedInChanged.next(true);
+                      this.dataService.getPreferences();
                       this.router.navigate(['/']);
                       return true;
                     })

@@ -169,6 +169,11 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.getNwServers();
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
       log.debug('AddCollectionModalComponent: prefs observable: ', prefs);
+
+      if (Object.keys(prefs).length === 0) {
+        return; // this handles a race condition where we subscribe before the getPreferences call has actually run
+      }
+
       this.preferences = prefs;
 
       // We can update this every time
@@ -177,7 +182,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         // this.collectionFormModel.query = prefs.defaultNwQuery;
       }
 
-      if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone
+      if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
         if ( 'defaultQuerySelection' in prefs ) {
           for (let q = 0; q < this.queryList.length; q++) {
             if (this.queryList[q].text === prefs.defaultQuerySelection) {

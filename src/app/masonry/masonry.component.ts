@@ -64,8 +64,8 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     this.ngZone.runOutsideAngular( () => {
       this.isotope.on( 'layoutComplete', () => {
         // this.changeDetectionRef.detectChanges();
-        this.changeDetectionRef.markForCheck();
-        this.toolService.layoutComplete.next();
+        // this.changeDetectionRef.markForCheck();
+        // this.toolService.layoutComplete.next();
       });
     });
   }
@@ -146,12 +146,6 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   // public add(element: HTMLElement) {
   public add(element: ElementRef) {
 
-    let isFirstItem = false;
-    // Check if this is the first item
-    if (this.isotope.items.length === 0){
-        isFirstItem = true;
-    }
-
     if (this.loadAllBeforeLayout) {
       // Complete fixed collections
       // Let all images load before calling layout (done with imagesLoaded run from ngAfterContentInit)
@@ -175,7 +169,10 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
       // Run layout() if first item
       // This is necessary to prevent isotope.appended() (which is really isotope.layoutItems()) from throwing an error
       // It needs to already have a layout before it can calculate the layout of only a new item
-      if (this.isFirstItem) { this.layout(); }
+      if (this.isFirstItem) {
+        this.layout();
+        this.isFirstItem = false;
+      }
 
       imagesLoaded(element.nativeElement, (instance: any) => {
         // Tell Isotope that a child brick has been added

@@ -75,7 +75,7 @@ declare var log: any;
                 <td class="column1">Archive File:</td>
                 <td class="value">{{pathToFilename(content.contentFile)}}</td>
               </tr>
-              <tr *ngIf="content.fromArchive">
+              <tr *ngIf="content.fromArchive && content.contentType != 'image'">
                 <td class="column1">Archive Filename:</td>
                 <td class="value">{{pathToFilename(content.archiveFilename)}}</td>
               </tr>
