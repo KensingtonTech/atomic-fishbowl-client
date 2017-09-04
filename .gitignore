@@ -4,6 +4,7 @@
 /dist
 /tmp
 /out-tsc
+/rpmbuild
 
 # dependencies
 /node_modules

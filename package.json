@@ -1,7 +1,7 @@
 {
   "name": "two21b-client",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "SEE LICENSE IN 221b.license",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --live-reload --live-reload-client https://localhost",
