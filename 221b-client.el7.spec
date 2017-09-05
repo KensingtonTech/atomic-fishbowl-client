@@ -3,6 +3,7 @@
 
 Name: %{name}
 Version: %{version}
+BuildArch: noarch
 %define dist el7
 Release: %{release}.%{?dist}
 Summary: 221b-client
