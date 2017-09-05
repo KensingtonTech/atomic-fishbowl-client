@@ -19,8 +19,6 @@ Client files for 221B
 %setup -q -c -n %{name}
 
 %build
-npm prune --production
-npm rebuild
 
 %pre
 
