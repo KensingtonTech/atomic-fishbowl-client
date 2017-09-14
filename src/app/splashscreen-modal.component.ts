@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
-import { appVersion } from './version';
+import { buildProperties } from './build-properties'
 declare var log: any;
 
 @Component({
@@ -43,11 +43,12 @@ export class SplashScreenModalComponent implements OnInit {
 
   public id = 'splashScreenModal';
   public firstOpen = true;
-  public version = appVersion;
+  public version: string;
   public serverVersion: string;
 
   ngOnInit(): void {
     log.debug('SplashScreenModalComponent: ngOnInit()');
+    this.version = `${buildProperties.major}.${buildProperties.minor}.${buildProperties.patch}.${buildProperties.build}-${buildProperties.level}`;
     this.dataService.getServerVersion()
                     .then( (ver: string) => this.serverVersion = ver);
   }
