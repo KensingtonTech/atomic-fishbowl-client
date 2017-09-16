@@ -6,7 +6,6 @@ Wants=network-online.target
 Requires=docker.service
 
 [Service]
-Type=forking #simple
 ExecStart=/usr/bin/docker start %n
 ExecRestart=/usr/bin/docker restart %n
 ExecReload=/usr/bin/docker kill -s HUP %n
