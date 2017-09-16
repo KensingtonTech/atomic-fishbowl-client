@@ -7,7 +7,6 @@ Requires=docker.service
 
 [Service]
 ExecStart=/usr/bin/docker start %n
-ExecRestart=/usr/bin/docker restart %n
 ExecReload=/usr/bin/docker kill -s HUP %n
 ExecStop=/usr/bin/docker stop %n
 
