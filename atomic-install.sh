@@ -4,14 +4,17 @@ DATADIR=/var/kentech/221b
 LOGDIR=/var/log/nginx
 
 if [ ! -d ${HOST}${CERTDIR} ]; then
+  echo Creating $CERTDIR
 	mkdir -p ${HOST}${CERTDIR}
 fi
 
 if [ ! -d ${HOST}${DATDIR} ]; then
+  echo Creating $DATADIR
   mkdir -p ${HOST}${DATDIR}
 fi
 
 if [ ! -d ${HOST}${LOGDIR} ]; then
+  echo Creating $LOGDIR
   mkdir -p ${HOST}${LOGDIR}
 fi
 
@@ -36,4 +39,4 @@ fi
 cp -f /usr/lib/systemd/system/221b-nginx.service $HOST/etc/systemd/system
 
 #load our systemd unit file
-chroot $HOST systemctl --daemon-reload
+chroot $HOST /usr/bin/systemctl daemon-reload
