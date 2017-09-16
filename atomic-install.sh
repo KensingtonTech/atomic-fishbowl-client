@@ -1,7 +1,10 @@
 #!/bin/bash
+
 CERTDIR=/etc/kentech/221b/certificates
 DATADIR=/var/kentech/221b
 LOGDIR=/var/log/nginx
+
+# Create 221b dirs
 
 if [ ! -d ${HOST}${CERTDIR} ]; then
   echo Creating $CERTDIR
@@ -35,8 +38,35 @@ if [[ ! -f ${HOST}${CERTDIR}/221b.key || ! -f ${HOST}${CERTDIR}/221b.pem ]]; the
   chroot $HOST /usr/bin/openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/221b.key -out $CERTDIR/221b.pem
 fi
 
-#copy systemd unit file to host OS
+# Stop existing 221b-nginx container, if already running
+WASSTARTED=0
+chroot $ROOT /usr/bin/docker ps -f name=$NAME | /usr/bin/grep -q ${NAME}$
+if [ $? -eq 0 ]; then
+  WASSTARTED=1
+  echo Stopping container $NAME
+  chroot $ROOT /usr/bin/docker stop $NAME
+fi
+
+# Remove existing 221b-nginx container, if present
+chroot $ROOT /usr/bin/docker ps -a -f name=$NAME | grep -q ${NAME}$
+if [ $? -eq 0 ]; then
+  echo Removing existing $NAME container
+  chroot $ROOT /usr/bin/docker rm $NAME
+fi
+
+# Create container
+echo Creating container $NAME from image $IMAGE
+chroot $HOST /usr/bin/docker create --name $NAME --net=host -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:rw -v /var/log/nginx:/var/log/nginx:rw $IMAGE
+
+# Copy systemd unit file to host OS
+echo Installing systemd unit file
+echo To control, use:  systemctl [ start | stop | status | enable | disable ] 221b-nginx
 cp -f /usr/lib/systemd/system/221b-nginx.service $HOST/etc/systemd/system
 
-#load our systemd unit file
+# Load our systemd unit file
 chroot $HOST /usr/bin/systemctl daemon-reload
+
+if [ $WASSTARTED -eq 1 ]; then
+  echo Starting container $NAME
+  chroot $HOST /usr/bin/systemctl start $NAME
+fi

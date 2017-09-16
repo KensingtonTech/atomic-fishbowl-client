@@ -6,16 +6,10 @@ Wants=network-online.target
 Requires=docker.service
 
 [Service]
-ExecStart=/usr/bin/docker start %n
-ExecReload=/usr/bin/docker kill -s HUP %n
-ExecStop=/usr/bin/docker stop %n
-
-#[Service]
-#Type=forking
-#PIDFile=/var/run/nginx.pid
-#ExecStartPre=/usr/sbin/nginx -t -c /etc/nginx/nginx.conf
-#ExecStart=/usr/sbin/nginx -c /etc/nginx/nginx.conf
-#ExecReload=/bin/kill -s HUP $MAINPID
+ExecStartPre=-/usr/bin/docker stop 221b-nginx
+ExecStart=/usr/bin/docker start -a 221b-nginx
+ExecReload=/usr/bin/docker kill -s HUP 221b-nginx
+ExecStop=/usr/bin/docker stop 221b-nginx
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=local.target
