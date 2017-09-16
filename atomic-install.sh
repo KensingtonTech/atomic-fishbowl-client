@@ -8,9 +8,9 @@ if [ ! -d ${HOST}${CERTDIR} ]; then
 	mkdir -p ${HOST}${CERTDIR}
 fi
 
-if [ ! -d ${HOST}${DATDIR} ]; then
+if [ ! -d ${HOST}${DATADIR} ]; then
   echo Creating $DATADIR
-  mkdir -p ${HOST}${DATDIR}
+  mkdir -p ${HOST}${DATADIR}
 fi
 
 if [ ! -d ${HOST}${LOGDIR} ]; then
