@@ -47,6 +47,7 @@ if [ $? -eq 0 ]; then
   chroot $HOST /usr/bin/docker stop $NAME
 fi
 
+sleep 2
 # Remove existing 221b-nginx container, if present
 chroot $HOST /usr/bin/docker ps -a -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
