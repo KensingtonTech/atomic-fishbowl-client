@@ -40,7 +40,7 @@ fi
 
 # Stop existing 221b-nginx container, if already running
 WASSTARTED=0
-chroot $HOST /usr/bin/docker ps -f name=$NAME | /usr/bin/grep -q ${NAME}$
+chroot $HOST /usr/bin/docker ps -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
   WASSTARTED=1
   echo Stopping container $NAME
@@ -60,7 +60,7 @@ chroot $HOST /usr/bin/docker create --name $NAME --net=host -p 443:443 -v /etc/k
 
 # Copy systemd unit file to host OS
 echo Installing systemd unit file
-echo To control, use:  systemctl [ start | stop | status | enable | disable ] 221b-nginx
+echo "To control, use:  systemctl [ start | stop | status | enable | disable ] 221b-nginx"
 cp -f /usr/lib/systemd/system/221b-nginx.service $HOST/etc/systemd/system
 
 # Load our systemd unit file
