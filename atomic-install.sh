@@ -26,18 +26,14 @@ if [[ ! -f ${HOST}${CERTDIR}/221b.key && -f ${HOST}${CERTDIR}/221b.pem ]]; then
 fi
 
 if [[ ! -f ${HOST}${CERTDIR}/221b.key || ! -f ${HOST}${CERTDIR}/221b.pem ]]; then
-  chroot $HOST
   echo "Generating new SSL keypair"
-  openssl genrsa -out $CERTDIR/221b.key 2048
-  openssl req -new -sha256 -key $CERTDIR/221b.key -out /tmp/tmp.csr -subj "/C=US/ST=Colorado/L=Denver/O=Kensington Technology Associates, Limited/CN=localhost/emailAddress=info@knowledgekta.com"
-  openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/221b.key -out $CERTDIR/221b.pem
-  exit
+  chroot $HOST /usr/bin/openssl genrsa -out $CERTDIR/221b.key 2048
+  chroot $HOST /usr/bin/openssl req -new -sha256 -key $CERTDIR/221b.key -out /tmp/tmp.csr -subj "/C=US/ST=Colorado/L=Denver/O=Kensington Technology Associates, Limited/CN=localhost/emailAddress=info@knowledgekta.com"
+  chroot $HOST /usr/bin/openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/221b.key -out $CERTDIR/221b.pem
 fi
 
 #copy systemd unit file to host OS
 cp -f /usr/lib/systemd/system/221b-nginx.service $HOST/etc/systemd/system
 
 #load our systemd unit file
-chroot $HOST
-systemctl --daemon-reload
-exit
+chroot $HOST systemctl --daemon-reload
