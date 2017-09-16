@@ -40,18 +40,18 @@ fi
 
 # Stop existing 221b-nginx container, if already running
 WASSTARTED=0
-chroot $ROOT /usr/bin/docker ps -f name=$NAME | /usr/bin/grep -q ${NAME}$
+chroot $HOST /usr/bin/docker ps -f name=$NAME | /usr/bin/grep -q ${NAME}$
 if [ $? -eq 0 ]; then
   WASSTARTED=1
   echo Stopping container $NAME
-  chroot $ROOT /usr/bin/docker stop $NAME
+  chroot $HOST /usr/bin/docker stop $NAME
 fi
 
 # Remove existing 221b-nginx container, if present
-chroot $ROOT /usr/bin/docker ps -a -f name=$NAME | grep -q ${NAME}$
+chroot $HOST /usr/bin/docker ps -a -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
   echo Removing existing $NAME container
-  chroot $ROOT /usr/bin/docker rm $NAME
+  chroot $HOST /usr/bin/docker rm $NAME
 fi
 
 # Create container
