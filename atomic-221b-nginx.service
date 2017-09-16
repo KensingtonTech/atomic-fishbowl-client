@@ -1,0 +1,23 @@
+[Unit]
+Description=221B-Nginx - high performance web server
+Documentation=https://knowledgekta.com
+After=network-online.target remote-fs.target nss-lookup.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=forking #simple
+ExecStart=/usr/bin/docker start %n
+ExecRestart=/usr/bin/docker restart %n
+ExecReload=/usr/bin/docker kill -s HUP %n
+ExecStop=/usr/bin/docker stop %n
+
+#[Service]
+#Type=forking
+#PIDFile=/var/run/nginx.pid
+#ExecStartPre=/usr/sbin/nginx -t -c /etc/nginx/nginx.conf
+#ExecStart=/usr/sbin/nginx -c /etc/nginx/nginx.conf
+#ExecReload=/bin/kill -s HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
