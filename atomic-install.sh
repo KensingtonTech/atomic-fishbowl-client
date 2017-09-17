@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#override 221b-nginx-installer-tmp $NAME var passed in by Dockerfile
-NAME=221b-nginx
-
 #define our data dirs
 CERTDIR=/etc/kentech/221b/certificates
 DATADIR=/var/kentech/221b
