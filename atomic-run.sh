@@ -66,5 +66,5 @@ if [ $? -eq 0 ]; then
 else
   #the container is not installed - run the installer
   export STARTME=1
-  /bin/install.sh
+  /bin/atomic-install.sh
 fi
