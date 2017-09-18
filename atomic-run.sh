@@ -66,5 +66,6 @@ if [ $? -eq 0 ]; then
 else
   #the container is not installed - run the installer
   export STARTME=1
-  /bin/atomic-install.sh
+  #/bin/atomic-install.sh
+  chroot $HOST /usr/bin/atomic install 221b-nginx
 fi
