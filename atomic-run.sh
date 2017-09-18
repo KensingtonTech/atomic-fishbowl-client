@@ -67,5 +67,6 @@ else
   #the container is not installed - run the installer
   #export STARTME=1
   #/bin/atomic-install.sh
-  chroot $HOST /usr/bin/atomic install --set STARTME=1 221b-nginx
+  chroot $HOST /usr/bin/atomic install 221b-nginx
+  chroot $HOST /usr/bin/systemctl start $NAME
 fi

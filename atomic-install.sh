@@ -71,7 +71,7 @@ cp -f /usr/lib/systemd/system/221b-nginx.service $HOST/etc/systemd/system
 # Load our systemd unit file
 chroot $HOST /usr/bin/systemctl daemon-reload
 
-if [[ $WASSTARTED -eq 1 || $STARTME -eq 1 ]]; then
+if [[ $WASSTARTED -eq 1 ]]; then
   echo Starting container $NAME
   chroot $HOST /usr/bin/systemctl start $NAME
 fi
