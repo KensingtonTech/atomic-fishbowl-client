@@ -39,7 +39,7 @@ if [[ ! -f ${HOST}${CERTDIR}/221b.key || ! -f ${HOST}${CERTDIR}/221b.pem ]]; the
   chroot $HOST /usr/bin/openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/221b.key -out $CERTDIR/221b.pem
 fi
 
-# Stop existing 221b-nginx container, if already running
+# Stop existing container, if already running
 WASSTARTED=0
 chroot $HOST /usr/bin/docker ps -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
@@ -48,7 +48,7 @@ if [ $? -eq 0 ]; then
   chroot $HOST /usr/bin/docker stop $NAME
 fi
 
-# Remove existing 221b-nginx container, if present
+# Remove existing container, if present
 chroot $HOST /usr/bin/docker ps -a -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
   echo Removing existing $NAME container
@@ -61,12 +61,12 @@ fi
 
 # Create container
 echo Creating container $NAME from image $IMAGE
-chroot $HOST /usr/bin/docker create --name $NAME --net=host -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:rw -v /var/log/nginx:/var/log/nginx:rw $IMAGE
+chroot $HOST /usr/bin/docker create --name $NAME --net=host -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro -v /var/log/nginx:/var/log/nginx:rw $IMAGE
 
 # Copy systemd unit file to host OS
 echo Installing systemd unit file
-echo "To control, use:  systemctl [ start | stop | status | enable | disable ] 221b-nginx"
-cp -f /usr/lib/systemd/system/221b-nginx.service $HOST/etc/systemd/system
+echo "To control, use:  systemctl [ start | stop | status | enable | disable ] $NAME"
+cp -f /usr/lib/systemd/system/${NAME}.service ${HOST}/etc/systemd/system
 
 # Load our systemd unit file
 chroot $HOST /usr/bin/systemctl daemon-reload

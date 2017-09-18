@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#define our data dirs
+# define our data dirs
 CERTDIR=/etc/kentech/221b/certificates
 DATADIR=/var/kentech/221b
 LOGDIR=/var/log/nginx
 
-# Stop existing 221b-nginx container, if already running
+# Stop existing container, if already running
 WASSTARTED=0
 chroot $HOST /usr/bin/docker ps -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
@@ -14,7 +14,7 @@ if [ $? -eq 0 ]; then
   exit
 fi
 
-#is our container already installed?
+# is our container already installed?
 chroot $HOST /usr/bin/docker ps -a -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
 
@@ -54,19 +54,17 @@ if [ $? -eq 0 ]; then
   fi
 
 
-  if [ -f $HOST/etc/systemd/system/221b-nginx.service ]; then
-    #our systemd unit is installed so start with systemd
+  if [ -f $HOST/etc/systemd/system/${NAME}.service ]; then
+    # our systemd unit is installed so start with systemd
     chroot $HOST /usr/bin/systemctl start $NAME
   
   else
-    #no systemd unit file is installed, so start with docker
+    # no systemd unit file is installed, so start with docker
     chroot $HOST /usr/bin/docker start $NAME
   fi
 
 else
-  #the container is not installed - run the installer
-  #export STARTME=1
-  #/bin/atomic-install.sh
-  chroot $HOST /usr/bin/atomic install 221b-nginx
+  # the container is not installed - run the installer
+  chroot $HOST /usr/bin/atomic install $NAME
   chroot $HOST /usr/bin/systemctl start $NAME
 fi
