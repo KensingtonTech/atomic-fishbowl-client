@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo Stopping container $NAME
+
 # Stop existing 221b-nginx container, if already running
 chroot $HOST /usr/bin/docker ps -f name=$NAME | grep -q ${NAME}$
 if [ $? -eq 0 ]; then
