@@ -54,7 +54,7 @@ if [ $? -eq 0 ]; then
   fi
 
 
-  if [ -f $HOST/etc/systemd/system/221b-nginx.service ]
+  if [ -f $HOST/etc/systemd/system/221b-nginx.service ]; then
     #our systemd unit is installed so start with systemd
     chroot $HOST /usr/bin/systemctl start $NAME
   
