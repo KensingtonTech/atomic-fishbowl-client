@@ -6,7 +6,6 @@ DATADIR=/var/kentech/221b
 LOGDIR=/var/log/nginx
 
 # Create 221b dirs
-
 if [ ! -d ${HOST}${CERTDIR} ]; then
   echo Creating $CERTDIR
 	mkdir -p ${HOST}${CERTDIR}
@@ -39,6 +38,13 @@ if [[ ! -f ${HOST}${CERTDIR}/221b.key || ! -f ${HOST}${CERTDIR}/221b.pem ]]; the
   chroot $HOST /usr/bin/openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/221b.key -out $CERTDIR/221b.pem
 fi
 
+# Create network '221b-network' if not already there
+chroot $HOST /usr/bin/docker network ls  | awk '{print $2}' | grep -q ^221b-network$
+if [ $? -ne 0 ]; then
+  echo Creating bridge network 221b-network
+  chroot $HOST /usr/bin/docker network create 221b-network
+fi
+
 # Stop existing container, if already running
 WASSTARTED=0
 chroot $HOST /usr/bin/docker ps -f name=$NAME | grep -q ${NAME}$
@@ -61,7 +67,7 @@ fi
 
 # Create container
 echo Creating container $NAME from image $IMAGE
-chroot $HOST /usr/bin/docker create --name $NAME --net=host -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro -v /var/log/nginx:/var/log/nginx:rw $IMAGE
+chroot $HOST /usr/bin/docker create --name $NAME --network 221b-network -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro -v /var/log/nginx:/var/log/nginx:rw $IMAGE
 
 # Copy systemd unit file to host OS
 echo Installing systemd unit file
