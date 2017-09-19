@@ -42,7 +42,7 @@ fi
 chroot $HOST /usr/bin/docker network ls  | awk '{print $2}' | grep -q ^221b-network$
 if [ $? -ne 0 ]; then
   echo Creating bridge network 221b-network
-  chroot $HOST /usr/bin/docker network create 221b-network
+  chroot $HOST /usr/bin/docker network create 221b-network >/dev/null
 fi
 
 # Stop existing container, if already running
@@ -67,7 +67,7 @@ fi
 
 # Create container
 echo Creating container $NAME from image $IMAGE
-chroot $HOST /usr/bin/docker create --name $NAME --network 221b-network -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro -v /var/log/nginx:/var/log/nginx:rw $IMAGE
+chroot $HOST /usr/bin/docker create --name $NAME --network 221b-network -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro -v /var/log/nginx:/var/log/nginx:rw $IMAGE >/dev/null
 
 # Copy systemd unit file to host OS
 echo Installing systemd unit file
