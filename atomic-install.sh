@@ -67,7 +67,7 @@ fi
 
 # Create container
 echo Creating container $NAME from image $IMAGE
-chroot $HOST /usr/bin/docker create --name $NAME --network 221b-network --ip 172.31.255.244 -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro -v /var/log/nginx:/var/log/nginx:rw $IMAGE >/dev/null
+chroot $HOST /usr/bin/docker create --name $NAME --network 221b-network --ip 172.31.255.244 --add-host 221b-server:172.31.255.243 -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro -v /var/log/nginx:/var/log/nginx:rw $IMAGE >/dev/null
 
 # Copy systemd unit file to host OS
 echo Installing systemd unit file
