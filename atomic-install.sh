@@ -9,7 +9,7 @@ LOGDIR=/var/log/nginx
 if [ ! -d ${HOST}${CERTDIR} ]; then
   echo Creating $CERTDIR
 	mkdir -p ${HOST}${CERTDIR}
-  chown 700 ${HOST}${CERTDIR}
+  chmod 700 ${HOST}${CERTDIR}
 fi
 
 if [ ! -d ${HOST}${DATADIR} ]; then
