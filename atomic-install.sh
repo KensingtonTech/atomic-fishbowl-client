@@ -9,6 +9,7 @@ LOGDIR=/var/log/nginx
 if [ ! -d ${HOST}${CERTDIR} ]; then
   echo Creating $CERTDIR
 	mkdir -p ${HOST}${CERTDIR}
+  chown 700 ${HOST}${CERTDIR}
 fi
 
 if [ ! -d ${HOST}${DATADIR} ]; then
@@ -36,6 +37,7 @@ if [[ ! -f ${HOST}${CERTDIR}/221b.key || ! -f ${HOST}${CERTDIR}/221b.pem ]]; the
   chroot $HOST /usr/bin/openssl genrsa -out $CERTDIR/221b.key 2048
   chroot $HOST /usr/bin/openssl req -new -sha256 -key $CERTDIR/221b.key -out /tmp/tmp.csr -subj "/C=US/ST=Colorado/L=Denver/O=Kensington Technology Associates, Limited/CN=localhost/emailAddress=info@knowledgekta.com"
   chroot $HOST /usr/bin/openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/221b.key -out $CERTDIR/221b.pem
+  chmod 600 ${HOST}${CERTDIR}/221b.key ${HOST}${CERTDIR}/221b.pem
 fi
 
 # Create network '221b-network' if not already there
