@@ -12,6 +12,11 @@ import { MasonryComponent } from './masonry/masonry.component';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
 declare var log: any;
+// import * as velocity from 'velocity-animate';
+// declare var $: any;
+// import 'velocity-animate';
+
+// declare var velocity: any;
 
 @Component({
   selector: 'masonry-grid-view',
@@ -250,7 +255,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       // this triggers when a monitoring collection refreshes
       log.debug('MasonryGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
       this.collectionState = collection.state;
-      if (collection.state === 'refreshing')  {
+      if (collection.state === 'monitoring')  {
         // this.masonryComponentRef.loadAllBeforeLayout = false;
         if (this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); }
         this.destroyView = true;
@@ -425,13 +430,17 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   autoScroller(): void {
+    log.debug('MasonryGridComponent: autoScroller(): Starting scroller');
     // $('.scrollContainer').animate( { scrollTop: this.offset() }, this.scrollDuration(), 'linear');
+    // Add a new animation to the animation queue
     $('.scrollContainer').animate( { scrollTop: this.offset() }, this.scrollDuration(), 'linear', () => {
+      // This callback runs when the animation is complete
       if (this.selectedCollectionType === 'fixed' && this.collectionState === 'complete') { this.stopAutoScroll(); }
     });
 
     let queue = $('.scrollContainer').queue();
     if (queue.length > 1) {
+      // If there's already an animation running, stop it to allow the next animation in the queue to run
       log.debug('MasonryGridComponent: autoScroller(): stopping existing animation');
       $('.scrollContainer').stop(false, false);
     }
@@ -655,6 +664,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private stopAutoScroll(): void {
+    log.debug('MasonryGridComponent: stopAutoScroll()');
     this.stopAutoScrollerAnimation();
     this.toolService.scrollToBottomStopped.next();
     this.autoScrollStarted = false;
@@ -662,6 +672,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private restartAutoScroll(): void {
+    log.debug('MasonryGridComponent: restartAutoScroll()');
     this.stopAutoScrollerAnimation();
     this.lastWindowHeight = $('masonry').height();
     this.autoScroller();

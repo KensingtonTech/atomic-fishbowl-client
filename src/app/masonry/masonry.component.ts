@@ -65,7 +65,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
       this.isotope.on( 'layoutComplete', () => {
         // this.changeDetectionRef.detectChanges();
         // this.changeDetectionRef.markForCheck();
-        // this.toolService.layoutComplete.next();
+        this.toolService.layoutComplete.next();
       });
     });
   }

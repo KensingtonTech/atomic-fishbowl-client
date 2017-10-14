@@ -137,8 +137,8 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   private deviceNumber: number;
   public content: any;
   private rotation = 0;
-  public pdfZoom = 1;
-  /*public zoomLevels = [ {text: '25%', value: .25}, // the way it should be
+  public pdfZoom = .5;
+  public zoomLevels = [ {text: '25%', value: .25}, // the way it should be
                         {text: '50%', value: .5},
                         {text: '75%', value: .75},
                         {text: '100%', value: 1},
@@ -147,8 +147,8 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
                         {text: '175%', value: 1.75},
                         {text: '200%', value: 2}
                       ];
-*/
-  public zoomLevels = [
+
+  /*public zoomLevels = [
     {text: '25%', value: 1.75}, // this is ass-backwards thanks to a bug in the library https://github.com/VadimDez/ng2-pdf-viewer/issues/95
     {text: '50%', value: 1.5},
     {text: '75%', value: 1.25},
@@ -157,7 +157,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     {text: '150%', value: 0.5},
     {text: '175%', value: 0.25},
     {text: '200%', value: 0}
-  ];
+  ];*/
   private displayedKeys: any =  [
     'size',
     'service',
@@ -183,7 +183,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     log.debug('PdfViewerModalComponent: ngOnInit()');
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => { 
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {
       // log.debug("prefs observable: ", prefs);
       this.preferences = prefs;
       if ( 'displayedKeys' in prefs ) {

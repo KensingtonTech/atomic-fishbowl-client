@@ -184,7 +184,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => { // this triggers when a monitoring collection refreshes
       log.debug('ClassicGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
-      if (collection.state === 'refreshing')  {
+      if (collection.state === 'monitoring')  {
         this.destroyView = true;
         this.changeDetectionRef.detectChanges();
         this.changeDetectionRef.markForCheck();

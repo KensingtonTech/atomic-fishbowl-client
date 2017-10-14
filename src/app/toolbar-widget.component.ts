@@ -277,7 +277,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
       this.queryingIcon = true;
     }
 
-    if (state === 'building' || state === 'rolling' || state === 'refreshing') {
+    if (state === 'building' || state === 'rolling' || state === 'monitoring') {
       this.spinnerIcon = true;
     }
     else if (state === 'error') {
