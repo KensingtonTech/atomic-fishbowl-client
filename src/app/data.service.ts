@@ -33,8 +33,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public collectionsChanged: Subject<any> = new Subject<any>();
   public selectedCollectionChanged: Subject<any> = new Subject<any>();
   public collectionStateChanged: Subject<any> = new Subject<any>();
-  public sessionsChanged: Subject<any> = new Subject<any>();
-  public contentChanged: Subject<any> = new Subject<any>();
+  public sessionsReplaced: Subject<any> = new Subject<any>();
+  public contentReplaced: Subject<any> = new Subject<any>();
   public searchChanged: Subject<any> = new Subject<any>();
   public searchPublished: Subject<any> = new Subject<any>();
   public errorPublished: Subject<any> = new Subject<any>();
@@ -158,8 +158,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
                     .then(response => {
                       let data = response.json() as any;
                       this.selectedCollectionChanged.next(collection);
-                      this.contentChanged.next(data.images);
-                      this.sessionsChanged.next(data.sessions);
+                      this.contentReplaced.next(data.images);
+                      this.sessionsReplaced.next(data.sessions);
                       if (data.search) {
                         this.searchChanged.next(data.search);
                       }

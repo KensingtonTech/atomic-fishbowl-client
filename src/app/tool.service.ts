@@ -31,4 +31,11 @@ export class ToolService {
   public HttpJsonStreamConnected: Subject<any> = new Subject<any>();
   public openPDFViewer: Subject<any> = new Subject<any>();
   public openSessionViewer: Subject<any> = new Subject<any>();
+  public showMasonryTextArea: Subject<boolean> = new Subject<boolean>();
+  public showMasonryTextAreaState = true;
+  public refreshMasonryLayout: Subject<void> = new Subject<void>();
+
+  constructor() {
+    this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );
+  }
 }

@@ -117,7 +117,7 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
     'client'
   ];
 
-  private sessionsChangedSubscription: any;
+  private sessionsReplacedSubscription: any;
   private sessionPublishedSubscription: any;
   private preferencesChangedSubscription: any;
   private deviceNumberSubscription: any;
@@ -126,7 +126,7 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   ngOnInit(): void {
     this.enabledTrigger = 'disabled';
 
-    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => { // log.debug("sessionsChanged", s);
+    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => { // log.debug("sessionsReplaced", s);
       this.sessions = s;
     });
 
@@ -148,7 +148,7 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   ngOnDestroy(): void {
     log.debug('ClassicSessionPopupComponent: ngOnDestroy()');
 
-    this.sessionsChangedSubscription.unsubscribe();
+    this.sessionsReplacedSubscription.unsubscribe();
     this.sessionPublishedSubscription.unsubscribe();
     this.preferencesChangedSubscription.unsubscribe();
     this.deviceNumberSubscription.unsubscribe();

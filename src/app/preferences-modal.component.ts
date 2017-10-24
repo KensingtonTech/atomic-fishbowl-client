@@ -19,7 +19,7 @@ declare var log: any;
 
 export class PreferencesModalComponent {
 
-  constructor(private dataService : DataService,
+  constructor(private dataService: DataService,
               private modalService: ModalService,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
@@ -32,9 +32,9 @@ export class PreferencesModalComponent {
   private defaultDefaultNwquery = "vis.level exists || content = 'application/pdf'";
   private defaultMinX = 1;
   private defaultMinY = 1;
-  private defaultGsPath = '/usr/bin/gs';
-  private defaultPdftotextPath = '/usr/bin/pdftotext';
-  private defaultUnrarPath = '/usr/bin/unrar';
+  // private defaultGsPath = '/usr/bin/gs';
+  // private defaultPdftotextPath = '/usr/bin/pdftotext';
+  // private defaultUnrarPath = '/usr/bin/unrar';
   private defaultDisplayedKeys = [ 'size', 'service', 'ip.src', 'ip.dst', 'alias.host', 'city.dst', 'country.dst', 'action', 'content', 'ad.username.src', 'ad.computer.src', 'filename', 'client'];
   private defaultDefaultImageLimit = 1000;
   private defaultDefaultRollingHours = 1;
@@ -52,16 +52,16 @@ export class PreferencesModalComponent {
                                     defaultNwQuery: this.defaultDefaultNwquery,
                                     minX: this.defaultMinX,
                                     minY: this.defaultMinY,
-                                    gsPath: this.defaultGsPath,
-                                    pdftotextPath: this.defaultPdftotextPath,
+                                    // gsPath: this.defaultGsPath,
+                                    // pdftotextPath: this.defaultPdftotextPath,
+                                    // unrarPath: this.defaultUnrarPath,
                                     displayedKeys: this.getDisplayedKeysValue(this.defaultDisplayedKeys),
                                     defaultImageLimit: this.defaultDefaultImageLimit,
                                     defaultRollingHours: this.defaultDefaultRollingHours,
-                                    defaultQuerySelection: this.defaultQueries[0].text, //this only has effect on the first run of 221B.  After the prefs have been set, it will be read in from the prefs
-                                    unrarPath: this.defaultUnrarPath,
+                                    defaultQuerySelection: this.defaultQueries[0].text, // this only has effect on the first run of 221B.  After the prefs have been set, it will be read in from the prefs
                                     masonryColumnSize: this.defaultMasonryColumnSize,
                                     masonryKeys: this.getMasonryKeysValue(this.defaultMasonryKeys)
-                                  }
+                                  };
 
   getDisplayedKeysValue(a: any): string {
     let text = '';
@@ -75,7 +75,7 @@ export class PreferencesModalComponent {
   }
 
   getMasonryKeysValue(a: any): string {
-    var text = '';
+    let text = '';
     for (let i = 0; i < a.length; i++) {
       text += a[i].key + ',' + a[i].friendly;
       if (i < a.length - 1) { // omit the newline on the last line
@@ -114,7 +114,7 @@ export class PreferencesModalComponent {
     // log.debug('PreferencesModalComponent: setMasonryKeysValue(): n:', n);
 
     for (let x = 0; x < n.length; x++) {
-      //remove blank lines
+      // remove blank lines
       if (!n[x].match(/^\s*$/)) {
         newArray.push(n[x]);
       }
@@ -123,7 +123,7 @@ export class PreferencesModalComponent {
 
     let keysArray = [];
 
-    for (let i=0; i < newArray.length; i++) {
+    for (let i = 0; i < newArray.length; i++) {
       let x = {};
       let y = newArray[i].split(',');
       // log.debug('y:', y);
@@ -143,7 +143,7 @@ export class PreferencesModalComponent {
         x['friendly'] = s;
       }
       else {
-        // if not in CSV notation, save the key name as the friendly name 
+        // if not in CSV notation, save the key name as the friendly name
         x['friendly'] = y[0];
       }
       keysArray.push(x);
@@ -185,7 +185,7 @@ export class PreferencesModalComponent {
                                               if ( 'minY' in prefs ) {
                                                 this.preferencesModel.minY = prefs.minY;
                                               }
-                                              if ( 'gsPath' in prefs ) {
+                                              /*if ( 'gsPath' in prefs ) {
                                                 this.preferencesModel.gsPath = prefs.gsPath;
                                               }
                                               if ( 'pdftotextPath' in prefs ) {
@@ -193,7 +193,7 @@ export class PreferencesModalComponent {
                                               }
                                               if ( 'unrarPath' in prefs ) {
                                                 this.preferencesModel.unrarPath = prefs.unrarPath;
-                                              }
+                                              }*/
                                               if ( 'displayedKeys' in prefs ) {
                                                 this.preferencesModel.displayedKeys = this.getDisplayedKeysValue(prefs.displayedKeys);
                                               }
@@ -215,22 +215,24 @@ export class PreferencesModalComponent {
   }
 
   submitPreferences(f: any): void {
-    log.debug("PreferencesModalComponent: submitPreferences(): f", f);
+    log.debug('PreferencesModalComponent: submitPreferences(): f', f);
     let prefs = {
       nwInvestigateUrl: f.value.nwInvestigateUrl,
       defaultNwQuery: f.value.defaultNwQuery,
       minX: f.value.minX,
       minY: f.value.minY,
+      /*
       gsPath: f.value.gsPath,
       pdftotextPath: f.value.pdftotextPath,
+      unrarPath: f.value.unrarPath,
+      */
       displayedKeys: this.setDisplayedKeysValue(f.value.displayedKeys),
       defaultRollingHours: f.value.defaultRollingHours,
       defaultQuerySelection: f.value.defaultQuerySelection,
-      unrarPath: f.value.unrarPath,
       defaultImageLimit: f.value.defaultImageLimit,
       masonryColumnSize: f.value.masonryColumnSize,
       masonryKeys: this.setMasonryKeysValue(f.value.masonryKeys)
-    }
+    };
     this.dataService.setPreferences(prefs)
                     .then( () => this.closeModal() );
   }

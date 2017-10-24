@@ -9,8 +9,10 @@ declare var log: any;
 <div class="noselect" style="position: absolute; top: 20px; left: 10px; padding: 5px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px; z-index: 100;">
   <div style="position: absolute; left: 0;"><router-dropdown></router-dropdown></div>
   <div style="position: absolute; left: 40px;" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></div>
-  <div *ngIf="!scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-level-down fa-2x fa-fw" (click)="scrollToBottom()" pTooltip="Autoscroller"></div>
-  <div *ngIf="scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-stop fa-2x fa-fw" (click)="stopScrollToBottom()"></div>
+  <div *ngIf="!scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-level-down fa-2x fa-fw" (click)="scrollToBottom()" pTooltip="Start autoscroller"></div>
+  <div *ngIf="scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-stop fa-2x fa-fw" (click)="stopScrollToBottom()" pTooltip="Stop autoscroller"></div>
+  <div *ngIf="showMeta" style="position: absolute; left: 40px; top: 40px;" class="icon fa fa-comment fa-2x fa-fw" (click)="hideMetaFunction()" pTooltip="Hide Meta"></div>
+  <div *ngIf="!showMeta" style="position: absolute; left: 40px; top: 40px;" class="icon fa fa-comment-o fa-2x fa-fw" (click)="showMetaFunction()" pTooltip="Show Meta"></div>
 </div>
 `,
   styles: [`
@@ -32,6 +34,7 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
   public scrollStarted = false;
   private scrollToBottomStoppedSubscription: any;
+  public showMeta = true;
   // private scrollToBottomRunningSubscription: any;
 
   ngOnInit(): void {
@@ -46,6 +49,8 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
       this.scrollStarted = false;
       this.changeDetectionRef.markForCheck();
     });
+
+    this.showMeta = this.toolService.showMasonryTextAreaState;
   }
 
   ngOnDestroy(): void {
@@ -61,6 +66,18 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   stopScrollToBottom(): void {
     this.scrollStarted = false;
     this.toolService.stopScrollToBottom.next();
+  }
+
+  showMetaFunction(): void {
+    this.showMeta = true;
+    this.toolService.showMasonryTextArea.next(true);
+    setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10);
+  }
+
+  hideMetaFunction(): void {
+    this.showMeta = false;
+    this.toolService.showMasonryTextArea.next(false);
+    setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10);
   }
 
 }

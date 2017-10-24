@@ -75,13 +75,13 @@ export class SessionWidgetComponent implements OnInit, OnDestroy {
   ];
 
   // Subscriptions
-  private sessionsChangedSubscription: any;
+  private sessionsReplacedSubscription: any;
   private sessionPublishedSubscription: any;
   private preferencesChangedSubscription: any;
   private deviceNumberSubscription: any;
 
   ngOnInit(): void {
-    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => { // log.debug("sessionsChanged", s);
+    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => { // log.debug("sessionsReplaced", s);
       this.sessions = s;
     });
 
@@ -101,7 +101,7 @@ export class SessionWidgetComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.sessionsChangedSubscription.unsubscribe();
+    this.sessionsReplacedSubscription.unsubscribe();
     this.sessionPublishedSubscription.unsubscribe();
     this.preferencesChangedSubscription.unsubscribe();
     this.deviceNumberSubscription.unsubscribe();

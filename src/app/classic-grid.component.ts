@@ -21,6 +21,10 @@ declare var log: any;
     </div>
   </panzoom>
   <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [canvasWidth]="canvasWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
+  <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 210px; top: 10px; color: white; z-index: 100;">
+    <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
+    <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
+  </div>
   <pdf-viewer-modal [apiServerUrl]="apiServerUrl" id="pdf-viewer"></pdf-viewer-modal>
   <classic-session-popup [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" #sessionWidget></classic-session-popup>
 </div>
@@ -64,13 +68,14 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private caseSensitiveSearch = false;
   private showOnlyImages: any = [];
   private lastSearchTerm = '';
-  private selectedCollectionType: string;
-  private collectionId: number;
+  public selectedCollectionType: string;
+  private collectionId: string;
   public sessionsDefined = false;
   public destroyView = true;
   private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
   private lastMask = new ContentMask;
   private searchBarOpen = false;
+  private pauseMonitoring = false;
 
   // Subscription holders
   private searchBarOpenSubscription: any;
@@ -80,9 +85,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private noCollectionsSubscription: any;
   private selectedCollectionChangedSubscription: any;
   private collectionStateChangedSubscription: any;
-  private sessionsChangedSubscription: any;
+  private sessionsReplacedSubscription: any;
   private sessionPublishedSubscription: any;
-  private contentChangedSubscription: any;
+  private contentReplacedSubscription: any;
   private contentPublishedSubscription: any;
   private searchChangedSubscription: any;
   private searchPublishedSubscription: any;
@@ -100,9 +105,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.noCollectionsSubscription.unsubscribe();
     this.selectedCollectionChangedSubscription.unsubscribe();
     this.collectionStateChangedSubscription.unsubscribe();
-    this.sessionsChangedSubscription.unsubscribe();
+    this.sessionsReplacedSubscription.unsubscribe();
     this.sessionPublishedSubscription.unsubscribe();
-    this.contentChangedSubscription.unsubscribe();
+    this.contentReplacedSubscription.unsubscribe();
     this.contentPublishedSubscription.unsubscribe();
     this.searchChangedSubscription.unsubscribe();
     this.searchPublishedSubscription.unsubscribe();
@@ -198,8 +203,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => {
-      log.debug('ClassicGridComponent: sessionsChangedSubscription: sessionsChanged:', s); // when an a whole new collection is selected
+    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => {
+      log.debug('ClassicGridComponent: sessionsReplacedSubscription: sessionsReplaced:', s); // when an a whole new collection is selected
       this.sessionsDefined = true;
       this.sessions = s;
       this.changeDetectionRef.detectChanges();
@@ -213,8 +218,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.sessions[sessionId] = s;
     });
 
-    this.contentChangedSubscription = this.dataService.contentChanged.subscribe( (i: any) => {
-      log.debug('ClassicGridComponent: contentChangedSubscription: contentChanged:', i); // when a new collection is selected
+    this.contentReplacedSubscription = this.dataService.contentReplaced.subscribe( (i: any) => {
+      log.debug('ClassicGridComponent: contentReplacedSubscription: contentReplaced:', i); // when a new collection is selected
       this.destroyView = true;
       i.sort(this.sortContent);
       this.content = i;
@@ -232,7 +237,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     });
 
 
-    this.contentPublishedSubscription = this.dataService.contentPublished.subscribe( (newContent: any) =>  { // when content are pushed from a still-building, rolling, or monitoring collection
+    this.contentPublishedSubscription = this.dataService.contentPublished.subscribe( (newContent: any) =>  { // when content is pushed from a still-building rolling, or monitoring collection
       log.debug('ClassicGridComponent: contentPublishedSubscription: contentPublished:', newContent);
 
       // update content counts here to save cycles not calculating image masks
@@ -254,9 +259,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.contentCount.total = this.content.length;
       this.toolService.contentCount.next( this.contentCount );
 
-      if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
-      // this.changeDetectionRef.detectChanges();
-      // this.changeDetectionRef.markForCheck();
+      // if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
+      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
     });
 
     this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: Search[]) =>  { // this receives complete search term data from complete collection
@@ -315,6 +321,12 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
   openPdfViewer(e: any): void {
     log.debug('ClassicGridComponent: openPdfViewer()');
+    /*
+    if (this.selectedCollectionType === 'monitoring' && this.pauseMonitoring === false) {
+      // pause monitoring
+      this.suspendMonitoring();
+    }
+    */
     this.modalService.open('pdf-viewer');
   }
 
@@ -722,5 +734,26 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       }
     }
   }*/
+
+  suspendMonitoring(): void {
+    this.pauseMonitoring = true;
+    // this.dataService.abortGetBuildingCollection();
+    this.dataService.pauseMonitoringCollection(this.collectionId);
+  }
+
+  resumeMonitoring(): void {
+    this.pauseMonitoring = false;
+
+    // We must now check whether our collection has disconnected, and if not - call unpauseMonitoringCollection.  If so, call getRollingCollection
+    if (this.dataService.httpJsonStreamServiceConnected) {
+      // We're still connected
+      this.dataService.unpauseMonitoringCollection(this.collectionId);
+      log.debug('ClassicGridComponent: resumeMonitoring(): this.collectionId:', this.collectionId);
+    }
+    else {
+      // We're disconnected
+      this.dataService.getRollingCollection(this.collectionId);
+    }
+  }
 
 }

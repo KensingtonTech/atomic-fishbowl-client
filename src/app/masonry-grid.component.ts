@@ -11,12 +11,9 @@ import { MasonryOptions } from './masonry/masonry-options';
 import { MasonryComponent } from './masonry/masonry.component';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
+import * as math from 'mathjs';
 declare var log: any;
-// import * as velocity from 'velocity-animate';
-// declare var $: any;
-// import 'velocity-animate';
-
-// declare var velocity: any;
+declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it
 
 @Component({
   selector: 'masonry-grid-view',
@@ -118,9 +115,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private noCollectionsSubscription: any;
   private selectedCollectionChangedSubscription: any;
   private collectionStateChangedSubscription: any;
-  private sessionsChangedSubscription: any;
+  private sessionsReplacedSubscription: any;
   private sessionPublishedSubscription: any;
-  private contentChangedSubscription: any;
+  private contentReplacedSubscription: any;
   private contentPublishedSubscription: any;
   private searchChangedSubscription: any;
   private searchPublishedSubscription: any;
@@ -142,9 +139,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.noCollectionsSubscription.unsubscribe();
     this.selectedCollectionChangedSubscription.unsubscribe();
     this.collectionStateChangedSubscription.unsubscribe();
-    this.sessionsChangedSubscription.unsubscribe();
+    this.sessionsReplacedSubscription.unsubscribe();
     this.sessionPublishedSubscription.unsubscribe();
-    this.contentChangedSubscription.unsubscribe();
+    this.contentReplacedSubscription.unsubscribe();
     this.contentPublishedSubscription.unsubscribe();
     this.searchChangedSubscription.unsubscribe();
     this.searchPublishedSubscription.unsubscribe();
@@ -272,9 +269,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    this.sessionsChangedSubscription = this.dataService.sessionsChanged.subscribe( (s: any) => {
+    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => {
       // when a whole new sessions collection is received
-      log.debug('MasonryGridComponent: sessionsChangedSubscription: sessionsChanged:', s);
+      log.debug('MasonryGridComponent: sessionsReplacedSubscription: sessionsReplaced:', s);
       this.sessionsDefined = true;
       this.sessions = s;
       this.changeDetectionRef.detectChanges();
@@ -289,9 +286,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.sessions[sessionId] = s;
     });
 
-    this.contentChangedSubscription = this.dataService.contentChanged.subscribe( (i: any) => {
+    this.contentReplacedSubscription = this.dataService.contentReplaced.subscribe( (i: any) => {
        // when a whole new content collection is received
-      log.debug('MasonryGridComponent: contentChangedSubscription: contentChanged:', i);
+      log.debug('MasonryGridComponent: contentReplacedSubscription: contentReplaced:', i);
       if (i.length === 0 && this.masonryComponentRef) { this.masonryComponentRef.destroyMe(); } // we need this when we remove the only collection and it is biggish.  Prevents performance issues
       this.destroyView = true;
       i.sort(this.sortContent);
@@ -305,7 +302,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       setTimeout( () => {
         // Sets keyboard focus
         if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnSize && !this.destroyView) {
-          log.debug('MasonryGridComponent: contentChangedSubscription: this.masonryRef', this.masonryRef);
+          log.debug('MasonryGridComponent: contentReplacedSubscription: this.masonryRef', this.masonryRef);
           this.masonryRef.first.el.nativeElement.focus();
         }
       }, 50);
@@ -410,70 +407,39 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   stopAutoScrollerAnimation(): void {
     log.debug('MasonryGridComponent: stopAutoScrollerAnimation(): Stopping scroller');
-    $('.scrollContainer').stop(true, false);
+    // $('.scrollContainer').stop(true, false);
+    $('.scrollTarget').velocity('stop');
     this.autoScrollAnimationRunning = false;
     // this.toolService.scrollToBottomStopped.next(); // sometimes we need to use this method without triggering an end to the controlbar
   }
 
-  offset(): string {
-    log.debug('MasonryGridComponent: offset()');
-    let offset = $('.scrollTarget').position().top; // how far the scrolltarget is from the top
-    return `+=${offset}`;
-  }
-
   scrollDuration(): number {
     log.debug('MasonryGridComponent: scrollDuration()');
-    let offset = $('.scrollTarget').position().top;
-    let distance = Math.ceil(offset) - $('.scrollContainer').height();
-    let scroll_duration = ( distance / this.pixelsPerSecond ) * 1000;
-    return scroll_duration;
+    let scrollTarget: any = document.getElementsByClassName('scrollTarget')[0];
+    let offset = scrollTarget.offsetTop;
+    // log.debug('MasonryGridComponent: scrollDuration(): offset:', offset);
+    let scrollTop = $('.scrollContainer').scrollTop(); // the position of the scrollbars from the top of the container
+    // log.debug('MasonryGridComponent: scrollDuration(): scrollTop:', scrollTop);
+    let distance = math.eval(`${offset} - ${scrollTop}`);
+    // log.debug('MasonryGridComponent: scrollDuration(): distance:', distance);
+    let scrollDuration = math.eval( `( ${distance} / ${this.pixelsPerSecond} ) * 1000`);
+    // log.debug('MasonryGridComponent: scrollDuration(): scrollDuration:', scrollDuration);
+    return scrollDuration;
   }
 
   autoScroller(): void {
     log.debug('MasonryGridComponent: autoScroller(): Starting scroller');
-    // $('.scrollContainer').animate( { scrollTop: this.offset() }, this.scrollDuration(), 'linear');
     // Add a new animation to the animation queue
-    $('.scrollContainer').animate( { scrollTop: this.offset() }, this.scrollDuration(), 'linear', () => {
+    $('.scrollTarget').velocity( 'scroll', { duration: this.scrollDuration(), container: $('.scrollContainer'), easing: 'linear', complete: () => {
       // This callback runs when the animation is complete
+      // log.debug('MasonryGridComponent: autoScroller(): Animation complete');
       if (this.selectedCollectionType === 'fixed' && this.collectionState === 'complete') { this.stopAutoScroll(); }
-    });
-
-    let queue = $('.scrollContainer').queue();
-    if (queue.length > 1) {
+    }});
+    if ( $('.scrollTarget').queue().length > 1) {
       // If there's already an animation running, stop it to allow the next animation in the queue to run
       log.debug('MasonryGridComponent: autoScroller(): stopping existing animation');
-      $('.scrollContainer').stop(false, false);
+      $('.scrollTarget').velocity('stop');
     }
-  }
-
-  oldautoScroller(): void {
-    if (this.autoScrollAnimationRunning) {
-      // We must stop the autoScroller before we restart it.  Yes, it's clunky
-      $('.scrollContainer').stop(true, false);
-      this.autoScrollAnimationRunning = false;
-    }
-    // this.toolService.scrollToBottomRunning.next();
-    let scrollTop = $('.scrollContainer').scrollTop();  // the number of pixels hidden from view above the scrollable area
-    // let offset = $('.scrollTarget').offset().top; // orig
-    let offset = $('.scrollTarget').position().top; // how far the scrolltarget is from the top
-    // log.debug('scrollTop:', scrollTop);
-    // log.debug('offset:', offset);
-
-    // let distance = Math.abs($('.scrollContainer').scrollTop() - $('.scrollTarget').offset().top);
-    // let distance = $('.scrollContainer').scrollTop() - $('.scrollTarget').offset().top;
-    // let distance = Math.abs( scrollTop - offset );
-    let distance = Math.ceil(offset) - $('.scrollContainer').height();
-    // log.debug('distance:', distance);
-
-    let scroll_duration = ( distance / this.pixelsPerSecond ) * 1000;
-    // log.debug('scroll_duration:', scroll_duration);
-
-    // $('.scrollContainer').animate({ 'scrollTop':   $('.scrollTarget').offset().top }, scroll_duration, 'linear');
-    // $('.scrollContainer').animate( { scrollTop: offset }, scroll_duration, 'linear'); // orig
-    $('.scrollContainer').animate( { scrollTop: `+=${offset}` }, scroll_duration, 'linear'); // () => { this.toolService.scrollToBottomStopped.next(); }
-    // $('body, html').animate({ 'scrollTop':   offset }, scroll_duration, 'linear');
-    // $('.scrollContainer').animate({ 'scrollTop':   distance }, scroll_duration, 'linear');
-    this.autoScrollAnimationRunning = true;
   }
 
   sortNumber(a: number, b: number): number {
@@ -517,7 +483,12 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   openPdfViewer(): void {
     log.debug('MasonryGridComponent: openPdfViewer()');
     if (this.autoScrollStarted) {
+      // stop the autoscroller
       this.stopAutoScroll();
+    }
+    if (this.selectedCollectionType === 'monitoring' && this.pauseMonitoring === false) {
+      // pause monitoring
+      this.suspendMonitoring();
     }
     this.modalService.open('pdf-viewer');
   }
@@ -526,9 +497,14 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   openSessionDetails(): void {
     log.debug('MasonryGridComponent: openSessionDetails()');
     if (this.autoScrollStarted) {
+      // stop the autoscroller
       this.stopAutoScroll();
     }
     this.modalService.open('sessionDetails');
+    if (this.selectedCollectionType === 'monitoring' && this.pauseMonitoring === false) {
+      // pause monitoring
+      this.suspendMonitoring();
+    }
   }
 
   maskChanged(e: ContentMask): void {

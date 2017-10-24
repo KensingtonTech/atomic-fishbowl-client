@@ -30,9 +30,22 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   private isDestroyed = false;
   private addTimer: any;
   private removeTimer: any;
+  private elementsToAppend = document.createDocumentFragment();
+  private refreshMasonryLayoutSubscription: any;
 
   ngOnInit() {
     log.debug('MasonryComponent: ngOnInit()');
+
+    /*if (this.loadAllBeforeLayout) {
+      log.debug('setting');
+      this.renderer.setProperty(this.el.nativeElement, 'visibility', 'hidden');
+    }*/
+
+    this.refreshMasonryLayoutSubscription = this.toolService.refreshMasonryLayout.subscribe( () => {
+      // this.changeDetectionRef.detectChanges();
+      // this.changeDetectionRef.markForCheck();
+      this.layout();
+    });
 
     // Create jquery case-insensitive '::Contains' selector (as opposed to cases-sensitive '::contains')
     // To potentially be used in filtering
@@ -88,23 +101,37 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
 
   ngOnDestroy(): void {
     log.debug('MasonryComponent: ngOnDestroy().  Automatically destroying MasonryComponent'); // just informational so we know when parent has destroyed this
+    this.refreshMasonryLayoutSubscription.unsubscribe();
   }
 
   public destroyMe(): void {
     log.debug('MasonryComponent: destroyMe():  Manually destroying isotope');
     if (this.isotope) {
       this.ngZone.runOutsideAngular( () => { this.isotope.off( 'layoutComplete', () => this.toolService.layoutComplete.next() ); } );
-      this.ngZone.runOutsideAngular( () => this.isotope.destroy() );
-      // this.isotope = undefined;
+      // this.ngZone.runOutsideAngular( () => this.isotope.destroy() );
+      this.isotope = undefined;
+      // Remove all child bricks
+      while (this.el.nativeElement.hasChildNodes()) {
+        this.el.nativeElement.removeChild(this.el.nativeElement.lastChild);
+      }
       this.isDestroyed = true;
     }
   }
 
   ngAfterContentInit(): void {
+    log.debug('MasonryComponent: ngAfterContentInit()');
     if (this.loadAllBeforeLayout) {
+      this.renderer.setStyle(this.el.nativeElement, 'visibility', 'hidden');
+      this.renderer.appendChild(this.el.nativeElement, this.elementsToAppend);
       imagesLoaded('.grid', (instance: any) => {
         log.debug('MasonryComponent: ngAfterContentInit(): All images have been loaded');
-        this.layout();
+        let elements = document.querySelectorAll('.brick');
+        this.renderer.setStyle(this.el.nativeElement, 'visibility', 'visible');
+        // this.ngZone.runOutsideAngular( () => this.isotope.addItems(elements) );
+        // this.layout();
+        // this.ngZone.runOutsideAngular( () => this.isotope.insert(elements) );
+        this.isotope.insert(elements);
+        this.changeDetectionRef.markForCheck();
       });
     }
   }
@@ -144,7 +171,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
 */
 
   // public add(element: HTMLElement) {
-  public add(element: ElementRef) {
+  public addOld(element: ElementRef) {
 
     if (this.loadAllBeforeLayout) {
       // Complete fixed collections
@@ -190,28 +217,71 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
         // this.ngZone.runOutsideAngular( () => this.isotope.prepended(element) );
       });
     }
-
-
-
   }
+
+  public add(element: ElementRef) {
+
+        if (this.loadAllBeforeLayout) {
+          // Complete fixed collections
+          // Let all images load before calling layout (done with imagesLoaded run from ngAfterContentInit)
+          log.debug('MasonryComponent: add(): Adding element without layout (complete fixed collections)');
+
+          // element.nativeElement.style.display = 'none';
+          // element.nativeElement.style.visibility = 'hidden';
+
+          // this.renderer.appendChild(this.el.nativeElement, element.nativeElement);
+          this.elementsToAppend.appendChild(element.nativeElement);
+          // this.ngZone.runOutsideAngular( () => this.isotope.addItems(element.nativeElement) );
+        }
+
+
+        if (!this.loadAllBeforeLayout) {
+          // Rolling / monitoring / still-building-fixed collections
+          // We will append each image to the view, only calling layout after each item has loaded (using imagesLoaded())
+          log.debug('MasonryComponent: add(): Appending element with layout (rolling/monitoring/still-building-fixed collections)');
+
+          // Run layout() if first item
+          // This is necessary to prevent isotope.appended() (which is really isotope.layoutItems()) from throwing an error
+          // It needs to already have a layout before it can calculate the layout of only a new item
+          if (this.isFirstItem) {
+            this.layout();
+            this.isFirstItem = false;
+          }
+
+          element.nativeElement.style.display = 'none';
+          this.renderer.appendChild(this.el.nativeElement, element.nativeElement);
+
+          let addFunc = (instance: any) => {
+            // Tell Isotope that a child brick has been added
+
+            // add brick to DOM
+            // element.nativeElement.style.display = 'block';
+            this.renderer.setStyle(this.el.nativeElement, 'display', 'block');
+
+            this.ngZone.runOutsideAngular( () => this.isotope.appended(element.nativeElement) ); // this will only layout the new item
+            imgLoad.off( 'progress', addFunc);
+          };
+
+          let imgLoad = imagesLoaded(element.nativeElement);
+          imgLoad.on( 'progress', addFunc );
+        }
+      }
+
 
   // public remove(element: HTMLElement) {
   public remove(element: ElementRef) {
     log.debug('MasonryComponent: remove()');
-    // this.el.nativeElement.remove(element); // remove brick from shadow dom
-    this.renderer.removeChild(this.el.nativeElement, element.nativeElement);
-
-    if (this.removeTimer !== undefined) {
-      clearTimeout(this.removeTimer); // cancel existing layout() call so a new one can run
-    }
 
     // Tell Isotope that a child brick has been removed
     if (!this.isDestroyed ) {
+      if (this.removeTimer !== undefined) {
+        clearTimeout(this.removeTimer); // cancel existing layout() call so a new one can run
+      }
+      this.renderer.removeChild(this.el.nativeElement, element.nativeElement);
       // log.debug('MasonryComponent: remove(): removing brick:', element);
       log.debug('MasonryComponent: remove(): removing brick:', element);
       // this.ngZone.runOutsideAngular( () => this.isotope.remove(element)); // tell isotope that the brick has been removed
       this.ngZone.runOutsideAngular( () => this.isotope.remove(element.nativeElement)); // tell isotope that the brick has been removed
-      // this.el.nativeElement.remove(element); // remove brick from shadow dom
       // this.changeDetectionRef.detectChanges();
       // this.changeDetectionRef.markForCheck();
       // Layout bricks

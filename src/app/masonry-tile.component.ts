@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges, ViewEncapsulation } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
 declare var log: any;
@@ -36,7 +36,7 @@ declare var log: any;
 
   </div>
 
-  <div class="textArea" *ngIf="session && masonryKeys" style="position: relative;">
+  <div class="textArea" *ngIf="session && masonryKeys && displayTextArea" style="position: relative;">
 
     <div *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
       <b>Encrypted file within a {{toCaps(content.archiveType)}} archive</b>
@@ -146,10 +146,10 @@ declare var log: any;
   `]
 })
 
-export class MasonryTileComponent implements OnChanges {
+export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(  public el: ElementRef,
-                // private changeDetectionRef: ChangeDetectorRef,
+                private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService ) {} // this.changeDetectionRef.detach(); private http: Http
 
   @Input() private apiServerUrl: string;
@@ -157,15 +157,29 @@ export class MasonryTileComponent implements OnChanges {
   @Input() private session: any;
   @Input() private masonryKeys: any;
   @Input() public masonryColumnSize: number;
+  public displayTextArea = true;
   private originalSession: any; // Session data that hasn't been de-duped
   private enabledTrigger = 'disabled';
   private data: any = {}; // prevent opening pdf modal if dragging the view
+  private showMasonryTextAreaSubscription: any;
 /*
   private displayedMetaKeys = [ {key: 'alias.host', name: 'Hostname'},
                                 {key: 'service', name: 'Service'},
                                 {key: 'search.text', name: 'Search Text'}
                               ];
 */
+
+  ngOnInit(): void {
+    this.displayTextArea = this.toolService.showMasonryTextAreaState;
+    this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (show) => {
+      this.displayTextArea = show;
+      this.changeDetectionRef.markForCheck();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.showMasonryTextAreaSubscription.unsubscribe();
+  }
 
   ngOnChanges(e: any): void {
     // log.debug("MasonryTileComponent: OnChanges():", e);
@@ -192,7 +206,7 @@ export class MasonryTileComponent implements OnChanges {
       this.toolService.openPDFViewer.next();
     }
     else {
-      // log.debug("display pdf");
+      // log.debug("display image");
       this.toolService.openSessionViewer.next();
     }
   }

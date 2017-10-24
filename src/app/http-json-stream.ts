@@ -37,7 +37,7 @@ export class HttpJsonStream {
   }
 
   fetchStream(url: string, headers = {} ): Observable<any> {
-    log.debug('HttpJsonStream: fetchStream()');
+    log.debug(`HttpJsonStream: fetchStream(): ${url}`);
     let subject: Subject<any> = new Subject<any>();
     let config = {
       // headers: {'Authorization': 'Bearer ' +  token},
