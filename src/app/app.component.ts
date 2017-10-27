@@ -7,7 +7,10 @@ declare var log: any;
 @Component({
   selector: 'twoTwoOneB-app',
   template: `
-<div *ngIf="serverReachable" style="position: relative; width: 100vw; height: 100vh;">
+<div *ngIf="isMobile">
+  So sorry, but mobile devices aren't currently supported by 221B.
+</div>
+<div *ngIf="serverReachable && !isMobile" style="position: relative; width: 100vw; height: 100vh;">
   <toolbar-widget *ngIf="loggedIn"></toolbar-widget>
   <router-outlet></router-outlet>
   <img class="noselect" src="/resources/logo.png" style="position: absolute; left:10px; bottom: 15px;">
@@ -26,8 +29,14 @@ export class AppComponent implements OnInit, OnDestroy {
   public serverReachable = false;
   private credentialsChecked = false;
   private loggedInChangedSubscription: any;
+  private isMobile = false;
 
   ngOnInit(): void {
+
+    if (this.isMobileDevice()) {
+      this.isMobile = true;
+      return;
+    }
 
     this.loggedInChangedSubscription = this.authService.loggedInChanged.subscribe( (loggedIn: boolean) => {
       // log.debug("loggedIn:", loggedIn);
@@ -64,7 +73,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   }
 
-  public ngOnDestroy() {
+  isMobileDevice(): boolean {
+    return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1);
+  }
+
+  public ngOnDestroy(): void {
     this.loggedInChangedSubscription.unsubscribe();
   }
 

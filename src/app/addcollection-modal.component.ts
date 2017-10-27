@@ -186,8 +186,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         if ( 'defaultQuerySelection' in prefs ) {
           for (let q = 0; q < this.queryList.length; q++) {
             if (this.queryList[q].text === prefs.defaultQuerySelection) {
-              setTimeout(() => this.selectedQuery = this.queryList[q]); // changes the query in the query select box dropdown
-              this.collectionFormModel.query = this.queryList[q].queryString; // changes the query string in the query string input
+              log.debug('AddCollectionModalComponent: ngOnInit(): setting query selector to ', this.queryList[q]);
+              setTimeout( () => this.selectedQuery = this.queryList[q]); // changes the query in the query select box dropdown
+              setTimeout( () => this.collectionFormModel.query = this.queryList[q].queryString ); // changes the query string in the query string input
               break;
             }
           }
