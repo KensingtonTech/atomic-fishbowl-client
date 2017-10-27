@@ -36,22 +36,22 @@ if [ $? -eq 0 ]; then
     mkdir -p ${HOST}${LOGDIR}
   fi
 
-  if [[ -f ${HOST}${CERTDIR}/221b.key && ! -f ${HOST}${CERTDIR}/221b.pem ]]; then
-    echo "Missing ${CERTDIR}/221b.pem.  Renaming $CERTDIR/221b.key to 221b.key.old"
-    mv -f ${HOST}${CERTDIR}/221b.key ${HOST}${CERTDIR}/221b.key.old
+  if [[ -f ${HOST}${CERTDIR}/ssl.key && ! -f ${HOST}${CERTDIR}/ssl.pem ]]; then
+    echo "Missing ${CERTDIR}/ssl.pem.  Renaming $CERTDIR/ssl.key to ssl.key.old"
+    mv -f ${HOST}${CERTDIR}/ssl.key ${HOST}${CERTDIR}/ssl.key.old
   fi
 
-  if [[ ! -f ${HOST}${CERTDIR}/221b.key && -f ${HOST}${CERTDIR}/221b.pem ]]; then
-    echo "Missing $CERTDIR/221b.key.  Renaming $CERTDIR/221b.pem to 221b.pem.old"
-    mv -f ${HOST}${CERTDIR}/221b.pem ${HOST}${CERTDIR}/221b.pem.old
+  if [[ ! -f ${HOST}${CERTDIR}/ssl.key && -f ${HOST}${CERTDIR}/ssl.pem ]]; then
+    echo "Missing $CERTDIR/ssl.key.  Renaming $CERTDIR/ssl.pem to ssl.pem.old"
+    mv -f ${HOST}${CERTDIR}/ssl.pem ${HOST}${CERTDIR}/ssl.pem.old
   fi
 
-  if [[ ! -f ${HOST}${CERTDIR}/221b.key || ! -f ${HOST}${CERTDIR}/221b.pem ]]; then
+  if [[ ! -f ${HOST}${CERTDIR}/ssl.key || ! -f ${HOST}${CERTDIR}/ssl.pem ]]; then
     echo "Generating new SSL keypair for HTTPS"
-    chroot $HOST /usr/bin/openssl genrsa -out $CERTDIR/221b.key 2048
-    chroot $HOST /usr/bin/openssl req -new -sha256 -key $CERTDIR/221b.key -out /tmp/tmp.csr -subj "/C=US/ST=Colorado/L=Denver/O=Kensington Technology Associates, Limited/CN=localhost/emailAddress=info@knowledgekta.com"
-    chroot $HOST /usr/bin/openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/221b.key -out $CERTDIR/221b.pem
-    chmod 600 ${HOST}${CERTDIR}/221b.key ${HOST}${CERTDIR}/221b.pem
+    chroot $HOST /usr/bin/openssl genrsa -out $CERTDIR/ssl.key 2048
+    chroot $HOST /usr/bin/openssl req -new -sha256 -key $CERTDIR/ssl.key -out /tmp/tmp.csr -subj "/C=US/ST=Colorado/L=Denver/O=Kensington Technology Associates, Limited/CN=localhost/emailAddress=info@knowledgekta.com"
+    chroot $HOST /usr/bin/openssl x509 -req -days 3650 -in /tmp/tmp.csr -signkey $CERTDIR/ssl.key -out $CERTDIR/ssl.pem
+    chmod 600 ${HOST}${CERTDIR}/ssl.key ${HOST}${CERTDIR}/ssl.pem
   fi
 
 
