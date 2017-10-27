@@ -60,7 +60,9 @@ export class PreferencesModalComponent {
                                     defaultRollingHours: this.defaultDefaultRollingHours,
                                     defaultQuerySelection: this.defaultQueries[0].text, // this only has effect on the first run of 221B.  After the prefs have been set, it will be read in from the prefs
                                     masonryColumnSize: this.defaultMasonryColumnSize,
-                                    masonryKeys: this.getMasonryKeysValue(this.defaultMasonryKeys)
+                                    masonryKeys: this.getMasonryKeysValue(this.defaultMasonryKeys),
+                                    contentTimeout: null,
+                                    queryTimeout: null
                                   };
 
   getDisplayedKeysValue(a: any): string {
@@ -209,6 +211,12 @@ export class PreferencesModalComponent {
                                               if ( 'masonryKeys' in prefs ) {
                                                 this.preferencesModel.masonryKeys = this.getMasonryKeysValue(prefs.masonryKeys);
                                               }
+                                              if ( 'contentTimeout' in prefs ) {
+                                                this.preferencesModel.contentTimeout = prefs.contentTimeout;
+                                              }
+                                              if ( 'queryTimeout' in prefs ) {
+                                                this.preferencesModel.queryTimeout = prefs.queryTimeout;
+                                              }
                                               this.changeDetectionRef.markForCheck();
                                             })
                     .then( () => log.debug(this.preferencesModel) );
@@ -231,7 +239,9 @@ export class PreferencesModalComponent {
       defaultQuerySelection: f.value.defaultQuerySelection,
       defaultImageLimit: f.value.defaultImageLimit,
       masonryColumnSize: f.value.masonryColumnSize,
-      masonryKeys: this.setMasonryKeysValue(f.value.masonryKeys)
+      masonryKeys: this.setMasonryKeysValue(f.value.masonryKeys),
+      queryTimeout: f.value.queryTimeout,
+      contentTimeout: f.value.contentTimeout
     };
     this.dataService.setPreferences(prefs)
                     .then( () => this.closeModal() );

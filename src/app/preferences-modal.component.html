@@ -31,6 +31,24 @@
               <input type="text" name="defaultNwQuery" [(ngModel)]="preferencesModel.defaultNwQuery" style="width: 100%;" required>
             </td>
           </tr>
+
+          <tr>
+            <td>
+              <b>Default Query Timeout</b>
+            </td>
+            <td>
+              <input type="text" name="queryTimeout" [(ngModel)]="preferencesModel.queryTimeout" style="width: 40px;" required> seconds
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <b>Default Content Timeout</b>
+            </td>
+            <td>
+              <input type="text" name="contentTimeout" [(ngModel)]="preferencesModel.contentTimeout" style="width: 40px;" required> seconds
+            </td>
+          </tr>
+          
           <tr>
             <td>
               <b>Default Image Limit</b>
