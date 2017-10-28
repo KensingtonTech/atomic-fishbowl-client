@@ -8,6 +8,7 @@ import { User } from './user';
 import { ToolService } from './tool.service';
 declare var moment: any;
 declare var log: any;
+declare var JSEncrypt: any;
 
 function passwordMatcher(c: AbstractControl) {
   return c.get('password').value === c.get('passwordConfirm').value ? null : {'nomatch': true};
@@ -119,14 +120,22 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public minUsernameLength = 3;
   public displayUserAddForm = false;
   public displayUserEditForm = false;
-
   public addUserForm: FormGroup;
   public editUserForm: FormGroup;
-
   private confirmUserDeleteSubscription: any;
+  private pubKey: string;
+  private encryptor: any = new JSEncrypt();
 
   ngOnInit(): void {
     log.debug('ManageUsersModalComponent: ngOnInit');
+
+    this.dataService.getPublicKey().then( (pubKey) => {
+      this.encryptor.log = true;
+      this.pubKey = pubKey;
+      log.debug('ManageUsersModalComponent: Server public key: ', this.pubKey);
+      this.encryptor.setPublicKey(this.pubKey);
+    });
+
     this.getUsers();
     this.addUserForm = this.fb.group({
       username: ['', Validators.compose( [ Validators.required, spaceValidator, Validators.minLength(this.minUsernameLength), userExists.bind(this)]) ],
@@ -174,10 +183,12 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   addUserSubmit(): void {
     log.debug('ManageUsersModalComponent: addUserSubmit: this.addUserForm:', this.addUserForm);
     this.hideUserAddBox();
+    let encPassword = this.encryptor.encrypt(this.addUserForm.value.passwords.password);
     const newUser = {
       username: this.addUserForm.value.username,
       fullname: this.addUserForm.value.fullname,
-      password: this.addUserForm.value.passwords.password,
+      // password: this.addUserForm.value.passwords.password,
+      password: encPassword,
       email: this.addUserForm.value.email,
       enabled: this.addUserForm.value.enabled
     };
@@ -240,7 +251,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
         },
         enabled: user.enabled
       });
-      
+
       this.displayUserEditForm = true;
       this.usersFormDisabled = true;
 
@@ -249,17 +260,19 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   }
 
   editUserSubmit(form: any): void {
-    //const form = this.editUserForm;
     log.debug('ManageUsersModalComponent: editUserSubmit()', form);
     // log.debug('editUserForm:', this.editUserForm);
-    // this.errorDefined = false;
     let updatedUser: User = new User;
     updatedUser.id = this.editingUser.id;
     if ( this.editingUser.fullname !== form.value.fullname ) {updatedUser.fullname = form.value.fullname; }
     if ( this.editingUser.email !== form.value.email ) { updatedUser.email = form.value.email; }
     if ( this.editingUser.enabled !== form.value.enabled ) { updatedUser.enabled = form.value.enabled; }
     // if ('passwordConfirm' in form.value && form.value.passwordConfirm !== '') { updatedUser.password = form.value.password; }
-    if ( form.controls.passwords.dirty && form.value.passwords.password.length !== 0 ) { updatedUser.password = form.value.passwords.password; }
+    if ( form.controls.passwords.dirty && form.value.passwords.password.length !== 0 ) {
+      // updatedUser.password = form.value.passwords.password;
+      let encPassword = this.encryptor.encrypt(form.value.passwords.password);
+      updatedUser.password = encPassword;
+    }
     // log.debug('updatedUser:', updatedUser);
     this.dataService.updateUser(updatedUser)
                     .then( () => this.getUsers() );
