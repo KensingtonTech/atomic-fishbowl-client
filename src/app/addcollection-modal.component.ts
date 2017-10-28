@@ -6,6 +6,7 @@ import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
 declare var moment: any;
 declare var log: any;
+declare var JSEncrypt: any;
 
 /*
 declare global {
@@ -163,9 +164,20 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private firstRun = true;
 
   private preferencesChangedSubscription: any;
+  private pubKey: string;
+  private encryptor: any = new JSEncrypt();
 
 
   ngOnInit(): void {
+
+    this.dataService.getPublicKey().then( (pubKey) => {
+      this.encryptor.log = true;
+      // this.encryptor.default_key_size = 2048;
+      this.pubKey = pubKey;
+      log.debug('AddCollectionModalComponent: Server public key: ', this.pubKey);
+      this.encryptor.setPublicKey(this.pubKey);
+    });
+
     this.getNwServers();
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
       log.debug('AddCollectionModalComponent: prefs observable: ', prefs);
@@ -554,12 +566,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   addNwServerSubmit(f: NgForm): void {
     // log.debug("AddCollectionModalComponent: addNwServer(): f:", f);
     this.hideServiceAddBox();
+    let encPassword = this.encryptor.encrypt(f.value.password);
     let newServer = {
       host: f.value.hostname,
       port: f.value.restPort,
       ssl: f.value.ssl,
       user: f.value.user,
-      password: f.value.password,
+      password: encPassword,
       deviceNumber: f.value.deviceNumber,
       friendlyName: f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ' (' + f.value.deviceNumber + ')'
     };

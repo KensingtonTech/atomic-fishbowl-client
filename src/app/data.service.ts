@@ -56,6 +56,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+  getPublicKey(): Promise<any> {
+    return this.http
+                .get(this.apiUrl + '/publickey' )
+                .toPromise()
+                .then(response => response.json().pubKey as string )
+                .catch(e => this.handleError(e));
+  }
+
   getNwServers(): Promise<any> {
     return this.http
                 .get(this.apiUrl + '/nwservers' )
