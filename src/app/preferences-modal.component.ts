@@ -62,7 +62,9 @@ export class PreferencesModalComponent {
                                     masonryColumnSize: this.defaultMasonryColumnSize,
                                     masonryKeys: this.getMasonryKeysValue(this.defaultMasonryKeys),
                                     contentTimeout: null,
-                                    queryTimeout: null
+                                    queryTimeout: null,
+                                    queryDelayMinutes: null,
+                                    maxContentErrors: null
                                   };
 
   getDisplayedKeysValue(a: any): string {
@@ -217,6 +219,12 @@ export class PreferencesModalComponent {
                                               if ( 'queryTimeout' in prefs ) {
                                                 this.preferencesModel.queryTimeout = prefs.queryTimeout;
                                               }
+                                              if ( 'queryDelayMinutes' in prefs ) {
+                                                this.preferencesModel.queryDelayMinutes = prefs.queryDelayMinutes;
+                                              }
+                                              if ( 'maxContentErrors' in prefs ) {
+                                                this.preferencesModel.maxContentErrors = prefs.maxContentErrors;
+                                              }
                                               this.changeDetectionRef.markForCheck();
                                             })
                     .then( () => log.debug(this.preferencesModel) );
@@ -241,7 +249,9 @@ export class PreferencesModalComponent {
       masonryColumnSize: f.value.masonryColumnSize,
       masonryKeys: this.setMasonryKeysValue(f.value.masonryKeys),
       queryTimeout: f.value.queryTimeout,
-      contentTimeout: f.value.contentTimeout
+      contentTimeout: f.value.contentTimeout,
+      queryDelayMinutes: f.value.queryDelayMinutes,
+      maxContentErrors: f.value.maxContentErrors
     };
     this.dataService.setPreferences(prefs)
                     .then( () => this.closeModal() );

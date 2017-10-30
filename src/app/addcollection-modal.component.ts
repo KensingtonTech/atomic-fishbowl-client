@@ -172,7 +172,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
     this.dataService.getPublicKey().then( (pubKey) => {
       this.encryptor.log = true;
-      // this.encryptor.default_key_size = 2048;
       this.pubKey = pubKey;
       log.debug('AddCollectionModalComponent: Server public key: ', this.pubKey);
       this.encryptor.setPublicKey(this.pubKey);
@@ -294,7 +293,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   getFirstNwServer(): any { // a bit of a hack since dicts aren't really ordered
     for (let s in this.nwservers) {
       // log.debug(AddCollectionModalComponent: getFirstNwServer: s, s);
-      return s;
+      if (this.nwservers.hasOwnProperty(s)) {
+        return s;
+      }
     }
   }
 
