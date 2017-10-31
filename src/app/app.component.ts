@@ -29,7 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public serverReachable = false;
   private credentialsChecked = false;
   private loggedInChangedSubscription: any;
-  private isMobile = false;
+  public isMobile = false;
 
   ngOnInit(): void {
 
