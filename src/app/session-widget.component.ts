@@ -3,6 +3,8 @@ import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 declare var log: any;
 
+// We will use this in a future release
+
 @Component( {
   selector: 'session-widget',
   encapsulation: ViewEncapsulation.None,
@@ -110,7 +112,9 @@ export class SessionWidgetComponent implements OnInit, OnDestroy {
   getMetaKeys(): any {
     let a = [];
     for (let k in this.meta) {
-      a.push(k);
+      if (this.meta.hasOwnProperty(k)) {
+        a.push(k);
+      }
     }
     return a;
   }

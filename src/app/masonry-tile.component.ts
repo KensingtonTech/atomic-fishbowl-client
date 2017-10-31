@@ -189,7 +189,9 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
     if ('session' in e && e.session.currentValue !== undefined) { // de-dupe meta keys
       this.originalSession = JSON.parse(JSON.stringify(e.session.currentValue)); // silly way of copying an object, but it works
       for (let key in e.session.currentValue.meta) {
-        this.session.meta[key] = this.unique(e.session.currentValue.meta[key]);
+        if (e.session.currentValue.meta.hasOwnProperty(key)) {
+          this.session.meta[key] = this.unique(e.session.currentValue.meta[key]);
+        }
       }
     }
   }

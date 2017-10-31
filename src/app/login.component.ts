@@ -1,5 +1,5 @@
 import { Component, ElementRef, Renderer2, OnInit, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
-import { AuthenticationService } from './authentication.service'
+import { AuthenticationService } from './authentication.service';
 import { User } from './user';
 declare var log: any;
 

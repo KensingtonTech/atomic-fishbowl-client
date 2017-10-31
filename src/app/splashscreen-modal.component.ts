@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
-import { buildProperties } from './build-properties'
+import { buildProperties } from './build-properties';
 declare var log: any;
 
 @Component({

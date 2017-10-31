@@ -5,13 +5,12 @@ declare var log: any;
 
 export class FromEpochPipe implements PipeTransform {
 
-  transform(value: any, args:string[]) : any {
+  transform(value: any, args: string[]): any {
     if (!value) {
       return undefined;
     }
     let t = new Date(0);
     t.setUTCSeconds(value);
-    //log.debug(t);
     return t;
   }
 }

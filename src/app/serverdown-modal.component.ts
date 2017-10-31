@@ -3,7 +3,6 @@ declare var log: any;
 
 @Component({
   selector: 'serverdown-modal',
-//<div class="modal-body imgContainer" style="position: absolute; top: 60px; left: 100px; right: 100px; height: 85%; background-color: rgba(128, 128, 128, .95); font-size: 10pt;">
   template: `
 <modal *ngIf="id" id="{{id}}" escapeEnabled="false">
   <div class="modal">
@@ -32,11 +31,11 @@ declare var log: any;
 
 export class ServerDownModalComponent implements OnInit {
 
-  @Input() public id: string;// = 'serverdown-modal'
+  @Input() public id: string; // = 'serverdown-modal'
 
   ngOnInit(): void {
-    log.debug("ServerDownModalComponent: ngOnInit()");
-    //log.debug("modalService:", this.modalService);
+    log.debug('ServerDownModalComponent: ngOnInit()');
+    // log.debug("modalService:", this.modalService);
   }
 
 }

@@ -6,21 +6,15 @@ declare var log: any;
 
 export class FormatTimePipe implements PipeTransform {
 
-  transform(value: any, args: string) : any {
+  transform(value: any, args: string): any {
     if (!value) {
       return undefined;
     }
-    //let t = new Date(0);
-    //t.setUTCSeconds(value);
-    var t = moment(value * 1000);
-    var formatter = "YYYY/MM/DD HH:mm:ss"; //default formatter
-    //log.debug("args:", args)
+    let t = moment(value * 1000);
+    let formatter = 'YYYY/MM/DD HH:mm:ss'; // default formatter
     if (typeof args !== 'undefined') {
       formatter = args;
-      //log.debug("formatter:", formatter);
     }
     return t.format(formatter);
-    //log.debug(t);
-    //return t;
   }
 }

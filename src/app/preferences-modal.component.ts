@@ -29,6 +29,7 @@ export class PreferencesModalComponent {
   public id = 'preferences-modal';
 
   private defaultNwInvestigateUrl = '';
+  // tslint:disable-next-line:quotemark
   private defaultDefaultNwquery = "vis.level exists || content = 'application/pdf'";
   private defaultMinX = 1;
   private defaultMinY = 1;

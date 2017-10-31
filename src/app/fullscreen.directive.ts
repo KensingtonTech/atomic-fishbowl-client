@@ -4,13 +4,14 @@ declare var log: any;
 
 
 @Directive({
-	selector: '[toggleFullscreen]',
+  // tslint:disable-next-line:directive-selector
+  selector: '[toggleFullscreen]'
 })
 export class ToggleFullscreenDirective {
 
-	@HostListener('click') onClick() {
-		if (screenfull.enabled) {
-			screenfull.toggle();
-		}
-	}
+  @HostListener('click') onClick() {
+    if (screenfull.enabled) {
+      screenfull.toggle();
+    }
+  }
 }

@@ -162,7 +162,9 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   getMetaKeys(): any {
     let a = [];
     for (let k in this.meta) {
-      a.push(k);
+      if (this.meta.hasOwnProperty(k)) {
+        a.push(k);
+      }
     }
     return a;
   }

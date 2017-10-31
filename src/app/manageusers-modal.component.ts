@@ -29,7 +29,7 @@ function userExists(c: AbstractControl) {
 
 function spaceValidator(c: AbstractControl) {
   const v = c.value;
-  if ( v.match(/\s/g) ) { 
+  if ( v.match(/\s/g) ) {
     return { 'spaceexists': true };
   }
   return null;
@@ -50,7 +50,7 @@ function isNotLoggedInUser(c: AbstractControl) {
   // if ( this.authService && c.get('username') && this.authService.loggedInUser.id !== c.get('username').value ) {
   if ( this.authService && this.editingUser &&  this.authService.loggedInUser.username === this.editingUser.username && c.value === false ) {
     // log.debug('returning isloggedinuser');
-    return { 'isloggedinuser': true}
+    return { 'isloggedinuser': true };
   }
   // log.debug('returning null');
   return null;

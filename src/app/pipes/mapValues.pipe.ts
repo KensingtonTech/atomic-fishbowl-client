@@ -5,13 +5,15 @@ declare var log: any;
 
 export class MapValuesPipe implements PipeTransform {
 
-  transform(value: any, args:string[]) : any {
+  transform(value: any, args: string[]): any {
     if (!value) {
       return value;
     }
     let values = [];
     for (let key in value) {
-      values.push(value[key]);
+      if (value.hasOwnProperty(key)) {
+        values.push(value[key]);
+      }
     }
     return values;
 

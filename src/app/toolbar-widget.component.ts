@@ -290,8 +290,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   getFirstCollection(): any { // a bit of a hack since dicts aren't really ordered
     // log.debug("getFirstCollection()");
     for (let c in this.collections) {
-      // log.debug(c);
-      return c;
+      if (this.collections.hasOwnProperty(c)) {
+        return c;
+      }
     }
   }
 

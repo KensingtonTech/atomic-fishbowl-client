@@ -1,4 +1,4 @@
-import { NgModule }      from '@angular/core';
+import { NgModule } from '@angular/core';
 import { ModalComponent } from './modal.component';
 import { ModalService } from './modal.service';
 
