@@ -6,4 +6,5 @@ export class Collection {
   nwserverName: string;
   sessionLimit: number;
   query: string;
+  contentTypes: string[];
 }

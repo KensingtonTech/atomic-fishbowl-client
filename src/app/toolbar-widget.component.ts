@@ -219,25 +219,30 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     // log.debug("selectedCollection:",this.selectedCollection);
     // log.debug("collection:", this.collections[this.selectedCollection]);
     // pTooltip="Query: {{collections[selectedCollection].query}}\nService: {{collections[selectedCollection].nwserverName}}\nImage Limit: {{collections[selectedCollection].imageLimit}}\nMin Dimensions: {{collections[selectedCollection].minX}} x {{collections[selectedCollection].minY}}\nMD5 Hashing: {{collections[selectedCollection].md5Enabled}}\nDistillation Enabled: {{collections[selectedCollection].distillationEnabled}}\nDistillation Terms: {{collections[selectedCollection].distillationTerms}}"
-    let tt = 'Query: ' + this.collections[this.selectedCollection].query;
-    tt = tt + '\nService: ' + this.collections[this.selectedCollection].nwserverName;
-    tt = tt + '\nImage Limit: ' + this.collections[this.selectedCollection].imageLimit;
-    tt = tt + '\nMin Dimensions: ' + this.collections[this.selectedCollection].minX + ' x ' + this.collections[this.selectedCollection].minY;
-    if (this.collections[this.selectedCollection].sha1Enabled) { tt = tt + '\nSHA1 Hashing is Enabled'; }
-    if (this.collections[this.selectedCollection].sha256Enabled) { tt = tt + '\nSHA256 Hashing is Enabled'; }
-    if (this.collections[this.selectedCollection].md5Enabled) { tt = tt + '\nMD5 Hashing is Enabled'; }
-    if (this.collections[this.selectedCollection].distillationEnabled) { tt = tt + '\nDistillation is Enabled'; }
-    if (this.collections[this.selectedCollection].distillationEnabled && this.collections[this.selectedCollection].distillationTerms) {
+    let thisCollection = this.collections[this.selectedCollection];
+    let tt = 'Query: ' + thisCollection.query;
+    tt = tt + '\nService: ' + thisCollection.nwserverName;
+
+    let contentTypes = thisCollection.contentTypes.join(' ');
+    tt = tt + '\nContent Types: ' + contentTypes;
+
+    tt = tt + '\nImage Limit: ' + thisCollection.imageLimit;
+    tt = tt + '\nMin Dimensions: ' + thisCollection.minX + ' x ' + thisCollection.minY;
+    if (thisCollection.sha1Enabled) { tt = tt + '\nSHA1 Hashing is Enabled'; }
+    if (thisCollection.sha256Enabled) { tt = tt + '\nSHA256 Hashing is Enabled'; }
+    if (thisCollection.md5Enabled) { tt = tt + '\nMD5 Hashing is Enabled'; }
+    if (thisCollection.distillationEnabled) { tt = tt + '\nDistillation is Enabled'; }
+    if (thisCollection.distillationEnabled && thisCollection.distillationTerms) {
       tt = tt + '\nDistillation Terms:';
-      for (let x = 0; x < this.collections[this.selectedCollection].distillationTerms.length; x++) {
-        tt = tt + '\n  ' + this.collections[this.selectedCollection].distillationTerms[x];
+      for (let x = 0; x < thisCollection.distillationTerms.length; x++) {
+        tt = tt + '\n  ' + thisCollection.distillationTerms[x];
       }
     }
-    if (this.collections[this.selectedCollection].regexDistillationEnabled) { tt = tt + '\nRegEx Distillation is Enabled'; }
-    if (this.collections[this.selectedCollection].regexDistillationEnabled && this.collections[this.selectedCollection].regexDistillationTerms) {
+    if (thisCollection.regexDistillationEnabled) { tt = tt + '\nRegEx Distillation is Enabled'; }
+    if (thisCollection.regexDistillationEnabled && thisCollection.regexDistillationTerms) {
       tt = tt + '\nRegex Distillation Terms:';
-      for (let x = 0; x < this.collections[this.selectedCollection].regexDistillationTerms.length; x++) {
-        tt = tt + '\n  ' + this.collections[this.selectedCollection].regexDistillationTerms[x];
+      for (let x = 0; x < thisCollection.regexDistillationTerms.length; x++) {
+        tt = tt + '\n  ' + thisCollection.regexDistillationTerms[x];
       }
     }
     // log.debug('tt:',tt);

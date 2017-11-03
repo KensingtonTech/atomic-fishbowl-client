@@ -4,6 +4,8 @@ import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
+import { ContentTypes } from './contenttypes';
+import { SelectButtonModule } from 'primeng/components/selectbutton/selectbutton';
 declare var moment: any;
 declare var log: any;
 declare var JSEncrypt: any;
@@ -40,7 +42,8 @@ String.prototype.isBlank = function(c) {
       width: 1px;
     }
 
-    .ourFont {
+    .ourFont,
+    .ui-button-text {
       font-family: system-ui !important;
       font-size: 11px !important;
     }
@@ -81,6 +84,7 @@ String.prototype.isBlank = function(c) {
       white-space: pre-line;
       width: 375px;
     }
+
   `]
 })
 
@@ -117,6 +121,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private defaultSha256Hashes = '';
   private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
 
+  public contentTypes = ContentTypes;
+
   public collectionFormModel = {
     name: this.defaultColName,
     query: this.defaultColQuery,
@@ -137,7 +143,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     sha1Enabled: false,
     sha1Hashes: this.defaultSha1Hashes,
     sha256Enabled: false,
-    sha256Hashes: this.defaultSha256Hashes
+    sha256Hashes: this.defaultSha256Hashes,
+    selectedContentTypes: null
   };
 
   public nwservers: any;
@@ -156,6 +163,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     deviceNumber: this.defaultDeviceNumber
   };
   public queryList = defaultQueries;
+
   public selectedQuery: any = this.queryList[2];
   private preferences: any;
   private timeframes: any = ['Last 5 Minutes', 'Last 10 Minutes', 'Last 15 Minutes', 'Last 30 Minutes', 'Last Hour', 'Last 3 Hours', 'Last 6 Hours', 'Last 12 Hours', 'Last 24 Hours', 'Last 48 Hours', 'Last 5 Days (120 Hours)', 'Today', 'Yesterday', 'This Week', 'Last Week', 'Custom'];
@@ -166,7 +174,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private preferencesChangedSubscription: any;
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
-
 
   ngOnInit(): void {
 
@@ -485,7 +492,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       md5Enabled: f.value.md5Enabled,
       sha1Enabled: f.value.sha1Enabled,
       sha256Enabled: f.value.sha256Enabled,
-      executeTime: time
+      executeTime: time,
+      contentTypes: f.value.contentTypes
     };
 
     if ( f.value.type === 'rolling' ) {
@@ -593,6 +601,25 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   timeValue(): void {
     log.debug('time1:', this.collectionFormModel.timeBegin.getTime() / 1000);
     log.debug('time2:', this.collectionFormModel.timeEnd.getTime() / 1000);
+  }
+
+  onSelectedTypesChanged(event: any): void {
+    let value = event.value;
+    // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: value:', value);
+    // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: browserEvent:', event);
+    // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: collectionFormModel.selectedContentTypes:', this.collectionFormModel.selectedContentTypes);
+  }
+
+  clearTypes(): void {
+    this.collectionFormModel.selectedContentTypes = [];
+  }
+
+  allTypes() {
+    let vals = [];
+    for (let i = 0; i < this.contentTypes.length; i++) {
+      vals.push( this.contentTypes[i].value );
+    }
+    this.collectionFormModel.selectedContentTypes = vals;
   }
 
 }
