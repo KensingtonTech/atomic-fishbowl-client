@@ -10,20 +10,20 @@ import { NwServer } from './nwserver';
 import { HttpJsonStream } from './http-json-stream';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
+import { UseCase } from './usecase';
 declare var log: any;
 
 @Injectable()
 
 export class DataService { // Manages NwSession objects and also Image objects in grid and the image's association with Session objects.  Adds more objects as they're added
 
-  constructor(private http: Http,
-              // private httpJsonStreamService: HttpJsonStream,
-              private toolService: ToolService ) {
+  constructor(private http: Http, private toolService: ToolService ) {
     this.toolService.sessionId.subscribe( (sessionId: number) => {
       log.debug(`DataService: sessionIdSubscription(): got sessionId: ${sessionId}`);
       this.sessionId = sessionId;
     });
     this.toolService.HttpJsonStreamConnected.subscribe( (connected: boolean) => this.httpJsonStreamServiceConnected = connected );
+    this.getUseCases();
     // this.getPreferences();  // Populate preferencesChanged BehaviorSubject
   }
 
@@ -44,6 +44,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
   private sessionId: number;
   public httpJsonStreamServiceConnected = false;
   public queryResultsCountUpdated: Subject<any> = new Subject<any>();
+  public useCases: UseCase[];
+  public useCasesObj = {};
 
   getServerVersion(): Promise<any> {
     return this.http
@@ -84,7 +86,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
     return this.http
                 .get(this.apiUrl + '/usecases')
                 .toPromise()
-                .then( response => response.json().useCases as any )
+                .then( (response) => {
+                  this.useCases = response.json().useCases;
+                  for (let i = 0; i < this.useCases.length; i++) {
+                    let thisUseCase = this.useCases[i];
+                    this.useCasesObj[thisUseCase.name] = thisUseCase;
+                  }
+                  return this.useCases;
+                })
                 .catch(e => this.handleError(e));
   }
 

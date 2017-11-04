@@ -40,7 +40,12 @@ String.prototype.isBlank = function(c) {
 
     .column1 {
       white-space: nowrap;
-      width: 1px;
+      /*width: 1px;*/
+      width: 150px;
+    }
+
+    .line-separator {
+      height: 7px;
     }
 
     .ourFont,
@@ -126,7 +131,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private defaultDistillationTerms = '';
   private defaultRegexDistillationEnabled = false;
   private defaultRegexDistillationTerms = '';
-  private defaultCollectionType = 'fixed';
+  private defaultCollectionType = 'rolling';
   private defaultMd5Hashes = '';
   private defaultSha1Hashes = '';
   private defaultSha256Hashes = '';
@@ -194,6 +199,11 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public useCaseOptions: SelectItem[] = [];
   public displayUseCaseDescription = false;
   public useCaseDescription = '';
+
+  public imagesEnabled = false;
+  public pdfsEnabled = false;
+  public dodgyArchivesEnabled = false;
+  public hashesEnabled = false;
 
   ngOnInit(): void {
 
@@ -509,55 +519,55 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
     let newCollection = {
-      type: f.value.type,
-      name: f.value.name,
-      imageLimit: f.value.imageLimit,
-      nwserver: f.value.nwserver,
-      nwserverName: this.nwservers[f.value.nwserver].friendlyName,
-      deviceNumber: this.nwservers[f.value.nwserver].deviceNumber,
+      type: this.collectionFormModel.type,
+      name: this.collectionFormModel.name,
+      imageLimit: this.collectionFormModel.imageLimit,
+      nwserver: this.collectionFormModel.nwserver,
+      nwserverName: this.nwservers[this.collectionFormModel.nwserver].friendlyName,
+      deviceNumber: this.nwservers[this.collectionFormModel.nwserver].deviceNumber,
       id: UUID.UUID(),
-      minX: f.value.minX,
-      minY: f.value.minY,
+      minX: this.collectionFormModel.minX,
+      minY: this.collectionFormModel.minY,
       executeTime: time,
       usecase: 'custom', // may get overridden later
       bound: false
-      // query: f.value.query,
-      // distillationEnabled: f.value.distillationEnabled,
-      // regexDistillationEnabled: f.value.regexDistillationEnabled,
-      // md5Enabled: f.value.md5Enabled,
-      // sha1Enabled: f.value.sha1Enabled,
-      // sha256Enabled: f.value.sha256Enabled,
-      // contentTypes: f.value.contentTypes
+      // query: this.collectionFormModel.query,
+      // distillationEnabled: this.collectionFormModel.distillationEnabled,
+      // regexDistillationEnabled: this.collectionFormModel.regexDistillationEnabled,
+      // md5Enabled: this.collectionFormModel.md5Enabled,
+      // sha1Enabled: this.collectionFormModel.sha1Enabled,
+      // sha256Enabled: this.collectionFormModel.sha256Enabled,
+      // contentTypes: this.collectionFormModel.contentTypes
     };
 
-    if (f.value.selectedUseCase !== 'custom' && f.value.bound === 'bound') {
+    if (this.collectionFormModel.selectedUseCase !== 'custom' && this.collectionFormModel.useCaseBinding === 'bound') {
       // An OOTB use case is selected and is bound
-      newCollection['usecase'] = f.value.selectedUseCase;
+      newCollection['usecase'] = this.collectionFormModel.selectedUseCase;
       newCollection['bound'] = true;
     }
     else {
       // We either have a custom use case or an unbound use case
-      newCollection['query'] = f.value.query;
-      newCollection['distillationEnabled'] = f.value.distillationEnabled;
-      newCollection['regexDistillationEnabled'] =  f.value.regexDistillationEnabled;
-      newCollection['md5Enabled'] = f.value.md5Enabled;
-      newCollection['sha1Enabled'] = f.value.sha1Enabled;
-      newCollection['sha256Enabled'] = f.value.sha256Enabled;
-      newCollection['contentTypes'] = f.value.contentTypes;
+      newCollection['query'] = this.collectionFormModel.query;
+      newCollection['distillationEnabled'] = this.collectionFormModel.distillationEnabled;
+      newCollection['regexDistillationEnabled'] =  this.collectionFormModel.regexDistillationEnabled;
+      newCollection['md5Enabled'] = this.collectionFormModel.md5Enabled;
+      newCollection['sha1Enabled'] = this.collectionFormModel.sha1Enabled;
+      newCollection['sha256Enabled'] = this.collectionFormModel.sha256Enabled;
+      newCollection['contentTypes'] = this.collectionFormModel.selectedContentTypes;
     }
 
-    if ( f.value.type === 'rolling' ) {
-      newCollection['lastHours'] = f.value.lastHours;
+    if ( this.collectionFormModel.type === 'rolling' ) {
+      newCollection['lastHours'] = this.collectionFormModel.lastHours;
     }
-    else if ( f.value.type === 'fixed' ) {
+    else if ( this.collectionFormModel.type === 'fixed' ) {
       let t = this.convertTimeSelection();
       newCollection['timeBegin'] = t.timeBegin;
       newCollection['timeEnd'] = t.timeEnd;
     }
 
 
-    if (!newCollection.bound && f.value.distillationEnabled) {
-      let endterms = this.grokLines(f.value.distillationTerms);
+    if (!newCollection.bound && this.collectionFormModel.distillationEnabled) {
+      let endterms = this.grokLines(this.collectionFormModel.distillationTerms);
       newCollection['distillationEnabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['distillationEnabled'] = true;
@@ -565,8 +575,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && f.value.regexDistillationEnabled) {
-      let endterms = this.grokLines(f.value.regexDistillationTerms);
+    if (!newCollection.bound && this.collectionFormModel.regexDistillationEnabled) {
+      let endterms = this.grokLines(this.collectionFormModel.regexDistillationTerms);
       newCollection['regexDistillationEnabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['regexDistillationEnabled'] = true;
@@ -574,8 +584,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && f.value.sha1Enabled) {
-      let endterms = this.grokHashingLines(f.value.sha1Hashes);
+    if (!newCollection.bound && this.collectionFormModel.sha1Enabled) {
+      let endterms = this.grokHashingLines(this.collectionFormModel.sha1Hashes);
       newCollection['sha1Enabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['sha1Enabled'] = true;
@@ -583,8 +593,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && f.value.sha256Enabled) {
-      let endterms = this.grokHashingLines(f.value.sha256Hashes);
+    if (!newCollection.bound && this.collectionFormModel.sha256Enabled) {
+      let endterms = this.grokHashingLines(this.collectionFormModel.sha256Hashes);
       newCollection['sha256Enabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['sha256Enabled'] = true;
@@ -592,8 +602,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && f.value.md5Enabled) {
-      let endterms = this.grokHashingLines(f.value.md5Hashes);
+    if (!newCollection.bound && this.collectionFormModel.md5Enabled) {
+      let endterms = this.grokHashingLines(this.collectionFormModel.md5Hashes);
       newCollection['md5Enabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['md5Enabled'] = true;
@@ -604,9 +614,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('AddCollectionModalComponent: addCollectionSubmit(): newCollection:', newCollection);
     this.dataService.addCollection(newCollection)
                     .then( () => {
-                                    this.executeCollection.emit(newCollection);
-                                    this.closeModal();
-                                  });
+                        this.executeCollection.emit(newCollection);
+                        this.closeModal();
+                      });
   }
 
   addNwServerSubmit(f: NgForm): void {
@@ -635,6 +645,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.nameBoxRef.first.nativeElement.focus();
     this.collectionFormModel.selectedUseCase = this.useCaseOptions[0].value; // this sets it to 'custom'
     this.showUseCaseValues = false;
+    this.displayUseCaseDescription = false;
   }
 
   timeValue(): void {
@@ -642,15 +653,39 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('time2:', this.collectionFormModel.timeEnd.getTime() / 1000);
   }
 
-  onSelectedTypesChanged(event: any): void {
-    let value = event.value;
-    // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: value:', value);
+  onSelectedTypesChanged(): void {
+    let v = this.collectionFormModel.selectedContentTypes;
+    let imagesEnabled = false;
+    let pdfsEnabled = false;
+    let dodgyArchivesEnabled = false;
+    let hashesEnabled = false;
+    log.debug('AddCollectionModalComponent: onSelectedTypesChanged: v:', v);
     // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: browserEvent:', event);
     // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: collectionFormModel.selectedContentTypes:', this.collectionFormModel.selectedContentTypes);
+    for (let i = 0; i < v.length; i++) {
+      let value = v[i];
+      if (value === 'images') {
+        imagesEnabled = true;
+      }
+      if (value === 'pdfs') {
+        pdfsEnabled = true;
+      }
+      if (value === 'dodgyarchives') {
+        dodgyArchivesEnabled = true;
+      }
+      if (value === 'hashes') {
+        hashesEnabled = true;
+      }
+    }
+    this.imagesEnabled = imagesEnabled;
+    this.pdfsEnabled = pdfsEnabled;
+    this.dodgyArchivesEnabled = dodgyArchivesEnabled;
+    this.hashesEnabled = hashesEnabled;
   }
 
   clearTypes(): void {
     this.collectionFormModel.selectedContentTypes = [];
+    this.onSelectedTypesChanged();
   }
 
   allTypes() {
@@ -659,6 +694,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       vals.push( this.contentTypes[i].value );
     }
     this.collectionFormModel.selectedContentTypes = vals;
+    this.onSelectedTypesChanged();
   }
 
   onUseCaseChanged(event: any): void {
@@ -679,6 +715,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
     if (this.collectionFormModel.selectedUseCase === 'custom') {
       this.showUseCaseValues = false;
+      this.onSelectedTypesChanged();
       return;
     }
 
@@ -698,7 +735,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         this.collectionFormModel.regexDistillationTerms = thisUseCase.regexTerms.join('\n');
       }
       this.collectionFormModel = JSON.parse(JSON.stringify(this.collectionFormModel));
-      this.showUseCaseValues = true;
+      if (this.collectionFormModel.useCaseBinding === 'bound') {
+        this.showUseCaseValues = true;
+      }
+      else {
+        this.showUseCaseValues = false;
+      }
+      this.onSelectedTypesChanged();
     });
     this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();

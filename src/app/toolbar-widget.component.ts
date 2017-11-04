@@ -198,7 +198,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                         this.showCreateFirstCollection = true;
                       }
                     });
-
   }
 
   public ngOnDestroy() {
@@ -219,34 +218,95 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     // log.debug("selectedCollection:",this.selectedCollection);
     // log.debug("collection:", this.collections[this.selectedCollection]);
     // pTooltip="Query: {{collections[selectedCollection].query}}\nService: {{collections[selectedCollection].nwserverName}}\nImage Limit: {{collections[selectedCollection].imageLimit}}\nMin Dimensions: {{collections[selectedCollection].minX}} x {{collections[selectedCollection].minY}}\nMD5 Hashing: {{collections[selectedCollection].md5Enabled}}\nDistillation Enabled: {{collections[selectedCollection].distillationEnabled}}\nDistillation Terms: {{collections[selectedCollection].distillationTerms}}"
+
+    // return '';
+
+    let tt = '';
     let thisCollection = this.collections[this.selectedCollection];
-    let tt = 'Query: ' + thisCollection.query;
+    let query = '';
+    let contentTypes = '';
+    let useCaseFriendlyName = null;
+    let distillationEnabled = '';
+    let regexDistillationEnabled = '';
+    let distillationTerms = '';
+    let regexDistillationTerms = '';
+
+    if (thisCollection.bound === true) {
+      // OOTB use case
+      let useCaseName = thisCollection.usecase;
+      let useCase = this.dataService.useCasesObj[useCaseName];
+      useCaseFriendlyName = useCase.friendlyName;
+      query = useCase.query;
+      contentTypes = useCase.contentTypes.join(' ');
+      tt = tt + 'Use Case: ' + useCaseFriendlyName + '\n';
+      if ('distillationTerms' in useCase && useCase.distillationTerms.length > 0) {
+        distillationEnabled = '\nDistillation is Enabled';
+        distillationTerms = '\nDistillation Terms:';
+        for (let x = 0; x < useCase.distillationTerms.length; x++) {
+          distillationTerms = distillationTerms + '\n  ' + useCase.distillationTerms[x];
+        }
+      }
+
+      if ('regexTerms' in useCase && useCase.regexTerms.length > 0) {
+        regexDistillationEnabled = '\nRegEx Distillation is Enabled';
+        regexDistillationTerms = '\nnRegEx Distillation Terms:';
+        for (let x = 0; x < useCase.regexTerms.length; x++) {
+          regexDistillationTerms = regexDistillationTerms + '\n  ' + useCase.regexTerms[x];
+        }
+      }
+    }
+    else {
+      // custom collection
+      query = thisCollection.query;
+      contentTypes = thisCollection.contentTypes.join(' ');
+      if (thisCollection.distillationEnabled) { distillationEnabled = '\nDistillation is Enabled'; }
+      if (thisCollection.distillationEnabled && thisCollection.distillationTerms) {
+        distillationTerms = '\nDistillation Terms:';
+        for (let x = 0; x < thisCollection.distillationTerms.length; x++) {
+          distillationTerms = distillationTerms + '\n  ' + thisCollection.distillationTerms[x];
+        }
+      }
+      if (thisCollection.regexDistillationEnabled) { regexDistillationEnabled = '\nRegEx Distillation is Enabled'; }
+      if (thisCollection.regexDistillationEnabled && thisCollection.regexDistillationTerms) {
+        regexDistillationTerms = '\nRegex Distillation Terms:';
+        for (let x = 0; x < thisCollection.regexDistillationTerms.length; x++) {
+          regexDistillationTerms = regexDistillationTerms + '\n  ' + thisCollection.regexDistillationTerms[x];
+        }
+      }
+    }
+
+    tt = tt + 'Query: ' + query;
     tt = tt + '\nService: ' + thisCollection.nwserverName;
-
-    let contentTypes = thisCollection.contentTypes.join(' ');
     tt = tt + '\nContent Types: ' + contentTypes;
-
     tt = tt + '\nImage Limit: ' + thisCollection.imageLimit;
     tt = tt + '\nMin Dimensions: ' + thisCollection.minX + ' x ' + thisCollection.minY;
+
     if (thisCollection.sha1Enabled) { tt = tt + '\nSHA1 Hashing is Enabled'; }
     if (thisCollection.sha256Enabled) { tt = tt + '\nSHA256 Hashing is Enabled'; }
     if (thisCollection.md5Enabled) { tt = tt + '\nMD5 Hashing is Enabled'; }
-    if (thisCollection.distillationEnabled) { tt = tt + '\nDistillation is Enabled'; }
-    if (thisCollection.distillationEnabled && thisCollection.distillationTerms) {
+
+    tt = tt + distillationEnabled;
+    // if (thisCollection.distillationEnabled) { tt = tt + '\nDistillation is Enabled'; }
+    tt = tt + distillationTerms;
+/*    if (thisCollection.distillationEnabled && thisCollection.distillationTerms) {
       tt = tt + '\nDistillation Terms:';
       for (let x = 0; x < thisCollection.distillationTerms.length; x++) {
         tt = tt + '\n  ' + thisCollection.distillationTerms[x];
       }
     }
-    if (thisCollection.regexDistillationEnabled) { tt = tt + '\nRegEx Distillation is Enabled'; }
-    if (thisCollection.regexDistillationEnabled && thisCollection.regexDistillationTerms) {
+*/
+    tt = tt + regexDistillationEnabled;
+    // if (thisCollection.regexDistillationEnabled) { tt = tt + '\nRegEx Distillation is Enabled'; }
+    /*if (thisCollection.regexDistillationEnabled && thisCollection.regexDistillationTerms) {
       tt = tt + '\nRegex Distillation Terms:';
       for (let x = 0; x < thisCollection.regexDistillationTerms.length; x++) {
         tt = tt + '\n  ' + thisCollection.regexDistillationTerms[x];
       }
-    }
+    }*/
+    tt = tt + regexDistillationTerms;
     // log.debug('tt:',tt);
     return tt;
+
   }
 
   imageMaskClick(): void {
