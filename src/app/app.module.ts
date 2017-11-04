@@ -11,6 +11,7 @@ import { CalendarModule } from 'primeng/components/calendar/calendar';
 import { TooltipModule } from 'primeng/components/tooltip/tooltip';
 import { RadioButtonModule } from 'primeng/components/radiobutton/radiobutton';
 import { SelectButtonModule } from 'primeng/components/selectbutton/selectbutton';
+import { DropdownModule } from 'primeng/components/dropdown/dropdown';
 import { MdCardModule, MdInputModule, MdButtonModule, MdCheckboxModule } from '@angular/material';
 
 // Our Services
@@ -72,6 +73,7 @@ import * as $ from 'jquery';
                   MasonryModule,
                   RadioButtonModule,
                   SelectButtonModule,
+                  DropdownModule,
                   MdCardModule,
                   MdInputModule,
                   MdCheckboxModule,

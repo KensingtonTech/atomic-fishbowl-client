@@ -80,6 +80,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+  getUseCases(): Promise<any> {
+    return this.http
+                .get(this.apiUrl + '/usecases')
+                .toPromise()
+                .then( response => response.json().useCases as any )
+                .catch(e => this.handleError(e));
+  }
+
   getPreferences(): Promise<any> {
     return this.http
                 .get(this.apiUrl + '/preferences' )

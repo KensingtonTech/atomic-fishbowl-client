@@ -5,7 +5,8 @@ import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
 import { ContentTypes } from './contenttypes';
-import { SelectButtonModule } from 'primeng/components/selectbutton/selectbutton';
+import { UseCase } from './usecase';
+import { SelectItem } from 'primeng/primeng';
 declare var moment: any;
 declare var log: any;
 declare var JSEncrypt: any;
@@ -43,9 +44,19 @@ String.prototype.isBlank = function(c) {
     }
 
     .ourFont,
-    .ui-button-text {
+    .ui-button-text,
+    .ui-widget {
       font-family: system-ui !important;
       font-size: 11px !important;
+    }
+
+    .description-text {
+      font-size: 12px
+    }
+
+    .ui-helper-clearfix::before,
+    .ui-helper-clearfix::after {
+      display: none !important;
     }
 
     .ui-radiobutton-label {
@@ -122,6 +133,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
 
   public contentTypes = ContentTypes;
+  private defaultUseCaseBinding = 'bound';
+  public showUseCaseValues = false; // used to switch input controls to readonly mode.  true = readonly mode
 
   public collectionFormModel = {
     name: this.defaultColName,
@@ -144,7 +157,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     sha1Hashes: this.defaultSha1Hashes,
     sha256Enabled: false,
     sha256Hashes: this.defaultSha256Hashes,
-    selectedContentTypes: null
+    selectedContentTypes: null,
+    selectedUseCase: null,
+    useCaseBinding: this.defaultUseCaseBinding
   };
 
   public nwservers: any;
@@ -174,6 +189,11 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private preferencesChangedSubscription: any;
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
+
+  public useCases: UseCase[];
+  public useCaseOptions: SelectItem[] = [];
+  public displayUseCaseDescription = false;
+  public useCaseDescription = '';
 
   ngOnInit(): void {
 
@@ -226,6 +246,16 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           this.collectionFormModel.query = prefs.defaultNwQuery; // changes the query string in the query string input
         }
       }
+
+      this.dataService.getUseCases()
+                      .then( (useCases: any) => {
+                        this.useCases = useCases;
+                        log.debug('AddCollectionModalComponent: ngOnInit(): useCases: ', this.useCases);
+                        this.useCaseOptions.push( { label: 'Custom', value: 'custom' } );
+                        for (let i = 0; i < this.useCases.length; i++) {
+                          this.useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
+                        }
+                      });
 
 
       this.firstRun = false;
@@ -481,20 +511,40 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     let newCollection = {
       type: f.value.type,
       name: f.value.name,
-      query: f.value.query,
       imageLimit: f.value.imageLimit,
       nwserver: f.value.nwserver,
+      nwserverName: this.nwservers[f.value.nwserver].friendlyName,
+      deviceNumber: this.nwservers[f.value.nwserver].deviceNumber,
       id: UUID.UUID(),
       minX: f.value.minX,
       minY: f.value.minY,
-      distillationEnabled: f.value.distillationEnabled,
-      regexDistillationEnabled: f.value.regexDistillationEnabled,
-      md5Enabled: f.value.md5Enabled,
-      sha1Enabled: f.value.sha1Enabled,
-      sha256Enabled: f.value.sha256Enabled,
       executeTime: time,
-      contentTypes: f.value.contentTypes
+      usecase: 'custom', // may get overridden later
+      bound: false
+      // query: f.value.query,
+      // distillationEnabled: f.value.distillationEnabled,
+      // regexDistillationEnabled: f.value.regexDistillationEnabled,
+      // md5Enabled: f.value.md5Enabled,
+      // sha1Enabled: f.value.sha1Enabled,
+      // sha256Enabled: f.value.sha256Enabled,
+      // contentTypes: f.value.contentTypes
     };
+
+    if (f.value.selectedUseCase !== 'custom' && f.value.bound === 'bound') {
+      // An OOTB use case is selected and is bound
+      newCollection['usecase'] = f.value.selectedUseCase;
+      newCollection['bound'] = true;
+    }
+    else {
+      // We either have a custom use case or an unbound use case
+      newCollection['query'] = f.value.query;
+      newCollection['distillationEnabled'] = f.value.distillationEnabled;
+      newCollection['regexDistillationEnabled'] =  f.value.regexDistillationEnabled;
+      newCollection['md5Enabled'] = f.value.md5Enabled;
+      newCollection['sha1Enabled'] = f.value.sha1Enabled;
+      newCollection['sha256Enabled'] = f.value.sha256Enabled;
+      newCollection['contentTypes'] = f.value.contentTypes;
+    }
 
     if ( f.value.type === 'rolling' ) {
       newCollection['lastHours'] = f.value.lastHours;
@@ -505,62 +555,49 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       newCollection['timeEnd'] = t.timeEnd;
     }
 
-    newCollection['nwserverName'] = this.nwservers[newCollection.nwserver].friendlyName;
-    newCollection['deviceNumber'] = this.nwservers[newCollection.nwserver].deviceNumber;
 
-
-    if (f.value.distillationEnabled) {
+    if (!newCollection.bound && f.value.distillationEnabled) {
       let endterms = this.grokLines(f.value.distillationTerms);
+      newCollection['distillationEnabled'] = false;
       if ( endterms.length !== 0 ) {
-        newCollection.distillationEnabled = true;
+        newCollection['distillationEnabled'] = true;
         newCollection['distillationTerms'] = endterms;
       }
-      else {
-        newCollection.distillationEnabled = false;
-      }
     }
 
-    if (f.value.regexDistillationEnabled) {
+    if (!newCollection.bound && f.value.regexDistillationEnabled) {
       let endterms = this.grokLines(f.value.regexDistillationTerms);
+      newCollection['regexDistillationEnabled'] = false;
       if ( endterms.length !== 0 ) {
-        newCollection.regexDistillationEnabled = true;
+        newCollection['regexDistillationEnabled'] = true;
         newCollection['regexDistillationTerms'] = endterms;
       }
-      else {
-        newCollection.regexDistillationEnabled = false;
-      }
     }
 
-    if (f.value.sha1Enabled) {
+    if (!newCollection.bound && f.value.sha1Enabled) {
       let endterms = this.grokHashingLines(f.value.sha1Hashes);
+      newCollection['sha1Enabled'] = false;
       if ( endterms.length !== 0 ) {
-        newCollection.sha1Enabled = true;
+        newCollection['sha1Enabled'] = true;
         newCollection['sha1Hashes'] = endterms;
       }
-      else {
-        newCollection.sha1Enabled = false;
-      }
     }
 
-    if (f.value.sha256Enabled) {
+    if (!newCollection.bound && f.value.sha256Enabled) {
       let endterms = this.grokHashingLines(f.value.sha256Hashes);
+      newCollection['sha256Enabled'] = false;
       if ( endterms.length !== 0 ) {
-        newCollection.sha256Enabled = true;
+        newCollection['sha256Enabled'] = true;
         newCollection['sha256Hashes'] = endterms;
       }
-      else {
-        newCollection.sha256Enabled = false;
-      }
     }
 
-    if (f.value.md5Enabled) {
+    if (!newCollection.bound && f.value.md5Enabled) {
       let endterms = this.grokHashingLines(f.value.md5Hashes);
+      newCollection['md5Enabled'] = false;
       if ( endterms.length !== 0 ) {
-        newCollection.md5Enabled = true;
+        newCollection['md5Enabled'] = true;
         newCollection['md5Hashes'] = endterms;
-      }
-      else {
-        newCollection.md5Enabled = false;
       }
     }
 
@@ -596,6 +633,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   onOpen(): void {
     log.debug('AddCollectionModalComponent: onOpen()');
     this.nameBoxRef.first.nativeElement.focus();
+    this.collectionFormModel.selectedUseCase = this.useCaseOptions[0].value; // this sets it to 'custom'
+    this.showUseCaseValues = false;
   }
 
   timeValue(): void {
@@ -620,6 +659,63 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       vals.push( this.contentTypes[i].value );
     }
     this.collectionFormModel.selectedContentTypes = vals;
+  }
+
+  onUseCaseChanged(event: any): void {
+    // log.debug('AddCollectionModalComponent: onUseCaseChanged: event:', event);
+    log.debug('AddCollectionModalComponent: onUseCaseChanged: collectionFormModel.selectedUseCase:', this.collectionFormModel.selectedUseCase );
+
+    let displayUseCaseDescription = false;
+    let thisUseCase: UseCase;
+    for (let i = 0; i < this.useCases.length; i++) {
+      if (this.useCases[i].name === this.collectionFormModel.selectedUseCase) {
+        thisUseCase = this.useCases[i];
+        displayUseCaseDescription = true;
+        this.useCaseDescription = this.useCases[i].description;
+        break;
+      }
+    }
+    this.displayUseCaseDescription = displayUseCaseDescription;
+
+    if (this.collectionFormModel.selectedUseCase === 'custom') {
+      this.showUseCaseValues = false;
+      return;
+    }
+
+    // an OOTB use case has been selected
+    log.debug('AddCollectionModalComponent: onUseCaseChanged: thisUseCase:', thisUseCase);
+    setTimeout( () => {
+      this.collectionFormModel.query = thisUseCase.query;
+      this.collectionFormModel.selectedContentTypes = thisUseCase.contentTypes;
+      this.collectionFormModel.distillationEnabled = false;
+      if ('distillationTerms' in thisUseCase) {
+        this.collectionFormModel.distillationEnabled = true;
+        this.collectionFormModel.distillationTerms = thisUseCase.distillationTerms.join('\n');
+      }
+      this.collectionFormModel.regexDistillationEnabled = false;
+      if ('regexTerms' in thisUseCase) {
+        this.collectionFormModel.regexDistillationEnabled = true;
+        this.collectionFormModel.regexDistillationTerms = thisUseCase.regexTerms.join('\n');
+      }
+      this.collectionFormModel = JSON.parse(JSON.stringify(this.collectionFormModel));
+      this.showUseCaseValues = true;
+    });
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+  }
+
+  onUseCaseBoundChanged(): void {
+    // log.debug('AddCollectionModalComponent: onUseCaseBoundChanged()');
+    setTimeout( () => {
+      if (this.collectionFormModel.useCaseBinding === 'bound') {
+        this.showUseCaseValues = true;
+      }
+      else { // unbound
+        this.showUseCaseValues = false;
+      }
+    });
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
   }
 
 }
