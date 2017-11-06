@@ -76,7 +76,7 @@ function isNotLoggedInUser(c: AbstractControl) {
     }
 
     .ourFont {
-      font-family: system-ui !important;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
       font-size: 11px !important;
     }
 

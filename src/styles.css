@@ -132,3 +132,13 @@ body .modal-open {
   -ms-transform: translateY(-50%);
   transform: translateY(-50%);
 }
+
+.ui-widget {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
+  font-size: 11px !important;
+}
+
+.ui-dropdown::before,
+.ui-dropdown::after {
+  display: none !important;
+}

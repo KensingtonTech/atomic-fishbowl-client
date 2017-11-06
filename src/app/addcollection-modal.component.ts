@@ -32,8 +32,7 @@ String.prototype.isBlank = function(c) {
 
 @Component({
   selector: 'add-collection-modal',
-  // changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
+  // encapsulation: ViewEncapsulation.None,
 
   templateUrl: './addcollection-modal.component.html',
   styles: [`
@@ -49,19 +48,13 @@ String.prototype.isBlank = function(c) {
     }
 
     .ourFont,
-    .ui-button-text,
-    .ui-widget {
-      font-family: system-ui !important;
+    .ui-button-text {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
       font-size: 11px !important;
     }
 
     .description-text {
       font-size: 12px
-    }
-
-    .ui-helper-clearfix::before,
-    .ui-helper-clearfix::after {
-      display: none !important;
     }
 
     .ui-radiobutton-label {
@@ -116,73 +109,53 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
-  private enabledTrigger: string;
-  public collectionFormDisabled = false;
-
-  private defaultColName = '';
-  // tslint:disable-next-line:quotemark
-  private defaultColQuery = "vis.level exists || content = 'application/pdf'";
-  private defaultColImageLimit = 1000;
-  private defaultColService: any = undefined;
-  private defaultNwserver = '';
-  private defaultMinX = 1;
-  private defaultMinY = 1;
-  private defaultDistillationEnabled = false;
-  private defaultDistillationTerms = '';
-  private defaultRegexDistillationEnabled = false;
-  private defaultRegexDistillationTerms = '';
-  private defaultCollectionType = 'rolling';
-  private defaultMd5Hashes = '';
-  private defaultSha1Hashes = '';
-  private defaultSha256Hashes = '';
   private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
 
+  public formDisabled = false;
+  private defaultColQuery = `vis.level exists || content = 'application/pdf'`;
+  private defaultCollectionType = 'rolling';
   public contentTypes = ContentTypes;
   private defaultUseCaseBinding = 'bound';
   public showUseCaseValues = false; // used to switch input controls to readonly mode.  true = readonly mode
 
   public collectionFormModel = {
-    name: this.defaultColName,
-    query: this.defaultColQuery,
-    imageLimit: this.defaultColImageLimit,
-    nwserver: this.defaultNwserver,
-    minX: this.defaultMinX,
-    minY: this.defaultMinY,
-    distillationEnabled: this.defaultDistillationEnabled,
-    distillationTerms: this.defaultDistillationTerms,
-    regexDistillationEnabled: this.defaultRegexDistillationEnabled,
-    regexDistillationTerms: this.defaultRegexDistillationTerms,
-    timeBegin: new Date(),
-    timeEnd: new Date(),
+    name: '',
     type: this.defaultCollectionType,
     lastHours: 1,
-    md5Enabled: false,
-    md5Hashes: this.defaultMd5Hashes,
-    sha1Enabled: false,
-    sha1Hashes: this.defaultSha1Hashes,
-    sha256Enabled: false,
-    sha256Hashes: this.defaultSha256Hashes,
-    selectedContentTypes: null,
+    timeBegin: new Date(),
+    timeEnd: new Date(),
     selectedUseCase: null,
-    useCaseBinding: this.defaultUseCaseBinding
+    useCaseBinding: this.defaultUseCaseBinding,
+    selectedContentTypes: null,
+    contentLimit: null,
+    minX: null,
+    minY: null,
+    distillationEnabled: false,
+    distillationTerms: '',
+    regexDistillationEnabled: false,
+    regexDistillationTerms: '',
+    sha1Enabled: false,
+    sha1Hashes: '',
+    sha256Enabled: false,
+    sha256Hashes: '',
+    md5Enabled: false,
+    md5Hashes: ''
   };
-
+  public queryInputText = this.defaultColQuery;
+  public selectedNwServer = '';
   public nwservers: any;
-  private defaultHostname = '';
-  private defaultUser = '';
-  private defaultPassword = '';
-  private defaultRestPort = 50103;
-  private defaultSSL = false;
-  private defaultDeviceNumber = 13;
+
   public serviceFormModel = {
-    hostname: this.defaultHostname,
-    restPort: this.defaultRestPort,
-    ssl: this.defaultSSL,
-    user: this.defaultUser,
-    password: this.defaultPassword,
-    deviceNumber: this.defaultDeviceNumber
+    hostname: '',
+    restPort: 50103,
+    ssl: false,
+    user: '',
+    password: '',
+    deviceNumber: 1
   };
   public queryList = defaultQueries;
+  private queryListObj = {};
+  public queryListOptions: SelectItem[] = [];
 
   public selectedQuery: any = this.queryList[2];
   private preferences: any;
@@ -196,6 +169,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private encryptor: any = new JSEncrypt();
 
   public useCases: UseCase[];
+  public useCasesObj = {};
   public useCaseOptions: SelectItem[] = [];
   public displayUseCaseDescription = false;
   public useCaseDescription = '';
@@ -227,16 +201,29 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       // We can update this every time
       if ( 'defaultNwQuery' in prefs ) {
         this.defaultColQuery = prefs.defaultNwQuery;
-        // this.collectionFormModel.query = prefs.defaultNwQuery;
+        // this.queryInputText = prefs.defaultNwQuery;
       }
 
+      for (let i = 0; i < this.queryList.length; i++) {
+        this.queryListObj[this.queryList[i].text] = this.queryList[i];
+        let option: any = {};
+        option['label'] = this.queryList[i].text;
+        option['value'] = this.queryList[i].text;
+        this.queryListOptions.push(option);
+      }
+
+
       if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
-        if ( 'defaultQuerySelection' in prefs ) {
-          for (let q = 0; q < this.queryList.length; q++) {
-            if (this.queryList[q].text === prefs.defaultQuerySelection) {
-              log.debug('AddCollectionModalComponent: ngOnInit(): setting query selector to ', this.queryList[q]);
-              setTimeout( () => this.selectedQuery = this.queryList[q]); // changes the query in the query select box dropdown
-              setTimeout( () => this.collectionFormModel.query = this.queryList[q].queryString ); // changes the query string in the query string input
+
+      if ( 'defaultQuerySelection' in prefs ) {
+          for (let i = 0; i < this.queryList.length; i++) {
+            let query = this.queryList[i];
+            if (query.text === prefs.defaultQuerySelection) {
+              log.debug('AddCollectionModalComponent: ngOnInit(): setting query selector to ', query);
+              // setTimeout( () => {
+                this.selectedQuery = query.text; // changes the query in the query select box dropdown
+                this.queryInputText = query.queryString; // changes the query string in the query string input
+              // });
               break;
             }
           }
@@ -246,27 +233,27 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           this.collectionFormModel.minY = prefs.minY;
         }
         if ( 'defaultImageLimit' in prefs ) {
-          this.collectionFormModel.imageLimit = prefs.defaultImageLimit;
+          this.collectionFormModel.contentLimit = prefs.defaultImageLimit;
         }
         if ( 'defaultRollingHours' in prefs ) {
           this.collectionFormModel.lastHours = prefs.defaultRollingHours;
         }
         if ( 'defaultNwQuery' in prefs ) {
           // this.defaultColQuery = prefs.defaultNwQuery;
-          this.collectionFormModel.query = prefs.defaultNwQuery; // changes the query string in the query string input
+          this.queryInputText = prefs.defaultNwQuery; // changes the query string in the query string input
         }
       }
 
-      this.dataService.getUseCases()
-                      .then( (useCases: any) => {
-                        this.useCases = useCases;
-                        log.debug('AddCollectionModalComponent: ngOnInit(): useCases: ', this.useCases);
-                        this.useCaseOptions.push( { label: 'Custom', value: 'custom' } );
-                        for (let i = 0; i < this.useCases.length; i++) {
-                          this.useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
-                        }
-                      });
-
+      this.dataService.useCasesChanged.subscribe( (o: any) => {
+        this.useCases = o.useCases;
+        this.useCasesObj = o.useCasesObj;
+        let useCaseOptions: SelectItem[] = [];
+        useCaseOptions.push( { label: 'Custom', value: 'custom' } );
+        for (let i = 0; i < this.useCases.length; i++) {
+          useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
+        }
+        this.useCaseOptions = useCaseOptions;
+      });
 
       this.firstRun = false;
       this.changeDetectionRef.markForCheck();
@@ -278,13 +265,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.preferencesChangedSubscription.unsubscribe();
   }
 
-  querySelected(e: any): void {
+  onQuerySelected(): void {
     // log.debug('AddCollectionModalComponent: querySelected(): e', e);
-    if (e.text === 'Default Query') {
-      this.collectionFormModel.query = this.defaultColQuery;
+    if (this.selectedQuery === 'Default Query') {
+      this.queryInputText = this.defaultColQuery;
     }
     else {
-      this.collectionFormModel.query = e.queryString;
+      this.queryInputText = this.queryListObj[this.selectedQuery].queryString;
     }
   }
 
@@ -300,19 +287,19 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   displayServiceAddBox(): void {
     this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
-    this.collectionFormDisabled = true;
+    this.formDisabled = true;
     // setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
     this.hostNameRef.first.nativeElement.focus();
   }
 
   hideServiceAddBox(): void {
     this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
-    this.serviceFormModel.hostname = this.defaultHostname;
-    this.serviceFormModel.restPort = this.defaultRestPort;
-    this.serviceFormModel.ssl = this.defaultSSL;
-    this.serviceFormModel.user = this.defaultUser;
-    this.serviceFormModel.password = this.defaultPassword;
-    this.collectionFormDisabled = false;
+    this.serviceFormModel.hostname = '';
+    this.serviceFormModel.restPort = 50103;
+    this.serviceFormModel.ssl = false;
+    this.serviceFormModel.user = '';
+    this.serviceFormModel.password = '';
+    this.formDisabled = false;
   }
 
   cancel(): void {
@@ -332,8 +319,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.dataService.getNwServers().then(n => {
                                                 this.nwservers = n;
                                                 // log.debug("AddCollectionModalComponent: getNwServers(): this.nwservers:", this.nwservers);
-                                                this.collectionFormModel.nwserver = this.getFirstNwServer();
-                                                this.changeDetectionRef.markForCheck();
+                                                this.selectedNwServer = this.getFirstNwServer();
+                                                // this.changeDetectionRef.markForCheck();
                                               });
   }
 
@@ -347,9 +334,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   deleteNwServer(): void {
-    log.debug('AddCollectionModalComponent: deleteNwServer(): this.collectionFormModel.nwserver', this.collectionFormModel.nwserver);
-    // log.debug(this.nwservers[this.collectionFormModel.nwserver].friendlyName);
-    this.dataService.deleteNwServer(this.collectionFormModel.nwserver).then ( () => this.getNwServers() );
+    log.debug('AddCollectionModalComponent: deleteNwServer(): this.selectedNwServer', this.selectedNwServer);
+    // log.debug(this.nwservers[this.selectedNwServer].friendlyName);
+    this.dataService.deleteNwServer(this.selectedNwServer).then ( () => this.getNwServers() );
   }
 
   convertTimeSelection(): any {
@@ -521,23 +508,16 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     let newCollection = {
       type: this.collectionFormModel.type,
       name: this.collectionFormModel.name,
-      imageLimit: this.collectionFormModel.imageLimit,
-      nwserver: this.collectionFormModel.nwserver,
-      nwserverName: this.nwservers[this.collectionFormModel.nwserver].friendlyName,
-      deviceNumber: this.nwservers[this.collectionFormModel.nwserver].deviceNumber,
+      imageLimit: this.collectionFormModel.contentLimit,
+      nwserver: this.selectedNwServer,
+      nwserverName: this.nwservers[this.selectedNwServer].friendlyName,
+      deviceNumber: this.nwservers[this.selectedNwServer].deviceNumber,
       id: UUID.UUID(),
       minX: this.collectionFormModel.minX,
       minY: this.collectionFormModel.minY,
       executeTime: time,
       usecase: 'custom', // may get overridden later
       bound: false
-      // query: this.collectionFormModel.query,
-      // distillationEnabled: this.collectionFormModel.distillationEnabled,
-      // regexDistillationEnabled: this.collectionFormModel.regexDistillationEnabled,
-      // md5Enabled: this.collectionFormModel.md5Enabled,
-      // sha1Enabled: this.collectionFormModel.sha1Enabled,
-      // sha256Enabled: this.collectionFormModel.sha256Enabled,
-      // contentTypes: this.collectionFormModel.contentTypes
     };
 
     if (this.collectionFormModel.selectedUseCase !== 'custom' && this.collectionFormModel.useCaseBinding === 'bound') {
@@ -547,7 +527,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
     else {
       // We either have a custom use case or an unbound use case
-      newCollection['query'] = this.collectionFormModel.query;
+      newCollection['query'] = this.queryInputText;
       newCollection['distillationEnabled'] = this.collectionFormModel.distillationEnabled;
       newCollection['regexDistillationEnabled'] =  this.collectionFormModel.regexDistillationEnabled;
       newCollection['md5Enabled'] = this.collectionFormModel.md5Enabled;
@@ -722,7 +702,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     // an OOTB use case has been selected
     log.debug('AddCollectionModalComponent: onUseCaseChanged: thisUseCase:', thisUseCase);
     setTimeout( () => {
-      this.collectionFormModel.query = thisUseCase.query;
+      this.queryInputText = thisUseCase.query;
       this.collectionFormModel.selectedContentTypes = thisUseCase.contentTypes;
       this.collectionFormModel.distillationEnabled = false;
       if ('distillationTerms' in thisUseCase) {

@@ -44,8 +44,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   private sessionId: number;
   public httpJsonStreamServiceConnected = false;
   public queryResultsCountUpdated: Subject<any> = new Subject<any>();
-  public useCases: UseCase[];
-  public useCasesObj = {};
+  public useCasesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
 
   getServerVersion(): Promise<any> {
     return this.http
@@ -82,19 +81,20 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
-  getUseCases(): Promise<any> {
-    return this.http
-                .get(this.apiUrl + '/usecases')
-                .toPromise()
-                .then( (response) => {
-                  this.useCases = response.json().useCases;
-                  for (let i = 0; i < this.useCases.length; i++) {
-                    let thisUseCase = this.useCases[i];
-                    this.useCasesObj[thisUseCase.name] = thisUseCase;
-                  }
-                  return this.useCases;
-                })
-                .catch(e => this.handleError(e));
+  getUseCases(): void {
+    this.http
+        .get(this.apiUrl + '/usecases')
+        .toPromise()
+        .then( (response) => {
+          let useCases = response.json().useCases;
+          let useCasesObj = {};
+          for (let i = 0; i < useCases.length; i++) {
+            let thisUseCase = useCases[i];
+            useCasesObj[thisUseCase.name] = thisUseCase;
+          }
+          this.useCasesChanged.next( { useCases: useCases, useCasesObj: useCasesObj } );
+        })
+        .catch(e => this.handleError(e));
   }
 
   getPreferences(): Promise<any> {

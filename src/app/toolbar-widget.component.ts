@@ -7,6 +7,8 @@ import { ModalService } from './modal/modal.service';
 import { AuthenticationService } from './authentication.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
+import { UseCase } from './usecase';
+import { SelectItem } from 'primeng/primeng';
 declare var log: any;
 
 @Component( {
@@ -18,38 +20,37 @@ declare var log: any;
     <div style="position: absolute; top: 7px; width: 100%">
       <span class="noselect">
         <span class="label">Collection:&nbsp;
-        <select style="width: 200px;" [(ngModel)]="selectedCollection" (ngModelChange)="collectionSelected($event)">
-          <option *ngFor="let collection of collections | mapValues" [ngValue]="collection.id">{{collection.name}}</option>
-        </select></span>
+          <p-dropdown [options]="collectionsOptions" [(ngModel)]="selectedCollectionId" (onChange)="onCollectionSelected($event)" autoWidth="false" [style]="{'width':'250px'}"></p-dropdown>
+        </span>
         <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" style="display: inline-block;" pTooltip="Building collection"></span>
         <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow; display: inline-block;" [pTooltip]="errorMessage"></span>
         <span *ngIf="queryingIcon" class="fa fa-question fa-spin fa-lg fa-fw" style="display: inline-block;" pTooltip="Querying NetWitness data"></span>
-        <span *ngIf="queryResultsCount == 0 && collections[selectedCollection].state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red; display: inline-block;" pTooltip="0 results were returned from the query"></span>
-        <span *ngIf="queryResultsCount == 0 && collections[selectedCollection].state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="display: inline-block;" pTooltip="0 results were returned from the latest query"></span>
+        <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red; display: inline-block;" pTooltip="0 results were returned from the query"></span>
+        <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="display: inline-block;" pTooltip="0 results were returned from the latest query"></span>
         <span (click)="addCollectionClick()" class="fa fa-plus fa-lg fa-fw"></span>
         <span (click)="deleteCollectionClick()" class="fa fa-minus fa-lg fa-fw"></span>
-        <span class="collectionTooltip" *ngIf="refreshed && selectedCollection && collections" #infoIcon [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
+        <span class="collectionTooltip" *ngIf="refreshed && selectedCollectionId && collections" #infoIcon [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
       </span>
-      <span *ngIf="refreshed && collections[selectedCollection].type == 'fixed'">
+      <span *ngIf="refreshed && collections[selectedCollectionId].type == 'fixed'">
         <span class="label">Fixed Collection</span>&nbsp;&nbsp;
-        <span class="label">Time1:</span> <span class="value">{{collections[selectedCollection].timeBegin | formatTime}}</span>
-        <span class="label">Time2:</span> <span class="value">{{collections[selectedCollection].timeEnd | formatTime}}</span>
+        <span class="label">Time1:</span> <span class="value">{{collections[selectedCollectionId].timeBegin | formatTime}}</span>
+        <span class="label">Time2:</span> <span class="value">{{collections[selectedCollectionId].timeEnd | formatTime}}</span>
         <span class="label">Images:</span> <span class="value">{{contentCount?.images}}</span>
         <span class="label">PDFs:</span> <span class="value">{{contentCount?.pdfs}}</span>
         <span class="label">Hash Matches:</span> <span class="value">{{contentCount?.hashes}}</span>
         <span class="label">Dodgy Archives:</span> <span class="value">{{contentCount?.dodgyArchives}}</span>
         <span class="label">Total:</span> <span class="value">{{contentCount?.total}}</span>
       </span>
-      <span *ngIf="refreshed && collections[selectedCollection].type == 'rolling'">
+      <span *ngIf="refreshed && collections[selectedCollectionId].type == 'rolling'">
         <span class="label">Rolling Collection</span>&nbsp;&nbsp;
-        <span class="label">Last {{collections[selectedCollection].lastHours}} Hours</span>&nbsp;&nbsp;
+        <span class="label">Last {{collections[selectedCollectionId].lastHours}} Hours</span>&nbsp;&nbsp;
         <span class="label">Images:</span> <span class="value">{{contentCount?.images}}</span>
         <span class="label">PDFs:</span> <span class="value">{{contentCount?.pdfs}}</span>
         <span class="label">Hash Matches:</span> <span class="value">{{contentCount?.hashes}}</span>
         <span class="label">Dodgy Archives:</span> <span class="value">{{contentCount?.dodgyArchives}}</span>
         <span class="label">Total:</span> <span class="value">{{contentCount?.total}}</span>
       </span>
-      <span *ngIf="refreshed && collections[selectedCollection].type == 'monitoring'">
+      <span *ngIf="refreshed && collections[selectedCollectionId].type == 'monitoring'">
         <span class="label">Monitoring Collection</span>&nbsp;&nbsp;
         <span class="label">Images:</span> <span class="value">{{contentCount?.images}}</span>
         <span class="label">PDFs:</span> <span class="value">{{contentCount?.pdfs}}</span>
@@ -131,8 +132,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                private authService: AuthenticationService ) {}
 
   @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
+
   private collections: any;
-  private selectedCollection: string;
+  private selectedCollectionId: string;
+  private collectionsOptions: SelectItem[] = [];
+
   public addCollectionModalId = 'add-collection-modal';
   public showCreateFirstCollection = false;
   public showCollections = false;
@@ -161,6 +165,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private collectionStateChangedSubscription: any;
   private errorPublishedSubscription: any;
   private queryResultsCountUpdatedSubscription: any;
+  private useCases: UseCase[] = [];
+  private useCasesObj = {};
 
 
   ngOnInit(): void {
@@ -170,11 +176,18 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
       this.contentCount = c;
     });
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollection = e.id );
-    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (c: string) => {
-      this.collections = c;
+    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollectionId = e.id );
+    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: string) => {
+      this.collections = collections;
+
+      for (let c in this.collections) {
+        if (this.collections.hasOwnProperty(c)) {
+          let collection = this.collections[c];
+          let option: SelectItem = { label: collection.name, value: collection.id };
+          this.collectionsOptions.push(option);
+        }
+      }
       log.debug('ToolbarWidgetComponent: collectionsChangedSubscription: collections update', this.collections);
-      // log.debug('selectedCollection:', this.selectedCollection);
     });
     this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => {
       // log.debug("collection", collection);
@@ -189,15 +202,21 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                     .then( () => {
                       this.refreshed = true;
                       if (Object.keys(this.collections).length !== 0 ) { // we only select a collection if there are collections
-                        this.selectedCollection = this.getFirstCollection();
-                        this.collectionSelected(this.selectedCollection);
-                        this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollection].deviceNumber, nwserver:  this.collections[this.selectedCollection].nwserver } );
+                        this.selectedCollectionId = this.getFirstCollection();
+                        this.onCollectionSelected({ value: this.selectedCollectionId });
+                        this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollectionId].deviceNumber, nwserver:  this.collections[this.selectedCollectionId].nwserver } );
                         this.showCollections = true;
                       }
                       else {
                         this.showCreateFirstCollection = true;
                       }
                     });
+
+    this.dataService.useCasesChanged.subscribe( (o: any) => {
+      this.useCases = o.useCases;
+      this.useCasesObj = o.useCasesObj;
+    });
+    this.dataService.getUseCases();
   }
 
   public ngOnDestroy() {
@@ -215,14 +234,14 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   buildTooltip(): string {
-    // log.debug("selectedCollection:",this.selectedCollection);
-    // log.debug("collection:", this.collections[this.selectedCollection]);
-    // pTooltip="Query: {{collections[selectedCollection].query}}\nService: {{collections[selectedCollection].nwserverName}}\nImage Limit: {{collections[selectedCollection].imageLimit}}\nMin Dimensions: {{collections[selectedCollection].minX}} x {{collections[selectedCollection].minY}}\nMD5 Hashing: {{collections[selectedCollection].md5Enabled}}\nDistillation Enabled: {{collections[selectedCollection].distillationEnabled}}\nDistillation Terms: {{collections[selectedCollection].distillationTerms}}"
+    // log.debug("selectedCollectionId:",this.selectedCollectionId);
+    // log.debug("collection:", this.collections[this.selectedCollectionId]);
+    // pTooltip="Query: {{collections[selectedCollectionId].query}}\nService: {{collections[selectedCollectionId].nwserverName}}\nImage Limit: {{collections[selectedCollectionId].imageLimit}}\nMin Dimensions: {{collections[selectedCollectionId].minX}} x {{collections[selectedCollectionId].minY}}\nMD5 Hashing: {{collections[selectedCollectionId].md5Enabled}}\nDistillation Enabled: {{collections[selectedCollectionId].distillationEnabled}}\nDistillation Terms: {{collections[selectedCollectionId].distillationTerms}}"
 
     // return '';
 
     let tt = '';
-    let thisCollection = this.collections[this.selectedCollection];
+    let thisCollection = this.collections[this.selectedCollectionId];
     let query = '';
     let contentTypes = '';
     let useCaseFriendlyName = null;
@@ -231,10 +250,13 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     let distillationTerms = '';
     let regexDistillationTerms = '';
 
-    if (thisCollection.bound === true) {
+    if (thisCollection.bound === true && this.useCases.length === 0) {
+      return '';
+    }
+    else if (thisCollection.bound === true) {
       // OOTB use case
       let useCaseName = thisCollection.usecase;
-      let useCase = this.dataService.useCasesObj[useCaseName];
+      let useCase = this.useCasesObj[useCaseName];
       useCaseFriendlyName = useCase.friendlyName;
       query = useCase.query;
       contentTypes = useCase.contentTypes.join(' ');
@@ -392,7 +414,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   deleteConfirmed(): void {
     log.debug('ToolbarWidgetComponent: deleteConfirmed(): Received deleteConfirmed event');
     this.dataService.abortGetBuildingCollection()
-                    .then( () => this.dataService.deleteCollection(this.selectedCollection) )
+                    .then( () => this.dataService.deleteCollection(this.selectedCollectionId) )
                     .then( () => this.dataService.refreshCollections() )
                     .then( () => {
                                     this.refreshed = true;
@@ -403,11 +425,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                                     }
                                     else {
                                       this.showCollections = true;
-                                      this.selectedCollection = this.getFirstCollection();
+                                      this.selectedCollectionId = this.getFirstCollection();
                                       // log.debug('ToolbarWidgetComponent: deleteConfirmed(): select collection 1');
-                                      this.collectionSelected(this.selectedCollection);
-                                      // this.dataService.getCollectionData(this.collections[this.selectedCollection])
-                                      //                .then( () => this.iconDecider(this.collections[this.selectedCollection].state) );
+                                      this.onCollectionSelected( { value: this.selectedCollectionId } );
+                                      // this.dataService.getCollectionData(this.collections[this.selectedCollectionId])
+                                      //                .then( () => this.iconDecider(this.collections[this.selectedCollectionId].state) );
                                     }
                                   });
   }
@@ -417,11 +439,13 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.modalService.open('collection-confirm-delete-modal');
   }
 
-  collectionSelected(id: any): void {
-    log.debug('ToolbarWidgetComponent: collectionSelected():', this.collections[id]);
+  onCollectionSelected(event: any): void {
+    let id = event.value;
+    log.debug('ToolbarWidgetComponent: onCollectionSelected(): id', id);
+    log.debug('ToolbarWidgetComponent: onCollectionSelected():', this.collections[id]);
     // log.debug("collections:", this.collections);
     // log.debug(this.collections[id]);
-    // log.debug("this.selectedCollection:", this.collections[this.selectedCollection]);
+    // log.debug("this.selectedCollectionId:", this.collections[this.selectedCollectionId]);
 
     this.dataService.abortGetBuildingCollection();
     if (this.showSearch) {
@@ -461,19 +485,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
 
-/*
-  getCollectionPosition(id: string): number {
-    //for(var i=0; i < this.collections.length; i++) {
-    for(var i=0; i < this.dataService.collections.length; i++) {
-      let col = this.dataService.collections[i];
-      //log.debug("id: " + col.id);
-      if (col.id === id) {
-        return i;
-      }
-    }
-  }
-*/
-
   getRollingCollection(id: string): void {
     log.debug('ToolbarWidgetComponent: getRollingCollection(id)');
     this.dataService.getRollingCollection(id);
@@ -482,7 +493,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   collectionExecuted(e: any): void {
     let id = e.id;
     log.debug('ToolbarWidgetComponent: collectionExecuted():', id, e);
-    // this.collectionSelected(id);
+    // this.onCollectionSelected(id);
     this.refreshed = false;
     this.dataService.abortGetBuildingCollection()
                     .then( () => this.dataService.refreshCollections() )
@@ -492,11 +503,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                     .then( () => this.dataService.refreshCollections() )
                     .then( () => {
                                     this.refreshed = true;
-                                    this.selectedCollection = id;
+                                    this.selectedCollectionId = id;
                                     this.showCreateFirstCollection = false;
                                     this.showCollections = true;
                                   })
-                    .then( () => this.collectionSelected(id) );
+                    .then( () => this.onCollectionSelected( { value: id }) );
   }
 
   onEscape(event: KeyboardEvent ) {
@@ -539,10 +550,10 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   getCollectionDataAgain(): void {
     log.debug('ToolbarWidgetComponent: getCollectionDataAgain()');
     // log.debug('select collection 7');
-    this.collectionSelected(this.selectedCollection);
+    this.onCollectionSelected( { value: this.selectedCollectionId });
     this.toolService.deviceNumber.next( {
-                                          deviceNumber: this.collections[this.selectedCollection].deviceNumber,
-                                          nwserver:  this.collections[this.selectedCollection].nwserver
+                                          deviceNumber: this.collections[this.selectedCollectionId].deviceNumber,
+                                          nwserver:  this.collections[this.selectedCollectionId].nwserver
                                         });
   }
 
