@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, ElementRef, ViewChild, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, ViewChild, Input, Output, EventEmitter, ChangeDetectorRef, OnInit } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { defaultQueries } from './default-queries';
+import { SelectItem } from 'primeng/primeng';
 declare var log: any;
 
 @Component({
@@ -17,7 +18,7 @@ declare var log: any;
   `]
 })
 
-export class PreferencesModalComponent {
+export class PreferencesModalComponent implements OnInit {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
@@ -29,17 +30,14 @@ export class PreferencesModalComponent {
   public id = 'preferences-modal';
 
   private defaultNwInvestigateUrl = '';
-  // tslint:disable-next-line:quotemark
-  private defaultDefaultNwquery = "vis.level exists || content = 'application/pdf'";
+  private defaultDefaultNwquery = `vis.level exists || content = 'application/pdf'`;
   private defaultMinX = 1;
   private defaultMinY = 1;
-  // private defaultGsPath = '/usr/bin/gs';
-  // private defaultPdftotextPath = '/usr/bin/pdftotext';
-  // private defaultUnrarPath = '/usr/bin/unrar';
   private defaultDisplayedKeys = [ 'size', 'service', 'ip.src', 'ip.dst', 'alias.host', 'city.dst', 'country.dst', 'action', 'content', 'ad.username.src', 'ad.computer.src', 'filename', 'client'];
   private defaultDefaultImageLimit = 1000;
   private defaultDefaultRollingHours = 1;
   public defaultQueries = defaultQueries;
+  public defaultQueriesOptions: SelectItem[] = [];
   private defaultMasonryColumnSize = 350;
 
   private defaultMasonryKeys: any = [
@@ -53,9 +51,6 @@ export class PreferencesModalComponent {
                                     defaultNwQuery: this.defaultDefaultNwquery,
                                     minX: this.defaultMinX,
                                     minY: this.defaultMinY,
-                                    // gsPath: this.defaultGsPath,
-                                    // pdftotextPath: this.defaultPdftotextPath,
-                                    // unrarPath: this.defaultUnrarPath,
                                     displayedKeys: this.getDisplayedKeysValue(this.defaultDisplayedKeys),
                                     defaultImageLimit: this.defaultDefaultImageLimit,
                                     defaultRollingHours: this.defaultDefaultRollingHours,
@@ -67,6 +62,14 @@ export class PreferencesModalComponent {
                                     queryDelayMinutes: null,
                                     maxContentErrors: null
                                   };
+
+  ngOnInit(): void {
+    for (let i = 0; i < this.defaultQueries.length; i++) {
+      let query = this.defaultQueries[i];
+      let option: SelectItem = { label: query.text, value: query.text };
+      this.defaultQueriesOptions.push(option);
+    }
+  }
 
   getDisplayedKeysValue(a: any): string {
     let text = '';
@@ -190,15 +193,6 @@ export class PreferencesModalComponent {
                                               if ( 'minY' in prefs ) {
                                                 this.preferencesModel.minY = prefs.minY;
                                               }
-                                              /*if ( 'gsPath' in prefs ) {
-                                                this.preferencesModel.gsPath = prefs.gsPath;
-                                              }
-                                              if ( 'pdftotextPath' in prefs ) {
-                                                this.preferencesModel.pdftotextPath = prefs.pdftotextPath;
-                                              }
-                                              if ( 'unrarPath' in prefs ) {
-                                                this.preferencesModel.unrarPath = prefs.unrarPath;
-                                              }*/
                                               if ( 'displayedKeys' in prefs ) {
                                                 this.preferencesModel.displayedKeys = this.getDisplayedKeysValue(prefs.displayedKeys);
                                               }
@@ -238,11 +232,6 @@ export class PreferencesModalComponent {
       defaultNwQuery: f.value.defaultNwQuery,
       minX: f.value.minX,
       minY: f.value.minY,
-      /*
-      gsPath: f.value.gsPath,
-      pdftotextPath: f.value.pdftotextPath,
-      unrarPath: f.value.unrarPath,
-      */
       displayedKeys: this.setDisplayedKeysValue(f.value.displayedKeys),
       defaultRollingHours: f.value.defaultRollingHours,
       defaultQuerySelection: f.value.defaultQuerySelection,

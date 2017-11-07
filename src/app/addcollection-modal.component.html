@@ -2,9 +2,13 @@
   <div class="modal">
     <div class="modal-body" style="width: 480px; max-height: 90%; overflow: auto; top: 5%;">
       <div>
-        <h3 style="margin-top:0px; margin-bottom: 10px;">Create a New Collection</h3>
+        <h3 style="margin-top:0px; margin-bottom: 10px;">
+          <ng-template [ngIf]="mode == 'add'">Create a New Collection</ng-template>
+          <ng-template [ngIf]="mode == 'editRolling'">Edit a Collection</ng-template>
+          <ng-template [ngIf]="mode == 'editFixed'">Reprocess a Collection</ng-template>
+        </h3>
         <fieldset [disabled]="formDisabled" style="border: none; margin: 0; padding: 0;">
-        <form #addCollectionForm="ngForm" (ngSubmit)="addCollectionSubmit(addCollectionForm)" novalidate>
+        <form #addCollectionForm="ngForm" (ngSubmit)="onCollectionSubmit(addCollectionForm)" novalidate>
         <div>
           <table style="width: 100%;">
             <!--COLLECTION NAME-->
@@ -85,7 +89,7 @@
               </td>
               <td>
                 <div style="display: block;">
-                  <p-dropdown name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="collectionFormModel.selectedUseCase" (onChange)="onUseCaseChanged($event)" placeholder="Custom" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
+                  <p-dropdown name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="collectionFormModel.selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
                 </div>
                 <div *ngIf="displayUseCaseDescription" class="description-text" style="margin-top: 5px;">
                   {{useCaseDescription}}

@@ -18,9 +18,7 @@
               <b>Default Query Selection</b>
             </td>
             <td>
-              <select style="width: 100%;" name="defaultQuerySelection" [(ngModel)]="preferencesModel.defaultQuerySelection" required>
-                <option *ngFor="let query of defaultQueries" [ngValue]="query.text">{{query.text}}</option>
-              </select>
+              <p-dropdown name="defaultQuerySelection" [options]="defaultQueriesOptions" [(ngModel)]="preferencesModel.defaultQuerySelection" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
             </td>
           </tr>
           <tr>
@@ -95,32 +93,6 @@
               <input type="number" name="masonryColumnSize" [(ngModel)]="preferencesModel.masonryColumnSize" style="width: 40px;" required> pixels
             </td>
           </tr>
-<!--
-          <tr>
-            <td>
-              <b>Path to GhostScript</b>
-            </td>
-            <td>
-              <input type="text" name="gsPath" [(ngModel)]="preferencesModel.gsPath" style="width: 100%;" required>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>Path to pdftotext</b>
-            </td>
-            <td>
-              <input type="text" name="pdftotextPath" [(ngModel)]="preferencesModel.pdftotextPath" style="width: 100%;" required>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>Path to unrar</b>
-            </td>
-            <td>
-              <input type="text" name="unrarPath" [(ngModel)]="preferencesModel.unrarPath" style="width: 100%;" required>
-            </td>
-          </tr>
--->
           <tr>
             <td>
               <b>Summary Meta Keys</b><br><br>

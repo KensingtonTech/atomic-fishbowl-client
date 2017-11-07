@@ -23,8 +23,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.sessionId = sessionId;
     });
     this.toolService.HttpJsonStreamConnected.subscribe( (connected: boolean) => this.httpJsonStreamServiceConnected = connected );
-    this.getUseCases();
     // this.getPreferences();  // Populate preferencesChanged BehaviorSubject
+    this.getUseCases();
   }
 
   private httpJsonStreamService: HttpJsonStream = new HttpJsonStream(this.toolService);

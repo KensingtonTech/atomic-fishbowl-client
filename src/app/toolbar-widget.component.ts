@@ -17,18 +17,20 @@ declare var log: any;
   template: `
 <div style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
   <div *ngIf="showCollections">
-    <div style="position: absolute; top: 7px; width: 100%">
+    <div style="position: absolute; top: 6px; width: 100%">
       <span class="noselect">
         <span class="label">Collection:&nbsp;
-          <p-dropdown [options]="collectionsOptions" [(ngModel)]="selectedCollectionId" (onChange)="onCollectionSelected($event)" autoWidth="false" [style]="{'width':'250px'}"></p-dropdown>
+          <p-dropdown [options]="collectionsOptions" [(ngModel)]="selectedCollectionId" (onChange)="onCollectionSelected($event)" autoWidth="false" [style]="{'margin-bottom':'4px','width':'250px'}"></p-dropdown>
         </span>
-        <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" style="display: inline-block;" pTooltip="Building collection"></span>
-        <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow; display: inline-block;" [pTooltip]="errorMessage"></span>
-        <span *ngIf="queryingIcon" class="fa fa-question fa-spin fa-lg fa-fw" style="display: inline-block;" pTooltip="Querying NetWitness data"></span>
-        <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red; display: inline-block;" pTooltip="0 results were returned from the query"></span>
-        <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="display: inline-block;" pTooltip="0 results were returned from the latest query"></span>
-        <span (click)="addCollectionClick()" class="fa fa-plus fa-lg fa-fw"></span>
-        <span (click)="deleteCollectionClick()" class="fa fa-minus fa-lg fa-fw"></span>
+        <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" pTooltip="Building collection"></span>
+        <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow;" [pTooltip]="errorMessage"></span>
+        <span *ngIf="queryingIcon" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying NetWitness data"></span>
+        <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red;" pTooltip="0 results were returned from the query"></span>
+        <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" pTooltip="0 results were returned from the latest query"></span>
+        <span *ngIf="collections[selectedCollectionId].type != 'fixed'" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+        <!--<span *ngIf="collections[selectedCollectionId].type == 'fixed'" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditFixedCollectionClick()"></span>-->
+        <span (click)="onAddCollectionClick()" class="fa fa-plus fa-lg fa-fw"></span>
+        <span (click)="onDeleteCollectionClick()" class="fa fa-minus fa-lg fa-fw"></span>
         <span class="collectionTooltip" *ngIf="refreshed && selectedCollectionId && collections" #infoIcon [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
       </span>
       <span *ngIf="refreshed && collections[selectedCollectionId].type == 'fixed'">
@@ -67,7 +69,7 @@ declare var log: any;
       <span *ngIf="contentCount.pdfs != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
     </div>
   </div>
-  <div (click)="addCollectionClick()" style="position: absolute; top: 7px; left: 10px;" *ngIf="showCreateFirstCollection" class="noselect">
+  <div (click)="onAddCollectionClick()" style="position: absolute; top: 7px; left: 10px;" *ngIf="showCreateFirstCollection" class="noselect">
     <u>Create your first collection</u>
   </div>
   <div class="noselect" style="position: absolute; right: 10px; top: 2px;">
@@ -165,6 +167,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private collectionStateChangedSubscription: any;
   private errorPublishedSubscription: any;
   private queryResultsCountUpdatedSubscription: any;
+  private useCasesChangedSubscription: any;
   private useCases: UseCase[] = [];
   private useCasesObj = {};
 
@@ -216,7 +219,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
       this.useCases = o.useCases;
       this.useCasesObj = o.useCasesObj;
     });
-    this.dataService.getUseCases();
   }
 
   public ngOnDestroy() {
@@ -227,6 +229,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.collectionStateChangedSubscription.unsubscribe();
     this.errorPublishedSubscription.unsubscribe();
     this.queryResultsCountUpdatedSubscription.unsubscribe();
+    this.useCasesChangedSubscription.unsubscribe();
+
   }
 
   ngAfterViewInit(): void {
@@ -383,11 +387,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
 
-  addCollectionClick(): void {
-    // log.debug("addCollectionClick()");
-    this.modalService.open(this.addCollectionModalId);
-  }
-
   preferencesButtonClick(): void {
     // log.debug("preferencesButtonClick()");
     this.modalService.open('preferences-modal');
@@ -434,8 +433,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                                   });
   }
 
-  deleteCollectionClick(): void {
-    // log.debug('ToolbarWidgetComponent: deleteCollectionClick()');
+  onDeleteCollectionClick(): void {
+    // log.debug('ToolbarWidgetComponent: onDeleteCollectionClick()');
     this.modalService.open('collection-confirm-delete-modal');
   }
 
@@ -560,6 +559,19 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   logoutButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: logoutButtonClick()");
     this.authService.logout();
+  }
+
+  onAddCollectionClick(): void {
+    // log.debug("onAddCollectionClick()");
+    this.toolService.addCollectionNext.next();
+    this.modalService.open(this.addCollectionModalId);
+  }
+
+  onEditCollectionClick(): void {
+    log.debug('ToolbarWidgetComponent: onEditCollectionClick()');
+    let collection = this.collections[this.selectedCollectionId];
+    this.toolService.editCollectionNext.next(collection);
+    this.modalService.open(this.addCollectionModalId);
   }
 
 }
