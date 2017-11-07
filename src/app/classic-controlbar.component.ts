@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -32,7 +33,7 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
   @Input() initialZoomHeight: number;
   @Input() panzoomConfig: any;
   private panZoomAPI: any;
-  private newApiSubscription: any;
+  private newApiSubscription: Subscription;
 
   ngOnInit(): void {
     log.debug('ClassicControlBarComponent: OnInit');

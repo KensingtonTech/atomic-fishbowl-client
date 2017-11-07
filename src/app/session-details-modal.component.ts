@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestro
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -205,10 +206,10 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   ];
 
   // Subscriptions
-  private deviceNumberSubscription: any;
-  private preferencesChangedSubscription: any;
-  private newSessionSubscription: any;
-  private newImageSubscription: any;
+  private deviceNumberSubscription: Subscription;
+  private preferencesChangedSubscription: Subscription;
+  private newSessionSubscription: Subscription;
+  private newImageSubscription: Subscription;
 
 
   ngOnInit(): void {

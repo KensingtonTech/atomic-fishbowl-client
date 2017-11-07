@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges, ViewEncapsulation } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -161,7 +162,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
   private originalSession: any; // Session data that hasn't been de-duped
   private enabledTrigger = 'disabled';
   private data: any = {}; // prevent opening pdf modal if dragging the view
-  private showMasonryTextAreaSubscription: any;
+  private showMasonryTextAreaSubscription: Subscription;
 /*
   private displayedMetaKeys = [ {key: 'alias.host', name: 'Hostname'},
                                 {key: 'service', name: 'Service'},

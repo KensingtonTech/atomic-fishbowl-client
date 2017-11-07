@@ -1,6 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, ViewChild, Input, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 // We will use this in a future release
@@ -77,10 +78,10 @@ export class SessionWidgetComponent implements OnInit, OnDestroy {
   ];
 
   // Subscriptions
-  private sessionsReplacedSubscription: any;
-  private sessionPublishedSubscription: any;
-  private preferencesChangedSubscription: any;
-  private deviceNumberSubscription: any;
+  private sessionsReplacedSubscription: Subscription;
+  private sessionPublishedSubscription: Subscription;
+  private preferencesChangedSubscription: Subscription;
+  private deviceNumberSubscription: Subscription;
 
   ngOnInit(): void {
     this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => { // log.debug("sessionsReplaced", s);

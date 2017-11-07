@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -55,7 +56,7 @@ export class DownloadFileConfirmModalComponent implements OnInit, OnDestroy {
 
   public id = 'downloadfile-confirm-modal';
   public file: string;
-  private fileToDownloadSubscription: any;
+  private fileToDownloadSubscription: Subscription;
 
   ngOnInit(): void {
     this.fileToDownloadSubscription = this.toolService.fileToDownload.subscribe( (f: string) => { this.file = f; });

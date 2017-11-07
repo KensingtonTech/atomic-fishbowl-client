@@ -6,6 +6,7 @@ import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators, FormG
 import { UUID } from 'angular2-uuid';
 import { User } from './user';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var moment: any;
 declare var log: any;
 declare var JSEncrypt: any;
@@ -122,7 +123,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public displayUserEditForm = false;
   public addUserForm: FormGroup;
   public editUserForm: FormGroup;
-  private confirmUserDeleteSubscription: any;
+  private confirmUserDeleteSubscription: Subscription;
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
 

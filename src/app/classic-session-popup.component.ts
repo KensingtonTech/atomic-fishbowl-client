@@ -2,6 +2,7 @@ import { Component, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef,
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component( {
@@ -117,10 +118,10 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
     'client'
   ];
 
-  private sessionsReplacedSubscription: any;
-  private sessionPublishedSubscription: any;
-  private preferencesChangedSubscription: any;
-  private deviceNumberSubscription: any;
+  private sessionsReplacedSubscription: Subscription;
+  private sessionPublishedSubscription: Subscription;
+  private preferencesChangedSubscription: Subscription;
+  private deviceNumberSubscription: Subscription;
 
 
   ngOnInit(): void {

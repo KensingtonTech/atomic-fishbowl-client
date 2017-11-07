@@ -25,12 +25,12 @@
               <td>
                 <b>Type</b>
               </td>
-              <td>                
-                <span><p-radioButton name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>&nbsp;&nbsp;
+              <td>
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
                 
-                <span><p-radioButton name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>&nbsp;&nbsp;
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
 
-                <span><p-radioButton name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
+                <span *ngIf="mode != 'editRolling'"><p-radioButton name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
               </td>
             </tr>
             <!--FIXED TIMEFRAME SELECTOR-->
@@ -102,8 +102,10 @@
                   <b>Use Case Bindings</b>
               </td>
               <td>
-                  <span><p-radioButton name="useCaseBinding" value="bound" label="Bound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="collectionFormModel.useCaseBinding" pTooltip="If bound, all collection variables will be defined by the pre-defined use case, and no collection options may be customized.  If the OOTB use cases should be updated in a future release, then this collection will automatically use the updated use case." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>&nbsp;&nbsp;
-                  <span><p-radioButton name="useCaseBinding" value="unbound" label="Unbound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="collectionFormModel.useCaseBinding" pTooltip="If unbound, all collection variables will be loaded from the pre-defined use case, and all collection options may be customized.  After the collection is executed, the Use Case type will be 'custom'.  If the OOTB use cases should be updated in a future release, then this collection will NOT receive the updates." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
+                  
+                <span><p-radioButton name="useCaseBinding" value="bound" label="Bound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="collectionFormModel.useCaseBinding" [disabled]="disableBindingControls" pTooltip="If bound, all collection variables will be defined by the pre-defined use case, and no collection options may be customized.  If the OOTB use cases should be updated in a future release, then this collection will automatically use the updated use case." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>&nbsp;&nbsp;
+                  
+                <span><p-radioButton name="useCaseBinding" value="unbound" label="Unbound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="collectionFormModel.useCaseBinding" [disabled]="disableBindingControls" pTooltip="If unbound, all collection variables will be loaded from the pre-defined use case, and all collection options may be customized.  After the collection is executed, the Use Case type will be 'custom'.  If the OOTB use cases should be updated in a future release, then this collection will NOT receive the updates." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
               </td>
             </tr>
           </table>
@@ -117,9 +119,11 @@
                 <b>Query</b> <span class="fa fa-info-circle fa-fw" pTooltip="The query defines which NetWitnehss sessions to extract content from.  It does not, however, limit the types of content which will be pulled into the collection.  Use Content Types to limit the content types for this collection." tooltipPosition="bottom" escape="false" tooltipStyleClass="addCollectionTooltip"></span>
               </td>
               <td>
+                <!--QUERY DROPDOWN-->
                 <div *ngIf="!showUseCaseValues">
                   <p-dropdown [options]="queryListOptions" [(ngModel)]="selectedQuery" (onChange)="onQuerySelected()" [ngModelOptions]="{standalone: true}" autoWidth="false" [style]="{'width':'100%'}"></p-dropdown> <!--we don't give this dropdown a name because the actual collection query value comes from queryInputText-->
                 </div>
+                <!--QUERY TEXT INPUT BOX-->
                 <div>
                   <input type="text" name="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" required [disabled]="showUseCaseValues">
                 </div>

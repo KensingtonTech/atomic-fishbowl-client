@@ -81,7 +81,7 @@ export class AuthenticationService {
                       this.sessionId = res.sessionId;
                       this.toolService.sessionId.next(this.sessionId);
                       this.loggedInChanged.next(true);
-                      this.dataService.getPreferences();
+                      this.dataService.init();
                       this.router.navigate(['/']);
                       return true;
                     })
@@ -102,7 +102,7 @@ export class AuthenticationService {
           }
           else {
             this.loggedInChanged.next(true);
-            this.dataService.getPreferences();
+            this.dataService.init();
           }
         });
   }

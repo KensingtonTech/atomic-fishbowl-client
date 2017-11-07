@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
+import { Subscription} from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -28,7 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public loggedIn = false;
   public serverReachable = false;
   private credentialsChecked = false;
-  private loggedInChangedSubscription: any;
+  private loggedInChangedSubscription: Subscription;
   public isMobile = false;
 
   ngOnInit(): void {

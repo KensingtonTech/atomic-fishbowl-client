@@ -11,6 +11,7 @@ import { MasonryOptions } from './masonry/masonry-options';
 import { MasonryComponent } from './masonry/masonry.component';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
+import { Subscription } from 'rxjs/Subscription';
 import * as math from 'mathjs';
 declare var log: any;
 declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it
@@ -108,27 +109,27 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private collectionState = '';
 
   // Subscription holders
-  private searchBarOpenSubscription: any;
-  private caseSensitiveSearchChangedSubscription: any;
-  private searchTermsChangedSubscription: any;
-  private maskChangedSubscription: any;
-  private noCollectionsSubscription: any;
-  private selectedCollectionChangedSubscription: any;
-  private collectionStateChangedSubscription: any;
-  private sessionsReplacedSubscription: any;
-  private sessionPublishedSubscription: any;
-  private contentReplacedSubscription: any;
-  private contentPublishedSubscription: any;
-  private searchChangedSubscription: any;
-  private searchPublishedSubscription: any;
-  private sessionsPurgedSubscription: any;
-  private routerEventsSubscription: any;
-  private preferencesChangedSubscription: any;
-  private scrollToBottomSubscription: any;
-  private stopScrollToBottomSubscription: any;
-  private layoutCompleteSubscription: any;
-  private openPDFViewerSubscription: any;
-  private openSessionViewerSubscription: any;
+  private searchBarOpenSubscription: Subscription;
+  private caseSensitiveSearchChangedSubscription: Subscription;
+  private searchTermsChangedSubscription: Subscription;
+  private maskChangedSubscription: Subscription;
+  private noCollectionsSubscription: Subscription;
+  private selectedCollectionChangedSubscription: Subscription;
+  private collectionStateChangedSubscription: Subscription;
+  private sessionsReplacedSubscription: Subscription;
+  private sessionPublishedSubscription: Subscription;
+  private contentReplacedSubscription: Subscription;
+  private contentPublishedSubscription: Subscription;
+  private searchChangedSubscription: Subscription;
+  private searchPublishedSubscription: Subscription;
+  private sessionsPurgedSubscription: Subscription;
+  private routerEventsSubscription: Subscription;
+  private preferencesChangedSubscription: Subscription;
+  private scrollToBottomSubscription: Subscription;
+  private stopScrollToBottomSubscription: Subscription;
+  private layoutCompleteSubscription: Subscription;
+  private openPDFViewerSubscription: Subscription;
+  private openSessionViewerSubscription: Subscription;
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');

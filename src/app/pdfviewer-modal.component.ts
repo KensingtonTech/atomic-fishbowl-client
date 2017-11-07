@@ -4,6 +4,7 @@ import { NwSession } from './nwsession';
 import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -175,11 +176,11 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   ]; // these are just defaults in case we can't get them from prefs
 
   // Subscriptions
-  private preferencesChangedSubscription: any;
-  private deviceNumberSubscription: any;
-  private newSessionSubscription: any;
-  private newImageSubscription: any;
-  private confirmDownloadFileSubscription: any;
+  private preferencesChangedSubscription: Subscription;
+  private deviceNumberSubscription: Subscription;
+  private newSessionSubscription: Subscription;
+  private newImageSubscription: Subscription;
+  private confirmDownloadFileSubscription: Subscription;
 
   ngOnInit(): void {
     log.debug('PdfViewerModalComponent: ngOnInit()');

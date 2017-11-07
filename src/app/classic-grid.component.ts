@@ -8,6 +8,7 @@ import { ModalService } from './modal/modal.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -78,22 +79,22 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private pauseMonitoring = false;
 
   // Subscription holders
-  private searchBarOpenSubscription: any;
-  private caseSensitiveSearchChangedSubscription: any;
-  private searchTermsChangedSubscription: any;
-  private maskChangedSubscription: any;
-  private noCollectionsSubscription: any;
-  private selectedCollectionChangedSubscription: any;
-  private collectionStateChangedSubscription: any;
-  private sessionsReplacedSubscription: any;
-  private sessionPublishedSubscription: any;
-  private contentReplacedSubscription: any;
-  private contentPublishedSubscription: any;
-  private searchChangedSubscription: any;
-  private searchPublishedSubscription: any;
-  private sessionsPurgedSubscription: any;
-  private modelChangedSubscription: any;
-  private newApiSubscription: any;
+  private searchBarOpenSubscription: Subscription;
+  private caseSensitiveSearchChangedSubscription: Subscription;
+  private searchTermsChangedSubscription: Subscription;
+  private maskChangedSubscription: Subscription;
+  private noCollectionsSubscription: Subscription;
+  private selectedCollectionChangedSubscription: Subscription;
+  private collectionStateChangedSubscription: Subscription;
+  private sessionsReplacedSubscription: Subscription;
+  private sessionPublishedSubscription: Subscription;
+  private contentReplacedSubscription: Subscription;
+  private contentPublishedSubscription: Subscription;
+  private searchChangedSubscription: Subscription;
+  private searchPublishedSubscription: Subscription;
+  private sessionsPurgedSubscription: Subscription;
+  private modelChangedSubscription: Subscription;
+  private newApiSubscription: Subscription;
 
 
   ngOnDestroy(): void {

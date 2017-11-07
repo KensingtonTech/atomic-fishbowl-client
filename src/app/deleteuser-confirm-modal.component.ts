@@ -3,6 +3,7 @@ import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
 import { User } from './user';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -48,7 +49,7 @@ export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {
 
   public id = 'confirm-user-delete-modal';
   public user: User;
-  private userToDeleteSubscription: any;
+  private userToDeleteSubscription: Subscription;
 
   ngOnInit(): void {
     this.userToDeleteSubscription = this.toolService.userToDelete.subscribe( (u: User) => { this.user = u; });

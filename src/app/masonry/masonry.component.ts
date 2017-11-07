@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, OnChanges, AfterContentInit, Input, Output, ElementRef, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, Renderer2, ViewEncapsulation } from '@angular/core';
 import { MasonryOptions } from './masonry-options';
 import { ToolService } from '../tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 declare var imagesLoaded: any;
 declare var Isotope;
@@ -31,7 +32,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   private addTimer: any;
   private removeTimer: any;
   private elementsToAppend = document.createDocumentFragment();
-  private refreshMasonryLayoutSubscription: any;
+  private refreshMasonryLayoutSubscription: Subscription;
 
   ngOnInit() {
     log.debug('MasonryComponent: ngOnInit()');

@@ -23,8 +23,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.sessionId = sessionId;
     });
     this.toolService.HttpJsonStreamConnected.subscribe( (connected: boolean) => this.httpJsonStreamServiceConnected = connected );
-    // this.getPreferences();  // Populate preferencesChanged BehaviorSubject
-    this.getUseCases();
   }
 
   private httpJsonStreamService: HttpJsonStream = new HttpJsonStream(this.toolService);
@@ -44,7 +42,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
   private sessionId: number;
   public httpJsonStreamServiceConnected = false;
   public queryResultsCountUpdated: Subject<any> = new Subject<any>();
-  public useCasesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+
+  public init(): void {
+    // Run by authentication service at login or page load
+    log.debug('DataService: init()');
+    this.getPreferences();
+    this.getUseCases();
+  }
 
   getServerVersion(): Promise<any> {
     return this.http
@@ -82,10 +87,12 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   getUseCases(): void {
+    log.debug('DataService: getUseCases()');
     this.http
         .get(this.apiUrl + '/usecases')
         .toPromise()
         .then( (response) => {
+          log.debug('DataService: getUseCases: got response:', response.json() );
           let useCases = response.json().useCases;
           let useCasesObj = {};
           for (let i = 0; i < useCases.length; i++) {
@@ -331,6 +338,18 @@ export class DataService { // Manages NwSession objects and also Image objects i
     let headers = new Headers({ 'Content-Type': 'application/json'});
     let options = new RequestOptions({ headers: headers });
     return this.http.post(this.apiUrl + '/addcollection', collection, options)
+                .toPromise()
+                .then(response => {
+                  log.debug(response);
+                })
+                .catch(e => this.handleError(e));
+  }
+
+  editCollection(collection: any):  Promise<any> {
+    log.debug('DataService: editCollection():', collection.id);
+    let headers = new Headers({ 'Content-Type': 'application/json'});
+    let options = new RequestOptions({ headers: headers });
+    return this.http.post(this.apiUrl + '/editcollection', collection, options)
                 .toPromise()
                 .then(response => {
                   log.debug(response);

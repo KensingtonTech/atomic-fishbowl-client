@@ -36,6 +36,8 @@ export class ToolService {
   public refreshMasonryLayout: Subject<void> = new Subject<void>();
   public addCollectionNext: Subject<void> = new Subject<void>();
   public editCollectionNext: Subject<void> = new Subject<void>();
+  public executeAddCollection: Subject<any> = new Subject<any>();
+  public executeEditCollection: Subject<any> = new Subject<any>();
 
   constructor() {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );

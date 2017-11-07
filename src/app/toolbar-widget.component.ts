@@ -9,6 +9,7 @@ import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/primeng';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component( {
@@ -18,21 +19,28 @@ declare var log: any;
 <div style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
   <div *ngIf="showCollections">
     <div style="position: absolute; top: 6px; width: 100%">
+      
       <span class="noselect">
         <span class="label">Collection:&nbsp;
           <p-dropdown [options]="collectionsOptions" [(ngModel)]="selectedCollectionId" (onChange)="onCollectionSelected($event)" autoWidth="false" [style]="{'margin-bottom':'4px','width':'250px'}"></p-dropdown>
         </span>
+        
+        <!--Add/Edit/Delete Icons-->
+        <span class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+        <span (click)="onAddCollectionClick()" class="fa fa-plus fa-lg fa-fw"></span>
+        <span (click)="onDeleteCollectionClick()" class="fa fa-minus fa-lg fa-fw"></span>
+        <span class="collectionTooltip" *ngIf="refreshed && selectedCollectionId && collections" #infoIcon [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
+
+        <!--State Icons-->
         <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" pTooltip="Building collection"></span>
         <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow;" [pTooltip]="errorMessage"></span>
         <span *ngIf="queryingIcon" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying NetWitness data"></span>
         <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red;" pTooltip="0 results were returned from the query"></span>
         <span *ngIf="queryResultsCount == 0 && collections[selectedCollectionId].state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" pTooltip="0 results were returned from the latest query"></span>
-        <span *ngIf="collections[selectedCollectionId].type != 'fixed'" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
-        <!--<span *ngIf="collections[selectedCollectionId].type == 'fixed'" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditFixedCollectionClick()"></span>-->
-        <span (click)="onAddCollectionClick()" class="fa fa-plus fa-lg fa-fw"></span>
-        <span (click)="onDeleteCollectionClick()" class="fa fa-minus fa-lg fa-fw"></span>
-        <span class="collectionTooltip" *ngIf="refreshed && selectedCollectionId && collections" #infoIcon [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
+
       </span>
+
+      <!--Statistics Text-->
       <span *ngIf="refreshed && collections[selectedCollectionId].type == 'fixed'">
         <span class="label">Fixed Collection</span>&nbsp;&nbsp;
         <span class="label">Time1:</span> <span class="value">{{collections[selectedCollectionId].timeBegin | formatTime}}</span>
@@ -61,6 +69,7 @@ declare var log: any;
         <span class="label">Total:</span> <span class="value">{{contentCount?.total}}</span>
       </span>
     </div>
+
     <div class="noselect" style="position: absolute; right: 160px; top: 2px;">
       <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="imageMaskClick()" class="fa fa-file-image-o fa-2x" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
       <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
@@ -86,7 +95,7 @@ declare var log: any;
 </div>
 
 <splash-screen-modal></splash-screen-modal>
-<add-collection-modal (executeCollection)="collectionExecuted($event)" [id]="addCollectionModalId"></add-collection-modal>
+<add-collection-modal [id]="addCollectionModalId"></add-collection-modal>
 <delete-collection-confirm-modal (confirmDelete)="deleteConfirmed()" ></delete-collection-confirm-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
@@ -112,11 +121,6 @@ declare var log: any;
     .hide {
       display: none;
     }
-
-    /*.ui-tooltip {
-      width: 375px;
-      word-wrap: normal;
-    }*/
 
     .collectionTooltip.ui-tooltip .ui-tooltip-text {
       white-space: pre-line;
@@ -160,14 +164,16 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   public queryResultsCount = 0;
 
   // Subscriptions
-  private contentCountSubscription: any;
-  private getCollectionDataAgainSubscription: any;
-  private selectedCollectionChangedSubscription: any;
-  private collectionsChangedSubscription: any;
-  private collectionStateChangedSubscription: any;
-  private errorPublishedSubscription: any;
-  private queryResultsCountUpdatedSubscription: any;
-  private useCasesChangedSubscription: any;
+  private contentCountSubscription: Subscription;
+  private getCollectionDataAgainSubscription: Subscription;
+  private selectedCollectionChangedSubscription: Subscription;
+  private collectionsChangedSubscription: Subscription;
+  private collectionStateChangedSubscription: Subscription;
+  private errorPublishedSubscription: Subscription;
+  private queryResultsCountUpdatedSubscription: Subscription;
+  private useCasesChangedSubscription: Subscription;
+  private executeAddCollectionSubscription: Subscription;
+  private executeEditCollectionSubscription: Subscription;
   private useCases: UseCase[] = [];
   private useCasesObj = {};
 
@@ -182,14 +188,16 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollectionId = e.id );
     this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: string) => {
       this.collections = collections;
+      let collectionsOptions = [];
 
       for (let c in this.collections) {
         if (this.collections.hasOwnProperty(c)) {
           let collection = this.collections[c];
           let option: SelectItem = { label: collection.name, value: collection.id };
-          this.collectionsOptions.push(option);
+          collectionsOptions.push(option);
         }
       }
+      this.collectionsOptions = collectionsOptions;
       log.debug('ToolbarWidgetComponent: collectionsChangedSubscription: collections update', this.collections);
     });
     this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => {
@@ -215,10 +223,19 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
                       }
                     });
 
-    this.dataService.useCasesChanged.subscribe( (o: any) => {
+    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => {
       this.useCases = o.useCases;
       this.useCasesObj = o.useCasesObj;
     });
+
+    this.executeAddCollectionSubscription = this.toolService.executeAddCollection.subscribe( (collection: any) => {
+      this.collectionExecuted(collection);
+    });
+
+    this.executeEditCollectionSubscription = this.toolService.executeEditCollection.subscribe( (collection: any) => {
+      this.collectionExecuted(collection);
+    });
+
   }
 
   public ngOnDestroy() {
@@ -230,7 +247,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.errorPublishedSubscription.unsubscribe();
     this.queryResultsCountUpdatedSubscription.unsubscribe();
     this.useCasesChangedSubscription.unsubscribe();
-
+    this.executeAddCollectionSubscription.unsubscribe();
+    this.executeEditCollectionSubscription.unsubscribe();
   }
 
   ngAfterViewInit(): void {

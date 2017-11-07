@@ -1,5 +1,6 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy, Input } from '@angular/core';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
@@ -33,9 +34,9 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef) {}
 
   public scrollStarted = false;
-  private scrollToBottomStoppedSubscription: any;
+  private scrollToBottomStoppedSubscription: Subscription;
   public showMeta = true;
-  // private scrollToBottomRunningSubscription: any;
+  // private scrollToBottomRunningSubscription: Subscription;
 
   ngOnInit(): void {
 
