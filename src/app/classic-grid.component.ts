@@ -66,6 +66,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private pdfFile: string;
   private imagesHidden = false;
   private pdfsHidden = false;
+  private officeHidden = false;
   private caseSensitiveSearch = false;
   private showOnlyImages: any = [];
   private lastSearchTerm = '';
@@ -250,6 +251,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
         else if (newContent[i].contentType === 'pdf' ) {
           this.contentCount.pdfs++;
         }
+        else if (newContent[i].contentType === 'office' ) {
+          this.contentCount.officeDocs++;
+        }
         else if (newContent[i].contentType === 'hash' ) {
           this.contentCount.hashes++;
         }
@@ -331,47 +335,11 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.modalService.open('pdf-viewer');
   }
 
-  /*oldmaskChanged(e: ContentMask): void {
-    this.lastMask = e;
-    log.debug('ClassicGridComponent: maskChanged():', e);
-    // e = { showPdf: boolean, showImage: boolean, showDodgy: boolean, showHash: boolean }
-
-    this.calculateContentMasks();
-    let tempShownBricks = [];
-
-    if (e.showImage && this.imageContent.length !== 0) {
-      for (let i = 0; i < this.imageContent.length; i++) {
-        tempShownBricks.push( this.imageContent[i] );
-      }
-    }
-
-    if (e.showPdf && this.pdfContent.length !== 0) {
-      for (let i = 0; i < this.pdfContent.length; i++) {
-        tempShownBricks.push( this.pdfContent[i] );
-      }
-    }
-
-    if (e.showDodgy && this.dodgyArchiveContent.length !== 0) {
-      for (let i = 0; i < this.dodgyArchiveContent.length; i++) {
-        tempShownBricks.push( this.dodgyArchiveContent[i] );
-      }
-    }
-
-    if (e.showHash && this.hashContent.length !== 0) {
-      for (let i = 0; i < this.hashContent.length; i++) {
-        tempShownBricks.push( this.hashContent[i] );
-      }
-    }
-
-    this.displayedContent = tempShownBricks;
-    // log.debug('ClassicGridComponent: maskChanged: this.shownBricks:', this.shownBricks);
-  }*/
-
   maskChanged(e: ContentMask): void {
     this.lastMask = e;
     log.debug('MasonryGridComponent: maskChanged():', e);
 
-    if (e.showImage && e.showPdf && e.showHash && e.showDodgy) {
+    if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
       this.displayedContent = this.content.sort(this.sortContent);
       return;
     }
@@ -385,6 +353,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     if (e.showPdf) {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('pdf'));
     }
+    if (e.showOffice) {
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('office'));
+    }    
     if (e.showHash) {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('hash'));
     }
@@ -495,62 +466,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
   }
 
-  /*oldsearchTermsChanged(e: any): void {
-    // log.debug('ClassicGridComponent: searchTermsChanged()');
-    let searchTerms = e.searchTerms;
-    this.lastSearchTerm = searchTerms;
-    // log.debug('ClassicGridComponent: searchTermsChanged(): searchTerms:', searchTerms);
-    let matchedContent = [];
-
-    if (searchTerms === '') {
-      // if our search terms are null, then we set shownBricks to equal all bricks
-      this.maskChanged(this.lastMask);
-      return;
-    }
-
-    if (this.search.length > 0) {
-      // Ok, we have a search term to do something with.  This block will generate matchedContent[]
-      // log.debug('ClassicGridComponent: searchTermsChanged: this.search:', this.search);
-      for (let i = 0; i < this.search.length; i++) {
-        if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
-          // we found a match!
-          let matchedSession = {
-            session: this.search[i].session,
-            contentFile: this.search[i].contentFile
-          };
-          matchedContent.push(matchedSession);
-        }
-        else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) { // case-sensitive search
-          // we found a match!
-          let matchedSession = {
-            session: this.search[i].session,
-            contentFile: this.search[i].contentFile
-          };
-          matchedContent.push(matchedSession);
-        }
-      }
-    }
-
-    if ( matchedContent.length !== 0 ) {
-      // Let's now turn our matched session id's into shownBricks[]
-      // log.debug('ClassicGridComponent: searchTermsChanged: Length of matchedContent:', matchedContent.length);
-      // log.debug('ClassicGridComponent: searchTermsChanged: matchedContent:', matchedContent);
-      let localShownBricks = [];
-      for (let x = 0; x < matchedContent.length; x++) {
-        let img = this.getContentBySessionAndContentFile(matchedContent[x]);
-        // let brick = this.contentToBricks( [img] );
-        localShownBricks.push( img );
-      }
-      this.displayedContent = localShownBricks;
-    }
-    else {
-      // There were no matches
-      this.displayedContent = [];
-    }
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
-  }*/
-
   searchTermsChanged(e: any): void {
     let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
@@ -624,6 +539,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       if (this.content[i].contentType === 'pdf') {
         this.contentCount.pdfs++;
       }
+      if (this.content[i].contentType === 'office') {
+        this.contentCount.officeDocs++;
+      }
       if (this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
         this.contentCount.dodgyArchives++;
       }
@@ -631,18 +549,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.contentCount.total = this.content.length;
     this.toolService.contentCount.next( this.contentCount );
   }
-
-  /*oldresetContent(): void {
-    this.displayedContent = [];
-    this.search = [];
-    this.sessions = {};
-
-    this.content = [];
-    this.pdfContent = [];
-    this.imageContent = [];
-    this.dodgyArchiveContent = [];
-    this.hashContent = [];
-  }*/
 
   resetContent(): void {
     this.displayedContent = [];
@@ -711,30 +617,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
     return searchRemoved;
   }
-
-  // count = 0;
-  /*calculateContentMasks(): void {
-    // this.count = this.count + 1;
-    // log.debug('count:', this.count)
-    this.imageContent = [];
-    this.pdfContent = [];
-    this.dodgyArchiveContent = [];
-    this.hashContent = [];
-    for (let x = 0; x < this.content.length; x++) {  // pre-calculate content masks
-      if (this.content[x].contentType === 'image') {
-        this.imageContent.push(this.content[x]);
-      }
-      if (this.content[x].contentType === 'pdf') {
-        this.pdfContent.push(this.content[x]);
-      }
-      if (this.content[x].contentType === 'hash') {
-        this.hashContent.push(this.content[x]);
-      }
-      if ( this.dodgyArchivesIncludedTypes.includes(this.content[x].contentType)) {
-        this.dodgyArchiveContent.push(this.content[x]);
-      }
-    }
-  }*/
 
   suspendMonitoring(): void {
     this.pauseMonitoring = true;

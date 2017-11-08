@@ -41,46 +41,43 @@ declare var log: any;
       </span>
 
       <!--Statistics Text-->
-      <span *ngIf="refreshed && collections[selectedCollectionId].type == 'fixed'">
-        <span class="label">Fixed Collection</span>&nbsp;&nbsp;
-        <span class="label">Time1:</span> <span class="value">{{collections[selectedCollectionId].timeBegin | formatTime}}</span>
-        <span class="label">Time2:</span> <span class="value">{{collections[selectedCollectionId].timeEnd | formatTime}}</span>
+      <span *ngIf="refreshed">
+        <span *ngIf="collections[selectedCollectionId].type == 'fixed'" class="label">Fixed Collection&nbsp;&nbsp;</span>
+        <span *ngIf="collections[selectedCollectionId].type == 'rolling'" class="label">Rolling Collection&nbsp;&nbsp;</span>
+        <span *ngIf="collections[selectedCollectionId].type == 'monitoring'" class="label">Monitoring Collection&nbsp;&nbsp;</span>
+        <span *ngIf="collections[selectedCollectionId].type == 'rolling'" class="label">Last {{collections[selectedCollectionId].lastHours}} Hours&nbsp;&nbsp;</span>
+        <span *ngIf="collections[selectedCollectionId].type == 'fixed'" class="label">Time1: </span><span *ngIf="collections[selectedCollectionId].type == 'fixed'" class="value">{{collections[selectedCollectionId].timeBegin | formatTime}}</span>
+        <span *ngIf="collections[selectedCollectionId].type == 'fixed'" class="label">Time2: </span><span *ngIf="collections[selectedCollectionId].type == 'fixed'" class="value">{{collections[selectedCollectionId].timeEnd | formatTime}}</span>
         <span class="label">Images:</span> <span class="value">{{contentCount?.images}}</span>
         <span class="label">PDFs:</span> <span class="value">{{contentCount?.pdfs}}</span>
-        <span class="label">Hash Matches:</span> <span class="value">{{contentCount?.hashes}}</span>
-        <span class="label">Dodgy Archives:</span> <span class="value">{{contentCount?.dodgyArchives}}</span>
-        <span class="label">Total:</span> <span class="value">{{contentCount?.total}}</span>
-      </span>
-      <span *ngIf="refreshed && collections[selectedCollectionId].type == 'rolling'">
-        <span class="label">Rolling Collection</span>&nbsp;&nbsp;
-        <span class="label">Last {{collections[selectedCollectionId].lastHours}} Hours</span>&nbsp;&nbsp;
-        <span class="label">Images:</span> <span class="value">{{contentCount?.images}}</span>
-        <span class="label">PDFs:</span> <span class="value">{{contentCount?.pdfs}}</span>
-        <span class="label">Hash Matches:</span> <span class="value">{{contentCount?.hashes}}</span>
-        <span class="label">Dodgy Archives:</span> <span class="value">{{contentCount?.dodgyArchives}}</span>
-        <span class="label">Total:</span> <span class="value">{{contentCount?.total}}</span>
-      </span>
-      <span *ngIf="refreshed && collections[selectedCollectionId].type == 'monitoring'">
-        <span class="label">Monitoring Collection</span>&nbsp;&nbsp;
-        <span class="label">Images:</span> <span class="value">{{contentCount?.images}}</span>
-        <span class="label">PDFs:</span> <span class="value">{{contentCount?.pdfs}}</span>
+        <span class="label">Office:</span> <span class="value">{{contentCount?.officeDocs}}</span>
         <span class="label">Hash Matches:</span> <span class="value">{{contentCount?.hashes}}</span>
         <span class="label">Dodgy Archives:</span> <span class="value">{{contentCount?.dodgyArchives}}</span>
         <span class="label">Total:</span> <span class="value">{{contentCount?.total}}</span>
       </span>
     </div>
 
+    <!--Mask & Search Buttons-->
     <div class="noselect" style="position: absolute; right: 160px; top: 2px;">
-      <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="imageMaskClick()" class="fa fa-file-image-o fa-2x" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-      <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-      <span *ngIf="contentCount.dodgyArchives != 0 && (contentCount.pdfs != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
-      <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-      <span *ngIf="contentCount.pdfs != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
+      <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="imageMaskClick()" class="fa fa-file-image-o fa-2x" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      
+      <span *ngIf="contentCount.officeDocs != 0 && (contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showOffice" [class.hide]="showSearch" (click)="officeMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Office content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      
+      <span *ngIf="contentCount.dodgyArchives != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      
+      <!--Search Button-->
+      <span *ngIf="contentCount.pdfs != 0 || contentCount.officeDocs != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
     </div>
   </div>
+  
+  <!--First collection Text-->
   <div (click)="onAddCollectionClick()" style="position: absolute; top: 7px; left: 10px;" *ngIf="showCreateFirstCollection" class="noselect">
     <u>Create your first collection</u>
   </div>
+  
+  <!--Preferences, Accounts, Help, and Logout Buttons-->
   <div class="noselect" style="position: absolute; right: 10px; top: 2px;">
     <span (click)="preferencesButtonClick()" class="fa fa-cog fa-2x" pTooltip="Global preferences" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
     <span (click)="accountsButtonClick()" class="fa fa-users fa-2x" pTooltip="Manage users" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
@@ -88,12 +85,15 @@ declare var log: any;
     <span (click)="logoutButtonClick()" class="fa fa-sign-out fa-2x" pTooltip="Logout" escape="false" showDelay="750" tooltipPosition="left"></span>
   </div>
 </div>
+
+<!--Search Box Dropdown-->
 <div class="noselect" (keydown.escape)="toggleSearch()" *ngIf="showSearch" style="position: absolute; right: 60px; top: 30px; padding: 5px; background-color: rgba(146,151,160,.85); width: 315px; z-index: 100;">
   <input #searchBox type="text" name="searchTerms" [(ngModel)]="searchTerms" (ngModelChange)="searchTermsUpdate()" style="width: 85%;">
   <span [class.fa-deselect]="caseSensitive" class="fa fa-text-height" (click)="toggleCaseSensitivity()" style="color: white;"></span>
   <span class="fa fa-times" (click)="toggleSearch()" style="color: white;"></span>
 </div>
 
+<!--Modals-->
 <splash-screen-modal></splash-screen-modal>
 <add-collection-modal [id]="addCollectionModalId"></add-collection-modal>
 <delete-collection-confirm-modal (confirmDelete)="deleteConfirmed()" ></delete-collection-confirm-modal>
@@ -151,8 +151,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private refreshed = false;
   private contentCount = new ContentCount;
   private showImages = true;
-  private maskState: ContentMask = { showPdf: true, showImage: true, showHash: true, showDodgy: true };
+  private maskState: ContentMask = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
   private showPdfs = true;
+  private showOffice = true;
   private showHashes = true;
   private showDodgyArchives = true;
   private oldSearchTerms: string;
@@ -365,6 +366,12 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.toolService.maskChanged.next(this.maskState);
   }
 
+  officeMaskClick(): void {
+    this.showOffice = !this.showOffice;
+    this.maskState.showOffice = !this.maskState.showOffice;
+    this.toolService.maskChanged.next(this.maskState);
+  }
+
   hashMaskClick(): void {
     this.showHashes = !this.showHashes;
     this.maskState.showHash = !this.maskState.showHash;
@@ -476,9 +483,10 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     // Reset content masks
     this.showImages = true;
     this.showPdfs = true;
+    this.showOffice = true;
     this.showHashes = true;
     this.showDodgyArchives = true;
-    this.maskState = { showPdf: true, showImage: true, showHash: true, showDodgy: true };
+    this.maskState = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
     this.toolService.maskChanged.next(this.maskState);
 
 

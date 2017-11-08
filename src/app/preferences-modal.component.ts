@@ -30,7 +30,7 @@ export class PreferencesModalComponent implements OnInit {
   public id = 'preferences-modal';
 
   private defaultNwInvestigateUrl = '';
-  private defaultDefaultNwquery = `vis.level exists || content = 'application/pdf'`;
+  private defaultDefaultNwquery = `filetype='pdf','office 2007 document'`;
   private defaultMinX = 1;
   private defaultMinY = 1;
   private defaultDisplayedKeys = [ 'size', 'service', 'ip.src', 'ip.dst', 'alias.host', 'city.dst', 'country.dst', 'action', 'content', 'ad.username.src', 'ad.computer.src', 'filename', 'client'];

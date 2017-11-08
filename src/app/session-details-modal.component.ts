@@ -50,8 +50,14 @@ declare var log: any;
               <div *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
                 <h3>Found PDF document containing text term</h3>
               </div>
+              <div *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
+                <h3>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document containing text term</h3>
+              </div>
               <div *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
                 <h3>Found PDF document matching Regex term</h3>
+              </div>
+              <div *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
+                <h3>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</h3>
               </div>
             </div>
 
@@ -283,6 +289,10 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
 
   toCaps(s: string) {
     return s.toUpperCase();
+  }
+
+  capitalizeFirstLetter(s: string) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
 }

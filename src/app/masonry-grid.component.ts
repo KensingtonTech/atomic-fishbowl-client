@@ -19,7 +19,6 @@ declare var $: any; // we must declare jQuery in this instance because we're usi
 @Component({
   selector: 'masonry-grid-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // (openSessionDetails)="openSessionDetails()" (openPDFViewer)="openPdfViewer()"
   template: `
 <div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px; background-color: black;">
   <div style="position: absolute; left: 0; width: 100px; height: 100%;">
@@ -73,7 +72,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private content: Content[] = [];
   private sessions: any;
   private sessionsDefined = false;
-  private contentCount = new ContentCount; // { images: number, pdfs: number, dodgyArchives: number, hashes: number, total: number }
+  private contentCount = new ContentCount; // { images: number, pdfs: number, officeDocs: number, dodgyArchives: number, hashes: number, total: number }
 
   private caseSensitiveSearch = false;
   private lastSearchTerm = '';
@@ -322,6 +321,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
         else if (newContent[i].contentType === 'pdf' ) {
           this.contentCount.pdfs++;
         }
+        else if (newContent[i].contentType === 'office' ) {
+          this.contentCount.officeDocs++;
+        }
         else if (newContent[i].contentType === 'hash' ) {
           this.contentCount.hashes++;
         }
@@ -512,7 +514,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastMask = e;
     log.debug('MasonryGridComponent: maskChanged():', e);
 
-    if (e.showImage && e.showPdf && e.showHash && e.showDodgy) {
+    if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
       this.filter = '*';
       return;
     }
@@ -524,6 +526,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (e.showPdf) {
       tempFilter.push('[contentType="pdf"]');
+    }
+    if (e.showOffice) {
+      tempFilter.push('[contentType="office"]');
     }
     if (e.showHash) {
       tempFilter.push('[contentType="hash"]');
@@ -625,6 +630,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       if (this.content[i].contentType === 'pdf') {
         this.contentCount.pdfs++;
+      }
+      if (this.content[i].contentType === 'office') {
+        this.contentCount.officeDocs++;
       }
       if (this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
         this.contentCount.dodgyArchives++;

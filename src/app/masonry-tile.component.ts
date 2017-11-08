@@ -24,13 +24,17 @@ declare var log: any;
         <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
         <i *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
         <i *ngIf="content.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'office'" class="fa fa-file-word-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'office' && content.contentSubType == 'word'" class="fa fa-file-word-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'office' && content.contentSubType == 'excel'" class="fa fa-file-excel-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'office' && content.contentSubType == 'powerpoint'" class="fa fa-file-powerpoint-o fa-2x"></i>
       </div>
     </div>
 
     <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'office'" class="separator office" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'office' && content.contentSubType == 'word'" class="separator word" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'office' && content.contentSubType == 'excel'" class="separator excel" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'office' && content.contentSubType == 'powerpoint'" class="separator excel" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
@@ -56,13 +60,13 @@ declare var log: any;
       <b>Found PDF document containing text term</b>
     </div>
     <div *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-      <b>Found Office document containing text term</b>
+      <b>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document containing text term</b>
     </div>
     <div *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
       <b>Found PDF document matching Regex term</b>
     </div>
     <div *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-      <b>Found Office document matching Regex term</b>
+      <b>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
     </div>
 
     <table class="selectable" style="width: 100%;">
@@ -155,9 +159,19 @@ declare var log: any;
       border: solid 3px red;
     }
 
-    .office {
+    .word {
       box-sizing: border-box;
-      border: solid 3px yellow;
+      border: solid 3px rgb(42,86,153);
+    }
+
+    .excel {
+      box-sizing: border-box;
+      border: solid 4px rgb(32,114,71);
+    }
+
+    .powerpoint {
+      box-sizing: border-box;
+      border: solid 3px rgb(211,71,38);
     }
 
   `]
@@ -253,6 +267,10 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
 
   toCaps(s: string) {
     return s.toUpperCase();
+  }
+
+  capitalizeFirstLetter(s: string) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
 }

@@ -5,6 +5,7 @@ import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
+import { Query } from './query'
 import { ContentTypes } from './contenttypes';
 import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/primeng';
@@ -116,7 +117,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   public mode = 'add'; // can be add, editRolling, editFixed
   public formDisabled = false;
-  private defaultColQuery = `vis.level exists || content = 'application/pdf'`;
+  private defaultColQuery = `filetype='pdf','office 2007 document'`;
   private defaultCollectionType = 'rolling';
   public contentTypes = ContentTypes;
   private defaultUseCaseBinding = 'bound';
@@ -184,6 +185,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   public imagesEnabled = false;
   public pdfsEnabled = false;
+  public officeEnabled = false;
   public dodgyArchivesEnabled = false;
   public hashesEnabled = false;
 
@@ -698,6 +700,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     let v = this.collectionFormModel.selectedContentTypes;
     let imagesEnabled = false;
     let pdfsEnabled = false;
+    let officeEnabled = false;
     let dodgyArchivesEnabled = false;
     let hashesEnabled = false;
     // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: v:', v);
@@ -711,6 +714,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       if (value === 'pdfs') {
         pdfsEnabled = true;
       }
+      if (value === 'officedocs') {
+        officeEnabled = true;
+      }
       if (value === 'dodgyarchives') {
         dodgyArchivesEnabled = true;
       }
@@ -720,6 +726,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
     this.imagesEnabled = imagesEnabled;
     this.pdfsEnabled = pdfsEnabled;
+    this.officeEnabled = officeEnabled;
     this.dodgyArchivesEnabled = dodgyArchivesEnabled;
     this.hashesEnabled = hashesEnabled;
   }

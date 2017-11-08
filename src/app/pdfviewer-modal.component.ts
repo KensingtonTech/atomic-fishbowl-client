@@ -18,9 +18,10 @@ declare var log: any;
       <div style="position: absolute; left: 0; right: 365px; top: 0; height: 30px;">
 
         <div style="position: absolute; top: 0; bottom: 0; left: 10px; width: 85%; white-space: nowrap;">
-          <!--<a (click)="downloadLinkClicked(pdfFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download PDF Document" showDelay="750"></a>-->
-          <!--<a style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download PDF Document" showDelay="750" href="{{pdfFile}}"></a>-->
-          <span style="vertical-align: middle;">{{getFileNameFromPath(pdfFile)}}</span>
+          <!--<a (click)="downloadLinkClicked(content.contentFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750"></a>-->
+          <!--<a style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750" href="{{content.contentFile}}"></a>-->
+          <span style="vertical-align: middle;">{{getFileNameFromPath(content.contentFile)}}</span>
+          <!--<span *ngIf="content.contentType == 'office'" style="vertical-align: middle;">{{getFileNameFromPath(content.proxyContentFile)}}</span>-->
         </div>
 
         <div class="noselect" style="position: absolute; top: 0; bottom: 0; right: 40px;">
@@ -245,7 +246,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   }
 
   getFileNameFromPath(p: string): string {
-    return this.pdfFile.split('/').pop();
+    return p.split('/').pop();
   }
 
   absorbPdfInfo(p: any): void {

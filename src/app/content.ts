@@ -2,6 +2,7 @@ export class Content {
   id: string;
   session: number;
   contentType?: string;
+  contentSubType?: string;
   contentFile?: string;
   proxyContentFile?: string;
   thumbnail?: string;

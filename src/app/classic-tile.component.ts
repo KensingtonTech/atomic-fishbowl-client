@@ -13,6 +13,9 @@ declare var log: any;
   <div *ngIf="!showHighRes">
     <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.thumbnail" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
     <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.thumbnail" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
+
+    <img *ngIf="content.contentType == 'office'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.thumbnail" class="thumbnail" [ngClass]="content.contentSubType" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentSubType]="content.contentSubType" [attr.contentFile]="content.contentFile" [attr.proxyContentFile]="content.proxyContentFile">
+
     <img *ngIf="content.contentType == 'encryptedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_unknown.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/rar_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
@@ -22,6 +25,9 @@ declare var log: any;
   <div *ngIf="showHighRes">
     <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.contentFile" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
     <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.pdfImage" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
+    
+    <img *ngIf="content.contentType == 'office'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.pdfImage" class="thumbnail" [ngClass]="content.contentSubType" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentSubType]="content.contentSubType" [attr.contentFile]="content.contentFile">
+
     <img *ngIf="content.contentType == 'encryptedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_unknown.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/rar_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
@@ -53,6 +59,21 @@ declare var log: any;
       border: solid 3px red;
     }
 
+    .word {
+      box-sizing: border-box;
+      border: solid 3px rgb(42,86,153);
+    }
+
+    .excel {
+      box-sizing: border-box;
+      border: solid 4px rgb(32,114,71);
+    }
+
+    .powerpoint {
+      box-sizing: border-box;
+      border: solid 3px rgb(211,71,38);
+    }
+
   `],
 /*
   animations: [
@@ -81,7 +102,6 @@ export class ClassicTileComponent implements OnChanges {
   private thumbnailString: string;
   private thumbnailLoaded = false;
   private enabledTrigger = 'disabled';
-  private isPdf = false;
   private data: any = {}; // prevent opening pdf modal if dragging the view
 
   handleError(error: any): Promise<any> {
@@ -119,21 +139,6 @@ export class ClassicTileComponent implements OnChanges {
     }
   }
 
-/*
-  onImgLoad(): void {
-    //log.debug("loaded");
- //moved temporarily to aftercontentinit
-    //this.changeDetectionRef.reattach();
-    if ( this.content ) {
-      if (this.content.contentType === 'pdf') {
-        this.isPdf = true;
-      }
-    }
-    this.enableMe();
-    this.imgLoaded = true;
-  }
-*/
-
   onMouseDown(e: any): void {
     this.data = { top: e.pageX, left: e.pageY };
   }
@@ -146,7 +151,7 @@ export class ClassicTileComponent implements OnChanges {
     // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
     // if (Math.abs(top - ptop) < 5 || Math.abs(left - pleft) < 5) {
     if (Math.abs(top - ptop) === 0 || Math.abs(left - pleft) === 0) {
-      if (this.content.contentType === 'pdf') {
+      if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
         this.toolService.newImage.next(this.content);
         this.toolService.newSession.next(this.session);
         this.openPDFViewer.emit();
