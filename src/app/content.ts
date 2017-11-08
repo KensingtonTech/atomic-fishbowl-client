@@ -3,6 +3,7 @@ export class Content {
   session: number;
   contentType?: string;
   contentFile?: string;
+  proxyContentFile?: string;
   thumbnail?: string;
   pdfImage?: string;
   archiveFilename?: string;

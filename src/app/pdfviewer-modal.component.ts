@@ -125,7 +125,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
 
   public showAll = false;
   private pdfFile: string;
-  private pdfFilename: string;
   private page = 1;
 
   public isOpen = false;
@@ -203,7 +202,11 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       log.debug('PdfViewerModalComponent: newImageSubscription: Got new content:', content);
       this.content = content;
       this.sessionId = this.content.session;
-      this.pdfFile = this.content.contentFile;
+      let pdfFile = this.content.contentFile;
+      if ('proxyContentFile' in this.content) {
+        pdfFile = this.content.proxyContentFile;
+      }
+      this.pdfFile = pdfFile;
       // this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
     });
 

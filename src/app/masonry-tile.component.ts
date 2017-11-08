@@ -7,7 +7,6 @@ declare var log: any;
 @Component({
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // encapsulation: ViewEncapsulation.None,
   template: `
 <div *ngIf="masonryColumnSize" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
   <div style="position: relative; min-height: 50px;">
@@ -21,15 +20,17 @@ declare var log: any;
       <div style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
         {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
       </div>
-      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
         <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
         <i *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
         <i *ngIf="content.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'office'" class="fa fa-file-word-o fa-2x"></i>
       </div>
     </div>
 
     <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'office'" class="separator office" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
@@ -54,8 +55,14 @@ declare var log: any;
     <div *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
       <b>Found PDF document containing text term</b>
     </div>
+    <div *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
+      <b>Found Office document containing text term</b>
+    </div>
     <div *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
       <b>Found PDF document matching Regex term</b>
+    </div>
+    <div *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
+      <b>Found Office document matching Regex term</b>
     </div>
 
     <table class="selectable" style="width: 100%;">
@@ -77,6 +84,10 @@ declare var log: any;
       </tr>
       <tr *ngIf="content.contentType =='pdf' && content.contentFile">
         <td class="column1">PDF Filename:</td>
+        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+      </tr>
+      <tr *ngIf="content.contentType =='office' && content.contentFile">
+        <td class="column1">Office Filename:</td>
         <td class="value">{{pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
@@ -144,6 +155,11 @@ declare var log: any;
       border: solid 3px red;
     }
 
+    .office {
+      box-sizing: border-box;
+      border: solid 3px yellow;
+    }
+
   `]
 })
 
@@ -204,7 +220,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
     this.toolService.newSession.next(this.originalSession);
     this.toolService.newImage.next(this.content);
 
-    if (this.content.contentType === 'pdf') {
+    if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
       // log.debug("display pdf");
       this.toolService.openPDFViewer.next();
     }
