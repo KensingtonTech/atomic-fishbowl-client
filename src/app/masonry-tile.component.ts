@@ -161,7 +161,7 @@ declare var log: any;
 
     .word {
       box-sizing: border-box;
-      border: solid 3px rgb(42,86,153);
+      border: solid 4px rgb(42,86,153);
     }
 
     .excel {

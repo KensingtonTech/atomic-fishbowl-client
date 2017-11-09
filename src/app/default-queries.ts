@@ -1,7 +1,7 @@
 import { Query } from './query'
 
 export const defaultQueries: Query[] = [
-  { text: 'All Supported File Types', queryString: `filetype = 'jpg','gif','png','pdf','office 2007 document',zip','rar','windows executable','x86 pe','windows dll','x64pe','apple executable (pef)','apple executable (mach-o)'`},
+  { text: 'All Supported File Types', queryString: `filetype = 'jpg','gif','png','pdf','office 2007 document','zip','rar','windows executable','x86 pe','windows dll','x64pe','apple executable (pef)','apple executable (mach-o)'`},
   { text: `PDF's and Office Docs`, queryString: `filetype = 'pdf','office 2007 document'`},
   { text: `PDF's, Office Docs, ZIP and RAR Archives`, queryString: `filetype = 'pdf','office 2007 document','zip','rar'`},
   { text: 'ZIP and RAR Archives', queryString: `filetype = 'zip','rar'`},

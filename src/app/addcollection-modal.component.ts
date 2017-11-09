@@ -117,7 +117,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   public mode = 'add'; // can be add, editRolling, editFixed
   public formDisabled = false;
-  private defaultColQuery = `filetype='pdf','office 2007 document'`;
+  private defaultCollectionQuery = `filetype='pdf','office 2007 document'`;
   private defaultCollectionType = 'rolling';
   public contentTypes = ContentTypes;
   private defaultUseCaseBinding = 'bound';
@@ -147,7 +147,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     md5Enabled: false, //
     md5Hashes: '' //
   };
-  public queryInputText = this.defaultColQuery;
+  public queryInputText = this.defaultCollectionQuery;
   public selectedNwServer = '';
   public nwservers: any;
 
@@ -211,57 +211,60 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       if (Object.keys(prefs).length === 0) {
         return; // this handles a race condition where we subscribe before the getPreferences call has actually run
       }
+      setTimeout( () => { // wrap it all in a setTimeout so our model updates properly
+        this.preferences = prefs;
 
-      this.preferences = prefs;
+        // We can update this every time
+        if ( 'defaultNwQuery' in prefs ) {
+          this.defaultCollectionQuery = prefs.defaultNwQuery;
+          // this.queryInputText = prefs.defaultNwQuery;
+        }
 
-      // We can update this every time
-      if ( 'defaultNwQuery' in prefs ) {
-        this.defaultColQuery = prefs.defaultNwQuery;
-        // this.queryInputText = prefs.defaultNwQuery;
-      }
-
-      for (let i = 0; i < this.queryList.length; i++) {
-        this.queryListObj[this.queryList[i].text] = this.queryList[i];
-        let option: any = {};
-        option['label'] = this.queryList[i].text;
-        option['value'] = this.queryList[i].text;
-        this.queryListOptions.push(option);
-      }
+        for (let i = 0; i < this.queryList.length; i++) {
+          this.queryListObj[this.queryList[i].text] = this.queryList[i];
+          let option: any = {};
+          option['label'] = this.queryList[i].text;
+          option['value'] = this.queryList[i].text;
+          this.queryListOptions.push(option);
+        }
 
 
-      if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
+        if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
 
-      if ( 'defaultQuerySelection' in prefs ) {
-          for (let i = 0; i < this.queryList.length; i++) {
-            let query = this.queryList[i];
-            if (query.text === prefs.defaultQuerySelection) {
-              log.debug('AddCollectionModalComponent: ngOnInit(): setting query selector to ', query);
-              // setTimeout( () => {
-                this.selectedQuery = query.text; // changes the query in the query select box dropdown
-                this.queryInputText = query.queryString; // changes the query string in the query string input
-              // });
-              break;
+          if ( 'defaultQuerySelection' in prefs ) {
+            for (let i = 0; i < this.queryList.length; i++) {
+              let query = this.queryList[i];
+              if (query.text === prefs.defaultQuerySelection) {
+                log.debug('AddCollectionModalComponent: ngOnInit(): setting query selector to ', query);
+                  this.selectedQuery = query.text; // changes the query in the query select box dropdown
+                  this.queryInputText = query.queryString; // changes the query string in the query string input
+                break;
+              }
             }
           }
+          if ( 'minX' in prefs && 'minY' in prefs ) {
+            this.collectionFormModel.minX = prefs.minX;
+            this.collectionFormModel.minY = prefs.minY;
+          }
+          if ( 'defaultImageLimit' in prefs ) {
+            this.collectionFormModel.contentLimit = prefs.defaultImageLimit;
+          }
+          if ( 'defaultRollingHours' in prefs ) {
+            this.collectionFormModel.lastHours = prefs.defaultRollingHours;
+          }
+          if ( 'defaultNwQuery' in prefs && prefs.defaultQuerySelection === 'Default Query' ) {
+            // this.defaultCollectionQuery = prefs.defaultNwQuery;
+            this.queryInputText = prefs.defaultNwQuery; // changes the query string in the query string input
+          }
         }
-        if ( 'minX' in prefs && 'minY' in prefs ) {
-          this.collectionFormModel.minX = prefs.minX;
-          this.collectionFormModel.minY = prefs.minY;
-        }
-        if ( 'defaultImageLimit' in prefs ) {
-          this.collectionFormModel.contentLimit = prefs.defaultImageLimit;
-        }
-        if ( 'defaultRollingHours' in prefs ) {
-          this.collectionFormModel.lastHours = prefs.defaultRollingHours;
-        }
-        if ( 'defaultNwQuery' in prefs ) {
-          // this.defaultColQuery = prefs.defaultNwQuery;
-          this.queryInputText = prefs.defaultNwQuery; // changes the query string in the query string input
-        }
-      }
 
-      this.dataService.useCasesChanged.subscribe( (o: any) => {
-        log.debug('AddCollectionModalComponent: useCasesChangedSubscription(): o', o);
+        this.firstRun = false;
+      }, 0);
+    });
+
+    this.dataService.useCasesChanged.subscribe( (o: any) => {
+      log.debug('AddCollectionModalComponent: useCasesChangedSubscription(): o', o);
+      setTimeout( () => {
         this.useCases = o.useCases;
         this.useCasesObj = o.useCasesObj;
         let useCaseOptions: SelectItem[] = [];
@@ -270,10 +273,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
         }
         this.useCaseOptions = useCaseOptions;
-      });
-
-      this.firstRun = false;
-      this.changeDetectionRef.markForCheck();
+      }, 0);
     });
 
     // Add collection next subscription
@@ -297,39 +297,47 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   onQuerySelected(): void {
     // log.debug('AddCollectionModalComponent: querySelected(): e', e);
-    if (this.selectedQuery === 'Default Query') {
-      this.queryInputText = this.defaultColQuery;
-    }
-    else {
-      this.queryInputText = this.queryListObj[this.selectedQuery].queryString;
-    }
+    setTimeout( () => {
+      if (this.selectedQuery === 'Default Query') {
+        this.queryInputText = this.defaultCollectionQuery;
+      }
+      else {
+        this.queryInputText = this.queryListObj[this.selectedQuery].queryString;
+      }
+    }, 0);
   }
 
   timeframeSelected(e: any): void {
-    if (this.selectedTimeframe === 'Custom') {
-      // display custom timeframe selector
-      this.displayCustomTimeframeSelector = true;
-    }
-    else {
-      this.displayCustomTimeframeSelector = false;
-    }
+    setTimeout( () => {
+      if (this.selectedTimeframe === 'Custom') {
+        // display custom timeframe selector
+        this.displayCustomTimeframeSelector = true;
+      }
+      else {
+        this.displayCustomTimeframeSelector = false;
+      }
+    }, 0);
   }
 
   displayServiceAddBox(): void {
     this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
-    this.formDisabled = true;
-    // setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
-    this.hostNameRef.first.nativeElement.focus();
+    setTimeout( () => {
+      this.formDisabled = true;
+      // setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
+      this.hostNameRef.first.nativeElement.focus();
+    }, 0);
   }
 
   hideServiceAddBox(): void {
-    this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
-    this.serviceFormModel.hostname = '';
-    this.serviceFormModel.restPort = 50103;
-    this.serviceFormModel.ssl = false;
-    this.serviceFormModel.user = '';
-    this.serviceFormModel.password = '';
-    this.formDisabled = false;
+    setTimeout( () => {
+      this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
+      this.serviceFormModel.hostname = '';
+      this.serviceFormModel.restPort = 50103;
+      this.serviceFormModel.ssl = false;
+      this.serviceFormModel.user = '';
+      this.serviceFormModel.password = '';
+      this.formDisabled = false;
+    }, 0);
   }
 
   cancel(): void {
@@ -347,11 +355,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   getNwServers(): void {
     // log.debug("AddCollectionModalComponent: getNwServers()");
     this.dataService.getNwServers().then(n => {
-                                                this.nwservers = n;
-                                                // log.debug("AddCollectionModalComponent: getNwServers(): this.nwservers:", this.nwservers);
-                                                this.selectedNwServer = this.getFirstNwServer();
-                                                // this.changeDetectionRef.markForCheck();
-                                              });
+      setTimeout( () => {
+        this.nwservers = n;
+        // log.debug("AddCollectionModalComponent: getNwServers(): this.nwservers:", this.nwservers);
+        this.selectedNwServer = this.getFirstNwServer();
+        // this.changeDetectionRef.markForCheck();
+      }, 0);
+    });
   }
 
   getFirstNwServer(): any { // a bit of a hack since dicts aren't really ordered
@@ -724,15 +734,19 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         hashesEnabled = true;
       }
     }
-    this.imagesEnabled = imagesEnabled;
-    this.pdfsEnabled = pdfsEnabled;
-    this.officeEnabled = officeEnabled;
-    this.dodgyArchivesEnabled = dodgyArchivesEnabled;
-    this.hashesEnabled = hashesEnabled;
+    setTimeout( () => {
+      this.imagesEnabled = imagesEnabled;
+      this.pdfsEnabled = pdfsEnabled;
+      this.officeEnabled = officeEnabled;
+      this.dodgyArchivesEnabled = dodgyArchivesEnabled;
+      this.hashesEnabled = hashesEnabled;
+    }, 0);
   }
 
   clearTypes(): void {
-    this.collectionFormModel.selectedContentTypes = [];
+    setTimeout( () => {
+      this.collectionFormModel.selectedContentTypes = [];
+    }, 0);
     this.onSelectedTypesChanged();
   }
 
@@ -741,7 +755,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     for (let i = 0; i < this.contentTypes.length; i++) {
       vals.push( this.contentTypes[i].value );
     }
-    this.collectionFormModel.selectedContentTypes = vals;
+    setTimeout( () => {
+      this.collectionFormModel.selectedContentTypes = vals;
+    }, 0);
     this.onSelectedTypesChanged();
   }
 
@@ -753,50 +769,52 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('AddCollectionModalComponent: onUseCaseChanged()');
     // log.debug('AddCollectionModalComponent: onUseCaseChanged: collectionFormModel.selectedUseCase:', this.collectionFormModel.selectedUseCase );
 
-    let displayUseCaseDescription = false;
-    let thisUseCase: UseCase;
-    for (let i = 0; i < this.useCases.length; i++) {
-      if (this.useCases[i].name === this.collectionFormModel.selectedUseCase) {
-        thisUseCase = this.useCases[i];
-        displayUseCaseDescription = true;
-        this.useCaseDescription = this.useCases[i].description;
-        break;
-      }
-    }
-    this.displayUseCaseDescription = displayUseCaseDescription;
-
-    if (this.collectionFormModel.selectedUseCase === 'custom') {
-      this.showUseCaseValues = false;
-      this.onSelectedTypesChanged();
-      return;
-    }
-
-    // an OOTB use case has been selected
-    log.debug('AddCollectionModalComponent: onUseCaseChanged: thisUseCase:', thisUseCase);
     setTimeout( () => {
-      this.queryInputText = thisUseCase.query;
-      this.collectionFormModel.selectedContentTypes = thisUseCase.contentTypes;
-      this.collectionFormModel.distillationEnabled = false;
-      if ('distillationTerms' in thisUseCase) {
-        this.collectionFormModel.distillationEnabled = true;
-        this.collectionFormModel.distillationTerms = thisUseCase.distillationTerms.join('\n');
+      let displayUseCaseDescription = false;
+      let thisUseCase: UseCase;
+      for (let i = 0; i < this.useCases.length; i++) {
+        if (this.useCases[i].name === this.collectionFormModel.selectedUseCase) {
+          thisUseCase = this.useCases[i];
+          displayUseCaseDescription = true;
+          this.useCaseDescription = this.useCases[i].description;
+          break;
+        }
       }
-      this.collectionFormModel.regexDistillationEnabled = false;
-      if ('regexTerms' in thisUseCase) {
-        this.collectionFormModel.regexDistillationEnabled = true;
-        this.collectionFormModel.regexDistillationTerms = thisUseCase.regexTerms.join('\n');
-      }
-      this.collectionFormModel = JSON.parse(JSON.stringify(this.collectionFormModel));
-      if (this.collectionFormModel.useCaseBinding === 'bound') {
-        this.showUseCaseValues = true;
-      }
-      else {
+      this.displayUseCaseDescription = displayUseCaseDescription;
+
+      if (this.collectionFormModel.selectedUseCase === 'custom') {
         this.showUseCaseValues = false;
+        this.onSelectedTypesChanged();
+        return;
       }
-      this.onSelectedTypesChanged();
-    });
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
+
+      // an OOTB use case has been selected
+      log.debug('AddCollectionModalComponent: onUseCaseChanged: thisUseCase:', thisUseCase);
+      // setTimeout( () => {
+        this.queryInputText = thisUseCase.query;
+        this.collectionFormModel.selectedContentTypes = thisUseCase.contentTypes;
+        this.collectionFormModel.distillationEnabled = false;
+        if ('distillationTerms' in thisUseCase) {
+          this.collectionFormModel.distillationEnabled = true;
+          this.collectionFormModel.distillationTerms = thisUseCase.distillationTerms.join('\n');
+        }
+        this.collectionFormModel.regexDistillationEnabled = false;
+        if ('regexTerms' in thisUseCase) {
+          this.collectionFormModel.regexDistillationEnabled = true;
+          this.collectionFormModel.regexDistillationTerms = thisUseCase.regexTerms.join('\n');
+        }
+        this.collectionFormModel = JSON.parse(JSON.stringify(this.collectionFormModel));
+        if (this.collectionFormModel.useCaseBinding === 'bound') {
+          this.showUseCaseValues = true;
+        }
+        else {
+          this.showUseCaseValues = false;
+        }
+        this.onSelectedTypesChanged();
+      // });
+      // this.changeDetectionRef.detectChanges();
+      // this.changeDetectionRef.markForCheck();
+    }, 0);
   }
 
   onUseCaseBoundChanged(): void {
@@ -825,9 +843,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         // log.debug('Got to 4');
         this.showUseCaseValues = false;
       }
-    });
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
+    }, 0);
+    // this.changeDetectionRef.detectChanges();
+    // this.changeDetectionRef.markForCheck();
   }
 
   convertArrayToString(a: any): string {
@@ -843,107 +861,110 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   onAddCollection(): void {
     log.debug('AddCollectionModalComponent: onAddCollection()');
-    this.mode = 'add';
-    this.nameBoxRef.first.nativeElement.focus();
-    this.collectionFormModel.selectedUseCase = this.useCaseOptions[0].value; // this sets it to 'custom'
-    this.showUseCaseValues = false;
-    this.displayUseCaseDescription = false;
+    setTimeout( () => {
+      this.mode = 'add';
+      this.nameBoxRef.first.nativeElement.focus();
+      this.collectionFormModel.selectedUseCase = this.useCaseOptions[0].value; // this sets it to 'custom'
+      this.showUseCaseValues = false;
+      this.displayUseCaseDescription = false;
+    }, 0);
   }
 
   onEditCollection(collection: any): void {
     // Called when we receive an edit signal from toolbar
     log.debug('AddCollectionModalComponent: onEditCollection(): collection:', collection);
-    this.collection = collection;
-    
-    if (collection.type == 'rolling' || collection.type == 'monitoring' ) {
-      this.mode = 'editRolling';
-      this.editingCollectionId = collection.id;
-      if (collection.type == 'rolling') {
-        this.collectionFormModel.lastHours = collection.lastHours;
-      }
-    }
-    else {
-      this.mode = 'editFixed';
-    }
-    
-    this.collectionFormModel.name = collection.name;
-    this.collectionFormModel.type = collection.type;
-    this.collectionFormModel.contentLimit = collection.imageLimit;
-    this.collectionFormModel.minX = collection.minX;
-    this.collectionFormModel.minY = collection.minY;
-    this.collectionFormModel.selectedUseCase = collection.usecase;
-
-    if (collection.bound) {
-      this.collectionFormModel.useCaseBinding = 'bound';
-      this.onUseCaseBoundChanged();
-      this.onUseCaseChanged();
-    }
-    else {
-      // unbound collection
-      this.collectionFormModel.useCaseBinding = 'unbound';
-      this.collectionFormModel.selectedContentTypes = collection.contentTypes;
-      this.displayUseCaseDescription = false;
-      let foundQuery = false;
-      // now try to match the collection query to our predefined queries
-      for (let i = 0; i < this.queryList.length; i++) {
-        let query = this.queryList[i];
-        if (query.queryString === collection.query) {
-          this.selectedQuery = query.text;
-          foundQuery = true;
+    setTimeout( () => {
+      this.collection = collection;
+      
+      if (collection.type == 'rolling' || collection.type == 'monitoring' ) {
+        this.mode = 'editRolling';
+        this.editingCollectionId = collection.id;
+        if (collection.type == 'rolling') {
+          this.collectionFormModel.lastHours = collection.lastHours;
         }
       }
-      if (!foundQuery) {
-        this.selectedQuery = 'Custom Query';
+      else {
+        this.mode = 'editFixed';
       }
-      this.queryInputText = collection.query;
-      this.onUseCaseBoundChanged();
-      this.onUseCaseChanged();
-    }
+      
+      this.collectionFormModel.name = collection.name;
+      this.collectionFormModel.type = collection.type;
+      this.collectionFormModel.contentLimit = collection.imageLimit;
+      this.collectionFormModel.minX = collection.minX;
+      this.collectionFormModel.minY = collection.minY;
+      this.collectionFormModel.selectedUseCase = collection.usecase;
 
-    // TODO: add logic for when server has been deleted
-    this.selectedNwServer = collection.nwserver;
+      if (collection.bound) {
+        this.collectionFormModel.useCaseBinding = 'bound';
+        this.onUseCaseBoundChanged();
+        this.onUseCaseChanged();
+      }
+      else {
+        // unbound collection
+        this.collectionFormModel.useCaseBinding = 'unbound';
+        this.collectionFormModel.selectedContentTypes = collection.contentTypes;
+        this.displayUseCaseDescription = false;
+        let foundQuery = false;
+        // now try to match the collection query to our predefined queries
+        for (let i = 0; i < this.queryList.length; i++) {
+          let query = this.queryList[i];
+          if (query.queryString === collection.query) {
+            this.selectedQuery = query.text;
+            foundQuery = true;
+          }
+        }
+        if (!foundQuery) {
+          this.selectedQuery = 'Custom Query';
+        }
+        this.queryInputText = collection.query;
+        this.onUseCaseBoundChanged();
+        this.onUseCaseChanged();
+      }
 
-    if (collection.distillationEnabled) {
-      this.collectionFormModel.distillationEnabled = true;
-      this.collectionFormModel.distillationTerms = this.convertArrayToString(collection.distillationTerms);
-    }
-    else {
-      this.collectionFormModel.distillationEnabled = false;
-    }
+      // TODO: add logic for when server has been deleted
+      this.selectedNwServer = collection.nwserver;
 
-    if (collection.regexDistillationEnabled) {
-      this.collectionFormModel.regexDistillationEnabled = true;
-      this.collectionFormModel.regexDistillationTerms = this.convertArrayToString(collection.regexDistillationTerms);
-    }
-    else {
-      this.collectionFormModel.regexDistillationEnabled = false;
-    }
+      if (collection.distillationEnabled) {
+        this.collectionFormModel.distillationEnabled = true;
+        this.collectionFormModel.distillationTerms = this.convertArrayToString(collection.distillationTerms);
+      }
+      else {
+        this.collectionFormModel.distillationEnabled = false;
+      }
 
-    if (collection.sha1Enabled) {
-      this.collectionFormModel.sha1Enabled = true;
-      this.collectionFormModel.sha1Hashes = this.convertArrayToString(collection.sha1Hashes);
-    }
-    else {
-      this.collectionFormModel.sha1Enabled = false;
-    }
+      if (collection.regexDistillationEnabled) {
+        this.collectionFormModel.regexDistillationEnabled = true;
+        this.collectionFormModel.regexDistillationTerms = this.convertArrayToString(collection.regexDistillationTerms);
+      }
+      else {
+        this.collectionFormModel.regexDistillationEnabled = false;
+      }
 
-    if (collection.sha256Enabled) {
-      this.collectionFormModel.sha256Enabled = true;
-      this.collectionFormModel.sha256Hashes = this.convertArrayToString(collection.sha256Hashes);
-    }
-    else {
-      this.collectionFormModel.sha256Enabled = false;
-    }
+      if (collection.sha1Enabled) {
+        this.collectionFormModel.sha1Enabled = true;
+        this.collectionFormModel.sha1Hashes = this.convertArrayToString(collection.sha1Hashes);
+      }
+      else {
+        this.collectionFormModel.sha1Enabled = false;
+      }
 
-    if (collection.md5Enabled) {
-      this.collectionFormModel.md5Enabled = true;
-      this.collectionFormModel.md5Hashes = this.convertArrayToString(collection.md5Hashes);
-    }
-    else {
-      this.collectionFormModel.md5Enabled = false;
-    }
+      if (collection.sha256Enabled) {
+        this.collectionFormModel.sha256Enabled = true;
+        this.collectionFormModel.sha256Hashes = this.convertArrayToString(collection.sha256Hashes);
+      }
+      else {
+        this.collectionFormModel.sha256Enabled = false;
+      }
+
+      if (collection.md5Enabled) {
+        this.collectionFormModel.md5Enabled = true;
+        this.collectionFormModel.md5Hashes = this.convertArrayToString(collection.md5Hashes);
+      }
+      else {
+        this.collectionFormModel.md5Enabled = false;
+      }
     
-    setTimeout( () => {} ); // trigger re-scan of model
+    }, 0);
   }
 
 }
