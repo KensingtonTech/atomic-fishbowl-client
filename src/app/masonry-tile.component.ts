@@ -24,17 +24,13 @@ declare var log: any;
         <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
         <i *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
         <i *ngIf="content.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'office' && content.contentSubType == 'word'" class="fa fa-file-word-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'office' && content.contentSubType == 'excel'" class="fa fa-file-excel-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'office' && content.contentSubType == 'powerpoint'" class="fa fa-file-powerpoint-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'office'" [class.fa-file-word-o]="content.contentSubType == 'word'" [class.fa-file-excel-o]="content.contentSubType == 'excel'" [class.fa-file-powerpoint-o]="content.contentSubType == 'powerpoint'" class="fa fa-2x"></i>
       </div>
     </div>
 
     <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'office' && content.contentSubType == 'word'" class="separator word" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'office' && content.contentSubType == 'excel'" class="separator excel" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'office' && content.contentSubType == 'powerpoint'" class="separator excel" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
