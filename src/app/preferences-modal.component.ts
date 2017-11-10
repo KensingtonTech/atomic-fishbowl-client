@@ -54,7 +54,7 @@ export class PreferencesModalComponent implements OnInit {
                                     displayedKeys: this.getDisplayedKeysValue(this.defaultDisplayedKeys),
                                     defaultImageLimit: this.defaultDefaultImageLimit,
                                     defaultRollingHours: this.defaultDefaultRollingHours,
-                                    defaultQuerySelection: this.defaultQueries[0].text, // this only has effect on the first run of 221B.  After the prefs have been set, it will be read in from the prefs
+                                    defaultQuerySelection: this.defaultQueries[0].text, // this only has effect on the first run of Atomic Fishbowl.  After the prefs have been set, it will be read in from the prefs
                                     masonryColumnSize: this.defaultMasonryColumnSize,
                                     masonryKeys: this.getMasonryKeysValue(this.defaultMasonryKeys),
                                     contentTimeout: null,

@@ -107,34 +107,6 @@ export class AuthenticationService {
         });
   }
 
-/*
-  checkCredentialsOld(): void {
-    let token = localStorage.getItem("221b_token");
-    if ( token === null ){
-      this.loggedInChanged.next(false);
-      this.router.navigate(['login']);
-    }
-    else {
-      //this.loggedInUser = JSON.parse(localStorage.getItem("221b_user"));
-      let parsedToken = this.parseJwt(token);
-      this.loggedInUser = parsedToken._doc;
-      //log.debug("loggedInUser:", this.loggedInUser);
-      this.loggedInChanged.next(true);
-
-    }
-  }
-*/
-
-  /*
-  parseJwt(token: any): any {
-      let base64Url = token.split('.')[1];
-      let base64 = base64Url.replace('-', '+').replace('_', '/');
-      let parsed = JSON.parse(window.atob(base64));
-      // log.debug('AuthenticationService: parseJwt(): parsed:', parsed);
-      return parsed;
-  }
-  */
-
   handleError(error: any): Promise<any> {
     log.error('ERROR: ', error);
     return Promise.reject(error.message || error);

@@ -81,7 +81,7 @@ declare var log: any;
   <div class="noselect" style="position: absolute; right: 10px; top: 2px;">
     <span (click)="preferencesButtonClick()" class="fa fa-cog fa-2x" pTooltip="Global preferences" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
     <span (click)="accountsButtonClick()" class="fa fa-users fa-2x" pTooltip="Manage users" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
-    <span (click)="helpButtonClick()" class="fa fa-question fa-2x" pTooltip="About 221B" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
+    <span (click)="helpButtonClick()" class="fa fa-question fa-2x" pTooltip="About Atomic Fishbowl" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
     <span (click)="logoutButtonClick()" class="fa fa-sign-out fa-2x" pTooltip="Logout" escape="false" showDelay="750" tooltipPosition="left"></span>
   </div>
 </div>

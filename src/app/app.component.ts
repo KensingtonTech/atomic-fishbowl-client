@@ -9,7 +9,7 @@ declare var log: any;
   selector: 'twoTwoOneB-app',
   template: `
 <div *ngIf="isMobile">
-  So sorry, but mobile devices aren't currently supported by 221B.
+  So sorry, but mobile devices aren't currently supported by Atomic Fishbowl.
 </div>
 <div *ngIf="serverReachable && !isMobile" style="position: relative; width: 100vw; height: 100vh;">
   <toolbar-widget *ngIf="loggedIn"></toolbar-widget>

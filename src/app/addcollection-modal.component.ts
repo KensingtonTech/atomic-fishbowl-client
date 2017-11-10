@@ -262,7 +262,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }, 0);
     });
 
-    this.dataService.useCasesChanged.subscribe( (o: any) => {
+    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => {
       log.debug('AddCollectionModalComponent: useCasesChangedSubscription(): o', o);
       setTimeout( () => {
         this.useCases = o.useCases;
