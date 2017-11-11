@@ -2,12 +2,12 @@ import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, 
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators, FormGroupDirective } from '@angular/forms';
+import { AbstractControl, NgForm, FormBuilder, FormControl, FormGroup, Validators, FormGroupDirective } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { User } from './user';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
-declare var moment: any;
+import { ErrorStateMatcher } from '@angular/material/core';
 declare var log: any;
 declare var JSEncrypt: any;
 
@@ -55,6 +55,30 @@ function isNotLoggedInUser(c: AbstractControl) {
   }
   // log.debug('returning null');
   return null;
+}
+
+export class AddUserPasswordMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    if (form.form.controls.passwords.get('password').hasError('minlength') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    return false;
+  }
+}
+
+export class EditUserPasswordMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    if (form.form.controls.passwords.get('password').hasError('minlength') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
+      return true;
+    }
+    return false;
+  }
 }
 
 @Component({
@@ -214,20 +238,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     this.usersFormDisabled = false;
   }
 
-  public addUserPasswordMatcher(control: FormControl, form: FormGroupDirective): boolean {
-    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
-    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
-    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
-    // log.debug('addUserForm', this.addUserForm);
-    // log.debug('control:', form.control.controls.passwords.get('password').dirty );
-    if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
-      return true;
-    }
-    if (form.form.controls.passwords.get('password').hasError('minlength') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
-      return true;
-    }
-    return false;
-  }
+  public addUserPasswordMatcher = new AddUserPasswordMatcher();
 
 
 
@@ -294,21 +305,9 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     this.usersFormDisabled = false;
   }
 
-  public editUserPasswordMatcher(control: FormControl, form: FormGroupDirective): boolean {
-    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: control:', control);
-    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: form:', form);
-    // log.debug('ManageUsersModalComponent: addUserPasswordMatcher: addUserForm:', this.addUserForm);
-    // log.debug('addUserForm', this.addUserForm);
-    // log.debug('control:', form.control.controls.passwords.get('password').dirty );
-    if (form.form.controls.passwords.hasError('nomatch') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
-      return true;
-    }
-    if (form.form.controls.passwords.get('password').hasError('minlength') && form.control.controls.passwords.get('password').dirty && form.control.controls.passwords.get('passwordConfirm').dirty ) {
-      return true;
-    }
-    return false;
-  }
+  public editUserPasswordMatcher = new EditUserPasswordMatcher();
 
+  
   public disableEditUserSubmitButton(): boolean {
     if (this.editUserForm.pristine) { return true; }
     if (this.editUserForm.invalid && this.editUserForm.dirty) { return true; }

@@ -7,12 +7,18 @@ import { RouterModule } from '@angular/router';
 import { ModalModule } from './modal/modal.module';
 import { PanZoomModule } from './panzoom/panzoom.module';
 import { MasonryModule } from './masonry/masonry.module';
+
+// PrimeNG
 import { CalendarModule } from 'primeng/components/calendar/calendar';
 import { TooltipModule } from 'primeng/components/tooltip/tooltip';
+import { ButtonModule } from 'primeng/primeng';
 import { RadioButtonModule } from 'primeng/components/radiobutton/radiobutton';
 import { SelectButtonModule } from 'primeng/components/selectbutton/selectbutton';
 import { DropdownModule } from 'primeng/components/dropdown/dropdown';
-import { MdCardModule, MdInputModule, MdButtonModule, MdCheckboxModule, MdToolbarModule } from '@angular/material';
+import { ListboxModule } from 'primeng/components/listbox/listbox';
+
+// Angular Material
+import { MatCardModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule } from '@angular/material';
 
 // Our Services
 import { DataService } from './data.service';
@@ -57,7 +63,8 @@ import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.
 import { SessionWidgetComponent } from './session-widget.component';
 
 // Other
-// import 'hammerjs'; // required for Material gesture support.  Not sure that we need it but including for now.
+// import 'hammerjs'; // required for Material gesture support
+import { FlexLayoutModule } from '@angular/flex-layout';
 import * as $ from 'jquery';
 
 @NgModule({
@@ -74,11 +81,14 @@ import * as $ from 'jquery';
                   RadioButtonModule,
                   SelectButtonModule,
                   DropdownModule,
-                  MdCardModule,
-                  MdInputModule,
-                  MdCheckboxModule,
-                  MdButtonModule,
-                  MdToolbarModule,
+                  ListboxModule,
+                  MatCardModule,
+                  MatInputModule,
+                  MatCheckboxModule,
+                  MatButtonModule,
+                  MatToolbarModule,
+                  FlexLayoutModule,
+                  // MatListModule,
                   RouterModule.forRoot([
                     {
                       path: '',

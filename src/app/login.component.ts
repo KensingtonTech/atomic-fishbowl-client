@@ -7,39 +7,39 @@ declare var log: any;
     selector: 'login-form',
     template: `
 <div style="display: block; margin-top: 300px; margin-left: auto; margin-right: auto; width: 500px;">
-  <md-card>
+  <mat-card>
 
     <form #addCollectionForm="ngForm">
   
-      <md-card-content>
+      <mat-card-content>
 
         <div style="position:absolute; top: 7px; right: 5px;"><img src="resources/logo-blacktext.png"></div>
-        <md-card-title style="font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;">
+        <mat-card-title style="font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;">
           <b>Atomic Fishbowl Login</b>
-        </md-card-title>
+        </mat-card-title>
 
-        <md-input-container class="full-width">
-          <input mdInput color="accent" #userName [(ngModel)]="user.username" id="user" type="text" [ngModelOptions]="{standalone: true}" placeholder="Username">
-        </md-input-container>
+        <mat-form-field class="full-width">
+          <input matInput color="accent" #userName [(ngModel)]="user.username" id="user" type="text" [ngModelOptions]="{standalone: true}" placeholder="Username">
+        </mat-form-field>
 
-        <md-input-container class="full-width">
-          <input mdInput [(ngModel)]="user.password" id="password" type="password" [ngModelOptions]="{standalone: true}" placeholder="Password">
-        </md-input-container>
+        <mat-form-field class="full-width">
+          <input matInput [(ngModel)]="user.password" id="password" type="password" [ngModelOptions]="{standalone: true}" placeholder="Password">
+        </mat-form-field>
 
-      </md-card-content>
+      </mat-card-content>
 
-      <md-card-actions align="start">
-        <button md-raised-button color="accent" (click)="login()" class="btn waves-effect waves-light" type="submit" [disabled]="!eulaAccepted" name="action">Login</button>&nbsp;&nbsp;<span>{{errorMsg}}</span>
-      </md-card-actions>
+      <mat-card-actions align="start">
+        <button mat-raised-button color="accent" (click)="login()" class="btn waves-effect waves-light" type="submit" [disabled]="!eulaAccepted" name="action">Login</button>&nbsp;&nbsp;<span>{{errorMsg}}</span>
+      </mat-card-actions>
 
     </form>
 
-  </md-card>
+  </mat-card>
 </div>
 `,
 styles: [`
 
-  /*md-card {
+  /*mat-card {
     padding: 0 !important;
   }*/
 

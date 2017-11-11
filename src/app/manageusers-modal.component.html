@@ -41,119 +41,119 @@
 
 
         <div *ngIf="displayUserAddForm" style="padding: 5px;">
-          <md-card>
-            <md-card-content>
+          <mat-card>
+            <mat-card-content>
               
-              <md-card-title>
+              <mat-card-title>
                 Add a User
-              </md-card-title>
+              </mat-card-title>
 
               <form class="myForm" [formGroup]="addUserForm" (ngSubmit)="addUserSubmit()" novalidate>
 
-                <md-input-container class="full-width">
-                  <input #userInAdd mdInput type="text" formControlName="username" placeholder="Username">
-                  <md-error *ngIf="addUserForm.controls['username'].hasError('spaceexists')">Spaces are not permitted in usernames</md-error>
-                  <md-error *ngIf="addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">User already exists</md-error>
-                  <md-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">Minimum username length is {{minUsernameLength}} characters</md-error>
-                </md-input-container>
+                <mat-form-field class="full-width">
+                  <input #userInAdd matInput type="text" formControlName="username" placeholder="Username">
+                  <mat-error *ngIf="addUserForm.controls['username'].hasError('spaceexists')">Spaces are not permitted in usernames</mat-error>
+                  <mat-error *ngIf="addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">User already exists</mat-error>
+                  <mat-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">Minimum username length is {{minUsernameLength}} characters</mat-error>
+                </mat-form-field>
                 
-                <md-input-container class="full-width">
-                  <input mdInput type="text" formControlName="fullname" placeholder="Full Name">
-                </md-input-container>
+                <mat-form-field class="full-width">
+                  <input matInput type="text" formControlName="fullname" placeholder="Full Name">
+                </mat-form-field>
                 
-                <md-input-container class="full-width">
-                  <input mdInput type="email" formControlName="email" placeholder="Email">
-                  <md-error>Not a valid email address format</md-error>
-                </md-input-container>
+                <mat-form-field class="full-width">
+                  <input matInput type="email" formControlName="email" placeholder="Email">
+                  <mat-error>Not a valid email address format</mat-error>
+                </mat-form-field>
                 
                 <table class="full-width" formGroupName="passwords">
                   <tr>
                     <td>
-                      <md-input-container class="full-width">
-                        <input mdInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="addUserPasswordMatcher">
-                        <md-error *ngIf="addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                      <mat-form-field class="full-width">
+                        <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="addUserPasswordMatcher">
+                        <mat-error *ngIf="addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
                           Passwords do not match
-                        </md-error>
-                        <md-error *ngIf="addUserForm.controls['passwords'].controls['password'].hasError('minlength') && !addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                        </mat-error>
+                        <mat-error *ngIf="addUserForm.controls['passwords'].controls['password'].hasError('minlength') && !addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
                           Minimum password length is {{minPasswordLength}}
-                        </md-error>
-                      </md-input-container>
+                        </mat-error>
+                      </mat-form-field>
                     </td>
                     <td>
-                      <md-input-container class="full-width">
-                        <input mdInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
-                      </md-input-container>
+                      <mat-form-field class="full-width">
+                        <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                      </mat-form-field>
                     </td>
                   </tr>
                 </table>
 
-                <md-checkbox type="checkbox" formControlName="enabled">Enabled</md-checkbox>
+                <mat-checkbox type="checkbox" formControlName="enabled">Enabled</mat-checkbox>
 
-                <md-card-actions align="end">
-                  <button md-button type="submit" [disabled]="!addUserForm.valid">SAVE</button> <button md-button type="button" (click)="hideUserAddBox()">CANCEL</button>
-                </md-card-actions>
+                <mat-card-actions align="end">
+                  <button mat-button type="submit" [disabled]="!addUserForm.valid">SAVE</button> <button mat-button type="button" (click)="hideUserAddBox()">CANCEL</button>
+                </mat-card-actions>
               </form>
-            </md-card-content>
-          </md-card>
+            </mat-card-content>
+          </mat-card>
         </div>
 
 
         <div *ngIf="displayUserEditForm" style="padding: 5px;">
-          <md-card>
-            <md-card-content>
+          <mat-card>
+            <mat-card-content>
               
-                <md-card-title>
+                <mat-card-title>
                   Edit User
-                </md-card-title>
+                </mat-card-title>
 
               <form class="myForm" [formGroup]="editUserForm" (ngSubmit)="editUserSubmit(editUserForm)" novalidate>
 
-                <md-input-container class="full-width">
-                  <input mdInput type="text" formControlName="username" placeholder="Username" readonly>
-                </md-input-container>
+                <mat-form-field class="full-width">
+                  <input matInput type="text" formControlName="username" placeholder="Username" readonly>
+                </mat-form-field>
 
-                <md-input-container class="full-width">
-                  <input #userInEdit mdInput type="text" formControlName="fullname" placeholder="Full Name">
-                </md-input-container>
+                <mat-form-field class="full-width">
+                  <input #userInEdit matInput type="text" formControlName="fullname" placeholder="Full Name">
+                </mat-form-field>
                 
-                <md-input-container class="full-width">
-                  <input mdInput type="email" formControlName="email" placeholder="Email">
-                  <md-error>Not a valid email address format</md-error>
-                </md-input-container>
+                <mat-form-field class="full-width">
+                  <input matInput type="email" formControlName="email" placeholder="Email">
+                  <mat-error>Not a valid email address format</mat-error>
+                </mat-form-field>
 
                 <table class="full-width" formGroupName="passwords">
                   <tr>
                     <td>
-                      <md-input-container class="full-width">
-                        <input mdInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="editUserPasswordMatcher">
-                        <md-error *ngIf="editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                      <mat-form-field class="full-width">
+                        <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="editUserPasswordMatcher">
+                        <mat-error *ngIf="editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
                           Passwords do not match
-                        </md-error>
-                        <md-error *ngIf="editUserForm.controls['passwords'].controls['password'].hasError('minlength') && !editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                        </mat-error>
+                        <mat-error *ngIf="editUserForm.controls['passwords'].controls['password'].hasError('minlength') && !editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
                           Minimum password length is {{minPasswordLength}}
-                        </md-error>
-                      </md-input-container>
+                        </mat-error>
+                      </mat-form-field>
                     </td>
                     <td>
-                      <md-input-container class="full-width">
-                        <input mdInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
-                      </md-input-container>
+                      <mat-form-field class="full-width">
+                        <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                      </mat-form-field>
                     </td>
                   </tr>
                 </table>
 
-                  <md-checkbox mdInput type="checkbox" formControlName="enabled">Enabled</md-checkbox>
+                  <mat-checkbox matInput type="checkbox" formControlName="enabled">Enabled</mat-checkbox>
                   <div class="mat-input-error" *ngIf="editUserForm.controls['enabled'].hasError('isloggedinuser')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
                     Cannot disable logged-in user
                   </div>
 
-                <md-card-actions align="end">
-                  <button md-button type="submit" [disabled]="disableEditUserSubmitButton()">UPDATE</button> <button md-button type="button" (click)="hideUserEditBox()">CANCEL</button>
-                </md-card-actions>
+                <mat-card-actions align="end">
+                  <button mat-button type="submit" [disabled]="disableEditUserSubmitButton()">UPDATE</button> <button mat-button type="button" (click)="hideUserEditBox()">CANCEL</button>
+                </mat-card-actions>
 
               </form>
-            </md-card-content>
-          </md-card>
+            </mat-card-content>
+          </mat-card>
         </div>
 
         

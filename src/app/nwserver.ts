@@ -1,7 +1,10 @@
-export class NwServer {
-  id?: string; // this is a uuid and is optional because we don't know it before we create it
+export interface NwServer {
+  id: string; // this is a uuid
   friendlyName: string;
   host: string;
   port: number;
   ssl: boolean;
+  user: string;
+  deviceNumber: number;
+  password?: string;
 }

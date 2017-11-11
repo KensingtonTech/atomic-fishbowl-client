@@ -26,11 +26,11 @@
                 <b>Type</b>
               </td>
               <td>
-                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
                 
-                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
 
-                <span *ngIf="mode != 'editRolling'"><p-radioButton name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
+                <span *ngIf="mode != 'editRolling'"><p-radioButton [disabled]="formDisabled" name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
               </td>
             </tr>
             <!--FIXED TIMEFRAME SELECTOR-->
@@ -89,7 +89,7 @@
               </td>
               <td>
                 <div style="display: block;">
-                  <p-dropdown name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="collectionFormModel.selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
+                  <p-dropdown [disabled]="formDisabled" name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="collectionFormModel.selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
                 </div>
                 <div *ngIf="displayUseCaseDescription" class="description-text" style="margin-top: 5px;">
                   {{useCaseDescription}}
@@ -121,11 +121,11 @@
               <td>
                 <!--QUERY DROPDOWN-->
                 <div *ngIf="!showUseCaseValues">
-                  <p-dropdown [options]="queryListOptions" [(ngModel)]="selectedQuery" (onChange)="onQuerySelected()" [ngModelOptions]="{standalone: true}" autoWidth="false" [style]="{'width':'100%'}"></p-dropdown> <!--we don't give this dropdown a name because the actual collection query value comes from queryInputText-->
+                  <p-dropdown [disabled]="formDisabled" [options]="queryListOptions" [(ngModel)]="selectedQuery" (onChange)="onQuerySelected()" [ngModelOptions]="{standalone: true}" autoWidth="false" [style]="{'width':'100%'}"></p-dropdown> <!--we don't give this dropdown a name because the actual collection query value comes from queryInputText-->
                 </div>
                 <!--QUERY TEXT INPUT BOX-->
                 <div>
-                  <input type="text" name="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" required [disabled]="showUseCaseValues">
+                  <input type="text" name="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" required [disabled]="showUseCaseValues || formDisabled">
                 </div>
               </td>
             </tr>
@@ -141,11 +141,11 @@
               </td>
               <td>
                 <div>
-                  <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="collectionFormModel.selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont" required [disabled]="showUseCaseValues"></p-selectButton>
+                  <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="collectionFormModel.selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont" required [disabled]="showUseCaseValues || formDisabled"></p-selectButton>
                 </div>
                 <div *ngIf="!showUseCaseValues" style="margin-top: 3px;">
-                  <button type="button" (click)="allTypes()" pButton label="All" [disabled]="showUseCaseValues"></button>
-                  <button type="button" (click)="clearTypes()" pButton label="None" [disabled]="showUseCaseValues"></button>
+                  <button type="button" (click)="allTypes()" pButton label="All" [disabled]="showUseCaseValues || formDisabled"></button>
+                  <button type="button" (click)="clearTypes()" pButton label="None" [disabled]="showUseCaseValues || formDisabled"></button>
                 </div>
               </td>
             </tr>
@@ -290,32 +290,103 @@
             </tr>
           </table>
           <!--SELECT A NETWITNESS SERVICE BOX-->
-          <div *ngIf="nwservers" style="overflow: hidden; margin-top: 15px;">
+          <div *ngIf="nwServers" style="position: relative; margin-top: 15px; height: auto; overflow: visible;">
             <h4 style="margin-top: 0px; margin-bottom: 5px;">Select a NetWitness Service</h4>
-            <div style="float: left; padding-top: 3px;">
-              <select name="nwserver" [(ngModel)]="selectedNwServer" size="5" style="width: 420px;" required>
-                <option *ngFor="let s of nwservers | mapValues" [ngValue]="s.id">{{s.friendlyName}}</option>
-              </select>
-            </div>
-            <div style="float: left;">
-              &nbsp;<span (click)="displayServiceAddBox()" class="fa fa-plus fa-1"></span>   <span (click)="deleteNwServer()" class="fa fa-minus fa-1"></span>
+            
+            
+
+            <!--ADD / REMOVE / EDIT NWSERVER BUTTONS-->
+              <div style="padding-top: 3px;">
+                <span (click)="displayServiceAddBox()" [class.fa-deselect]="formDisabled" class="fa fa-plus fa-1">&nbsp;&nbsp;</span>
+                <span (click)="deleteNwServer()" [class.fa-deselect]="formDisabled" class="fa fa-minus fa-1">&nbsp;&nbsp;</span>
+                <span *ngIf="selectedNwServer" [class.fa-deselect]="formDisabled" (click)="editNwServer()" class="fa fa-pencil fa-1"></span>
+                <span *ngIf="selectedNwServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button [disabled]="formDisabled" pButton type="button" (click)="testNwServer()" label="Test"></button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
+              </div>
+
+              <!--PRIMENG SELECTION LIST-->
+              <p-listbox *ngIf="nwServers" [disabled]="formDisabled" [(ngModel)]="selectedNwServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" [options]="nwServersOptions"></p-listbox>
+
+
+              <!--LEGACY SELECTION LIST-->
+              <!--<div style="padding-top: 3px; width: 100%; overflow: visible;">
+                <select name="nwserver" [(ngModel)]="selectedNwServer" size="5" style="display: block; width: 100%;" required>
+                  <option *ngFor="let s of nwServers | mapValues" [ngValue]="s.id">{{s.friendlyName}}</option>
+                </select>
+              </div>
+              -->
+
+            <!--EXECUTE OR CANCEL BUTTONS-->
+            <div style="margin-top: 5px; float: right;">
+              <button pButton type="submit" [disabled]="!nwServerFormValid()" label="Execute"></button>
+              <button pButton type="button" (click)="cancel()" label="Cancel"></button>
             </div>
           </div>
-          <!--EXECUTE OR CANCEL-->
-          <div style="margin-top: 5px; float: right;">
-            <button type="submit" [disabled]="!addCollectionForm.form.valid">Execute</button>
-            <button type="button" (click)="cancel()">Cancel</button>
-          </div>
+          
         </div>
         </form>
         </fieldset>
 
 
         <!--ADD A NETWITNESS SERVICE BOX-->
-        <div #addServiceBox style="margin-top: 20px; padding: 5px; display: none;">
+        <div *ngIf="showNwServiceBox" #addServiceBox style="margin-top: 20px; padding: 5px;">
+
+          <form #addServiceForm="ngForm" (ngSubmit)="addNwServerSubmit(addServiceForm)" novalidate>
+            <mat-card>
+              <mat-card-content>
+                <mat-card-title *ngIf="nwServerMode == 'add'">
+                  Add a NetWitness Service
+                </mat-card-title>
+                <mat-card-title *ngIf="nwServerMode == 'edit'">
+                  Edit a NetWitness Service
+                </mat-card-title>
+                <!--HOSTNAME-->
+                <mat-form-field class="full-width">
+                  <input #hostName matInput [(ngModel)]="serviceFormModel.hostname" type="text" name="hostname" placeholder="Hostname" required>
+                </mat-form-field>
+                <!--USERNAME-->
+                <mat-form-field class="full-width">
+                  <input matInput [(ngModel)]="serviceFormModel.user" type="text" name="user" required placeholder="Username">
+                </mat-form-field>
+                <!--PASSWORD-->
+                <mat-form-field class="full-width">
+                  <input matInput [(ngModel)]="serviceFormModel.password" type="password" name="password" placeholder="Password" required>
+                </mat-form-field>
+                
+
+                <div fxLayout fxLayoutAlign="left" fxLayoutGap="5%">
+                  <div fxFlex="15%">
+                    <!--REST PORT-->
+                    <mat-form-field class="full-width">
+                      <input matInput [(ngModel)]="serviceFormModel.restPort" type="number" name="restPort" placeholder="REST Port" required>
+                    </mat-form-field>
+                  </div>
+                  <div fxFlex="15%" fxFlexAlign="center">
+                    <!--SSL-->
+                    <mat-checkbox labelPosition="after" [(ngModel)]="serviceFormModel.ssl" type="checkbox" name="ssl">SSL</mat-checkbox>
+                  </div>
+                  <div fxFlex="20%">
+                    <!--INVESTIGATION DEVICE ID-->
+                    <mat-form-field class="full-width">
+                      <input matInput [(ngModel)]="serviceFormModel.deviceNumber" type="number" name="deviceNumber" placeholder="Investigation ID" required>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <!--SAVE SERVICE OR CANCEL-->
+                <mat-card-actions align="end">
+                  <button mat-button type="submit" [disabled]="!addServiceFormValid(addServiceForm)">{{nwServerButtonText}}</button> <button mat-button type="button" (click)="hideServiceAddBox()">Cancel</button>
+                </mat-card-actions>
+
+              </mat-card-content>
+            </mat-card>
+          </form>
+
+          <!--
           <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
+          <h3 *ngIf="nwServerMode == 'add'" class="nwServerTitle">Add a NetWitness Service</h3>
+          <h3 *ngIf="nwServerMode == 'edit'" class="nwServerTitle">Edit a NetWitness Service</h3>
           <form #addServiceForm="ngForm" (ngSubmit)="addNwServerSubmit(addServiceForm)" novalidate>
             <table style="width: 100%;">
+              
               <tr>
                 <td class="column1">
                   <span>Hostname&nbsp;&nbsp;</span>
@@ -324,15 +395,19 @@
                     <input #hostName [(ngModel)]="serviceFormModel.hostname" type="text" name="hostname" style="width: 100%;" required>
                 </td>
               </tr>
+              
               <tr>
+                
                 <td>
                   <a>Username</a>
                 </td>
                 <td>
                   <a><input [(ngModel)]="serviceFormModel.user" type="text" name="user" style="width: 100px;" required></a>
+                  
                   <a>&nbsp;Password <input [(ngModel)]="serviceFormModel.password" type="password" name="password" style="width: 100px;" required></a>
                 </td>
               </tr>
+              
               <tr>
                 <td>
                   REST Port
@@ -341,16 +416,19 @@
                   <input [(ngModel)]="serviceFormModel.restPort" type="text" name="restPort" style="width: 50px;" required>&nbsp;SSL&nbsp;<input [(ngModel)]="serviceFormModel.ssl" type="checkbox" name="ssl">
                 </td>
               </tr>
+              
               <tr>
                 <td colspan="2">Investigation Device ID&nbsp;&nbsp;<input [(ngModel)]="serviceFormModel.deviceNumber" type="text" name="deviceNumber" style="width: 15px;" required>
                 </td>
               </tr>
             </table>
-            <!--SAVE SERVICE OR CANCEL-->
+            
             <div>
-              <a><button type="submit" [disabled]="!addServiceForm.form.valid">Save</button> <button type="button" (click)="hideServiceAddBox()">Cancel</button></a>
+              <a><button pButton type="submit" [disabled]="!addServiceFormValid(addServiceForm)" [label]="nwServerButtonText"></button> <button pButton type="button" (click)="hideServiceAddBox()" label="Cancel"></button></a>
             </div>
           </form>
+          -->
+
         </div>
       </div>
     </div>

@@ -71,11 +71,20 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
   getNwServers(): Promise<any> {
+    log.debug('DataService: getNwServers()');
     return this.http
                 .get(this.apiUrl + '/nwservers' )
                 .toPromise()
                 .then(response => response.json() as any )
                 .catch(e => this.handleError(e));
+  }
+
+  testNwServer( server: NwServer ): Promise<any> {
+    return this.http
+                .post(this.apiUrl + '/testnwserver', server )
+                .toPromise()
+                // .then( () => null );
+                // .catch(e => e.json() as any);
   }
 
   getUsers(): Promise<any> {
@@ -328,9 +337,19 @@ export class DataService { // Manages NwSession objects and also Image objects i
     return this.http.post(this.apiUrl + '/addnwserver', nwserver, options)
                 .toPromise()
                 .then(response => {
-                  log.debug(response);
+                  log.debug('DataService: addNwServer(): response:', response);
                 })
-                .catch(e => this.handleError(e));
+  }
+
+  editNwServer(nwserver: NwServer): Promise<any> {
+    log.debug('DataService: addNwServer()');
+    let headers = new Headers({ 'Content-Type': 'application/json'});
+    let options = new RequestOptions({ headers: headers });
+    return this.http.post(this.apiUrl + '/editnwserver', nwserver, options)
+                .toPromise()
+                .then(response => {
+                  log.debug('DataService: editNwServer(): response:', response);
+                })
   }
 
   addCollection(collection: any):  Promise<any> {

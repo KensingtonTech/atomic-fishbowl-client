@@ -10,6 +10,7 @@ import { ContentTypes } from './contenttypes';
 import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/primeng';
 import { Subscription } from 'rxjs/Subscription';
+import { NwServer } from './nwserver';
 declare var moment: any;
 declare var log: any;
 declare var JSEncrypt: any;
@@ -39,6 +40,10 @@ String.prototype.isBlank = function(c) {
 
   templateUrl: './addcollection-modal.component.html',
   styles: [`
+
+    .full-width {
+      width: 100%;
+    }
 
     .column1 {
       white-space: nowrap;
@@ -97,6 +102,15 @@ String.prototype.isBlank = function(c) {
       width: 375px;
     }
 
+    .nwServerTitle {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    .fa-deselect {
+      color: gray !important;
+    }
+
   `]
 })
 
@@ -110,12 +124,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   @Input() id: string;
   // @Output() executeCollection: EventEmitter<any> = new EventEmitter();
+  @ViewChild('addCollectionForm') public addCollectionForm: NgForm;
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
   private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
 
-  public mode = 'add'; // can be add, editRolling, editFixed
+  public mode = 'add'; // can be add, editRolling, or editFixed
+  public nwServerMode = 'add'; // can be add or edit
   public formDisabled = false;
   private defaultCollectionQuery = `filetype='pdf','office 2007 document'`;
   private defaultCollectionType = 'rolling';
@@ -123,6 +139,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private defaultUseCaseBinding = 'bound';
   public showUseCaseValues = false; // used to switch input controls to readonly mode.  true = readonly mode
   public collection: any;
+  public testError = '';
 
   public collectionFormModel = {
     name: '', //
@@ -149,7 +166,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   };
   public queryInputText = this.defaultCollectionQuery;
   public selectedNwServer = '';
-  public nwservers: any;
+  public nwServers: any = {};
+  public nwServersOptions: SelectItem[];
 
   public serviceFormModel = {
     hostname: '',
@@ -190,6 +208,10 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public hashesEnabled = false;
 
   private editingCollectionId: string;
+  private editingNwServerId: string;
+  public showNwServiceBox = false;
+  public nwServerButtonText = 'Save'; // or 'Update'
+  public thumbClass = '';
 
   ngOnInit(): void {
 
@@ -320,17 +342,22 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   displayServiceAddBox(): void {
-    this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
+    // this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
+    if (this.formDisabled) return;
     setTimeout( () => {
+      this.showNwServiceBox = true;
+      this.nwServerButtonText = 'Save';
+      this.nwServerMode = 'add';
       this.formDisabled = true;
       // setTimeout( () => this.hostNameRef.first.nativeElement.focus(), .2 );
-      this.hostNameRef.first.nativeElement.focus();
     }, 0);
+    setTimeout( () => this.hostNameRef.first.nativeElement.focus() );
   }
 
   hideServiceAddBox(): void {
     setTimeout( () => {
-      this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
+      // this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
+      this.showNwServiceBox = false;
       this.serviceFormModel.hostname = '';
       this.serviceFormModel.restPort = 50103;
       this.serviceFormModel.ssl = false;
@@ -352,31 +379,58 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('AddCollectionModalComponent: cancelledEventReceived()');
   }
 
-  getNwServers(): void {
+  getNwServers(): Promise<any> {
     // log.debug("AddCollectionModalComponent: getNwServers()");
-    this.dataService.getNwServers().then(n => {
-      setTimeout( () => {
-        this.nwservers = n;
-        // log.debug("AddCollectionModalComponent: getNwServers(): this.nwservers:", this.nwservers);
-        this.selectedNwServer = this.getFirstNwServer();
-        // this.changeDetectionRef.markForCheck();
-      }, 0);
-    });
+    return this.dataService.getNwServers()
+                            .then( n => {
+                              // setTimeout( () => {
+                                log.debug('AddCollectionModalComponent: getNwServers(): nwServers:', n);
+                                this.nwServers = n;
+                                // log.debug("AddCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
+                              
+                                let o: SelectItem[] = [];
+                                for (let server in this.nwServers) {
+                                  if (this.nwServers.hasOwnProperty(server)) {
+                                    //log.debug('nwserver:', server);
+                                    o.push( { label: this.nwServers[server].friendlyName, value: this.nwServers[server].id } )  ;
+                                  }
+                                }
+                                this.nwServersOptions = o;
+                              // }, 0);
+
+                            });
   }
 
   getFirstNwServer(): any { // a bit of a hack since dicts aren't really ordered
-    for (let s in this.nwservers) {
+    for (let s in this.nwServers) {
       // log.debug(AddCollectionModalComponent: getFirstNwServer: s, s);
-      if (this.nwservers.hasOwnProperty(s)) {
+      if (this.nwServers.hasOwnProperty(s)) {
         return s;
       }
     }
+    return '';
   }
 
   deleteNwServer(): void {
     log.debug('AddCollectionModalComponent: deleteNwServer(): this.selectedNwServer', this.selectedNwServer);
-    // log.debug(this.nwservers[this.selectedNwServer].friendlyName);
-    this.dataService.deleteNwServer(this.selectedNwServer).then ( () => this.getNwServers() );
+    if (this.formDisabled) return;
+    // log.debug(this.nwServers[this.selectedNwServer].friendlyName);
+    this.dataService.deleteNwServer(this.selectedNwServer)
+                    .then ( () => {
+                      this.getNwServers()
+
+                          .then( () => {
+                            if (Object.keys(this.nwServers).length === 0) {
+                              log.debug('this.selectedNwServer:', this.selectedNwServer);
+                              setTimeout( () => this.selectedNwServer = '', 0);
+                            }
+                            else {
+                              log.debug('nwServers key length was:', Object.keys(this.nwServers).length);
+                              log.debug('nwServers keys:', Object.keys(this.nwServers));
+                            }
+                          });
+                    })
+
   }
 
   convertTimeSelection(): any {
@@ -563,7 +617,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }*/
 
   // submitForAdd(): void {
-    onCollectionSubmit(f: NgForm): void {
+  onCollectionSubmit(f: NgForm): void {
     // log.debug('AddCollectionModalComponent: submitForAdd()');
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
@@ -572,8 +626,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       name: this.collectionFormModel.name,
       imageLimit: this.collectionFormModel.contentLimit,
       nwserver: this.selectedNwServer,
-      nwserverName: this.nwservers[this.selectedNwServer].friendlyName,
-      deviceNumber: this.nwservers[this.selectedNwServer].deviceNumber,
+      nwserverName: this.nwServers[this.selectedNwServer].friendlyName,
+      deviceNumber: this.nwServers[this.selectedNwServer].deviceNumber,
       id: UUID.UUID(), // overridden later if editing collection
       minX: this.collectionFormModel.minX,
       minY: this.collectionFormModel.minY,
@@ -676,10 +730,11 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   addNwServerSubmit(f: NgForm): void {
-    // log.debug("AddCollectionModalComponent: addNwServer(): f:", f);
+    // log.debug("AddCollectionModalComponent: addNwServerSubmit(): f:", f);
     this.hideServiceAddBox();
     let encPassword = this.encryptor.encrypt(f.value.password);
     let newServer = {
+      id: UUID.UUID(),
       host: f.value.hostname,
       port: f.value.restPort,
       ssl: f.value.ssl,
@@ -688,12 +743,52 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       deviceNumber: f.value.deviceNumber,
       friendlyName: f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ' (' + f.value.deviceNumber + ')'
     };
+    if (this.nwServerMode == 'edit') {
+      // server = this.nwServers[this.selectedNwServer];
+      newServer.id = this.editingNwServerId;
+    }
     if (newServer.ssl) {
       // newServer.friendlyName = newServer.friendlyName + ':ssl';
       newServer.friendlyName = f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ':ssl' + ' (' + f.value.deviceNumber + ')';
     }
     log.debug('AddCollectionModalComponent: addNwServer() newServer:', newServer);
-    this.dataService.addNwServer(newServer).then( () => this.getNwServers() );
+    
+    if (this.nwServerMode == 'add') {
+      this.dataService.addNwServer(newServer)
+                      .then( () => {
+                          this.getNwServers()
+                              .then( () => {
+                                log.debug('addNwServerSubmit: returned from getNwServers');
+                                log.debug('addNwServerSubmit: this.selectedNwServer:', this.selectedNwServer);
+                                if (this.selectedNwServer === '') {
+                                  setTimeout( () => this.selectedNwServer = newServer.id);
+                                }
+                              });
+                        })
+                        .catch( (err) => {
+                          let error = JSON.parse(err);
+                          log.error('AddCollectionModalComponent: addNwServerSubmit(): error response from server:', error.error);
+                        });
+    }
+
+    if (this.nwServerMode == 'edit') {
+      this.dataService.editNwServer(newServer)
+                      .then( () => {
+                          this.getNwServers()
+                              .then( () => {
+                                log.debug('addNwServerSubmit: returned from editNwServers');
+                                log.debug('addNwServerSubmit: this.selectedNwServer:', this.selectedNwServer);
+                                if (this.selectedNwServer === '') {
+                                  setTimeout( () => this.selectedNwServer = newServer.id);
+                                }
+                              });
+                        })
+                        .catch( (err) => {
+                          let error = JSON.parse(err);
+                          log.error('AddCollectionModalComponent: addNwServerSubmit(): error response from server:', error.error);
+                        });
+    }
+
   }
 
   onOpen(): void {
@@ -867,6 +962,10 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       this.collectionFormModel.selectedUseCase = this.useCaseOptions[0].value; // this sets it to 'custom'
       this.showUseCaseValues = false;
       this.displayUseCaseDescription = false;
+      if (Object.keys(this.nwServers).length !== 0) {
+        this.selectedNwServer = Object.keys(this.nwServers)[0];
+      }
+      log.debug('AddCollectionModalComponent: onAddCollection(): selectedNwServer', this.selectedNwServer);
     }, 0);
   }
 
@@ -922,7 +1021,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
 
       // TODO: add logic for when server has been deleted
-      this.selectedNwServer = collection.nwserver;
+      if (collection.nwserver in this.nwServers) {
+        log.debug(`Collection's nwserver ${collection.nwserver} is defined`);
+        this.selectedNwServer = collection.nwserver;
+      }
+      else {
+        log.debug(`Collection's nwserver ${collection.nwserver} is not currently defined`);
+        this.selectedNwServer = '';
+      }
 
       if (collection.distillationEnabled) {
         this.collectionFormModel.distillationEnabled = true;
@@ -964,6 +1070,65 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         this.collectionFormModel.md5Enabled = false;
       }
     
+    }, 0);
+  }
+
+  public nwServerFormValid(): boolean {
+    // log.debug('AddCollectionModalComponent: nwServerFormValid()');
+    // log.debug('this.selectedNwServer:', this.selectedNwServer);
+    // log.debug('this.nwServers:', this.nwServers);
+    if (Object.keys(this.nwServers).length == 0) return false;
+    if (!(this.selectedNwServer in this.nwServers)) return false;
+    if (this.addCollectionForm.form.valid && this.selectedNwServer !== '') return true;
+    return false;
+  }
+
+  public addServiceFormValid(form: NgForm): boolean {
+    // log.debug('AddCollectionModalComponent: addServiceFormValid()');
+    // log.debug('this.selectedNwServer:', this.selectedNwServer);
+    // log.debug('this.nwServers:', this.nwServers);
+    /*if (Object.keys(this.nwServers).length == 0) return false;
+    if (!(this.selectedNwServer in this.nwServers)) return false;
+    if (this.addCollectionForm.form.valid && this.selectedNwServer !== '') return true;
+    return false;
+    */
+    return true;
+  }
+
+  public onNwServerChanged(): void {
+    log.debug(`AddCollectionModalComponent: onNwServerChanged(): selectedNwServer: ${this.selectedNwServer}`);
+  }
+
+  public testNwServer(): void {
+    this.dataService.testNwServer(this.nwServers[this.selectedNwServer])
+                    .then( () => {
+                      this.thumbClass = 'fa-thumbs-up';
+                      this.testError = 'Connection was successful';
+                    })
+                    .catch( (err) => {
+                      this.thumbClass = 'fa-thumbs-down';
+                      this.testError = 'Connection failed';
+                      log.info('Test connection failed with error:', err);
+                    });
+  }
+
+
+  public editNwServer(): void {
+    log.debug('AddCollectionModalComponent: editNwServer()');
+    if (this.formDisabled) return;
+    setTimeout( () => {
+      this.formDisabled = true;
+      this.nwServerMode = 'edit';
+      this.nwServerButtonText = 'Update';
+      this.showNwServiceBox = true;
+      let server = this.nwServers[this.selectedNwServer];
+      log.debug('AddCollectionModalComponent: editNwServer(): server:', server);
+      this.editingNwServerId = server.id;
+      this.serviceFormModel.hostname = server.host;
+      this.serviceFormModel.user = server.user;
+      this.serviceFormModel.restPort = server.port;
+      this.serviceFormModel.ssl = server.ssl;
+      this.serviceFormModel.deviceNumber = server.deviceNumber;
     }, 0);
   }
 
