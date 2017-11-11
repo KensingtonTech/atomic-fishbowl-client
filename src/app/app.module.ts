@@ -58,6 +58,7 @@ import { DeleteUserConfirmModalComponent } from './deleteuser-confirm-modal.comp
 import { ServerDownModalComponent } from './serverdown-modal.component';
 import { LoginComponent } from './login.component';
 import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.component';
+import { DeleteNwServerConfirmModalComponent } from './deletenwserver-confirm-modal.component';
 
 // Not yet used but imported to prevent compiler error
 import { SessionWidgetComponent } from './session-widget.component';
@@ -137,7 +138,8 @@ import * as $ from 'jquery';
                   DeleteUserConfirmModalComponent,
                   ServerDownModalComponent,
                   DownloadFileConfirmModalComponent,
-                  SessionWidgetComponent
+                  SessionWidgetComponent,
+                  DeleteNwServerConfirmModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

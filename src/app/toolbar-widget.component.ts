@@ -14,7 +14,7 @@ declare var log: any;
 
 @Component( {
   selector: 'toolbar-widget',
-  encapsulation: ViewEncapsulation.None,
+  // encapsulation: ViewEncapsulation.None,
   template: `
 <div style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
   <div *ngIf="showCollections">
@@ -122,10 +122,12 @@ declare var log: any;
       display: none;
     }
 
-    .collectionTooltip.ui-tooltip .ui-tooltip-text {
+    /*.collectionTooltip.ui-tooltip .ui-tooltip-text {
       white-space: pre-line;
       width: 375px;
     }
+    moved to styles.css so we don't need to disable view encapsulation
+    */
 
   `]
 } )

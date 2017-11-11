@@ -306,15 +306,6 @@
               <!--PRIMENG SELECTION LIST-->
               <p-listbox *ngIf="nwServers" [disabled]="formDisabled" [(ngModel)]="selectedNwServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" [options]="nwServersOptions"></p-listbox>
 
-
-              <!--LEGACY SELECTION LIST-->
-              <!--<div style="padding-top: 3px; width: 100%; overflow: visible;">
-                <select name="nwserver" [(ngModel)]="selectedNwServer" size="5" style="display: block; width: 100%;" required>
-                  <option *ngFor="let s of nwServers | mapValues" [ngValue]="s.id">{{s.friendlyName}}</option>
-                </select>
-              </div>
-              -->
-
             <!--EXECUTE OR CANCEL BUTTONS-->
             <div style="margin-top: 5px; float: right;">
               <button pButton type="submit" [disabled]="!nwServerFormValid()" label="Execute"></button>
@@ -342,14 +333,17 @@
                 <!--HOSTNAME-->
                 <mat-form-field class="full-width">
                   <input #hostName matInput [(ngModel)]="serviceFormModel.hostname" type="text" name="hostname" placeholder="Hostname" required>
+                  <mat-error *ngIf="!serviceFormModel.hostname">Hostname is required</mat-error>
                 </mat-form-field>
                 <!--USERNAME-->
                 <mat-form-field class="full-width">
                   <input matInput [(ngModel)]="serviceFormModel.user" type="text" name="user" required placeholder="Username">
+                  <mat-error *ngIf="!serviceFormModel.user">Username is required</mat-error>
                 </mat-form-field>
                 <!--PASSWORD-->
                 <mat-form-field class="full-width">
-                  <input matInput [(ngModel)]="serviceFormModel.password" type="password" name="password" placeholder="Password" required>
+                  <input matInput [(ngModel)]="serviceFormModel.password" type="password" name="password" placeholder="Password" [required]="passwordRequired">
+                  <mat-error *ngIf="nwServerMode == 'add' && !serviceFormModel.password">Password is required</mat-error>
                 </mat-form-field>
                 
 
@@ -357,7 +351,8 @@
                   <div fxFlex="15%">
                     <!--REST PORT-->
                     <mat-form-field class="full-width">
-                      <input matInput [(ngModel)]="serviceFormModel.restPort" type="number" name="restPort" placeholder="REST Port" required>
+                      <input matInput [(ngModel)]="serviceFormModel.restPort" type="number" name="restPort" placeholder="REST Port">
+                      <mat-error *ngIf="!serviceFormModel.restPort">REST Port is required</mat-error>
                     </mat-form-field>
                   </div>
                   <div fxFlex="15%" fxFlexAlign="center">
@@ -366,68 +361,23 @@
                   </div>
                   <div fxFlex="20%">
                     <!--INVESTIGATION DEVICE ID-->
-                    <mat-form-field class="full-width">
+                    <mat-form-field class="full-width" pTooltip="In NetWitness, every core service is assigned a numeric identifier, which is used to browse that specific service in Investigation.  You can find the ID for your device by browsing to Investigation in NetWitness, selecting this service, and viewing the URL.  The URL will look like https://hostname/investigation/<DEVICENUMBER>" showDelay="1000" hideDelay="1000" tooltipStyleClass="investigationTooltip">
                       <input matInput [(ngModel)]="serviceFormModel.deviceNumber" type="number" name="deviceNumber" placeholder="Investigation ID" required>
+                      <mat-error *ngIf="!serviceFormModel.deviceNumber">Investigation ID is required</mat-error>
                     </mat-form-field>
                   </div>
                 </div>
                 <!--SAVE SERVICE OR CANCEL-->
                 <mat-card-actions align="end">
+                  <button mat-button type="button" (click)="testNwServer()" [disabled]="!addServiceFormValid(addServiceForm)" color="accent">Test</button> 
                   <button mat-button type="submit" [disabled]="!addServiceFormValid(addServiceForm)">{{nwServerButtonText}}</button> <button mat-button type="button" (click)="hideServiceAddBox()">Cancel</button>
                 </mat-card-actions>
+
+                <div *ngIf="thumbClassInForm" style="text-align: right;">{{testErrorInForm}} <i style="vertical-align: top;" [ngClass]="thumbClassInForm" class="fa fa-lg"></i></div>
 
               </mat-card-content>
             </mat-card>
           </form>
-
-          <!--
-          <hr style="	height: 10px;	border: 0;	box-shadow: 0 10px 10px -10px #8c8b8b inset;">
-          <h3 *ngIf="nwServerMode == 'add'" class="nwServerTitle">Add a NetWitness Service</h3>
-          <h3 *ngIf="nwServerMode == 'edit'" class="nwServerTitle">Edit a NetWitness Service</h3>
-          <form #addServiceForm="ngForm" (ngSubmit)="addNwServerSubmit(addServiceForm)" novalidate>
-            <table style="width: 100%;">
-              
-              <tr>
-                <td class="column1">
-                  <span>Hostname&nbsp;&nbsp;</span>
-                </td>
-                <td>
-                    <input #hostName [(ngModel)]="serviceFormModel.hostname" type="text" name="hostname" style="width: 100%;" required>
-                </td>
-              </tr>
-              
-              <tr>
-                
-                <td>
-                  <a>Username</a>
-                </td>
-                <td>
-                  <a><input [(ngModel)]="serviceFormModel.user" type="text" name="user" style="width: 100px;" required></a>
-                  
-                  <a>&nbsp;Password <input [(ngModel)]="serviceFormModel.password" type="password" name="password" style="width: 100px;" required></a>
-                </td>
-              </tr>
-              
-              <tr>
-                <td>
-                  REST Port
-                </td>
-                <td>
-                  <input [(ngModel)]="serviceFormModel.restPort" type="text" name="restPort" style="width: 50px;" required>&nbsp;SSL&nbsp;<input [(ngModel)]="serviceFormModel.ssl" type="checkbox" name="ssl">
-                </td>
-              </tr>
-              
-              <tr>
-                <td colspan="2">Investigation Device ID&nbsp;&nbsp;<input [(ngModel)]="serviceFormModel.deviceNumber" type="text" name="deviceNumber" style="width: 15px;" required>
-                </td>
-              </tr>
-            </table>
-            
-            <div>
-              <a><button pButton type="submit" [disabled]="!addServiceFormValid(addServiceForm)" [label]="nwServerButtonText"></button> <button pButton type="button" (click)="hideServiceAddBox()" label="Cancel"></button></a>
-            </div>
-          </form>
-          -->
 
         </div>
       </div>
@@ -435,3 +385,4 @@
   </div>
   <div class="modal-background"></div>
 </modal>
+<confirm-nwserver-delete-modal></confirm-nwserver-delete-modal>

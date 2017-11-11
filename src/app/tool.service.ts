@@ -38,6 +38,8 @@ export class ToolService {
   public editCollectionNext: Subject<void> = new Subject<void>();
   public executeAddCollection: Subject<any> = new Subject<any>();
   public executeEditCollection: Subject<any> = new Subject<any>();
+  public nwServerToDelete: Subject<any> = new Subject<any>();
+  public confirmNwServerDelete: Subject<string> = new Subject<string>();
 
   constructor() {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );

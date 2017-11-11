@@ -2,19 +2,19 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
-import { User } from './user';
+import { NwServer } from './nwserver';
 import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
 @Component({
-  selector: 'confirm-user-delete-modal',
+  selector: 'confirm-nwserver-delete-modal',
   template: `
-<modal id="{{id}}" class="confirm-user-delete-modal">
+<modal id="{{id}}" class="confirm-nwserver-delete-modal">
     <div class="modal">
       <div class="noselect">
-          <div class="modal-body" style="width: 350px;">
-            <div *ngIf="user">
-              <p>Are you sure you want to delete user {{user.username}}?</p>
+          <div class="modal-body" style="top: 500px; width: 700px;">
+            <div *ngIf="nwServer" style="text-align: center;">
+              <p>Are you sure you want to delete NetWitness service <b>{{nwServer.friendlyName}}</b> ?</p>
             </div>
             <div style="float: right;">
               <button (click)="confirmDelete()">Confirm</button>
@@ -28,11 +28,11 @@ declare var log: any;
   `,
   styles: [`
 
-  .confirm-user-delete-modal .modal {
+  .confirm-nwserver-delete-modal .modal {
       z-index: 1100;
     }
 
-  .confirm-user-delete-modal .modal-background {
+  .confirm-nwserver-delete-modal .modal-background {
     opacity: 0.85;
 
     /* z-index must be below .modal and above everything else  */
@@ -42,25 +42,25 @@ declare var log: any;
   `]
 })
 
-export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {
+export class DeleteNwServerConfirmModalComponent implements OnInit, OnDestroy {
 
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  public id = 'confirm-user-delete-modal';
-  public user: User;
-  private userToDeleteSubscription: Subscription;
+  public id = 'confirm-nwserver-delete-modal';
+  public nwServer: NwServer;
+  private nwServerToDeleteSubscription: Subscription;
 
   ngOnInit(): void {
-    this.userToDeleteSubscription = this.toolService.userToDelete.subscribe( (u: User) => { this.user = u; });
+    this.nwServerToDeleteSubscription = this.toolService.nwServerToDelete.subscribe( (server: NwServer) => { this.nwServer = server; });
   }
 
   public ngOnDestroy() {
-    this.userToDeleteSubscription.unsubscribe();
+    this.nwServerToDeleteSubscription.unsubscribe();
   }
 
   confirmDelete(): void {
-    this.toolService.confirmUserDelete.next(this.user.id);
+    this.toolService.confirmNwServerDelete.next(this.nwServer.id);
     this.closeModal();
   }
 

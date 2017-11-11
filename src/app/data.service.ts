@@ -79,7 +79,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
-  testNwServer( server: NwServer ): Promise<any> {
+  testNwServer( server: any ): Promise<any> {
     return this.http
                 .post(this.apiUrl + '/testnwserver', server )
                 .toPromise()

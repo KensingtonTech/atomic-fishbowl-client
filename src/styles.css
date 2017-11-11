@@ -145,3 +145,13 @@ body .modal-open {
 .ui-dropdown::after {
   display: none !important;
 }
+
+.investigationTooltip.ui-tooltip .ui-tooltip-text {
+  white-space: pre-line;
+  width: 375px;
+}
+
+.collectionTooltip.ui-tooltip .ui-tooltip-text {
+  white-space: pre-line;
+  width: 375px;
+}

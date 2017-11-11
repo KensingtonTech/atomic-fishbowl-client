@@ -111,6 +111,11 @@ String.prototype.isBlank = function(c) {
       color: gray !important;
     }
 
+    .investigationTooltip.ui-tooltip .ui-tooltip-text {
+      white-space: pre-line;
+      width: 375px;
+    }
+
   `]
 })
 
@@ -192,6 +197,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private useCasesChangedSubscription: Subscription;
   private addCollectionNextSubscription: Subscription;
   private editCollectionNextSubscription: Subscription;
+  private confirmNwServerDeleteSubscription: Subscription;
+
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
 
@@ -212,6 +219,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public showNwServiceBox = false;
   public nwServerButtonText = 'Save'; // or 'Update'
   public thumbClass = '';
+  public thumbClassInForm = '';
+  public passwordRequired = true;
+  public testErrorInForm = '';
 
   ngOnInit(): void {
 
@@ -308,6 +318,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       this.onEditCollection(collection);
     });
 
+    this.confirmNwServerDeleteSubscription = this.toolService.confirmNwServerDelete.subscribe( (id: string) => this.deleteNwServerConfirmed(id) );
+
   }
 
   public ngOnDestroy() {
@@ -345,6 +357,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     // this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
     if (this.formDisabled) return;
     setTimeout( () => {
+      this.passwordRequired = true;
+      this.thumbClassInForm = '';
       this.showNwServiceBox = true;
       this.nwServerButtonText = 'Save';
       this.nwServerMode = 'add';
@@ -414,15 +428,25 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   deleteNwServer(): void {
     log.debug('AddCollectionModalComponent: deleteNwServer(): this.selectedNwServer', this.selectedNwServer);
     if (this.formDisabled) return;
+    this.toolService.nwServerToDelete.next(this.nwServers[this.selectedNwServer]);
+    this.modalService.open('confirm-nwserver-delete-modal');
+  }
+
+  deleteNwServerConfirmed(id: string): void {
+    log.debug('AddCollectionModalComponent: deleteNwServerConfirmed(): id:', id);
     // log.debug(this.nwServers[this.selectedNwServer].friendlyName);
-    this.dataService.deleteNwServer(this.selectedNwServer)
+    this.dataService.deleteNwServer(id)
                     .then ( () => {
                       this.getNwServers()
 
                           .then( () => {
                             if (Object.keys(this.nwServers).length === 0) {
-                              log.debug('this.selectedNwServer:', this.selectedNwServer);
+                              // log.debug('this.selectedNwServer:', this.selectedNwServer);
                               setTimeout( () => this.selectedNwServer = '', 0);
+                            }
+                            if (Object.keys(this.nwServers).length === 1) {
+                              // log.debug('this.selectedNwServer:', this.selectedNwServer);
+                              setTimeout( () => this.selectedNwServer = Object.keys(this.nwServers)[0], 0);
                             }
                             else {
                               log.debug('nwServers key length was:', Object.keys(this.nwServers).length);
@@ -432,6 +456,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                     })
 
   }
+
+
 
   convertTimeSelection(): any {
     const t = { timeBegin: 0, timeEnd: 0 };
@@ -1073,6 +1099,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+  
+
   public nwServerFormValid(): boolean {
     // log.debug('AddCollectionModalComponent: nwServerFormValid()');
     // log.debug('this.selectedNwServer:', this.selectedNwServer);
@@ -1085,14 +1113,12 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   public addServiceFormValid(form: NgForm): boolean {
     // log.debug('AddCollectionModalComponent: addServiceFormValid()');
-    // log.debug('this.selectedNwServer:', this.selectedNwServer);
-    // log.debug('this.nwServers:', this.nwServers);
-    /*if (Object.keys(this.nwServers).length == 0) return false;
-    if (!(this.selectedNwServer in this.nwServers)) return false;
-    if (this.addCollectionForm.form.valid && this.selectedNwServer !== '') return true;
+
+    if (this.nwServerMode === 'add' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) return true;
+
+    if (this.nwServerMode === 'edit' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) return true;
+
     return false;
-    */
-    return true;
   }
 
   public onNwServerChanged(): void {
@@ -1100,14 +1126,63 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public testNwServer(): void {
-    this.dataService.testNwServer(this.nwServers[this.selectedNwServer])
+    var server = {};
+    if (!this.showNwServiceBox) {
+      server = this.nwServers[this.selectedNwServer];
+    }
+    else if (this.nwServerMode === 'add') {
+      server = {
+        host: this.serviceFormModel.hostname,
+        port: this.serviceFormModel.restPort,
+        ssl: this.serviceFormModel.ssl,
+        user: this.serviceFormModel.user,
+        password: this.encryptor.encrypt(this.serviceFormModel.password)
+      };
+    }
+    else if (this.nwServerMode === 'edit') {
+      server = {
+        id: this.editingNwServerId,
+        host: this.serviceFormModel.hostname,
+        port: this.serviceFormModel.restPort,
+        ssl: this.serviceFormModel.ssl,
+        user: this.serviceFormModel.user
+      };
+      if (this.serviceFormModel.password) {
+        // we only set the password if we've changed it
+        server['password'] = this.encryptor.encrypt(this.serviceFormModel.password);
+      }
+    }
+    this.dataService.testNwServer(server)
                     .then( () => {
-                      this.thumbClass = 'fa-thumbs-up';
-                      this.testError = 'Connection was successful';
+                      let msg = 'Connection was successful';
+                      if (!this.showNwServiceBox) {
+                        this.thumbClass = 'fa-thumbs-up';
+                        this.thumbClassInForm = '';
+                        this.testError = msg;
+                        this.testErrorInForm = '';
+                      }
+                      else {
+                        this.thumbClass = '';
+                        this.thumbClassInForm = 'fa-thumbs-up';
+                        this.testErrorInForm = msg;
+                        this.testError = '';
+                      }
                     })
                     .catch( (err) => {
-                      this.thumbClass = 'fa-thumbs-down';
-                      this.testError = 'Connection failed';
+                      let msg = 'Connection failed';
+                      if (!this.showNwServiceBox) {
+                        this.thumbClass = 'fa-thumbs-down';
+                        this.thumbClassInForm = '';
+                        this.testError = msg;
+                        this.testErrorInForm = '';
+                      }
+                      else {
+                        this.thumbClass = '';
+                        this.thumbClassInForm = 'fa-thumbs-down';
+                        this.testErrorInForm = msg;
+                        this.testError = '';
+                      }
+                      
                       log.info('Test connection failed with error:', err);
                     });
   }
@@ -1117,6 +1192,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('AddCollectionModalComponent: editNwServer()');
     if (this.formDisabled) return;
     setTimeout( () => {
+      this.passwordRequired = false;
+      this.thumbClassInForm = '';
       this.formDisabled = true;
       this.nwServerMode = 'edit';
       this.nwServerButtonText = 'Update';
