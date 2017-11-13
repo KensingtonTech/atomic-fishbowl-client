@@ -220,6 +220,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public passwordRequired = true;
   public testErrorInForm = '';
   public disableBindingControls = false;
+  public testInProgress = false;
 
   ngOnInit(): void {
 
@@ -924,7 +925,22 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     log.debug(`AddCollectionModalComponent: onNwServerChanged(): selectedNwServer: ${this.selectedNwServer}`);
   }
 
+
   public testNwServer(): void {
+    if (this.testInProgress) {
+      return;
+    }
+    if (!this.showNwServiceBox) {
+      this.testError = 'Test in progress';
+      this.thumbClass = '';
+    }
+    else {
+      this.testErrorInForm = 'Test in progress';
+      this.thumbClassInForm = '';
+    }
+
+    this.testInProgress = true;
+
     let server = {};
     if (!this.showNwServiceBox) {
       server = this.nwServers[this.selectedNwServer];
@@ -953,6 +969,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
     this.dataService.testNwServer(server)
                     .then( () => {
+                      this.testInProgress = false;
                       let msg = 'Connection was successful';
                       if (!this.showNwServiceBox) {
                         this.thumbClass = 'fa-thumbs-up';
@@ -968,6 +985,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                       }
                     })
                     .catch( (err) => {
+                      this.testInProgress = false;
                       let msg = 'Connection failed';
                       if (!this.showNwServiceBox) {
                         this.thumbClass = 'fa-thumbs-down';

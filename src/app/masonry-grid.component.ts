@@ -24,7 +24,7 @@ declare var $: any; // we must declare jQuery in this instance because we're usi
 <div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px; background-color: black;">
   <div style="position: absolute; left: 0; width: 100px; height: 100%;">
     <masonry-control-bar></masonry-control-bar>
-    <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 15px; top: 100px; color: white; z-index: 100;">
+    <div *ngIf="selectedCollectionType == 'monitoring' && !destroyView" style="position: absolute; left: 15px; top: 100px; color: white; z-index: 100;">
       <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
       <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
     </div>
