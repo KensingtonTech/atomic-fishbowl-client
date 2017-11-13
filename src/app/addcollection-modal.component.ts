@@ -142,13 +142,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public showUseCaseValues = false; // used to switch input controls to readonly mode.  true = readonly mode
   public collection: any;
   public testError = '';
+  public timeBegin: Date = new Date();
+  public timeEnd: Date = new Date();
 
   public collectionFormModel = {
     name: '',
     type: this.defaultCollectionType,
     lastHours: 1,
-    timeBegin: new Date(),
-    timeEnd: new Date(),
     selectedUseCase: null,
     useCaseBinding: this.defaultUseCaseBinding,
     selectedContentTypes: [],
@@ -482,7 +482,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     else if ( this.collectionFormModel.type === 'fixed' ) {
       let t: any = {};
       if (this.selectedTimeframe === 'Custom') {
-        t = utils.convertCustomTimeSelection(this.collectionFormModel.timeBegin, this.collectionFormModel.timeEnd);
+        t = utils.convertCustomTimeSelection(this.timeBegin, this.timeEnd);
       }
       else {
         t = utils.convertTimeSelection(this.selectedTimeframe);
@@ -719,6 +719,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           this.collectionFormModel.regexDistillationEnabled = true;
           this.collectionFormModel.regexDistillationTerms = thisUseCase.regexTerms.join('\n');
         }
+        // this might be our problem
         this.collectionFormModel = JSON.parse(JSON.stringify(this.collectionFormModel));
         if (this.collectionFormModel.useCaseBinding === 'bound') {
           this.showUseCaseValues = true;
