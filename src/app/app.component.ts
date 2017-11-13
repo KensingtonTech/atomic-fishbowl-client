@@ -14,7 +14,7 @@ declare var log: any;
 <div *ngIf="serverReachable && !isMobile" style="position: relative; width: 100vw; height: 100vh;">
   <toolbar-widget *ngIf="loggedIn"></toolbar-widget>
   <router-outlet></router-outlet>
-  <img class="noselect" src="/resources/logo.png" style="position: absolute; left:10px; bottom: 15px;">
+  <img *ngIf="loggedIn" class="noselect" src="/resources/logo.png" style="position: absolute; left:10px; bottom: 15px;">
 </div>
 <serverdown-modal id="serverDownModal"></serverdown-modal>
   `
