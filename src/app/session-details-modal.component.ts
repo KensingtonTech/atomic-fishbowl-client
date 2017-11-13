@@ -3,6 +3,7 @@ import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
+import * as utils from './utils';
 declare var log: any;
 
 @Component({
@@ -26,8 +27,8 @@ declare var log: any;
           <img class="myImg" *ngIf="content.contentType == 'hash'" src="/resources/executable_hash_icon.png" draggable="false">
 
           <div *ngIf="content.fromArchive || content.isArchive" style="position: absolute; top: 5px; right: 15px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-            <span *ngIf="content.isArchive" style="display: inline-block; vertical-align: middle;">{{pathToFilename(content.contentFile)}}</span>
-            <span *ngIf="content.fromArchive" style="display: inline-block; vertical-align: middle;">{{pathToFilename(content.archiveFilename)}}</span>
+            <span *ngIf="content.isArchive" style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
+            <span *ngIf="content.fromArchive" style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.archiveFilename)}}</span>
             <span *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType ==  'encryptedRarTable'" class="fa fa-lock" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
             <span class="fa fa-file-archive-o" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
           </div>
@@ -36,7 +37,7 @@ declare var log: any;
 
             <div style="text-align: left;">
               <div *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
-                <h3>Encrypted file within a {{toCaps(content.archiveType)}} archive</h3>
+                <h3>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</h3>
               </div>
               <div *ngIf="content.contentType == 'unsupportedZipEntry'">
                 <h3>Unsupported ZIP format</h3>
@@ -45,46 +46,46 @@ declare var log: any;
                 <h3>RAR archive has an encrypted table</h3>
               </div>
               <div *ngIf="content.contentType == 'hash'">
-                <h3>Found executable matching {{toCaps(content.hashType)}} hash value</h3>
+                <h3>Found executable matching {{utils.toCaps(content.hashType)}} hash value</h3>
               </div>
               <div *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
                 <h3>Found PDF document containing text term</h3>
               </div>
               <div *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-                <h3>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document containing text term</h3>
+                <h3>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document containing text term</h3>
               </div>
               <div *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
                 <h3>Found PDF document matching Regex term</h3>
               </div>
               <div *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-                <h3>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</h3>
+                <h3>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</h3>
               </div>
             </div>
 
             <table *ngIf="content.contentType != 'img'" class="selectable">
               <tr *ngIf="content.contentType == 'hash'">
-                <td class="column1">{{toCaps(content.hashType)}} Hash:</td>
+                <td class="column1">{{utils.toCaps(content.hashType)}} Hash:</td>
                 <td class="value">{{content.hashValue}}</td>
               </tr>
               <tr *ngIf="content.contentType == 'hash' && content.hashFriendly">
-                <td class="column1">{{toCaps(content.hashType)}} Description:</td>
+                <td class="column1">{{utils.toCaps(content.hashType)}} Description:</td>
                 <td class="value">{{content.hashFriendly}}</td>
               </tr>
               <tr *ngIf="content.contentType == 'hash'">
                 <td class="column1">Filename:</td>
-                <td class="value">{{pathToFilename(content.contentFile)}}</td>
+                <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
               </tr>
               <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
                 <td class="column1">Encrypted File:</td>
-                <td class="value">{{pathToFilename(content.contentFile)}}</td>
+                <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
               </tr>
               <tr *ngIf="content.isArchive">
                 <td class="column1">Archive File:</td>
-                <td class="value">{{pathToFilename(content.contentFile)}}</td>
+                <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
               </tr>
               <tr *ngIf="content.fromArchive && content.contentType != 'image'">
                 <td class="column1">Archive Filename:</td>
-                <td class="value">{{pathToFilename(content.archiveFilename)}}</td>
+                <td class="value">{{utils.pathToFilename(content.archiveFilename)}}</td>
               </tr>
               <tr *ngIf="content.textDistillationEnabled && content.textTermsMatched?.length > 0">
                 <td class="column1">Matched Text:</td>
@@ -185,6 +186,7 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   @Input('id') public id: string;
   @Input('apiServerUrl') apiServerUrl: string;
 
+  public utils = utils;
   public showAll = false;
   public content: any;
   private session: any;
@@ -279,20 +281,6 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     log.debug('SessionDetailsModalComponent: cancelled()');
     this.modalService.close(this.id);
     this.isOpen = false;
-  }
-
-  pathToFilename(s: string): string {
-    const RE = /([^/]*)$/;
-    let match = RE.exec(s);
-    return match[0];
-  }
-
-  toCaps(s: string) {
-    return s.toUpperCase();
-  }
-
-  capitalizeFirstLetter(s: string) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
 }

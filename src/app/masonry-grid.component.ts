@@ -13,6 +13,7 @@ import { ContentMask } from './contentmask';
 import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
 import * as math from 'mathjs';
+import * as utils from './utils';
 declare var log: any;
 declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it
 
@@ -561,7 +562,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getContentBySessionAndContentFile(o: any): any {
     for (let x = 0; x < this.content.length; x++) {
-      if (this.content[x].session === o.session && this.pathToFilename(this.content[x].contentFile) === o.contentFile) {
+      if (this.content[x].session === o.session && utils.pathToFilename(this.content[x].contentFile) === o.contentFile) {
         return this.content[x];
       }
     }
@@ -605,12 +606,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.changeDetectionRef.detectChanges();
     this.changeDetectionRef.markForCheck();
-  }
-
-  pathToFilename(s: string): string {
-    const RE = /([^/]*)$/;
-    let match = RE.exec(s);
-    return match[0];
   }
 
   resetContentCount(): void {

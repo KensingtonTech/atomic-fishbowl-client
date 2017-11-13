@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, Renderer2, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
@@ -11,7 +11,7 @@ import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/primeng';
 import { Subscription } from 'rxjs/Subscription';
 import { NwServer } from './nwserver';
-declare var moment: any;
+import * as utils from './utils';
 declare var log: any;
 declare var JSEncrypt: any;
 
@@ -123,12 +123,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private toolService: ToolService,
-              private modalService: ModalService,
-              private renderer: Renderer2,
-              private changeDetectionRef: ChangeDetectorRef) {}
+              private modalService: ModalService) {}
 
   @Input() id: string;
-  // @Output() executeCollection: EventEmitter<any> = new EventEmitter();
   @ViewChild('addCollectionForm') public addCollectionForm: NgForm;
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('nameBox') nameBoxRef: QueryList<any>;
@@ -147,27 +144,27 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public testError = '';
 
   public collectionFormModel = {
-    name: '', //
-    type: this.defaultCollectionType, //
-    lastHours: 1, //
+    name: '',
+    type: this.defaultCollectionType,
+    lastHours: 1,
     timeBegin: new Date(),
     timeEnd: new Date(),
-    selectedUseCase: null, //
-    useCaseBinding: this.defaultUseCaseBinding, //
-    selectedContentTypes: [], //
-    contentLimit: null, //
-    minX: null, //
-    minY: null, //
-    distillationEnabled: false, //
-    distillationTerms: '', //
-    regexDistillationEnabled: false, //
-    regexDistillationTerms: '', //
-    sha1Enabled: false, //
-    sha1Hashes: '', //
-    sha256Enabled: false, //
-    sha256Hashes: '', //
-    md5Enabled: false, //
-    md5Hashes: '' //
+    selectedUseCase: null,
+    useCaseBinding: this.defaultUseCaseBinding,
+    selectedContentTypes: [],
+    contentLimit: null,
+    minX: null,
+    minY: null,
+    distillationEnabled: false,
+    distillationTerms: '',
+    regexDistillationEnabled: false,
+    regexDistillationTerms: '',
+    sha1Enabled: false,
+    sha1Hashes: '',
+    sha256Enabled: false,
+    sha256Hashes: '',
+    md5Enabled: false,
+    md5Hashes: ''
   };
   public queryInputText = this.defaultCollectionQuery;
   public selectedNwServer = '';
@@ -222,6 +219,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public thumbClassInForm = '';
   public passwordRequired = true;
   public testErrorInForm = '';
+  public disableBindingControls = false;
 
   ngOnInit(): void {
 
@@ -235,6 +233,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     });
 
     this.getNwServers();
+
+    for (let i = 0; i < this.queryList.length; i++) {
+      this.queryListObj[this.queryList[i].text] = this.queryList[i];
+      let option: any = {};
+      option['label'] = this.queryList[i].text;
+      option['value'] = this.queryList[i].text;
+      this.queryListOptions.push(option);
+    }
 
     // Preferences changed subscription
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
@@ -251,15 +257,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           this.defaultCollectionQuery = prefs.defaultNwQuery;
           // this.queryInputText = prefs.defaultNwQuery;
         }
-
-        for (let i = 0; i < this.queryList.length; i++) {
-          this.queryListObj[this.queryList[i].text] = this.queryList[i];
-          let option: any = {};
-          option['label'] = this.queryList[i].text;
-          option['value'] = this.queryList[i].text;
-          this.queryListOptions.push(option);
-        }
-
 
         if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
 
@@ -296,16 +293,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
     this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => {
       log.debug('AddCollectionModalComponent: useCasesChangedSubscription(): o', o);
-      setTimeout( () => {
-        this.useCases = o.useCases;
-        this.useCasesObj = o.useCasesObj;
-        let useCaseOptions: SelectItem[] = [];
-        useCaseOptions.push( { label: 'Custom', value: 'custom' } );
-        for (let i = 0; i < this.useCases.length; i++) {
-          useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
-        }
-        this.useCaseOptions = useCaseOptions;
-      }, 0);
+      this.useCases = o.useCases;
+      this.useCasesObj = o.useCasesObj;
+      let useCaseOptions: SelectItem[] = [];
+      useCaseOptions.push( { label: 'Custom', value: 'custom' } );
+      for (let i = 0; i < this.useCases.length; i++) {
+        useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
+      }
+      this.useCaseOptions = useCaseOptions;
     });
 
     // Add collection next subscription
@@ -329,33 +324,30 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.editCollectionNextSubscription.unsubscribe();
   }
 
-  onQuerySelected(): void {
+  public onQuerySelected(): void {
     // log.debug('AddCollectionModalComponent: querySelected(): e', e);
-    setTimeout( () => {
-      if (this.selectedQuery === 'Default Query') {
-        this.queryInputText = this.defaultCollectionQuery;
-      }
-      else {
-        this.queryInputText = this.queryListObj[this.selectedQuery].queryString;
-      }
-    }, 0);
+    if (this.selectedQuery === 'Default Query') {
+      this.queryInputText = this.defaultCollectionQuery;
+    }
+    else {
+      this.queryInputText = this.queryListObj[this.selectedQuery].queryString;
+    }
   }
 
-  timeframeSelected(e: any): void {
-    setTimeout( () => {
-      if (this.selectedTimeframe === 'Custom') {
-        // display custom timeframe selector
-        this.displayCustomTimeframeSelector = true;
-      }
-      else {
-        this.displayCustomTimeframeSelector = false;
-      }
-    }, 0);
+  public timeframeSelected(e: any): void {
+    if (this.selectedTimeframe === 'Custom') {
+      // display custom timeframe selector
+      this.displayCustomTimeframeSelector = true;
+    }
+    else {
+      this.displayCustomTimeframeSelector = false;
+    }
   }
 
-  displayServiceAddBox(): void {
-    // this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'block');
-    if (this.formDisabled) return;
+  public displayServiceAddBox(): void {
+    if (this.formDisabled) {
+      return;
+    }
     setTimeout( () => {
       this.passwordRequired = true;
       this.thumbClassInForm = '';
@@ -368,9 +360,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     setTimeout( () => this.hostNameRef.first.nativeElement.focus() );
   }
 
-  hideServiceAddBox(): void {
+  public hideServiceAddBox(): void {
     setTimeout( () => {
-      // this.renderer.setStyle(this.addServiceBoxRef.nativeElement, 'display', 'none');
       this.showNwServiceBox = false;
       this.serviceFormModel.hostname = '';
       this.serviceFormModel.restPort = 50103;
@@ -381,269 +372,75 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  cancel(): void {
+  public cancel(): void {
     this.modalService.close(this.id);
   }
 
-  closeModal(): void {
+  private closeModal(): void {
     this.modalService.close(this.id);
   }
 
-  cancelledEventReceived(): void {
+  public cancelledEventReceived(): void {
     log.debug('AddCollectionModalComponent: cancelledEventReceived()');
   }
 
-  getNwServers(): Promise<any> {
+  private getNwServers(): Promise<any> {
     // log.debug("AddCollectionModalComponent: getNwServers()");
     return this.dataService.getNwServers()
-                            .then( n => {
-                              // setTimeout( () => {
-                                log.debug('AddCollectionModalComponent: getNwServers(): nwServers:', n);
-                                this.nwServers = n;
-                                // log.debug("AddCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
-                              
-                                let o: SelectItem[] = [];
-                                for (let server in this.nwServers) {
-                                  if (this.nwServers.hasOwnProperty(server)) {
-                                    //log.debug('nwserver:', server);
-                                    o.push( { label: this.nwServers[server].friendlyName, value: this.nwServers[server].id } )  ;
-                                  }
-                                }
-                                this.nwServersOptions = o;
-                              // }, 0);
+      .then( n => {
+        // setTimeout( () => {
+          log.debug('AddCollectionModalComponent: getNwServers(): nwServers:', n);
+          this.nwServers = n;
+          // log.debug("AddCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
 
-                            });
+          let o: SelectItem[] = [];
+          for (let server in this.nwServers) {
+            if (this.nwServers.hasOwnProperty(server)) {
+              // log.debug('nwserver:', server);
+              o.push( { label: this.nwServers[server].friendlyName, value: this.nwServers[server].id } )  ;
+            }
+          }
+          this.nwServersOptions = o;
+        // }, 0);
+      });
   }
 
-  getFirstNwServer(): any { // a bit of a hack since dicts aren't really ordered
-    for (let s in this.nwServers) {
-      // log.debug(AddCollectionModalComponent: getFirstNwServer: s, s);
-      if (this.nwServers.hasOwnProperty(s)) {
-        return s;
-      }
-    }
-    return '';
-  }
-
-  deleteNwServer(): void {
+  public deleteNwServer(): void {
     log.debug('AddCollectionModalComponent: deleteNwServer(): this.selectedNwServer', this.selectedNwServer);
-    if (this.formDisabled) return;
+    if (this.formDisabled) {
+      return;
+    }
     this.toolService.nwServerToDelete.next(this.nwServers[this.selectedNwServer]);
     this.modalService.open('confirm-nwserver-delete-modal');
   }
 
-  deleteNwServerConfirmed(id: string): void {
+  private deleteNwServerConfirmed(id: string): void {
     log.debug('AddCollectionModalComponent: deleteNwServerConfirmed(): id:', id);
     // log.debug(this.nwServers[this.selectedNwServer].friendlyName);
     this.dataService.deleteNwServer(id)
-                    .then ( () => {
-                      this.getNwServers()
-
-                          .then( () => {
-                            if (Object.keys(this.nwServers).length === 0) {
-                              // log.debug('this.selectedNwServer:', this.selectedNwServer);
-                              setTimeout( () => this.selectedNwServer = '', 0);
-                            }
-                            if (Object.keys(this.nwServers).length === 1) {
-                              // log.debug('this.selectedNwServer:', this.selectedNwServer);
-                              setTimeout( () => this.selectedNwServer = Object.keys(this.nwServers)[0], 0);
-                            }
-                            else {
-                              log.debug('nwServers key length was:', Object.keys(this.nwServers).length);
-                              log.debug('nwServers keys:', Object.keys(this.nwServers));
-                            }
-                          });
-                    })
+      .then ( () => {
+        this.getNwServers()
+          .then( () => {
+            if (Object.keys(this.nwServers).length === 0) {
+              // log.debug('this.selectedNwServer:', this.selectedNwServer);
+              setTimeout( () => this.selectedNwServer = '', 0);
+            }
+            if (Object.keys(this.nwServers).length === 1) {
+              // log.debug('this.selectedNwServer:', this.selectedNwServer);
+              setTimeout( () => this.selectedNwServer = Object.keys(this.nwServers)[0], 0);
+            }
+            else {
+              log.debug('nwServers key length was:', Object.keys(this.nwServers).length);
+              log.debug('nwServers keys:', Object.keys(this.nwServers));
+            }
+          });
+      });
 
   }
 
 
 
-  convertTimeSelection(): any {
-    const t = { timeBegin: 0, timeEnd: 0 };
-    const d = new Date();
-    if (this.selectedTimeframe === 'Last 5 Minutes') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * 5 );
-    }
-    if (this.selectedTimeframe === 'Last 10 Minutes') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * 10 );
-    }
-    if (this.selectedTimeframe === 'Last 15 Minutes') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * 15 );
-    }
-    if (this.selectedTimeframe === 'Last 30 Minutes') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * 30 );
-    }
-    if (this.selectedTimeframe === 'Last Hour') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * 60 );
-    }
-    if (this.selectedTimeframe === 'Last 3 Hours') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * (60 * 3) );
-    }
-    if (this.selectedTimeframe === 'Last 6 Hours') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * (60 * 6) );
-    }
-    if (this.selectedTimeframe === 'Last 12 Hours') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * (60 * 12) );
-    }
-    if (this.selectedTimeframe === 'Last 24 Hours') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * (60 * 24) );
-    }
-    if (this.selectedTimeframe === 'Last 48 Hours') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * (60 * 24) * 2 );
-    }
-    if (this.selectedTimeframe === 'Last 5 Days (120 Hours)') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = ( now - 60 * (60 * 24) * 5 );
-    }
-    if (this.selectedTimeframe === 'Today') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = moment().startOf('day').unix();
-    }
-    if (this.selectedTimeframe === 'Yesterday') {
-      t.timeEnd = moment().startOf('day').unix() - 1;
-      t.timeBegin = moment().startOf('day').unix() - 86400;
-    }
-    if (this.selectedTimeframe === 'This Week') {
-      const now = Math.round(d.getTime() / 1000);
-      t.timeEnd = now;
-      t.timeBegin = moment().startOf('week').unix();
-    }
-    if (this.selectedTimeframe === 'Last Week') {
-      t.timeBegin = moment().startOf('week').unix() - 604800;
-      t.timeEnd = moment().startOf('week').unix() - 1;
-    }
-    if (this.selectedTimeframe === 'Custom') {
-      t.timeBegin = this.collectionFormModel.timeBegin.getTime() / 1000;
-      t.timeEnd = this.collectionFormModel.timeEnd.getTime() / 1000;
-    }
-    return t;
-  }
-
-  unique(a: any): any {
-    let unique = [];
-    for (let i = 0; i < a.length; i++) {
-      let current = a[i];
-      if (unique.indexOf(current) < 0) { unique.push(current); }
-    }
-    return unique;
-  }
-
-  grokLines(t: string): any {
-    let terms = t.split('\n');
-    let midterms: any = [];
-    for (let i = 0; i < terms.length; i++) {
-      let term = terms[i];
-      // log.debug("term:", term);
-      term = term.replace(/\s+$/g, '');
-      term = term.replace(/^\s+/g, '');
-      if ( ! term.match(/^\s*$/g) ) { // remove blank lines from array
-        midterms.push(term);
-      }
-    }
-    let endterms = this.unique(midterms); // de-deduplicate array
-    return endterms;
-  }
-
-   grokHashingLines(v: string): any {
-     log.debug('v:', v);
-    let n = v.split('\n'); // split by newline
-    log.debug('n:', n);
-    let newArray = [];
-    let hashTracker = []; // used for de-duplicating hash entries
-    // log.debug('AddCollectionModalComponent: grokHashingLines(): n:', n);
-
-    for (let x = 0; x < n.length; x++) {
-      // remove blank lines
-      if (!n[x].match(/^\s*$/)) {
-        newArray.push(n[x]);
-      }
-    }
-    // log.debug('AddCollectionModalComponent: grokHashingLines(): newArray:', newArray);
-
-    let keysArray = [];
-
-    for (let i = 0; i < newArray.length; i++) {
-      let x = {};
-      let y = newArray[i].split(',');
-      // log.debug('y:', y);
-
-      y[0] = y[0].trim(); // remove trailing and leading whitespace from key name, if any
-      log.debug('y[0]', y[0]);
-
-      if (y[0].match(/\s/)) {
-        // log.debug('got to 1');
-        // We will skip this row if the key contains any remaining whitespace
-        continue;
-      }
-      // log.debug('got to 2');
-
-      if (!hashTracker.includes(y[0])) { // de-dupe hashes
-        hashTracker.push(y[0]);
-        x['hash'] = y[0]; // assign hash id
-
-        if (y.length >= 2) {
-          // if user specifies CSV notation, save the second part as the friendly identifier
-          let s = y[1].trim(); // remove leading and trailing whitespace
-          x['friendly'] = s;
-        }
-
-        /*else { //we don't want to define the file key if the user doesn't specify one
-          // if not in CSV notation, save the key name as the file name
-          x['file'] = y[0];
-        }*/
-        keysArray.push(x);
-      }
-    }
-    log.debug('AddCollectionModalComponent: grokHashingLines(): keysArray:', keysArray);
-    return keysArray;
-  }
-
-  /*onCollectionSubmit(f: NgForm): void {
-    log.debug('AddCollectionModalComponent: onCollectionSubmit(): f:', f);
-    if (this.mode === 'add') {
-      this.submitForAdd();
-    }
-    else if (this.mode === 'editRolling') {
-      this.submitForEditRolling();
-    }
-    else if (this.mode === 'editFixed') {
-      this.submitForEditFixed();
-    }
-  }
-
-  submitForEditRolling(): void {
-    log.debug('AddCollectionModalComponent: submitForEditRolling()');
-  }
-
-  submitForEditFixed(): void {
-    log.debug('AddCollectionModalComponent: submitForEditFixed()');
-  }*/
-
-  // submitForAdd(): void {
-  onCollectionSubmit(f: NgForm): void {
+  public onCollectionSubmit(f: NgForm): void {
     // log.debug('AddCollectionModalComponent: submitForAdd()');
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
@@ -682,14 +479,20 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       newCollection['lastHours'] = this.collectionFormModel.lastHours;
     }
     else if ( this.collectionFormModel.type === 'fixed' ) {
-      let t = this.convertTimeSelection();
+      let t: any = {};
+      if (this.selectedTimeframe === 'Custom') {
+        t = utils.convertCustomTimeSelection(this.collectionFormModel.timeBegin, this.collectionFormModel.timeEnd);
+      }
+      else {
+        t = utils.convertTimeSelection(this.selectedTimeframe);
+      }
       newCollection['timeBegin'] = t.timeBegin;
       newCollection['timeEnd'] = t.timeEnd;
     }
 
 
     if (!newCollection.bound && this.collectionFormModel.distillationEnabled) {
-      let endterms = this.grokLines(this.collectionFormModel.distillationTerms);
+      let endterms = utils.grokLines(this.collectionFormModel.distillationTerms);
       newCollection['distillationEnabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['distillationEnabled'] = true;
@@ -698,7 +501,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.collectionFormModel.regexDistillationEnabled) {
-      let endterms = this.grokLines(this.collectionFormModel.regexDistillationTerms);
+      let endterms = utils.grokLines(this.collectionFormModel.regexDistillationTerms);
       newCollection['regexDistillationEnabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['regexDistillationEnabled'] = true;
@@ -707,7 +510,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.collectionFormModel.sha1Enabled) {
-      let endterms = this.grokHashingLines(this.collectionFormModel.sha1Hashes);
+      let endterms = utils.grokHashingLines(this.collectionFormModel.sha1Hashes);
       newCollection['sha1Enabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['sha1Enabled'] = true;
@@ -716,7 +519,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.collectionFormModel.sha256Enabled) {
-      let endterms = this.grokHashingLines(this.collectionFormModel.sha256Hashes);
+      let endterms = utils.grokHashingLines(this.collectionFormModel.sha256Hashes);
       newCollection['sha256Enabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['sha256Enabled'] = true;
@@ -725,7 +528,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.collectionFormModel.md5Enabled) {
-      let endterms = this.grokHashingLines(this.collectionFormModel.md5Hashes);
+      let endterms = utils.grokHashingLines(this.collectionFormModel.md5Hashes);
       newCollection['md5Enabled'] = false;
       if ( endterms.length !== 0 ) {
         newCollection['md5Enabled'] = true;
@@ -733,7 +536,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    
+
     if (this.mode === 'add' || this.mode === 'editFixed') {
       log.debug('AddCollectionModalComponent: onCollectionSubmit(): new newCollection:', newCollection);
       this.dataService.addCollection(newCollection)
@@ -755,7 +558,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
-  addNwServerSubmit(f: NgForm): void {
+  public addNwServerSubmit(f: NgForm): void {
     // log.debug("AddCollectionModalComponent: addNwServerSubmit(): f:", f);
     this.hideServiceAddBox();
     let encPassword = this.encryptor.encrypt(f.value.password);
@@ -769,7 +572,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       deviceNumber: f.value.deviceNumber,
       friendlyName: f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ' (' + f.value.deviceNumber + ')'
     };
-    if (this.nwServerMode == 'edit') {
+    if (this.nwServerMode === 'edit') {
       // server = this.nwServers[this.selectedNwServer];
       newServer.id = this.editingNwServerId;
     }
@@ -778,8 +581,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       newServer.friendlyName = f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ':ssl' + ' (' + f.value.deviceNumber + ')';
     }
     log.debug('AddCollectionModalComponent: addNwServer() newServer:', newServer);
-    
-    if (this.nwServerMode == 'add') {
+
+    if (this.nwServerMode === 'add') {
       this.dataService.addNwServer(newServer)
                       .then( () => {
                           this.getNwServers()
@@ -797,7 +600,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                         });
     }
 
-    if (this.nwServerMode == 'edit') {
+    if (this.nwServerMode === 'edit') {
       this.dataService.editNwServer(newServer)
                       .then( () => {
                           this.getNwServers()
@@ -817,16 +620,12 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
-  onOpen(): void {
+  public onOpen(): void {
     // log.debug('AddCollectionModalComponent: onOpen()');
   }
 
-  timeValue(): void {
-    log.debug('time1:', this.collectionFormModel.timeBegin.getTime() / 1000);
-    log.debug('time2:', this.collectionFormModel.timeEnd.getTime() / 1000);
-  }
 
-  onSelectedTypesChanged(): void {
+  public onSelectedTypesChanged(): void {
     log.debug('AddCollectionModalComponent: onSelectedTypesChanged()');
     let v = this.collectionFormModel.selectedContentTypes;
     let imagesEnabled = false;
@@ -864,14 +663,14 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  clearTypes(): void {
+  public clearTypes(): void {
     setTimeout( () => {
       this.collectionFormModel.selectedContentTypes = [];
     }, 0);
     this.onSelectedTypesChanged();
   }
 
-  allTypes() {
+  public allTypes() {
     let vals = [];
     for (let i = 0; i < this.contentTypes.length; i++) {
       vals.push( this.contentTypes[i].value );
@@ -882,11 +681,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.onSelectedTypesChanged();
   }
 
-  onCollectionTypeChanged(): void {}
-  
-  public disableBindingControls = false;
-
-  onUseCaseChanged(): void {
+  public onUseCaseChanged(): void {
     log.debug('AddCollectionModalComponent: onUseCaseChanged()');
     // log.debug('AddCollectionModalComponent: onUseCaseChanged: collectionFormModel.selectedUseCase:', this.collectionFormModel.selectedUseCase );
 
@@ -911,7 +706,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
       // an OOTB use case has been selected
       log.debug('AddCollectionModalComponent: onUseCaseChanged: thisUseCase:', thisUseCase);
-      // setTimeout( () => {
         this.queryInputText = thisUseCase.query;
         this.collectionFormModel.selectedContentTypes = thisUseCase.contentTypes;
         this.collectionFormModel.distillationEnabled = false;
@@ -932,13 +726,10 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           this.showUseCaseValues = false;
         }
         this.onSelectedTypesChanged();
-      // });
-      // this.changeDetectionRef.detectChanges();
-      // this.changeDetectionRef.markForCheck();
     }, 0);
   }
 
-  onUseCaseBoundChanged(): void {
+  public onUseCaseBoundChanged(): void {
     log.debug('AddCollectionModalComponent: onUseCaseBoundChanged()');
     setTimeout( () => {
 
@@ -965,11 +756,10 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         this.showUseCaseValues = false;
       }
     }, 0);
-    // this.changeDetectionRef.detectChanges();
-    // this.changeDetectionRef.markForCheck();
+
   }
 
-  convertArrayToString(a: any): string {
+  private convertArrayToString(a: any): string {
     let text = '';
     for (let i = 0; i < a.length; i++) {
       text += a[i];
@@ -980,7 +770,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     return text;
   }
 
-  onAddCollection(): void {
+  private onAddCollection(): void {
     log.debug('AddCollectionModalComponent: onAddCollection()');
     setTimeout( () => {
       this.mode = 'add';
@@ -995,23 +785,23 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  onEditCollection(collection: any): void {
+  private onEditCollection(collection: any): void {
     // Called when we receive an edit signal from toolbar
     log.debug('AddCollectionModalComponent: onEditCollection(): collection:', collection);
     setTimeout( () => {
       this.collection = collection;
-      
-      if (collection.type == 'rolling' || collection.type == 'monitoring' ) {
+
+      if (collection.type === 'rolling' || collection.type === 'monitoring' ) {
         this.mode = 'editRolling';
         this.editingCollectionId = collection.id;
-        if (collection.type == 'rolling') {
+        if (collection.type === 'rolling') {
           this.collectionFormModel.lastHours = collection.lastHours;
         }
       }
       else {
         this.mode = 'editFixed';
       }
-      
+
       this.collectionFormModel.name = collection.name;
       this.collectionFormModel.type = collection.type;
       this.collectionFormModel.contentLimit = collection.imageLimit;
@@ -1095,28 +885,37 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       else {
         this.collectionFormModel.md5Enabled = false;
       }
-    
+
     }, 0);
   }
 
-  
 
   public nwServerFormValid(): boolean {
     // log.debug('AddCollectionModalComponent: nwServerFormValid()');
     // log.debug('this.selectedNwServer:', this.selectedNwServer);
     // log.debug('this.nwServers:', this.nwServers);
-    if (Object.keys(this.nwServers).length == 0) return false;
-    if (!(this.selectedNwServer in this.nwServers)) return false;
-    if (this.addCollectionForm.form.valid && this.selectedNwServer !== '') return true;
+    if (Object.keys(this.nwServers).length === 0) {
+      return false;
+    }
+    if (!(this.selectedNwServer in this.nwServers)) {
+      return false;
+    }
+    if (this.addCollectionForm.form.valid && this.selectedNwServer !== '') {
+      return true;
+    }
     return false;
   }
 
   public addServiceFormValid(form: NgForm): boolean {
     // log.debug('AddCollectionModalComponent: addServiceFormValid()');
 
-    if (this.nwServerMode === 'add' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) return true;
+    if (this.nwServerMode === 'add' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) {
+      return true;
+    }
 
-    if (this.nwServerMode === 'edit' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) return true;
+    if (this.nwServerMode === 'edit' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) { 
+      return true;
+    }
 
     return false;
   }
@@ -1126,7 +925,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public testNwServer(): void {
-    var server = {};
+    let server = {};
     if (!this.showNwServiceBox) {
       server = this.nwServers[this.selectedNwServer];
     }
@@ -1182,7 +981,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                         this.testErrorInForm = msg;
                         this.testError = '';
                       }
-                      
+
                       log.info('Test connection failed with error:', err);
                     });
   }
@@ -1190,7 +989,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   public editNwServer(): void {
     log.debug('AddCollectionModalComponent: editNwServer()');
-    if (this.formDisabled) return;
+    if (this.formDisabled) {
+      return;
+    }
     setTimeout( () => {
       this.passwordRequired = false;
       this.thumbClassInForm = '';

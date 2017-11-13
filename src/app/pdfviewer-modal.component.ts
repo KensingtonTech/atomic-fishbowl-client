@@ -5,11 +5,11 @@ import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
+import * as utils from './utils';
 declare var log: any;
 
 @Component({
   selector: 'pdf-viewer-modal',
-  // encapsulation: ViewEncapsulation.None,
   template: `
 <modal id="{{id}}" (opened)="opened()" (cancelled)="cancelled()">
   <div class="modal">
@@ -20,8 +20,8 @@ declare var log: any;
         <div style="position: absolute; top: 0; bottom: 0; left: 10px; width: 85%; white-space: nowrap;">
           <!--<a (click)="downloadLinkClicked(content.contentFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750"></a>-->
           <!--<a style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750" href="{{content.contentFile}}"></a>-->
-          <span style="vertical-align: middle;">{{getFileNameFromPath(content.contentFile)}}</span>
-          <!--<span *ngIf="content.contentType == 'office'" style="vertical-align: middle;">{{getFileNameFromPath(content.proxyContentFile)}}</span>-->
+          <span style="vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
+          <!--<span *ngIf="content.contentType == 'office'" style="vertical-align: middle;">{{utils.pathToFilename(content.proxyContentFile)}}</span>-->
         </div>
 
         <div class="noselect" style="position: absolute; top: 0; bottom: 0; right: 40px;">
@@ -48,7 +48,7 @@ declare var log: any;
       </div> <!--overflow: auto;-->
 
       <div *ngIf="content.fromArchive" style="position: absolute; top: 25px; right: 400px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        <span style="display: inline-block; vertical-align: middle;">{{pathToFilename(content.archiveFilename)}}&nbsp;</span>
+        <span style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.archiveFilename)}}&nbsp;</span>
         <span class="fa fa-file-archive-o" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
       </div>
 
@@ -124,6 +124,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   @Input('id') public id: string;
   @Input('apiServerUrl') apiServerUrl: string;
 
+  public utils = utils;
   public showAll = false;
   private pdfFile: string;
   private page = 1;
@@ -245,10 +246,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     this.isOpen = false;
   }
 
-  getFileNameFromPath(p: string): string {
-    return p.split('/').pop();
-  }
-
   absorbPdfInfo(p: any): void {
     // log.debug('absorbPdfInfo', p);
     this.numPages = p.numPages;
@@ -281,12 +278,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       var filename = $("#input-fileName").val()
       var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
       saveAs(blob, filename+".txt");*/
-  }
-
-  pathToFilename(s: string): string {
-    const RE = /([^/]*)$/;
-    let match = RE.exec(s);
-    return match[0];
   }
 
 }

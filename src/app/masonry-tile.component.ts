@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRe
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
+import * as utils from './utils';
 declare var log: any;
 
 @Component({
@@ -41,7 +42,7 @@ declare var log: any;
   <div class="textArea" *ngIf="session && masonryKeys && displayTextArea" style="position: relative;">
 
     <div *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
-      <b>Encrypted file within a {{toCaps(content.archiveType)}} archive</b>
+      <b>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</b>
     </div>
     <div *ngIf="content.contentType == 'unsupportedZipEntry'">
       <b>Unsupported ZIP format</b>
@@ -50,19 +51,19 @@ declare var log: any;
       <b>RAR archive has an encrypted table</b>
     </div>
     <div *ngIf="content.contentType == 'hash'">
-      <b>Found executable matching {{toCaps(content.hashType)}} hash value</b>
+      <b>Found executable matching {{utils.toCaps(content.hashType)}} hash value</b>
     </div>
     <div *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
       <b>Found PDF document containing text term</b>
     </div>
     <div *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-      <b>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document containing text term</b>
+      <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document containing text term</b>
     </div>
     <div *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
       <b>Found PDF document matching Regex term</b>
     </div>
     <div *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-      <b>Found Office {{capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
+      <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
     </div>
 
     <table class="selectable" style="width: 100%;">
@@ -71,36 +72,36 @@ declare var log: any;
         <td *ngIf="session.meta[key.key]" class="value">{{session.meta[key.key]}}</td>
       </tr>
       <tr *ngIf="content.contentType == 'hash'">
-        <td class="column1">{{toCaps(content.hashType)}} Hash:</td>
+        <td class="column1">{{utils.toCaps(content.hashType)}} Hash:</td>
         <td class="value">{{content.hashValue}}</td>
       </tr>
       <tr *ngIf="content.contentType == 'hash' && content.hashFriendly">
-        <td class="column1">{{toCaps(content.hashType)}} Description:</td>
+        <td class="column1">{{utils.toCaps(content.hashType)}} Description:</td>
         <td class="value">{{content.hashFriendly}}</td>
       </tr>
       <tr *ngIf="content.contentType == 'hash'">
         <td class="column1">Filename:</td>
-        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.contentType =='pdf' && content.contentFile">
         <td class="column1">PDF Filename:</td>
-        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.contentType =='office' && content.contentFile">
         <td class="column1">Office Filename:</td>
-        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
         <td class="column1">Encrypted File:</td>
-        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.isArchive">
         <td class="column1">Archive File:</td>
-        <td class="value">{{pathToFilename(content.contentFile)}}</td>
+        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.fromArchive">
         <td class="column1">Archive Filename:</td>
-        <td class="value">{{pathToFilename(content.archiveFilename)}}</td>
+        <td class="value">{{utils.pathToFilename(content.archiveFilename)}}</td>
       </tr>
       <tr *ngIf="content.textDistillationEnabled && content.textTermsMatched?.length > 0">
         <td class="column1">Matched Text:</td>
@@ -179,6 +180,8 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService ) {} // this.changeDetectionRef.detach(); private http: Http
 
+  public utils = utils;
+
   @Input() private apiServerUrl: string;
   @Input() private content: any;
   @Input() private session: any;
@@ -217,7 +220,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
       this.originalSession = JSON.parse(JSON.stringify(e.session.currentValue)); // silly way of copying an object, but it works
       for (let key in e.session.currentValue.meta) {
         if (e.session.currentValue.meta.hasOwnProperty(key)) {
-          this.session.meta[key] = this.unique(e.session.currentValue.meta[key]);
+          this.session.meta[key] = utils.uniqueArrayValues(e.session.currentValue.meta[key]);
         }
       }
     }
@@ -243,30 +246,6 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
   handleError(error: any): Promise<any> {
     log.error('ERROR:', error);
     return Promise.reject(error.message || error);
-  }
-
-  unique(a: any): any {
-    let unique = [];
-    for (let i = 0; i < a.length; i++) {
-      let current = a[i];
-      if (unique.indexOf(current) < 0) { unique.push(current); }
-    }
-    return unique;
-  }
-
-  pathToFilename(s: string): string {
-    const RE = /([^/]*)$/;
-    let match = RE.exec(s);
-    // log.debug(match[0]);
-    return match[0];
-  }
-
-  toCaps(s: string) {
-    return s.toUpperCase();
-  }
-
-  capitalizeFirstLetter(s: string) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
 }

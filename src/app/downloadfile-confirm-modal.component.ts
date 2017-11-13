@@ -3,6 +3,7 @@ import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
+import * as utils from './utils';
 declare var log: any;
 
 @Component({
@@ -17,7 +18,7 @@ declare var log: any;
       </div>
 
       <div style="position: absolute; left: 100px; right: 10px; top: 0; bottom: 0; font-size: 10pt;">
-        <p>Are you sure you want to download file '<b>{{pathToFilename(file)}}</b>'?</p>
+        <p>Are you sure you want to download file '<b>{{utils.pathToFilename(file)}}</b>'?</p>
         <p>This is potentially unsafe.  Be sure you know what you're doing!</p>
         <div style="float: right;">
           <button (click)="confirm()">Confirm</button>
@@ -54,6 +55,7 @@ export class DownloadFileConfirmModalComponent implements OnInit, OnDestroy {
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
+  public utils = utils;
   public id = 'downloadfile-confirm-modal';
   public file: string;
   private fileToDownloadSubscription: Subscription;
@@ -77,12 +79,6 @@ export class DownloadFileConfirmModalComponent implements OnInit, OnDestroy {
 
   closeModal(): void {
     this.modalService.close(this.id);
-  }
-
-  pathToFilename(s: string): string {
-    const RE = /([^/]*)$/;
-    let match = RE.exec(s);
-    return match[0];
   }
 
 }

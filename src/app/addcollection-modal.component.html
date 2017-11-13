@@ -1,6 +1,6 @@
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
   <div class="modal">
-    <div class="modal-body" style="width: 480px; max-height: 90%; overflow: auto; top: 5%;">
+    <div class="modal-body" style="width: 500px; max-height: 90%; overflow: auto; top: 5%;">
       <div>
         <h3 style="margin-top:0px; margin-bottom: 10px;">
           <ng-template [ngIf]="mode == 'add'">Create a New Collection</ng-template>
@@ -26,11 +26,11 @@
                 <b>Type</b>
               </td>
               <td>
-                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" (onClick)="onUseCaseBoundChanged()" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
                 
-                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" (onClick)="onUseCaseBoundChanged()" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
 
-                <span *ngIf="mode != 'editRolling'"><p-radioButton [disabled]="formDisabled" name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" (ngModelChange)="onUseCaseBoundChanged()" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
+                <span *ngIf="mode != 'editRolling'"><p-radioButton [disabled]="formDisabled" name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" (onClick)="onUseCaseBoundChanged()" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
               </td>
             </tr>
             <!--FIXED TIMEFRAME SELECTOR-->

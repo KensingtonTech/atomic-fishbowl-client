@@ -9,6 +9,7 @@ import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
+import * as utils from './utils';
 declare var log: any;
 
 @Component({
@@ -460,7 +461,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
   getContentBySessionAndContentFile(o: any): any {
     for (let x = 0; x < this.content.length; x++) {
-      if (this.content[x].session === o.session && this.pathToFilename(this.content[x].contentFile) === o.contentFile) {
+      if (this.content[x].session === o.session && utils.pathToFilename(this.content[x].contentFile) === o.contentFile) {
         return this.content[x];
       }
     }
@@ -514,12 +515,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.markForCheck();
   }
 
-
-  pathToFilename(s: string): string {
-    const RE = /([^/]*)$/;
-    let match = RE.exec(s);
-    return match[0];
-  }
 
   resetContentCount(): void {
     this.contentCount = new ContentCount;
