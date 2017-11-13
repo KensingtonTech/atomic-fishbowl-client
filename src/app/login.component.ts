@@ -10,7 +10,7 @@ declare var log: any;
   <mat-card>
 
     <form #addCollectionForm="ngForm">
-  
+
       <mat-card-content>
 
         <div style="position:absolute; top: 7px; right: 5px;"><img src="resources/logo-blacktext.png"></div>
@@ -61,7 +61,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
               private renderer: Renderer2,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
-  private eulaAccepted = true; // Do something with this after we add the EULA
+  public eulaAccepted = true; // Do something with this after we add the EULA
 
   ngOnInit(): void {
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
@@ -78,7 +78,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
                     .then( (res: boolean) => {
                       if (!res) { this.errorMsg = 'Login failed'; }
                       if (res) { this.errorMsg = 'Login successful'; }
-                    })
-
+                    });
   }
 }
