@@ -193,11 +193,12 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
         newMasonryOptions.masonry.columnWidth = this.masonryColumnSize;
         this.masonryOptions = newMasonryOptions;
       }
-      /*else {
+      else {
         // not sure why I had this here - we only need to trigger layout when the column size changes
+        // I spoke too soon - we also need to call it when we add a masonry meta key in preferences
         log.debug('MasonryGridComponent: preferencesChangedSubscription: calling layout');
-        if (this.masonryComponentRef) { this.masonryComponentRef.layout(); } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
-      }*/
+        if (this.masonryComponentRef) { this.toolService.refreshMasonryLayout.next(); } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
+      }
     });
 
     this.caseSensitiveSearchChangedSubscription = this.toolService.caseSensitiveSearchChanged.subscribe( () => this.toggleCaseSensitiveSearch() );

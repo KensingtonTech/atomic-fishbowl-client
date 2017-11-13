@@ -34,7 +34,7 @@
               </td>
             </tr>
             <!--FIXED TIMEFRAME SELECTOR-->
-            <tr *ngIf="collectionFormModel.type=='fixed'">
+            <tr *ngIf="collectionFormModel.type == 'fixed'">
               <td class="column1">
                 <b>Timeframe</b>
               </td>
@@ -45,7 +45,7 @@
               </td>
             </tr>
             <!--ROLLING HOURS SELECTOR-->
-            <tr *ngIf="collectionFormModel.type=='rolling'">
+            <tr *ngIf="collectionFormModel.type == 'rolling'">
               <td class="column1">
                 <b>Timeframe</b>
               </td>
@@ -54,14 +54,14 @@
               </td>
             </tr>
             <!--CALENDAR FROM FOR FIXED COLLECTIONS-->
-            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type=='fixed'">
+            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type == 'fixed'">
               <td><i>From</i>
               </td>
               <td><p-calendar name="time1" showTime="showTime" showIcon="true" [(ngModel)]="collectionFormModel.timeBegin" inputStyleClass="ourFont"></p-calendar>
               </td>
             </tr>
             <!--CALENDAR FROM TO FIXED COLLECTIONS-->
-            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type=='fixed'">
+            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type == 'fixed'">
               <td><i>To</i>
               </td>
               <td><p-calendar name="time2" showTime="showTime" showIcon="true" [(ngModel)]="collectionFormModel.timeEnd" inputStyleClass="ourFont"></p-calendar>
