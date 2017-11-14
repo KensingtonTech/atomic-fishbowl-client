@@ -97,7 +97,7 @@
               </td>
             </tr>
             <!--USE CASE BINDINGS-->
-            <tr *ngIf="collectionFormModel.selectedUseCase != 'custom'">
+            <tr *ngIf="collectionFormModel.selectedUseCase != 'custom'" [hidden]="collectionFormModel.type == 'fixed'">
               <td class="column1" style="vertical-align: top;">
                   <b>Use Case Bindings</b>
               </td>

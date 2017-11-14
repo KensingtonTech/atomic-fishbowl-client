@@ -374,6 +374,10 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public cancel(): void {
+    log.debug('AddCollectionModalComponent: cancel()');
+    if (this.mode === 'editRolling' || this.mode === 'editFixed') {
+      this.collectionFormModel.name = '';
+    }
     this.modalService.close(this.id);
   }
 
@@ -383,6 +387,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   public cancelledEventReceived(): void {
     log.debug('AddCollectionModalComponent: cancelledEventReceived()');
+    this.cancel();
   }
 
   private getNwServers(): Promise<any> {
@@ -556,6 +561,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                           this.closeModal();
                         });
     }
+
+    this.collectionFormModel.name = ''; // reset collection name
 
   }
 
