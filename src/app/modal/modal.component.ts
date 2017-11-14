@@ -20,6 +20,7 @@ declare var log: any;
 })
 
 export class ModalComponent implements OnInit, OnDestroy {
+
     @Input() id: string;
     @Input() private escapeEnabled = true; // pass escapeEnabled="false" to <modal> to disable escape
     private element: JQuery;
@@ -89,7 +90,10 @@ export class ModalComponent implements OnInit, OnDestroy {
     close(): void {
         this.enabledTrigger = 'disabled';
         this.changeDetectionRef.markForCheck();
-        setTimeout( () => {this.element.hide(); $('body').removeClass('modal-open'); }, 250);
+        setTimeout( () => {
+          this.element.hide();
+          $('body').removeClass('modal-open');
+        }, 250);
 
     }
 }
