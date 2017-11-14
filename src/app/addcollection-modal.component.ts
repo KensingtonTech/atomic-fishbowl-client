@@ -663,6 +663,15 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
     setTimeout( () => {
+      if ( !(officeEnabled || pdfsEnabled) ) {
+        this.collectionFormModel.distillationEnabled = false;
+        this.collectionFormModel.regexDistillationEnabled = false;
+      }
+      if (!hashesEnabled) {
+        this.collectionFormModel.sha1Enabled = false;
+        this.collectionFormModel.sha256Enabled = false;
+        this.collectionFormModel.md5Enabled = false;
+      }
       this.imagesEnabled = imagesEnabled;
       this.pdfsEnabled = pdfsEnabled;
       this.officeEnabled = officeEnabled;

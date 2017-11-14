@@ -23,10 +23,10 @@ export class ModalComponent implements OnInit, OnDestroy {
 
     @Input() id: string;
     @Input() private escapeEnabled = true; // pass escapeEnabled="false" to <modal> to disable escape
-    private element: JQuery;
-    public enabledTrigger = 'disabled';
     @Output() cancelled: EventEmitter<void> = new EventEmitter<void>();
     @Output() opened: EventEmitter<void> = new EventEmitter<void>();
+    private element: JQuery; // wrap jquery around our el.nativeElement
+    public enabledTrigger = 'disabled';
 
     constructor(  private modalService: ModalService,
                   private el: ElementRef,
