@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Inpu
 // import { trigger, state, style, animate, transition } from '@angular/animations';
 import { ToolService } from './tool.service';
 import { Content } from './content';
+import { abs } from 'mathjs';
 declare var log: any;
 
 @Component({
@@ -10,7 +11,7 @@ declare var log: any;
   template: `
 <div class="thumbnail-container">
 
-  <div *ngIf="!showHighRes">
+  <div [hidden]="showHighRes">
     <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.thumbnail" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
     <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.thumbnail" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
 
@@ -22,10 +23,10 @@ declare var log: any;
     <img *ngIf="content.contentType == 'hash'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/executable_hash_icon.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
   </div>
 
-  <div *ngIf="showHighRes">
+  <div [hidden]="!showHighRes">
     <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.contentFile" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
     <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.pdfImage" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
-    
+
     <img *ngIf="content.contentType == 'office'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="apiServerUrl + content.pdfImage" class="thumbnail" [ngClass]="content.contentSubType" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentSubType]="content.contentSubType" [attr.contentFile]="content.contentFile">
 
     <img *ngIf="content.contentType == 'encryptedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
@@ -95,19 +96,14 @@ export class ClassicTileComponent implements OnChanges {
 
   @Input() apiServerUrl: string;
   @Input() highResSession: number;
-  @Input() showHighRes = false;
   @Input() content: Content;
   @Input() session: any;
   @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
+  private showHighRes = false;
   private thumbnailString: string;
   private thumbnailLoaded = false;
   private enabledTrigger = 'disabled';
   private data: any = {}; // prevent opening pdf modal if dragging the view
-
-  handleError(error: any): Promise<any> {
-    log.error('ERROR: ', error);
-    return Promise.reject(error.message || error);
-  }
 
   enableMe(): void {
     // log.debug("enableMe");
@@ -150,7 +146,7 @@ export class ClassicTileComponent implements OnChanges {
     let pleft = this.data.left;
     // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
     // if (Math.abs(top - ptop) < 5 || Math.abs(left - pleft) < 5) {
-    if (Math.abs(top - ptop) === 0 || Math.abs(left - pleft) === 0) {
+    if (abs(top - ptop) === 0 || abs(left - pleft) === 0) {
       if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
         this.toolService.newImage.next(this.content);
         this.toolService.newSession.next(this.session);

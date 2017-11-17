@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeD
 import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
 import { PanZoomConfig } from './panzoom/panzoom-config';
+import { PanZoomModel } from './panzoom/panzoom-model';
+import { PanZoomAPI } from './panzoom/panzoom-api';
 import { DataService } from './data.service';
 import { Content } from './content';
 import { ModalService } from './modal/modal.service';
@@ -11,6 +13,11 @@ import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
 import * as utils from './utils';
 declare var log: any;
+
+interface Point {
+  x: number;
+  y: number;
+}
 
 @Component({
   selector: 'classic-grid-view',
@@ -56,8 +63,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   public hoveredContentSession: number;
   public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
-  private panzoomModel: any = {};
-  private panZoomAPI: any;
+  private panzoomModel: PanZoomModel;
+  private panZoomAPI: PanZoomAPI;
   private search: Search[] = [];
   public canvasWidth = 2400;
   public initialZoomHeight = 1080;
@@ -135,11 +142,12 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.panzoomConfig.zoomStepDuration = 0.2;
     this.panzoomConfig.initialZoomToFit = {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
     this.panzoomConfig.haltSpeed = 100;
-    this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: any) => {
+    // this.panzoomConfig.disableZoomAnimation = false;
+    this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => {
       this.panzoomModel = model;
       this.sessionWidgetDecider();
     });
-    this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: any) => {
+    this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: PanZoomAPI) => {
       log.debug('ClassicGridComponent: newApiSubscription: Got new API');
       this.panZoomAPI = api;
     });
@@ -356,7 +364,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
     if (e.showOffice) {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('office'));
-    }    
+    }
     if (e.showHash) {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('hash'));
     }
@@ -375,30 +383,26 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
   }
 
-  testsessionWidgetDecider(): void {
-  }
-
   sessionWidgetDecider(): void {
-    log.debug('ClassicGridComponent: sessionWidgetDecider():', this.panzoomModel.zoomLevel);
+    // log.debug('ClassicGridComponent: sessionWidgetDecider():', this.panzoomModel.zoomLevel);
+    if (!(this.panzoomModel)) {
+      return;
+    }
     let transitionZoomLevel = 3.9;
-    // let height = this.windowRef.nativeWindow.innerHeight;
-    let height = window.innerHeight;
-    // let width = this.windowRef.nativeWindow.innerWidth;
-    let width = window.innerWidth;
-    let center: any = {};
-    center.x = width / 2;
-    center.y = height / 2;
+    let center: Point = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2
+    };
     let e = document.elementFromPoint(center.x, center.y);
-    let je: any = $(e);
-    if (!$(je).hasClass('thumbnail')) {
+    if (!e.classList.contains('thumbnail')) {
       this.hideSessionWidget();
     }
     if (this.panzoomModel.zoomLevel <= transitionZoomLevel) {
       this.hideSessionWidget();
     }
-    if (this.panzoomModel.zoomLevel >= transitionZoomLevel && $(je).hasClass('thumbnail')) {
-      if (je[0].attributes.sessionid) {
-        this.showSessionWidget(je[0].attributes.sessionid.value);
+    if (this.panzoomModel.zoomLevel >= transitionZoomLevel && e.classList.contains('thumbnail') ) {
+      if (e.hasAttribute('sessionid')) {
+        this.showSessionWidget( Number(e.getAttribute('sessionid')) );
       }
     }
 

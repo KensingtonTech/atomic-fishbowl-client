@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input } from '@angular/core';
+import { ClassicGridComponent } from './classic-grid.component';
 import { Subscription } from 'rxjs/Subscription';
 declare var log: any;
 
