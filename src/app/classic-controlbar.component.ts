@@ -30,7 +30,7 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
 
   constructor() {}
 
-  @Input() canvasWidth: number;
+  @Input() initialZoomWidth: number;
   @Input() initialZoomHeight: number;
   @Input() panzoomConfig: any;
   private panZoomAPI: any;
@@ -59,7 +59,8 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
   }
 
   zoomToFit(): void {
-    this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight } );
+    // log.debug('this.initialZoomWidth:', this.initialZoomWidth);
+    this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.initialZoomWidth, height: this.initialZoomHeight } );
   }
 
 }

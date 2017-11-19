@@ -17,7 +17,7 @@ export class KMousewheelDirective implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnInit(): void {
     log.debug('KMousewheelDirective: ngOnInit(): Creating new HamsterJS instance');
-    this.hamster = Hamster(this.elRef.nativeElement);
+    this.hamster = this.ngZone.runOutsideAngular( () => Hamster(this.elRef.nativeElement) );
   }
 
   ngAfterViewInit(): void {
@@ -36,7 +36,6 @@ export class KMousewheelDirective implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Unbind Hamster wheel event
-    // this.hamster.unwheel( () => this.mouseWheelFunc);
     log.debug('KMousewheelDirective: ngOnDestroy(): Unbinding mouse wheel');
     this.hamster.unwheel();
   }

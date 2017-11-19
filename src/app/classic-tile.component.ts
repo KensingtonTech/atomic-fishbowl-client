@@ -99,7 +99,7 @@ export class ClassicTileComponent implements OnChanges {
   @Input() content: Content;
   @Input() session: any;
   @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
-  private showHighRes = false;
+  public showHighRes = false;
   private thumbnailString: string;
   private thumbnailLoaded = false;
   private enabledTrigger = 'disabled';

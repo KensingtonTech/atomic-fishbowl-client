@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer2, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer2, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { Router, NavigationStart } from '@angular/router';
 import { NgStyle } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
@@ -63,7 +63,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService,
-                private router: Router ) {}
+                private router: Router,
+                private zone: NgZone ) {}
 
   @ViewChildren('masonry') masonryRef: QueryList<any>;
   @ViewChild(MasonryComponent) private masonryComponentRef: MasonryComponent;
@@ -435,11 +436,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   autoScroller(): void {
     log.debug('MasonryGridComponent: autoScroller(): Starting scroller');
     // Add a new animation to the animation queue
-    $('.scrollTarget').velocity( 'scroll', { duration: this.scrollDuration(), container: $('.scrollContainer'), easing: 'linear', complete: () => {
+    this.zone.runOutsideAngular( () => $('.scrollTarget').velocity( 'scroll', { duration: this.scrollDuration(), container: $('.scrollContainer'), easing: 'linear', complete: () => {
       // This callback runs when the animation is complete
       // log.debug('MasonryGridComponent: autoScroller(): Animation complete');
       if (this.selectedCollectionType === 'fixed' && this.collectionState === 'complete') { this.stopAutoScroll(); }
-    }});
+    }}) );
     if ( $('.scrollTarget').queue().length > 1) {
       // If there's already an animation running, stop it to allow the next animation in the queue to run
       log.debug('MasonryGridComponent: autoScroller(): stopping existing animation');

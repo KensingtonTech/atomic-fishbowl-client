@@ -23,13 +23,13 @@ interface Point {
   selector: 'classic-grid-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
+<div (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
   <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
-    <div class="bg noselect items" style="position: relative; width: 2400px;" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
+    <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
       <classic-tile *ngFor="let item of displayedContent" [highResSession]="hoveredContentSession" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]"></classic-tile>
     </div>
   </panzoom>
-  <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [canvasWidth]="canvasWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
+  <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
   <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 210px; top: 10px; color: white; z-index: 100;">
     <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
     <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
@@ -56,7 +56,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService ) {} // (<any>$).expr.cacheLength = 1;
 
-  public panzoomConfig = new PanZoomConfig();
+  public panzoomConfig = new PanZoomConfig;
   public content: Content[] = [];
   private contentCount = new ContentCount;
   public sessionWidgetEnabled = false;
@@ -67,7 +67,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private panZoomAPI: PanZoomAPI;
   private search: Search[] = [];
   public canvasWidth = 2400;
+  // public canvasWidth = window.innerWidth;
   public initialZoomHeight = 1080;
+  // public initialZoomHeight = window.innerHeight;
+  public initialZoomWidth = this.canvasWidth;
   public displayedContent: Content[] = [];
 
   public sessions: any;
@@ -86,6 +89,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private lastMask = new ContentMask;
   private searchBarOpen = false;
   private pauseMonitoring = false;
+  private transitionZoomLevel = 3.9;
 
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
@@ -140,9 +144,16 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.panzoomConfig.zoomLevels = 10;
     this.panzoomConfig.scalePerZoomLevel = 2.0;
     this.panzoomConfig.zoomStepDuration = 0.2;
-    this.panzoomConfig.initialZoomToFit = {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
+    this.panzoomConfig.initialZoomToFit = { x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
     this.panzoomConfig.haltSpeed = 100;
+    this.panzoomConfig.freeMouseWheel = true;
     // this.panzoomConfig.disableZoomAnimation = false;
+    // this.panzoomConfig.zoomLevels = 20;
+    // this.panzoomConfig.scalePerZoomLevel = 1.1;
+    // this.panzoomConfig.neutralZoomLevel = 5;
+    // this.panzoomConfig.zoomStepDuration = 0.01;
+    // this.panzoomConfig.keepInBounds = true;
+
     this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => {
       this.panzoomModel = model;
       this.sessionWidgetDecider();
@@ -151,11 +162,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       log.debug('ClassicGridComponent: newApiSubscription: Got new API');
       this.panZoomAPI = api;
     });
-    // this.panzoomConfig.zoomLevels = 20;
-    // this.panzoomConfig.scalePerZoomLevel = 1.1;
-    // this.panzoomConfig.neutralZoomLevel = 5;
-    // this.panzoomConfig.zoomStepDuration = 0.01;
-    // this.panzoomConfig.keepInBounds = true;
 
 
     // Take subscriptions
@@ -232,7 +238,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.contentReplacedSubscription = this.dataService.contentReplaced.subscribe( (i: any) => {
       log.debug('ClassicGridComponent: contentReplacedSubscription: contentReplaced:', i); // when a new collection is selected
       this.destroyView = true;
-      i.sort(this.sortContent);
       this.content = i;
       this.displayedContent = i.sort(this.sortContent);
       this.search = [];
@@ -277,6 +282,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
+      this.sessionWidgetDecider();
     });
 
     this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: Search[]) =>  { // this receives complete search term data from complete collection
@@ -318,11 +324,17 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
   }
 
-  sortNumber(a: number, b: number): number {
+  public onWindowResize(): void {
+    log.debug('ClassicGridComponent: onWindowResize()');
+    // this.initialZoomWidth = window.innerWidth;
+    // this.initialZoomHeight = window.innerHeight;
+  }
+
+  private sortNumber(a: number, b: number): number {
       return b - a;
   }
 
-  sortContent(a: any, b: any): number {
+  private sortContent(a: any, b: any): number {
    if (a.session < b.session) {
     return -1;
    }
@@ -333,7 +345,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
 
-  openPdfViewer(e: any): void {
+  private openPdfViewer(e: any): void {
     log.debug('ClassicGridComponent: openPdfViewer()');
     /*
     if (this.selectedCollectionType === 'monitoring' && this.pauseMonitoring === false) {
@@ -344,12 +356,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.modalService.open('pdf-viewer');
   }
 
-  maskChanged(e: ContentMask): void {
+  private maskChanged(e: ContentMask): void {
     this.lastMask = e;
     log.debug('MasonryGridComponent: maskChanged():', e);
 
     if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
-      this.displayedContent = this.content.sort(this.sortContent);
+      // this.displayedContent = this.content.sort(this.sortContent);
+      this.displayedContent = this.content;
       return;
     }
 
@@ -376,19 +389,22 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedRarTable'));
     }
     if (tempDisplayedContent.length > 0) {
-      this.displayedContent = tempDisplayedContent.sort(this.sortContent);
+      // this.displayedContent = tempDisplayedContent.sort(this.sortContent);
+      this.displayedContent = tempDisplayedContent;
     }
     else {
       this.displayedContent = [];
     }
   }
 
-  sessionWidgetDecider(): void {
+  private sessionWidgetDecider(): void {
     // log.debug('ClassicGridComponent: sessionWidgetDecider():', this.panzoomModel.zoomLevel);
     if (!(this.panzoomModel)) {
       return;
     }
-    let transitionZoomLevel = 3.9;
+
+    // log.debug(this.panzoomModel.zoomLevel);
+
     let center: Point = {
       x: window.innerWidth / 2,
       y: window.innerHeight / 2
@@ -397,10 +413,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     if (!e.classList.contains('thumbnail')) {
       this.hideSessionWidget();
     }
-    if (this.panzoomModel.zoomLevel <= transitionZoomLevel) {
+    if (this.panzoomModel.zoomLevel <= this.transitionZoomLevel) {
       this.hideSessionWidget();
     }
-    if (this.panzoomModel.zoomLevel >= transitionZoomLevel && e.classList.contains('thumbnail') ) {
+    if (this.panzoomModel.zoomLevel >= this.transitionZoomLevel && e.classList.contains('thumbnail') ) {
       if (e.hasAttribute('sessionid')) {
         this.showSessionWidget( Number(e.getAttribute('sessionid')) );
       }
@@ -442,7 +458,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       );
   }*/
 
-  showSessionWidget(i: number): void {
+  private showSessionWidget(i: number): void {
     // log.debug("ClassicGridComponent: showSessionWidget()", i);
     this.hoveredContentSession = i;
     // this.sessionWidgetEnabled = true;
@@ -450,20 +466,20 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.detectChanges();
   }
 
-  hideSessionWidget(): void {
+  private hideSessionWidget(): void {
     // log.debug("ClassicGridComponent: hideSessionWidget()");
     // this.sessionWidgetEnabled = false;
     this.sessionWidgetEnabled = false;
     this.changeDetectionRef.detectChanges();
   }
 
-  toggleCaseSensitiveSearch(): void {
+  private toggleCaseSensitiveSearch(): void {
     log.debug('ClassicGridComponent: toggleCaseSensitiveSearch()');
     this.caseSensitiveSearch = !this.caseSensitiveSearch;
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
   }
 
-  getContentBySessionAndContentFile(o: any): any {
+  private getContentBySessionAndContentFile(o: any): any {
     for (let x = 0; x < this.content.length; x++) {
       if (this.content[x].session === o.session && utils.pathToFilename(this.content[x].contentFile) === o.contentFile) {
         return this.content[x];
@@ -471,7 +487,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
   }
 
-  searchTermsChanged(e: any): void {
+  private searchTermsChanged(e: any): void {
     let searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
     let matchedIds = [];
@@ -512,7 +528,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
           tempDisplayedContent.push(item);
         }
       }
-      this.displayedContent = tempDisplayedContent.sort(this.sortContent);
+      // this.displayedContent = tempDisplayedContent.sort(this.sortContent);
+      this.displayedContent = tempDisplayedContent;
     }
 
     this.changeDetectionRef.detectChanges();
@@ -520,12 +537,12 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   }
 
 
-  resetContentCount(): void {
+  private resetContentCount(): void {
     this.contentCount = new ContentCount;
     this.toolService.contentCount.next( this.contentCount );
   }
 
-  countContent(): void {
+  private countContent(): void {
     this.contentCount = new ContentCount;
 
     for (let i = 0; i < this.content.length; i++) {
@@ -549,7 +566,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.toolService.contentCount.next( this.contentCount );
   }
 
-  resetContent(): void {
+  private resetContent(): void {
     this.displayedContent = [];
     this.search = [];
     this.sessions = {};
@@ -617,13 +634,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     return searchRemoved;
   }
 
-  suspendMonitoring(): void {
+  private suspendMonitoring(): void {
     this.pauseMonitoring = true;
     // this.dataService.abortGetBuildingCollection();
     this.dataService.pauseMonitoringCollection(this.collectionId);
   }
 
-  resumeMonitoring(): void {
+  private resumeMonitoring(): void {
     this.pauseMonitoring = false;
 
     // We must now check whether our collection has disconnected, and if not - call unpauseMonitoringCollection.  If so, call getRollingCollection
