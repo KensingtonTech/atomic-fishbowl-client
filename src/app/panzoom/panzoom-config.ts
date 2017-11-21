@@ -7,7 +7,7 @@ import * as log from 'loglevel';
 
 export class PanZoomConfig {
 
-  chromeUseTransform = false;
+  chromeUseTransform = true;
   disableZoomAnimation = false;
   friction = 10.0;
   haltSpeed = 100.0;
