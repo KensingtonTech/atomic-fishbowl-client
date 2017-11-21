@@ -8,7 +8,7 @@ import { User } from './user';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import { ErrorStateMatcher } from '@angular/material/core';
-declare var log: any;
+import * as log from 'loglevel';
 declare var JSEncrypt: any;
 
 function passwordMatcher(c: AbstractControl) {
@@ -150,6 +150,8 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   private confirmUserDeleteSubscription: Subscription;
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
+  public editUserPasswordMatcher = new EditUserPasswordMatcher();
+  public addUserPasswordMatcher = new AddUserPasswordMatcher();
 
   ngOnInit(): void {
     log.debug('ManageUsersModalComponent: ngOnInit');
@@ -238,8 +240,6 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     this.usersFormDisabled = false;
   }
 
-  public addUserPasswordMatcher = new AddUserPasswordMatcher();
-
 
 
 /////////////////////////////////////////////////////////////////
@@ -305,9 +305,6 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     this.usersFormDisabled = false;
   }
 
-  public editUserPasswordMatcher = new EditUserPasswordMatcher();
-
-  
   public disableEditUserSubmitButton(): boolean {
     if (this.editUserForm.pristine) { return true; }
     if (this.editUserForm.invalid && this.editUserForm.dirty) { return true; }

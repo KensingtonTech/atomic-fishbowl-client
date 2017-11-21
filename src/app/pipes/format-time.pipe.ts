@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 declare var moment: any;
-declare var log: any;
+import * as log from 'loglevel';
 
 @Pipe({name: 'formatTime'})
 

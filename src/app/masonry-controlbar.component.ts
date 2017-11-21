@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy, Input } from '@angular/core';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'masonry-control-bar',

@@ -17,10 +17,11 @@
     }
 
     open(id: string) {
+        let modal = null;
         // open modal specified by id
         for (let i = 0; i < this.modals.length; i++) {
             if (this.modals[i].id === id) {
-                var modal = this.modals[i];
+                modal = this.modals[i];
                 break;
             }
         }
@@ -28,10 +29,11 @@
     }
 
     close(id: string) {
+        let modal = null;
         // close modal specified by id
         for (let i = 0; i < this.modals.length; i++) {
             if (this.modals[i].id === id) {
-                var modal = this.modals[i];
+                modal = this.modals[i];
                 break;
             }
         }

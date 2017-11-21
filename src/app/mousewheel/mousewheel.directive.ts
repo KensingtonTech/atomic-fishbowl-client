@@ -1,6 +1,6 @@
 import { Directive, ElementRef, Output, EventEmitter, OnInit, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
 declare var Hamster: any;
-declare var log: any;
+import * as log from 'loglevel';
 
 @Directive({
   // tslint:disable-next-line:directive-selector

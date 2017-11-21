@@ -4,7 +4,7 @@ import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { defaultQueries } from './default-queries';
 import { SelectItem } from 'primeng/primeng';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'preferences-modal',

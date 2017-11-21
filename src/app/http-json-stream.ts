@@ -1,8 +1,8 @@
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { ToolService } from './tool.service';
-declare var log: any;
-declare var oboe: any;
+import * as log from 'loglevel';
+import * as oboe from 'oboe';
 
 export class HttpJsonStream {
 

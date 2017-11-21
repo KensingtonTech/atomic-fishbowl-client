@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToolService } from './tool.service';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'router-dropdown',

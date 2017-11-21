@@ -3,7 +3,7 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component( {
   selector: 'classic-session-popup',

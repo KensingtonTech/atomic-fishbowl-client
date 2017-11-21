@@ -2,7 +2,7 @@
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   moduleId: module.id.toString(),

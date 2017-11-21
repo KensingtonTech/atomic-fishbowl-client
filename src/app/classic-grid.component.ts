@@ -12,7 +12,8 @@ import { ContentMask } from './contentmask';
 import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
 import * as utils from './utils';
-declare var log: any;
+import { Element } from '@angular/compiler';
+import * as log from 'loglevel';
 
 interface Point {
   x: number;
@@ -26,7 +27,7 @@ interface Point {
 <div (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
   <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
-      <classic-tile *ngFor="let item of displayedContent" [highResSession]="hoveredContentSession" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]"></classic-tile>
+      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionId]="item.session"></classic-tile>
     </div>
   </panzoom>
   <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
@@ -61,6 +62,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private contentCount = new ContentCount;
   public sessionWidgetEnabled = false;
   public hoveredContentSession: number;
+  public highResSessions: number[] = [];
   public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
   private panzoomModel: PanZoomModel;
@@ -108,6 +110,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private sessionsPurgedSubscription: Subscription;
   private modelChangedSubscription: Subscription;
   private newApiSubscription: Subscription;
+  private previousFocusedElement: Node;
 
 
   ngOnDestroy(): void {
@@ -147,6 +150,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.panzoomConfig.initialZoomToFit = { x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
     this.panzoomConfig.haltSpeed = 100;
     this.panzoomConfig.freeMouseWheel = true;
+    this.panzoomConfig.freeMouseWheelFactor = 0.01;
     // this.panzoomConfig.disableZoomAnimation = false;
     // this.panzoomConfig.zoomLevels = 20;
     // this.panzoomConfig.scalePerZoomLevel = 1.1;
@@ -409,18 +413,38 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       x: window.innerWidth / 2,
       y: window.innerHeight / 2
     };
-    let e = document.elementFromPoint(center.x, center.y);
-    if (!e.classList.contains('thumbnail')) {
-      this.hideSessionWidget();
-    }
-    if (this.panzoomModel.zoomLevel <= this.transitionZoomLevel) {
-      this.hideSessionWidget();
-    }
-    if (this.panzoomModel.zoomLevel >= this.transitionZoomLevel && e.classList.contains('thumbnail') ) {
-      if (e.hasAttribute('sessionid')) {
-        this.showSessionWidget( Number(e.getAttribute('sessionid')) );
+
+    let focusedElement = document.elementFromPoint(center.x, center.y);
+
+    if (!this.previousFocusedElement || ( this.previousFocusedElement && !this.previousFocusedElement.isSameNode(focusedElement) )) {
+      let focusedTile = focusedElement.parentNode.parentNode.parentElement;
+      if (!focusedElement.classList.contains('thumbnail')) {
+        this.hideSessionWidget();
+      }
+
+      if (this.panzoomModel.zoomLevel <= this.transitionZoomLevel) {
+        this.hideSessionWidget();
+      }
+
+      if (this.panzoomModel.zoomLevel >= this.transitionZoomLevel && focusedElement.classList.contains('thumbnail') && focusedElement.hasAttribute('sessionid' ) ) {
+
+        let sessionsForHighRes = [];
+        sessionsForHighRes.push(Number(focusedElement.getAttribute('sessionid')));
+
+        let previousElementSibling = focusedTile.previousElementSibling;
+        if (previousElementSibling && previousElementSibling.getElementsByClassName('thumbnail').length !== 0 && previousElementSibling.hasAttribute('sessionId' ) ) {
+          sessionsForHighRes.push(Number(previousElementSibling.getAttribute('sessionId')));
+        }
+
+        let nextElementSibling = focusedTile.nextElementSibling;
+        if (nextElementSibling && nextElementSibling.getElementsByClassName('thumbnail').length !== 0 && nextElementSibling.hasAttribute('sessionId' )) {
+          sessionsForHighRes.push(Number(nextElementSibling.getAttribute('sessionId')));
+        }
+
+        this.showSessionWidget( sessionsForHighRes[0], sessionsForHighRes );
       }
     }
+    this.previousFocusedElement = focusedElement;
 
 /*
     //at around a zoomLevel of 4 (3.9) or greater, we want to show high res images for all onscreen
@@ -458,10 +482,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       );
   }*/
 
-  private showSessionWidget(i: number): void {
+  private showSessionWidget(i: number, sessionsForHighRes: number[] ): void {
     // log.debug("ClassicGridComponent: showSessionWidget()", i);
     this.hoveredContentSession = i;
-    // this.sessionWidgetEnabled = true;
+    this.highResSessions = sessionsForHighRes;
     this.sessionWidgetEnabled = true;
     this.changeDetectionRef.detectChanges();
   }

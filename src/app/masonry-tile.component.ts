@@ -3,7 +3,7 @@ import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import * as utils from './utils';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'masonry-tile',

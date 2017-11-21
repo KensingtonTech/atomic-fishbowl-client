@@ -3,7 +3,7 @@ import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription} from 'rxjs/Subscription';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'twoTwoOneB-app',

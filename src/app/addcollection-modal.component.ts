@@ -12,7 +12,7 @@ import { SelectItem } from 'primeng/primeng';
 import { Subscription } from 'rxjs/Subscription';
 import { NwServer } from './nwserver';
 import * as utils from './utils';
-declare var log: any;
+import * as log from 'loglevel';
 declare var JSEncrypt: any;
 
 /*

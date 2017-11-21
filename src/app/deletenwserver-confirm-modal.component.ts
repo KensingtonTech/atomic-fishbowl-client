@@ -4,7 +4,7 @@ import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
 import { NwServer } from './nwserver';
 import { Subscription } from 'rxjs/Subscription';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'confirm-nwserver-delete-modal',

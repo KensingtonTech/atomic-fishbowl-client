@@ -1,4 +1,4 @@
-export class Content {
+export interface Content {
   id: string;
   session: number;
   contentType?: string;

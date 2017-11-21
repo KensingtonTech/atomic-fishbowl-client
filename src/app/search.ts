@@ -1,4 +1,4 @@
-export class Search {
+export interface Search {
   session: number;
   id: string; // uuid
   contentFile: string;

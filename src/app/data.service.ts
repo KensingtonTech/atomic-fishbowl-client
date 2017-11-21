@@ -11,7 +11,7 @@ import { HttpJsonStream } from './http-json-stream';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
 import { UseCase } from './usecase';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Injectable()
 

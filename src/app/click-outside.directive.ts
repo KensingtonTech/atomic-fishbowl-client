@@ -1,5 +1,5 @@
 import {Directive, ElementRef, Output, EventEmitter, HostListener} from '@angular/core';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Directive({
     // tslint:disable-next-line:directive-selector

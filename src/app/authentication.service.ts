@@ -7,7 +7,7 @@ import { Headers, RequestOptions, Http } from '@angular/http';
 import { User } from './user';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Injectable()
 

@@ -3,7 +3,7 @@ import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Inpu
 import { ToolService } from './tool.service';
 import { Content } from './content';
 import { abs } from 'mathjs';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'classic-tile',
@@ -92,12 +92,13 @@ export class ClassicTileComponent implements OnChanges {
 
   constructor(private el: ElementRef,
               private changeDetectionRef: ChangeDetectorRef,
-              private toolService: ToolService ) {} // private imgcacheService: ImgcacheService, private http: Http
+              private toolService: ToolService ) {}
 
   @Input() apiServerUrl: string;
-  @Input() highResSession: number;
+  @Input() highResSessions: number[];
   @Input() content: Content;
   @Input() session: any;
+  @Input() sessionId: number;
   @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
   public showHighRes = false;
   private thumbnailString: string;
@@ -119,19 +120,16 @@ export class ClassicTileComponent implements OnChanges {
 
   ngOnChanges(o: any): void {
     // log.debug("onChanges:", o);
-    // if (o.highResSession && this.content.session === o.highResSession.currentValue) {
-    //    if (o.showHighRes && !this.showHighRes) {
-    //    }
-    if (o.highResSession && this.content.session && this.content.session === o.highResSession.currentValue) {
-      // log.debug("enabling high res for session", o.highResSession.currentValue);
-      // log.debug("o.highResSession.currentValue");
-      this.showHighRes = true;
-      this.changeDetectionRef.markForCheck();
-      // log.debug('showing high res');
+    let foundHighRes = false;
+    if (o.highResSessions && this.sessionId) {
+      let highResSessions = o.highResSessions.currentValue;
+      if ( highResSessions.includes(this.sessionId) ) {
+        this.showHighRes = true;
+        foundHighRes = true;
+      }
     }
-    else if (this.showHighRes) { // this was previously high res but the session didn't match.  set it back to low-res
+    if (this.showHighRes && !foundHighRes) { // this was previously high res but the session didn't match.  set it back to low-res
       this.showHighRes = false;
-      this.changeDetectionRef.markForCheck();
     }
   }
 

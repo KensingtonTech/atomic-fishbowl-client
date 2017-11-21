@@ -1,6 +1,6 @@
 import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { MasonryComponent } from './masonry.component';
-declare var log: any;
+import * as log from 'loglevel';
 
 interface MutationWindow extends Window {
   MutationObserver: any;

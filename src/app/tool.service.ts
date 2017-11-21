@@ -1,7 +1,7 @@
 import { Injectable, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Injectable()
 

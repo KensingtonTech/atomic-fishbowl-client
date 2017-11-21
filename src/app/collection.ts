@@ -1,4 +1,4 @@
-export class Collection {
+export interface Collection {
   id: string;
   name: string;
   state: string;

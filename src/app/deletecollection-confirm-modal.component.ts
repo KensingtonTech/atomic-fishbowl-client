@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import { ModalService } from './modal/modal.service';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'delete-collection-confirm-modal',

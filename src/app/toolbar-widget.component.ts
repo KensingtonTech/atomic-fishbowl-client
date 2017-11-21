@@ -10,7 +10,7 @@ import { ContentMask } from './contentmask';
 import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/primeng';
 import { Subscription } from 'rxjs/Subscription';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component( {
   selector: 'toolbar-widget',
@@ -19,12 +19,12 @@ declare var log: any;
 <div style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
   <div *ngIf="showCollections">
     <div style="position: absolute; top: 6px; width: 100%">
-      
+
       <span class="noselect">
         <span class="label">Collection:&nbsp;
           <p-dropdown [options]="collectionsOptions" [(ngModel)]="selectedCollectionId" (onChange)="onCollectionSelected($event)" autoWidth="false" [style]="{'margin-bottom':'4px','width':'250px'}"></p-dropdown>
         </span>
-        
+
         <!--Add/Edit/Delete Icons-->
         <span class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
         <span (click)="onAddCollectionClick()" class="fa fa-plus fa-lg fa-fw"></span>
@@ -61,22 +61,22 @@ declare var log: any;
     <div class="noselect" style="position: absolute; right: 160px; top: 2px;">
       <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="imageMaskClick()" class="fa fa-file-image-o fa-2x" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
       <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-      
+
       <span *ngIf="contentCount.officeDocs != 0 && (contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showOffice" [class.hide]="showSearch" (click)="officeMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Office content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-      
+
       <span *ngIf="contentCount.dodgyArchives != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
       <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-      
+
       <!--Search Button-->
       <span *ngIf="contentCount.pdfs != 0 || contentCount.officeDocs != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
     </div>
   </div>
-  
+
   <!--First collection Text-->
   <div (click)="onAddCollectionClick()" style="position: absolute; top: 7px; left: 10px;" *ngIf="showCreateFirstCollection" class="noselect">
     <u>Create your first collection</u>
   </div>
-  
+
   <!--Preferences, Accounts, Help, and Logout Buttons-->
   <div class="noselect" style="position: absolute; right: 10px; top: 2px;">
     <span (click)="preferencesButtonClick()" class="fa fa-cog fa-2x" pTooltip="Global preferences" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;

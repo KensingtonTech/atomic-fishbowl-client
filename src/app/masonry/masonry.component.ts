@@ -2,10 +2,12 @@ import { Component, OnInit, OnDestroy, OnChanges, AfterContentInit, Input, Outpu
 import { MasonryOptions } from './masonry-options';
 import { ToolService } from '../tool.service';
 import { Subscription } from 'rxjs/Subscription';
-declare var log: any;
-declare var imagesLoaded: any;
+import * as log from 'loglevel';
+import * as imagesLoaded from 'imagesloaded';
+// import * as Isotope from 'isotope-layout'; // import error for now
+// import { Isotope } from 'isotope-layout';
+// import 'isotope-layout';
 declare var Isotope;
-// tslint:disable-next-line:no-var-keyword
 
 @Component({
   selector: '[masonry], masonry',

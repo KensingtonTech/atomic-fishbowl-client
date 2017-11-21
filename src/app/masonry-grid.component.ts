@@ -14,7 +14,7 @@ import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
 import * as math from 'mathjs';
 import * as utils from './utils';
-declare var log: any;
+import * as log from 'loglevel';
 declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it
 
 @Component({

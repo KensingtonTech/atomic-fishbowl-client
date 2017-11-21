@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { buildProperties } from './build-properties';
-declare var log: any;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'splash-screen-modal',
