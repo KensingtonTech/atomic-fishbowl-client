@@ -408,7 +408,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     // log.debug(this.panzoomModel.zoomLevel);
 
-    if (this.panzoomModel.zoomLevel <= this.transitionZoomLevel) {
+    if (this.panzoomModel.zoomLevel < this.transitionZoomLevel) {
       this.hideSessionWidget();
       return;
     }
