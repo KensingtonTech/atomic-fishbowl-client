@@ -193,3 +193,15 @@ export function toCaps(s: string): string {
 export function capitalizeFirstLetter(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+export function getHashesFromConfig(a: any[]): string {
+  let text = '';
+  for (let i = 0; i < a.length; i++) {
+    text += a[i].hash + ',' + a[i].friendly;
+    if (i < a.length - 1) { // omit the newline on the last line
+     text += '\n';
+    }
+  }
+  return text;
+}
+

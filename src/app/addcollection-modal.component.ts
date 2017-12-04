@@ -882,7 +882,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
       if (collection.sha1Enabled) {
         this.collectionFormModel.sha1Enabled = true;
-        this.collectionFormModel.sha1Hashes = this.convertArrayToString(collection.sha1Hashes);
+        this.collectionFormModel.sha1Hashes = utils.getHashesFromConfig(collection.sha1Hashes);
       }
       else {
         this.collectionFormModel.sha1Enabled = false;
@@ -890,7 +890,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
       if (collection.sha256Enabled) {
         this.collectionFormModel.sha256Enabled = true;
-        this.collectionFormModel.sha256Hashes = this.convertArrayToString(collection.sha256Hashes);
+        this.collectionFormModel.sha256Hashes = utils.getHashesFromConfig(collection.sha256Hashes);
       }
       else {
         this.collectionFormModel.sha256Enabled = false;
@@ -898,7 +898,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
       if (collection.md5Enabled) {
         this.collectionFormModel.md5Enabled = true;
-        this.collectionFormModel.md5Hashes = this.convertArrayToString(collection.md5Hashes);
+        this.collectionFormModel.md5Hashes = utils.getHashesFromConfig(collection.md5Hashes);
       }
       else {
         this.collectionFormModel.md5Enabled = false;
