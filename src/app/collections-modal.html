@@ -1,16 +1,47 @@
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
   <div class="modal">
     <div class="modal-body" style="left: 50px; right: 50px; top: 50px; bottom: 50px; position: absolute;" >
+
       <h2 style="margin-top: 0px;">Collections</h2>
+      
+      <!--close button-->
       <div *ngIf="!firstOpen" (click)="closeModal()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
 
-      <p-orderList [value]="collections" (onSelectionChange)="onSelectionChanged($event)" dragdrop="true" dragdropScope="collectionsModalList" responsive="true">
-        <ng-template let-collection pTemplate="item">
-          <div (dblclick)="collectionDoubleClicked(collection)">{{collection.name}}&nbsp;&nbsp;{{collection.type}}&nbsp;&nbsp;
-            <div>{{collection.nwserverName}}</div>
+      <!--collections container-->
+      <!--<div style="display: absolute; left: 10px; right: 10px; top: 50px; bottom: 10px;">
+        <div [dragula]='"first-bag"' style="position: relative; overflow: auto; height: 99%;">-->
+          <!--individual collections-->
+          <!--<div *ngFor="let collection of collections" style="cursor: -webkit-grab;" (dblclick)="collectionDoubleClicked(collection)">
+            {{collection.name}} {{collection.type}} {{collection.nwserverName}}
           </div>
-        </ng-template>
-      </p-orderList>
+        </div>
+      </div>-->
+
+      <div style="display: table; width: 95%;">
+
+        <div class="header">
+          <div class="row">
+            <div class="header-cell">Name</div>
+            <div class="header-cell">Type</div>
+            <div class="header-cell">NW Server</div>
+            <div class="header-cell">Actions</div>
+          </div>
+        </div>
+
+        <div [dragula]='"first-bag"' class="row-group">
+          <div class="row grabbable" *ngFor="let collection of collections">
+            <div class="cell">{{collection.name}}</div>
+            <div class="cell">{{collection.type}}</div>
+            <div class="cell">{{collection.nwserverName}}</div>
+            <div class="cell" style="cursor: initial;">
+              <span class="fa fa-pencil" (click)="displayUserEditBox(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="deleteUser(user.id)"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
 
     </div>
   </div>

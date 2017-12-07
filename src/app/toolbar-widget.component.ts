@@ -21,9 +21,9 @@ import * as log from 'loglevel';
     <div style="position: absolute; top: 6px; width: 100%">
 
       <span class="noselect">
-        <span class="label">Collection:&nbsp;
-          <p-dropdown [options]="collectionsOptions" [(ngModel)]="selectedCollectionId" (onChange)="onCollectionSelected($event)" autoWidth="false" [style]="{'margin-bottom':'4px','width':'250px'}"></p-dropdown>
-        </span>
+        <span class="label" (click)="onCollectionsClick()">Collection:&nbsp;</span>
+        <p-dropdown [options]="collectionsOptions" [(ngModel)]="selectedCollectionId" (onChange)="onCollectionSelected($event)" autoWidth="false" [style]="{'margin-bottom':'4px','width':'250px'}"></p-dropdown>
+
 
         <!--Add/Edit/Delete Icons-->
         <span class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
@@ -99,6 +99,7 @@ import * as log from 'loglevel';
 <delete-collection-confirm-modal (confirmDelete)="deleteConfirmed()" ></delete-collection-confirm-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
+<collections-modal [id]="collectionsModalId"></collections-modal>
 `,
 
   styles: [`
@@ -165,6 +166,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   public errorIcon = false;
   public errorMessage = '';
   public queryResultsCount = 0;
+  private collectionsModalId = 'collections-modal';
 
   // Subscriptions
   private contentCountSubscription: Subscription;
@@ -600,6 +602,10 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     let collection = this.collections[this.selectedCollectionId];
     this.toolService.editCollectionNext.next(collection);
     this.modalService.open(this.addCollectionModalId);
+  }
+
+  onCollectionsClick(): void {
+    this.modalService.open(this.collectionsModalId);
   }
 
 }

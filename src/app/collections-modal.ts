@@ -12,6 +12,40 @@ import * as log from 'loglevel';
   selector: 'collections-modal',
   templateUrl: './collections-modal.html',
   styles: [`
+    .header {
+      display: table-header-group;
+    }
+    .row {
+      display: table-row;
+    }
+    .cell {
+      display: table-cell;
+    }
+    .header-cell {
+      display: table-cell;
+      font-weight: bold;
+      font-size: 14pt;
+    }
+    .row-group {
+      display: table-row-group;
+    }
+    .row-group > .row:nth-child(even) {background: #CCC;}
+    .row-group > .row:nth-child(odd) {background: #FFF;}
+    
+    
+
+    .grabbable {
+      cursor: move; /* fallback if grab cursor is unsupported */
+      cursor: grab;
+      cursor: -moz-grab;
+      cursor: -webkit-grab;
+    }
+    /* (Optional) Apply a "closed-hand" cursor during drag operation. */
+    .grabbable:active {
+      cursor: grabbing;
+      cursor: -moz-grabbing;
+      cursor: -webkit-grabbing;
+    }
   `]
 })
 

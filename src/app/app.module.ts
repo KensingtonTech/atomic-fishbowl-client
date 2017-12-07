@@ -20,6 +20,9 @@ import { ListboxModule } from 'primeng/components/listbox/listbox';
 // Angular Material
 import { MatCardModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule } from '@angular/material';
 
+// Dragula
+import { DragulaModule } from 'ng2-dragula';
+
 // Our Services
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
@@ -59,6 +62,7 @@ import { ServerDownModalComponent } from './serverdown-modal.component';
 import { LoginComponent } from './login.component';
 import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.component';
 import { DeleteNwServerConfirmModalComponent } from './deletenwserver-confirm-modal.component';
+import { CollectionsModalComponent } from './collections-modal';
 
 // Not yet used but imported to prevent compiler error
 import { SessionWidgetComponent } from './session-widget.component';
@@ -89,7 +93,7 @@ import * as $ from 'jquery';
                   MatButtonModule,
                   MatToolbarModule,
                   FlexLayoutModule,
-                  // MatListModule,
+                  DragulaModule,
                   RouterModule.forRoot([
                     {
                       path: '',
@@ -139,7 +143,8 @@ import * as $ from 'jquery';
                   ServerDownModalComponent,
                   DownloadFileConfirmModalComponent,
                   SessionWidgetComponent,
-                  DeleteNwServerConfirmModalComponent
+                  DeleteNwServerConfirmModalComponent,
+                  CollectionsModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,
