@@ -1,0 +1,17 @@
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
+  <div class="modal">
+    <div class="modal-body" style="left: 50px; right: 50px; top: 50px; bottom: 50px; position: absolute;" >
+      <h2 style="margin-top: 0px;">Collections</h2>
+      <div *ngIf="!firstOpen" (click)="closeModal()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
+
+      <p-orderList [value]="collections" (onSelectionChange)="onSelectionChanged($event)" dragdrop="true" dragdropScope="collectionsModalList" responsive="true">
+        <ng-template let-collection pTemplate="item">
+          <div (dblclick)="collectionDoubleClicked(collection)">{{collection.name}}&nbsp;&nbsp;{{collection.type}}&nbsp;&nbsp;
+            <div>{{collection.nwserverName}}</div>
+          </div>
+        </ng-template>
+      </p-orderList>
+
+    </div>
+  </div>
+</modal>
