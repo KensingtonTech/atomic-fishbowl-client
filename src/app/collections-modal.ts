@@ -12,6 +12,11 @@ import * as log from 'loglevel';
   selector: 'collections-modal',
   templateUrl: './collections-modal.html',
   styles: [`
+    .table {
+      display: table;
+      border-collapse: separate;
+      border-spacing: 2px;
+    }
     .header {
       display: table-header-group;
     }
@@ -20,6 +25,8 @@ import * as log from 'loglevel';
     }
     .cell {
       display: table-cell;
+      padding: 2px;
+      border-bottom: 1px solid black;
     }
     .header-cell {
       display: table-cell;
@@ -28,11 +35,10 @@ import * as log from 'loglevel';
     }
     .row-group {
       display: table-row-group;
+      border: 1px solid black;
     }
     .row-group > .row:nth-child(even) {background: #CCC;}
     .row-group > .row:nth-child(odd) {background: #FFF;}
-    
-    
 
     .grabbable {
       cursor: move; /* fallback if grab cursor is unsupported */
@@ -45,6 +51,15 @@ import * as log from 'loglevel';
       cursor: grabbing;
       cursor: -moz-grabbing;
       cursor: -webkit-grabbing;
+    }
+    .center {
+      text-align: center;
+    }
+    .link {
+      cursor: pointer;
+    }
+    .link:hover {
+      font-weight: bold;
     }
   `]
 })
@@ -63,6 +78,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
   private selectedCollectionChangedSubscription: Subscription;
   private collectionsChangedSubscription: Subscription;
   public nwServers: any = {};
+  private utils = utils;
 
   ngOnInit(): void {
     // this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
@@ -153,6 +169,15 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
       return true;
     }
     return false;
+  }
+
+  public getNwServerString(id: string): string {
+    if (id in this.nwServers) {
+      return this.nwServers[id].host + ':' + this.nwServers[id].port;
+    }
+    else {
+      return '-';
+    }
   }
 
 }
