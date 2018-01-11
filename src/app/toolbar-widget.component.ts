@@ -168,7 +168,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private errorPublishedSubscription: Subscription;
   private queryResultsCountUpdatedSubscription: Subscription;
   private useCasesChangedSubscription: Subscription;
-  private deleteCollectionConfirmedSubscription: Subscription;
   private collectionSelectedSubscription: Subscription;
   private noCollectionSubscription: Subscription;
 
@@ -207,7 +206,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.errorPublishedSubscription.unsubscribe();
     this.queryResultsCountUpdatedSubscription.unsubscribe();
     this.useCasesChangedSubscription.unsubscribe();
-    this.deleteCollectionConfirmedSubscription.unsubscribe();
     this.collectionSelectedSubscription.unsubscribe();
     this.noCollectionSubscription.unsubscribe();
   }

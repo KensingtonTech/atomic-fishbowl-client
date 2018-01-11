@@ -1,6 +1,7 @@
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
   <div class="modal">
-    <div class="modal-body" style="left: 50px; right: 50px; top: 50px; bottom: 50px; position: absolute;" >
+    <!--<div class="modal-body" style="left: 50px; right: 50px; top: 50px; bottom: 50px; position: absolute;" >-->
+    <div class="modal-body" style="top: 50px; width: 75%; min-width: 800px; max-width: 1280px; height: auto; min-height: 800px; max-height: 95%; overflow: hidden;" >
 
       <!--close button-->
       <div (click)="closeModal()" style="position: absolute; top: 8px; right: 10px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
@@ -20,13 +21,14 @@
       <!--header-->
       <h2 style="margin-top: 0px; margin-bottom: 5px;">Collections</h2>
 
-      <!--buttons-->
+      <!--add collection button-->
       <div style="position: absolute; left: 170px; top: 13px;">
         <button pButton type="button" (click)="onAddCollectionClick()" label="New Collection"></button>
       </div>
 
       <!--collections container-->
-      <div style="position: absolute; top: 50px; bottom: 10px; left: 20px; right: 20px; overflow: auto;">
+      <!--<div style="position: absolute; top: 50px; bottom: 10px; left: 20px; right: 20px; overflow: auto;">-->
+      <div style="top: 50px; width: 100%;">
         <div class="table" style="width: 100%; margin: auto;">
 
           <div class="header">
