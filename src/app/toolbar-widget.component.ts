@@ -24,7 +24,7 @@ import * as log from 'loglevel';
 
         <!--Info Tooltip Icon-->
         <span class="collectionTooltip" *ngIf="selectedCollection" [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
-        
+
         <!-- Edit Icon -->
         <span class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
 

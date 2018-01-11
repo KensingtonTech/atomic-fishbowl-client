@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # define our data dirs
-CERTDIR=/etc/kentech/221b/certificates
-DATADIR=/var/kentech/221b
+CERTDIR=/etc/kentech/afb/certificates
+DATADIR=/var/kentech/afb
 LOGDIR=/var/log/nginx
 
 # Stop existing container, if already running

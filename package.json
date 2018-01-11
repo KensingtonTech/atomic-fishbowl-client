@@ -1,7 +1,7 @@
 {
-  "name": "two21b-client",
+  "name": "atomic-fishbowl-client",
   "version": "0.0.0",
-  "license": "SEE LICENSE IN 221b.license",
+  "license": "SEE LICENSE IN atomic-fishbowl.license",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --live-reload --live-reload-client https://localhost",

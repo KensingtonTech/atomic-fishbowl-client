@@ -1,0 +1,15 @@
+[Unit]
+Description=AtomicFishbowl-Nginx - high performance web server
+Documentation=https://knowledgekta.com
+After=network-online.target remote-fs.target nss-lookup.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker stop afb-nginx
+ExecStart=/usr/bin/docker start -a afb-nginx
+ExecReload=/usr/bin/docker kill -s HUP afb-nginx
+ExecStop=/usr/bin/docker stop afb-nginx
+
+[Install]
+WantedBy=multi-user.target
