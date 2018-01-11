@@ -61,6 +61,12 @@ import * as log from 'loglevel';
     .link:hover {
       font-weight: bold;
     }
+    .no-nw-server:hover {
+      color: red;
+    }
+    .modal-body {
+      background-color: rgba(255,255,255,1);
+    }
   `]
 })
 
@@ -68,24 +74,31 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private toolService: ToolService,
-              private modalService: ModalService) {}
+              private modalService: ModalService ) {}
 
   @Input() public id: string;
-  @Output() public showCreateFirstCollection: EventEmitter<boolean> = new EventEmitter<boolean>();
   public collections: Collection[];
-  public selectedCollectionId: string = null;
-  private getCollectionDataAgainSubscription: Subscription;
-  private selectedCollectionChangedSubscription: Subscription;
-  private collectionsChangedSubscription: Subscription;
+  public displayedCollections: Collection[];
+  private selectedCollection: Collection;
   public nwServers: any = {};
   private utils = utils;
+  public addCollectionModalId = 'add-collection-modal';
+  public filterText = '';
+
+  // Subscriptions
+  private getCollectionDataAgainSubscription: Subscription;
+  private collectionsChangedSubscription: Subscription;
+  private deleteCollectionConfirmedSubscription: Subscription;
+  private executeAddCollectionSubscription: Subscription;
+  private executeEditCollectionSubscription: Subscription;
+  // private selectedCollectionChangedSubscription: Subscription;
 
   ngOnInit(): void {
-    // this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollectionId = e.id );
+    this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
+    // this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollectionId = e.id );
 
     this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => {
-      // this.collections = collections;
+      // triggered by dataService.refreshCollections()
       let tempCollections = [];
 
       for (let c in collections) {
@@ -96,25 +109,21 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
         }
       }
       this.collections = tempCollections;
+      this.displayedCollections = tempCollections;
       log.debug('CollectionsModalComponent: collectionsChangedSubscription: collections update', this.collections);
     });
 
-    /*
-    this.dataService.refreshCollections()
-    .then( () => {
-      // this.refreshed = true;
-      if (Object.keys(this.collections).length !== 0 ) { // we only select a collection if there are collections
-        // this.selectedCollectionId = this.getFirstCollection();
-        this.onCollectionSelected({ value: this.selectedCollectionId });
-        this.toolService.deviceNumber.next( { deviceNumber: this.collections[this.selectedCollectionId].deviceNumber, nwserver:  this.collections[this.selectedCollectionId].nwserver } );
-        this.showCollections = true;
-      }
-      else {
-        // this.showCreateFirstCollection = true;
-        this.showCreateFirstCollection.emit(true);
-      }
+    this.deleteCollectionConfirmedSubscription = this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.deleteConfirmed(collectionId) );
+
+    this.executeAddCollectionSubscription = this.toolService.executeAddCollection.subscribe( (collection: Collection) => {
+      this.collectionExecuted(collection);
     });
-    */
+
+    this.executeEditCollectionSubscription = this.toolService.executeEditCollection.subscribe( (collection: Collection) => {
+      this.collectionExecuted(collection);
+    });
+
+    this.dataService.refreshCollections();
 
     this.getNwServers();
   }
@@ -132,17 +141,17 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.getCollectionDataAgainSubscription.unsubscribe();
-    this.selectedCollectionChangedSubscription.unsubscribe();
+    // this.selectedCollectionChangedSubscription.unsubscribe();
     this.collectionsChangedSubscription.unsubscribe();
-    // this.collectionStateChangedSubscription.unsubscribe();
-    // this.errorPublishedSubscription.unsubscribe();
-    // this.queryResultsCountUpdatedSubscription.unsubscribe();
+    this.deleteCollectionConfirmedSubscription.unsubscribe();
     // this.useCasesChangedSubscription.unsubscribe();
-    // this.executeAddCollectionSubscription.unsubscribe();
-    // this.executeEditCollectionSubscription.unsubscribe();
+    this.executeAddCollectionSubscription.unsubscribe();
+    this.executeEditCollectionSubscription.unsubscribe();
   }
 
   public onOpen(): void {
+    this.dataService.refreshCollections()
+                    .then( () => this.filterChanged() );
     this.getNwServers();
   }
 
@@ -152,16 +161,6 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
 
   public closeModal(): void {
     this.modalService.close(this.id);
-  }
-
-  public collectionDoubleClicked(collection): void {
-    log.debug('CollectionsModalComponent: collectionDoubleClicked: collection:', collection);
-
-  }
-
-  public onSelectionChanged($event): void {
-    let selectedCollections = $event.value;
-    log.debug('CollectionsModalComponent: onSelectionChanged: selectedCollections:', selectedCollections);
   }
 
   public checkNwServerExists(id: string) {
@@ -178,6 +177,142 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
     else {
       return '-';
     }
+  }
+
+  public nwServerExists(id: string): boolean {
+    if (id in this.nwServers) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  onAddCollectionClick(): void {
+    // log.debug("CollectionsModalComponent: onAddCollectionClick()");
+    this.toolService.addCollectionNext.next();
+    this.modalService.close(this.id);
+    this.modalService.open(this.addCollectionModalId);
+    this.toolService.reOpenCollectionsModal.next(true);
+  }
+
+  onEditCollectionClick(collection: Collection): void {
+    log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', collection);
+    this.toolService.editCollectionNext.next(collection);
+    this.modalService.close(this.id);
+    this.toolService.reOpenCollectionsModal.next(true);
+    this.modalService.open(this.addCollectionModalId);
+  }
+
+  deleteConfirmed(collectionId: string): void {
+    log.debug('CollectionsModalComponent: deleteConfirmed(): Received deleteConfirmed event');
+    // there are two paths - deleting the currently selected collection, or deleting the collection which isn't selected
+
+    if (this.selectedCollection && collectionId === this.selectedCollection.id) {
+      // we've deleted the currently selected collection
+      this.dataService.abortGetBuildingCollection()
+                      .then( () => this.toolService.noCollections.next() )
+                      .then( () => this.dataService.deleteCollection(collectionId) )
+                      .then( () => this.dataService.refreshCollections() );
+    }
+    else {
+      // we've deleted a collection that isn't selected
+      this.dataService.deleteCollection(collectionId)
+                      .then( () => this.dataService.refreshCollections() )
+                      .then( () => this.filterChanged() );
+    }
+  }
+
+  onDeleteCollectionClick(collection: Collection): void {
+    // log.debug('CollectionsModalComponent: onDeleteCollectionClick()');
+    this.toolService.deleteCollectionNext.next(collection);
+    this.modalService.open('collection-confirm-delete-modal');
+  }
+
+  onCollectionClicked(collection: Collection): void {
+    log.debug('CollectionsModalComponent: onCollectionClicked():', collection.id, collection);
+    this.selectedCollection = collection;
+    this.dataService.abortGetBuildingCollection();
+    this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
+    if ('deviceNumber' in collection && 'nwserver' in collection) {
+      this.toolService.deviceNumber.next( { deviceNumber: collection.deviceNumber, nwserver: collection.nwserver } );
+    }
+    this.connectToCollection(collection);
+    this.modalService.close(this.id);
+  }
+
+  collectionExecuted(collection: Collection): void {
+    // only runs when we add a new collection or edit an existing collection
+    log.debug('CollectionsModalComponent: collectionExecuted():', collection.id, collection);
+    this.selectedCollection = collection;
+    this.dataService.abortGetBuildingCollection()
+                    .then( () => {
+                      if (collection.type === 'fixed') { this.dataService.buildFixedCollection(collection.id); }
+                    })
+                    .then( () => {
+                      this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
+
+                      if ('deviceNumber' in collection && 'nwserver' in collection) {
+                        // broadcast the deviceNumber to all components who need to know about it
+                        this.toolService.deviceNumber.next( { deviceNumber: collection.deviceNumber, nwserver: collection.nwserver } );
+                      }
+
+                      this.connectToCollection(collection);
+                      this.modalService.close(this.id);
+                    });
+  }
+
+  connectToCollection(collection: Collection) {
+    // makes data connection back to server after we've executed or clicked a collection
+    if (collection.type === 'rolling' || collection.type === 'monitoring') {
+      this.dataService.getCollectionData(collection)
+                      .then( () => this.dataService.getRollingCollection(collection.id) );
+    }
+    else { // fixed collections
+      if (collection.state === 'building') {
+        // fixed collection is still building
+        this.dataService.getCollectionData(collection)
+                        .then( () => this.dataService.getBuildingFixedCollection(collection.id) );
+        return;
+      }
+      else {
+        // fixed collection is complete
+       this.dataService.getCollectionData(collection);
+      }
+    }
+  }
+
+  getCollectionDataAgain(): void {
+    // triggered by router component when we switch between views
+    log.debug('CollectionsModalComponent: getCollectionDataAgain()');
+    this.toolService.collectionSelected.next(this.selectedCollection); // let the toolbar widget know we switched collections
+    this.toolService.deviceNumber.next( {
+                                          deviceNumber: this.selectedCollection.deviceNumber,
+                                          nwserver:  this.selectedCollection.nwserver
+                                        });
+    this.connectToCollection(this.selectedCollection);
+  }
+
+  public filterChanged(): void {
+    // log.debug('CollectionsModalComponent: filterChanged(): filterText:', this.filterText);
+    if (this.filterText === '') {
+      this.displayedCollections = this.collections;
+    }
+    else {
+      let tempCollections: Collection[] = [];
+      for (let i = 0; i < this.collections.length; i++) {
+        let collection = this.collections[i];
+        if (collection.name.toLocaleLowerCase().includes(this.filterText.toLocaleLowerCase())) {
+          tempCollections.push(collection);
+        }
+      }
+      this.displayedCollections = tempCollections;
+    }
+  }
+
+  public clearFilter(): void {
+    this.filterText = '';
+    this.filterChanged();
   }
 
 }

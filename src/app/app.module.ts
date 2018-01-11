@@ -16,6 +16,7 @@ import { RadioButtonModule } from 'primeng/components/radiobutton/radiobutton';
 import { SelectButtonModule } from 'primeng/components/selectbutton/selectbutton';
 import { DropdownModule } from 'primeng/components/dropdown/dropdown';
 import { ListboxModule } from 'primeng/components/listbox/listbox';
+import { InputTextModule } from 'primeng/components/inputtext/inputtext';
 
 // Angular Material
 import { MatCardModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule } from '@angular/material';
@@ -87,6 +88,7 @@ import * as $ from 'jquery';
                   SelectButtonModule,
                   DropdownModule,
                   ListboxModule,
+                  InputTextModule,
                   MatCardModule,
                   MatInputModule,
                   MatCheckboxModule,

@@ -5,7 +5,7 @@ import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultQueries } from './default-queries';
-import { Query } from './query'
+import { Query } from './query';
 import { ContentTypes } from './contenttypes';
 import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/primeng';
@@ -14,6 +14,7 @@ import { NwServer } from './nwserver';
 import * as utils from './utils';
 import * as log from 'loglevel';
 declare var JSEncrypt: any;
+import { CollectionMeta } from './collection';
 
 /*
 declare global {
@@ -190,11 +191,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public displayCustomTimeframeSelector = false;
   private firstRun = true;
 
+  // Subscriptions
   private preferencesChangedSubscription: Subscription;
   private useCasesChangedSubscription: Subscription;
   private addCollectionNextSubscription: Subscription;
   private editCollectionNextSubscription: Subscription;
   private confirmNwServerDeleteSubscription: Subscription;
+  private reOpenCollectionsModalSubscription: Subscription;
 
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
@@ -213,6 +216,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
   private editingCollectionId: string;
   private editingNwServerId: string;
+  private editingCreator: CollectionMeta;
   public showNwServiceBox = false;
   public nwServerButtonText = 'Save'; // or 'Update'
   public thumbClass = '';
@@ -221,6 +225,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public testErrorInForm = '';
   public disableBindingControls = false;
   public testInProgress = false;
+  private reOpenCollectionsModal = false;
 
   ngOnInit(): void {
 
@@ -242,6 +247,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       option['value'] = this.queryList[i].text;
       this.queryListOptions.push(option);
     }
+
+    this.reOpenCollectionsModalSubscription = this.toolService.reOpenCollectionsModal.subscribe( (TorF) => this.reOpenCollectionsModal = TorF );
 
     // Preferences changed subscription
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
@@ -323,6 +330,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.useCasesChangedSubscription.unsubscribe();
     this.addCollectionNextSubscription.unsubscribe();
     this.editCollectionNextSubscription.unsubscribe();
+    this.reOpenCollectionsModalSubscription.unsubscribe();
   }
 
   public onQuerySelected(): void {
@@ -379,6 +387,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       this.collectionFormModel.name = '';
     }
     this.modalService.close(this.id);
+    if (this.reOpenCollectionsModal) {
+      this.modalService.open('collections-modal');
+    }
   }
 
   private closeModal(): void {
@@ -542,7 +553,6 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-
     if (this.mode === 'add' || this.mode === 'editFixed') {
       log.debug('AddCollectionModalComponent: onCollectionSubmit(): new newCollection:', newCollection);
       this.dataService.addCollection(newCollection)
@@ -554,6 +564,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
     if (this.mode === 'editRolling') {
       newCollection.id = this.editingCollectionId;
+      newCollection['creator'] = this.editingCreator;
       log.debug('AddCollectionModalComponent: onCollectionSubmit(): edited newCollection:', newCollection);
       this.dataService.editCollection(newCollection)
                       .then( () => {
@@ -812,6 +823,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       if (collection.type === 'rolling' || collection.type === 'monitoring' ) {
         this.mode = 'editRolling';
         this.editingCollectionId = collection.id;
+        if ('creator' in collection) {
+          this.editingCreator = collection.creator;
+        }
         if (collection.type === 'rolling') {
           this.collectionFormModel.lastHours = collection.lastHours;
         }

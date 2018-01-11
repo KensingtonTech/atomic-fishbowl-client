@@ -2,6 +2,7 @@ import { Injectable, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import * as log from 'loglevel';
+import { Collection } from './collection';
 
 @Injectable()
 
@@ -23,7 +24,7 @@ export class ToolService {
   public newImage: Subject<any> = new Subject<any>();
   public confirmUserDelete: Subject<any> = new Subject<any>();
   public userToDelete: Subject<any> = new Subject<any>();
-  public noCollections: Subject<any> = new Subject<any>();
+  public noCollections: Subject<void> = new Subject<void>();
   public logout: Subject<any> = new Subject<any>();
   public fileToDownload: Subject<any> = new Subject<any>();
   public confirmDownloadFile: Subject<any> = new Subject<any>();
@@ -35,11 +36,15 @@ export class ToolService {
   public showMasonryTextAreaState = true;
   public refreshMasonryLayout: Subject<void> = new Subject<void>();
   public addCollectionNext: Subject<void> = new Subject<void>();
-  public editCollectionNext: Subject<void> = new Subject<void>();
+  public editCollectionNext: Subject<Collection> = new Subject<Collection>();
   public executeAddCollection: Subject<any> = new Subject<any>();
   public executeEditCollection: Subject<any> = new Subject<any>();
   public nwServerToDelete: Subject<any> = new Subject<any>();
   public confirmNwServerDelete: Subject<string> = new Subject<string>();
+  public deleteCollectionNext: Subject<Collection> = new Subject<Collection>();
+  public deleteCollectionConfirmed: Subject<string> = new Subject<string>();
+  public collectionSelected: Subject<Collection> = new Subject<Collection>();
+  public reOpenCollectionsModal: Subject<boolean> = new Subject<boolean>();
 
   constructor() {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );

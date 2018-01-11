@@ -3,15 +3,26 @@
     <div class="modal-body" style="left: 50px; right: 50px; top: 50px; bottom: 50px; position: absolute;" >
 
       <!--close button-->
-      <div *ngIf="!firstOpen" (click)="closeModal()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
+      <div (click)="closeModal()" style="position: absolute; top: 8px; right: 10px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
+      <!--filter bar-->
+      <div style="position: absolute; top: 2px; right: 50px;" class="ui-g ui-fluid">
+        <div class="ui-g-12 ui-md-4">
+          <div class="ui-inputgroup">
+            <span class="ui-inputgroup-addon">
+              <i class="fa fa-search"></i>
+            </span>
+            <input name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
+            <button pButton type="button" icon="fa-close" class="ui-button-danger" (click)="clearFilter()"></button> 
+          </div>
+        </div>
+      </div>
       
       <!--header-->
       <h2 style="margin-top: 0px; margin-bottom: 5px;">Collections</h2>
 
       <!--buttons-->
-      <!--<button [disabled]="formDisabled || testInProgress" pButton type="button" (click)="testNwServer()" label="Test"> </button>-->
       <div style="position: absolute; left: 170px; top: 13px;">
-        <button pButton type="button" (click)="newCollection()" label="New Collection"></button>
+        <button pButton type="button" (click)="onAddCollectionClick()" label="New Collection"></button>
       </div>
 
       <!--collections container-->
@@ -23,17 +34,29 @@
               <div class="header-cell">Name</div>
               <div class="header-cell">Type</div>
               <div class="header-cell">NW Server</div>
+              <div class="header-cell">Created</div>
+              <div class="header-cell">Last Modified</div>
               <div class="header-cell center">Actions</div>
             </div>
           </div>
 
           <div [dragula]='"first-bag"' class="row-group">
-            <div class="row grabbable" *ngFor="let collection of collections">
-              <div class="cell"><span class="link">{{collection.name}}</span></div>
+            <div class="row grabbable" *ngFor="let collection of displayedCollections">
+              <div class="cell">
+                <span *ngIf="nwServerExists(collection.nwserver)" class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
+                <span *ngIf="!nwServerExists(collection.nwserver)" class="no-nw-server">{{collection.name}}</span>
+              </div>
               <div class="cell">{{utils.capitalizeFirstLetter(collection.type)}}</div>
               <div class="cell">{{getNwServerString(collection.nwserver)}}</div>
+              <div class="cell">
+                <span *ngIf="collection.creator">{{collection.creator.timestamp | date:'y/MM/d HH:mm'}} by {{collection.creator.username}}</span>
+              </div>
+              <div class="cell">
+                  <span *ngIf="collection.modifier">{{collection.modifier.timestamp | date:'y/MM/d HH:mm'}} by {{collection.creator.username}}</span>
+                  <span *ngIf="!collection.modifier">N/A</span>
+                </div>
               <div class="cell center" style="cursor: initial;">
-                <span class="fa fa-pencil" (click)="displayUserEditBox(user)"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fa fa-trash" (click)="deleteUser(user.id)"></span>
+                <span class="fa fa-pencil" (click)="onEditCollectionClick(collection)"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteCollectionClick(collection)"></span>
               </div>
             </div>
           </div>
@@ -46,3 +69,6 @@
     </div>
   </div>
 </modal>
+
+<add-collection-modal [id]="addCollectionModalId"></add-collection-modal>
+<delete-collection-confirm-modal (confirmDelete)="deleteConfirmed()" ></delete-collection-confirm-modal>

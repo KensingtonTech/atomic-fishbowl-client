@@ -6,7 +6,7 @@ import { Subscription} from 'rxjs/Subscription';
 import * as log from 'loglevel';
 
 @Component({
-  selector: 'twoTwoOneB-app',
+  selector: 'atomic-fishbowl-app',
   template: `
 <div *ngIf="isMobile">
   So sorry, but mobile devices aren't currently supported by Atomic Fishbowl.
