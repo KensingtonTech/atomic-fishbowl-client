@@ -138,7 +138,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
 
   private selectedCollectionId: string;
-  private selectedCollection: Collection;
+  public selectedCollection: Collection;
 
   public addCollectionModalId = 'add-collection-modal';
   public showSearch = false;
@@ -157,7 +157,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   public errorIcon = false;
   public errorMessage = '';
   public queryResultsCount = 0;
-  private collectionsModalId = 'collections-modal';
+  public collectionsModalId = 'collections-modal';
   private useCases: UseCase[] = [];
   private useCasesObj = {};
 

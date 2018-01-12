@@ -50,7 +50,7 @@ export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy 
 
   public id = 'collection-confirm-delete-modal';
   private deleteCollectionNextSubscription: Subscription;
-  private collection: Collection;
+  public collection: Collection;
 
   ngOnInit(): void {
     this.deleteCollectionNextSubscription = this.toolService.deleteCollectionNext.subscribe( (collection: Collection) => this.collection = collection );
@@ -61,7 +61,6 @@ export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy 
   }
 
   deleteConfirmed(): void {
-    // this.confirmDelete.emit();
     log.debug('DeleteCollectionConfirmModalComponent: deleteConfirmed(): collection:', this.collection);
     this.toolService.deleteCollectionConfirmed.next(this.collection['id']);
     this.closeModal();
