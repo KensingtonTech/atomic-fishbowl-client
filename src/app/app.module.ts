@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ModalModule } from './modal/modal.module';
@@ -76,7 +76,7 @@ import * as $ from 'jquery';
 @NgModule({
   imports:      [ BrowserModule,
                   BrowserAnimationsModule,
-                  HttpModule,
+                  HttpClientModule,
                   FormsModule,
                   ReactiveFormsModule,
                   PanZoomModule,
