@@ -19,11 +19,11 @@ import * as log from 'loglevel';
         </mat-card-title>
 
         <mat-form-field class="full-width">
-          <input matInput color="accent" #userName [(ngModel)]="user.username" id="user" type="text" [ngModelOptions]="{standalone: true}" placeholder="Username">
+          <input matInput color="accent" #userName [(ngModel)]="user.username" id="user" type="text" [ngModelOptions]="{standalone: true}" placeholder="Username" autocomplete="username">
         </mat-form-field>
 
         <mat-form-field class="full-width">
-          <input matInput [(ngModel)]="user.password" id="password" type="password" [ngModelOptions]="{standalone: true}" placeholder="Password">
+          <input matInput [(ngModel)]="user.password" id="password" type="password" [ngModelOptions]="{standalone: true}" placeholder="Password" autocomplete="current-password">
         </mat-form-field>
 
       </mat-card-content>

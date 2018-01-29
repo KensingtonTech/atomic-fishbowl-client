@@ -58,6 +58,12 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                 private toolService: ToolService ) {} // (<any>$).expr.cacheLength = 1;
 
   public panzoomConfig = new PanZoomConfig;
+  private panzoomModel: PanZoomModel;
+  private panZoomAPI: PanZoomAPI;
+  public canvasWidth = 2400;
+  public initialZoomHeight = 1080;
+  public initialZoomWidth = this.canvasWidth;
+
   public content: Content[] = [];
   private contentCount = new ContentCount;
   public sessionWidgetEnabled = false;
@@ -65,14 +71,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   public highResSessions: number[] = [];
   public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
-  private panzoomModel: PanZoomModel;
-  private panZoomAPI: PanZoomAPI;
   private search: Search[] = [];
-  public canvasWidth = 2400;
-  // public canvasWidth = window.innerWidth;
-  public initialZoomHeight = 1080;
-  // public initialZoomHeight = window.innerHeight;
-  public initialZoomWidth = this.canvasWidth;
   public displayedContent: Content[] = [];
 
   public sessions: any;

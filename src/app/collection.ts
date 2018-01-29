@@ -1,36 +1,36 @@
+import { CollectionMeta } from './collection-meta';
+
 export interface Collection {
   id: string;
   name: string;
+  type: string;
   state: string;
   nwserver:  string;
   nwserverName: string;
-  sessionLimit: number;
-  query: string;
-  contentTypes: string[];
+  query?: string;
+  contentTypes?: string[];
+  contentLimit: number;
   deviceNumber?: number;
-  type: string;
   bound: boolean;
   usecase: string;
-  distillationEnabled: boolean;
+  minX?: number;
+  minY?: number;
+  distillationEnabled?: boolean;
   distillationTerms?: string[];
-  regexDistillationEnabled: boolean;
+  regexDistillationEnabled?: boolean;
   regexDistillationTerms?: string[];
-  minX: number;
-  minY: number;
-  imageLimit: number;
-  sha1Enabled: boolean;
-  sha256Enabled: boolean;
-  md5Enabled: boolean;
+  useHashFeed?: boolean; // whether to use a hash feed
+  hashFeed?: string; // the uuid of the feed
+  sha1Enabled?: boolean;
+  sha1Hashes?: string[];
+  sha256Enabled?: boolean;
+  sha256Hashes?: string[];
+  md5Enabled?: boolean;
+  md5Hashes?: string[];
   lastHours?: number;
   timeBegin?: number;
   timeEnd?: number;
   creator?: CollectionMeta;
   modifier?: CollectionMeta;
-}
-
-export interface CollectionMeta {
-  username: string;
-  id: string;
-  fullname: string;
-  timestamp: number;
+  executeTime: number;
 }

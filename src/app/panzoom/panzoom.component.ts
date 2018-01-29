@@ -147,9 +147,10 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     log.debug('PanZoomComponent: ngAfterContentInit()');
 
     this.frameElement = $('.pan-zoom-frame');
-
-    this.viewportHeight = this.frameElement.find('.zoom-element').children().height();
-    this.viewportWidth = this.frameElement.find('.zoom-element').children().width();
+    // this.viewportHeight = this.frameElement.find('.zoom-element').children().height();
+    // this.viewportWidth = this.frameElement.find('.zoom-element').children().width();
+    this.viewportHeight = this.zoomElementRef.nativeElement.height;
+    this.viewportWidth = this.zoomElementRef.nativeElement.width;
 
     this.panElement = this.panElementRef.nativeElement;
     this.zoomElement = this.zoomElementRef.nativeElement;

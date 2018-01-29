@@ -35,7 +35,9 @@ import * as log from 'loglevel';
     <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
-    <img *ngIf="content.contentType == 'hash'" class="separator" (click)="onClick($event)" src="/resources/executable_hash_icon.png" draggable="false">
+    <img *ngIf="content.contentType == 'hash' && content.hashType == 'md5'" class="separator" (click)="onClick($event)" src="/resources/md5_hash_icon.png" draggable="false">
+    <img *ngIf="content.contentType == 'hash' && content.hashType == 'sha1'" class="separator" (click)="onClick($event)" src="/resources/sha1_hash_icon.png" draggable="false">
+    <img *ngIf="content.contentType == 'hash' && content.hashType == 'sha256'" class="separator" (click)="onClick($event)" src="/resources/sha256_hash_icon.png" draggable="false">
 
   </div>
 
