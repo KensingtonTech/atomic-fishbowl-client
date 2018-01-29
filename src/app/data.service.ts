@@ -11,6 +11,7 @@ import { HttpJsonStream } from './http-json-stream';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
 import { UseCase } from './usecase';
+import { Feed } from './feed';
 import * as log from 'loglevel';
 
 @Injectable()
@@ -29,6 +30,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public contentPublished: Subject<any> = new Subject<any>();
   public sessionPublished: Subject<any> = new Subject<any>();
   public collectionsChanged: Subject<any> = new Subject<any>();
+  public feedsChanged: Subject<any> = new Subject<any>();
   public selectedCollectionChanged: Subject<any> = new Subject<any>();
   public collectionStateChanged: Subject<any> = new Subject<any>();
   public sessionsReplaced: Subject<any> = new Subject<any>();
@@ -51,6 +53,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.getUseCases();
   }
 
+  /////////////////////SERVER VERSION/////////////////////
+
   getServerVersion(): Promise<any> {
     return this.http
                 .get(this.apiUrl + '/version' )
@@ -61,6 +65,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+  /////////////////////PUBLIC KEY/////////////////////
+
   getPublicKey(): Promise<any> {
     return this.http
                 .get(this.apiUrl + '/publickey' )
@@ -68,6 +74,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .then( (response: any) => response.pubKey as string )
                 .catch(e => this.handleError(e));
   }
+
+  /////////////////////NW SERVERS/////////////////////
 
   getNwServers(): Promise<any> {
     log.debug('DataService: getNwServers()');
@@ -84,13 +92,36 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .toPromise();
   }
 
-  getUsers(): Promise<any> {
-    return this.http
-                .get(this.apiUrl + '/users' )
+  deleteNwServer(id: string): Promise<void> {
+    log.debug('DataService: deleteNwServer():', id);
+    return this.http.delete(this.apiUrl + '/nwserver/' + id )
                 .toPromise()
-                .then( (response: any) => response as any )
+                .then(response => response as any)
                 .catch(e => this.handleError(e));
   }
+
+  addNwServer(nwserver: NwServer): Promise<any> {
+    log.debug('DataService: addNwServer()');
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.post(this.apiUrl + '/addnwserver', nwserver, { headers } )
+                .toPromise()
+                .then(response => {
+                  log.debug('DataService: addNwServer(): response:', response);
+                });
+  }
+
+  editNwServer(nwserver: NwServer): Promise<any> {
+    log.debug('DataService: addNwServer()');
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.post(this.apiUrl + '/editnwserver', nwserver, { headers } )
+                .toPromise()
+                .then(response => {
+                  log.debug('DataService: editNwServer(): response:', response);
+                });
+  }
+
+
+  /////////////////////USE CASES/////////////////////
 
   getUseCases(): void {
     log.debug('DataService: getUseCases()');
@@ -109,6 +140,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
         })
         .catch(e => this.handleError(e));
   }
+
+  /////////////////////PREFERENCES/////////////////////
 
   getPreferences(): Promise<any> {
     return this.http
@@ -129,6 +162,31 @@ export class DataService { // Manages NwSession objects and also Image objects i
                     .toPromise()
                     .then(response => {} )
                     .catch(e => this.handleError(e));
+  }
+
+
+  /////////////////////COLLECTIONS/////////////////////
+
+  addCollection(collection: any):  Promise<any> {
+    log.debug('DataService: addCollection():', collection.id);
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.post(this.apiUrl + '/addcollection', collection, { headers } )
+                .toPromise()
+                .then(response => {
+                  log.debug(response);
+                })
+                .catch(e => this.handleError(e));
+  }
+
+  editCollection(collection: any):  Promise<any> {
+    log.debug('DataService: editCollection():', collection.id);
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.post(this.apiUrl + '/editcollection', collection, { headers } )
+                .toPromise()
+                .then(response => {
+                  log.debug(response);
+                })
+                .catch(e => this.handleError(e));
   }
 
   getCollections(): Promise<Collection[]> {
@@ -276,17 +334,103 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
-  deleteUser(id: string): Promise<void> {
-    log.debug('DataService: deleteUser():', id);
-    return this.http.delete(this.apiUrl + '/user/' + id )
+  /////////////////////FEEDS/////////////////////
+
+  getFeeds(): Promise<any> {
+    // log.debug('DataService: getFeeds()');
+    log.debug('DataService: getFeeds()');
+    return this.http.get(this.apiUrl + '/feed' )
                 .toPromise()
-                .then(response => response as any)
+                .then( (response: any) => {
+                  this.feedsChanged.next(response); // emit an observable event
+                  return response; // also send the object in the promise
+                })
                 .catch(e => this.handleError(e));
   }
 
-  deleteNwServer(id: string): Promise<void> {
-    log.debug('DataService: deleteNwServer():', id);
-    return this.http.delete(this.apiUrl + '/nwserver/' + id )
+  deleteFeed(id: string): Promise<any> {
+    log.debug('DataService: deleteFeed():', id);
+    return this.http.delete(this.apiUrl + '/feed/' + id )
+               .toPromise();
+  }
+
+  addFeedManual(feed: Feed, file: File): Promise<any> {
+    log.debug('DataService: addFeedManual()');
+    let formData = new FormData();
+    formData.append('model', JSON.stringify(feed));
+    formData.append('file', file);
+    return this.http.post(this.apiUrl + '/feed/manual', formData )
+                .toPromise()
+                .then(response => {
+                  log.debug('DataService: addFeedManual(): response:', response);
+                  return response;
+                });
+  }
+
+  editFeedWithoutFile(feed: Feed): Promise<any> {
+    log.debug('DataService: editFeedWithoutFile()');
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.post(this.apiUrl + '/feed/edit/withoutfile', feed, { headers } )
+                .toPromise()
+                .then(response => {
+                  log.debug('DataService: editFeedWithoutFile(): response:', response);
+                  return response;
+                });
+  }
+
+  editFeedWithFile(feed: Feed, file: File): Promise<any> {
+    log.debug('DataService: editFeedWithFile()');
+    let formData = new FormData();
+    formData.append('model', JSON.stringify(feed));
+    formData.append('file', file);
+    return this.http.post(this.apiUrl + '/feed/edit/withfile', formData )
+                .toPromise()
+                .then(response => {
+                  log.debug('DataService: editFeedWithFile(): response:', response);
+                  return response;
+                });
+  }
+
+  addFeedScheduled(feed: Feed): Promise<any> {
+    log.debug('DataService: addFeedScheduled()');
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.post(this.apiUrl + '/feed/scheduled', feed, { headers } )
+                .toPromise()
+                .then(response => {
+                  log.debug('DataService: addFeedScheduled(): response:', response);
+                  return response;
+                });
+  }
+
+  testFeedUrl( host: any ): Promise<any> {
+    return this.http
+                .post(this.apiUrl + '/feed/testurl', host )
+                .toPromise();
+  }
+
+  getFeedFilehead(id: string): Promise<any> {
+    return this.http.get(this.apiUrl + '/feed/filehead/' + id )
+               .toPromise();
+  }
+
+  getFeedStatus(): Promise<any> {
+    return this.http.get(this.apiUrl + '/feed/status' )
+               .toPromise();
+  }
+
+  /////////////////////USERS/////////////////////
+
+  getUsers(): Promise<any> {
+    return this.http
+                .get(this.apiUrl + '/users' )
+                .toPromise()
+                .then( (response: any) => response as any )
+                .catch(e => this.handleError(e));
+  }
+
+  deleteUser(id: string): Promise<void> {
+    log.debug('DataService: deleteUser():', id);
+    return this.http.delete(this.apiUrl + '/user/' + id )
                 .toPromise()
                 .then(response => response as any)
                 .catch(e => this.handleError(e));
@@ -314,47 +458,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
-  addNwServer(nwserver: NwServer): Promise<any> {
-    log.debug('DataService: addNwServer()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(this.apiUrl + '/addnwserver', nwserver, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: addNwServer(): response:', response);
-                });
-  }
 
-  editNwServer(nwserver: NwServer): Promise<any> {
-    log.debug('DataService: addNwServer()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(this.apiUrl + '/editnwserver', nwserver, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: editNwServer(): response:', response);
-                });
-  }
-
-  addCollection(collection: any):  Promise<any> {
-    log.debug('DataService: addCollection():', collection.id);
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(this.apiUrl + '/addcollection', collection, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug(response);
-                })
-                .catch(e => this.handleError(e));
-  }
-
-  editCollection(collection: any):  Promise<any> {
-    log.debug('DataService: editCollection():', collection.id);
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http.post(this.apiUrl + '/editcollection', collection, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug(response);
-                })
-                .catch(e => this.handleError(e));
-  }
+  /////////////////////PING/////////////////////
 
   ping(): Promise<any> {
     // log.debug('DataService: ping()');

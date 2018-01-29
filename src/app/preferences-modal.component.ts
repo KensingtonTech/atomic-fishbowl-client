@@ -34,7 +34,7 @@ export class PreferencesModalComponent implements OnInit {
   private defaultMinX = 1;
   private defaultMinY = 1;
   private defaultDisplayedKeys = [ 'size', 'service', 'ip.src', 'ip.dst', 'alias.host', 'city.dst', 'country.dst', 'action', 'content', 'ad.username.src', 'ad.computer.src', 'filename', 'client'];
-  private defaultDefaultImageLimit = 1000;
+  private defaultDefaultContentLimit = 1000;
   private defaultDefaultRollingHours = 1;
   public defaultQueries = defaultQueries;
   public defaultQueriesOptions: SelectItem[] = [];
@@ -52,7 +52,7 @@ export class PreferencesModalComponent implements OnInit {
                                     minX: this.defaultMinX,
                                     minY: this.defaultMinY,
                                     displayedKeys: this.getDisplayedKeysValue(this.defaultDisplayedKeys),
-                                    defaultImageLimit: this.defaultDefaultImageLimit,
+                                    defaultContentLimit: this.defaultDefaultContentLimit,
                                     defaultRollingHours: this.defaultDefaultRollingHours,
                                     defaultQuerySelection: this.defaultQueries[0].text, // this only has effect on the first run of Atomic Fishbowl.  After the prefs have been set, it will be read in from the prefs
                                     masonryColumnSize: this.defaultMasonryColumnSize,
@@ -196,8 +196,8 @@ export class PreferencesModalComponent implements OnInit {
                                               if ( 'displayedKeys' in prefs ) {
                                                 this.preferencesModel.displayedKeys = this.getDisplayedKeysValue(prefs.displayedKeys);
                                               }
-                                              if ( 'defaultImageLimit' in prefs ) {
-                                                this.preferencesModel.defaultImageLimit = prefs.defaultImageLimit;
+                                              if ( 'defaultContentLimit' in prefs ) {
+                                                this.preferencesModel.defaultContentLimit = prefs.defaultContentLimit;
                                               }
                                               if ( 'defaultRollingHours' in prefs ) {
                                                 this.preferencesModel.defaultRollingHours = prefs.defaultRollingHours;
@@ -235,7 +235,7 @@ export class PreferencesModalComponent implements OnInit {
       displayedKeys: this.setDisplayedKeysValue(f.value.displayedKeys),
       defaultRollingHours: f.value.defaultRollingHours,
       defaultQuerySelection: f.value.defaultQuerySelection,
-      defaultImageLimit: f.value.defaultImageLimit,
+      defaultContentLimit: f.value.defaultContentLimit,
       masonryColumnSize: f.value.masonryColumnSize,
       masonryKeys: this.setMasonryKeysValue(f.value.masonryKeys),
       queryTimeout: f.value.queryTimeout,

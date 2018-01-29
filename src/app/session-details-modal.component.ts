@@ -24,7 +24,9 @@ import * as log from 'loglevel';
           <img class="myImg" *ngIf="content.contentType == 'unsupportedZipEntry'"  src="/resources/zip_icon_unknown.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedRarEntry'"  src="/resources/rar_icon_locked.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedRarTable'"  src="/resources/rar_icon_locked.png" draggable="false">
-          <img class="myImg" *ngIf="content.contentType == 'hash'" src="/resources/executable_hash_icon.png" draggable="false">
+          <img class="myImg" *ngIf="content.contentType == 'hash' && content.hashType == 'md5'" src="/resources/md5_hash_icon.png" draggable="false">
+          <img class="myImg" *ngIf="content.contentType == 'hash' && content.hashType == 'sha1'" src="/resources/sha1_hash_icon.png" draggable="false">
+          <img class="myImg" *ngIf="content.contentType == 'hash' && content.hashType == 'sha256'" src="/resources/sha256_hash_icon.png" draggable="false">
 
           <div *ngIf="content.fromArchive || content.isArchive" style="position: absolute; top: 5px; right: 15px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
             <span *ngIf="content.isArchive" style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>

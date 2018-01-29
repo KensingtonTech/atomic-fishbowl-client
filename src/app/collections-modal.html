@@ -24,11 +24,14 @@
       <!--add collection button-->
       <div style="position: absolute; left: 170px; top: 13px;">
         <button pButton type="button" (click)="onAddCollectionClick()" label="New Collection"></button>
+        <button pButton type="button" (click)="onFeedsClick()" label="Feeds"></button>
       </div>
+
+      <div *ngIf="collections && collections.length == 0"><p>No collections are defined</p></div>
 
       <!--collections container-->
       <!--<div style="position: absolute; top: 50px; bottom: 10px; left: 20px; right: 20px; overflow: auto;">-->
-      <div style="top: 50px; width: 100%;">
+      <div *ngIf="collections && collections.length > 0" style="position: relative; top: 25px; width: 100%;">
         <div class="table" style="width: 100%; margin: auto;">
 
           <div class="header">
@@ -45,8 +48,8 @@
           <div [dragula]='"first-bag"' class="row-group">
             <div class="row grabbable" *ngFor="let collection of displayedCollections">
               <div class="cell">
-                <span *ngIf="nwServerExists(collection.nwserver)" class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
-                <span *ngIf="!nwServerExists(collection.nwserver)" class="no-nw-server">{{collection.name}}</span>
+                <span *ngIf="collection.type == 'fixed' || nwServerExists(collection.nwserver)" class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
+                <span *ngIf="collection.type != 'fixed' && !nwServerExists(collection.nwserver)" class="no-nw-server">{{collection.name}}</span>
               </div>
               <div class="cell">{{utils.capitalizeFirstLetter(collection.type)}}</div>
               <div class="cell">{{getNwServerString(collection.nwserver)}}</div>
@@ -54,8 +57,8 @@
                 <span *ngIf="collection.creator">{{collection.creator.timestamp | date:'y/MM/d HH:mm'}} by {{collection.creator.username}}</span>
               </div>
               <div class="cell">
-                  <span *ngIf="collection.modifier">{{collection.modifier.timestamp | date:'y/MM/d HH:mm'}} by {{collection.creator.username}}</span>
-                  <span *ngIf="!collection.modifier">N/A</span>
+                  <span *ngIf="collection.modifier">{{collection.modifier.timestamp | date:'y/MM/d HH:mm'}} by {{collection.modifier.username}}</span>
+                  <span *ngIf="!collection.modifier">-</span>
                 </div>
               <div class="cell center" style="cursor: initial;">
                 <span class="fa fa-pencil" (click)="onEditCollectionClick(collection)"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteCollectionClick(collection)"></span>
@@ -75,3 +78,4 @@
 
 <add-collection-modal [id]="addCollectionModalId"></add-collection-modal>
 <delete-collection-confirm-modal></delete-collection-confirm-modal>
+<feeds-modal [id]="feedsModalId"></feeds-modal>

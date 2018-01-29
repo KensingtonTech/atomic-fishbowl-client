@@ -3,6 +3,7 @@ import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import * as log from 'loglevel';
 import { Collection } from './collection';
+import { Feed } from './feed';
 
 @Injectable()
 
@@ -45,6 +46,14 @@ export class ToolService {
   public deleteCollectionConfirmed: Subject<string> = new Subject<string>();
   public collectionSelected: Subject<Collection> = new Subject<Collection>();
   public reOpenCollectionsModal: Subject<boolean> = new Subject<boolean>();
+  public executeCollectionOnEdit: Subject<boolean> = new Subject<boolean>();
+
+  // feeds
+  public addFeedNext: Subject<void> = new Subject<void>();
+  public editFeedNext: Subject<Feed> = new Subject<Feed>();
+  public deleteFeedNext: Subject<Feed> = new Subject<Feed>();
+  public reOpenFeedsModal: Subject<boolean> = new Subject<boolean>();
+  public refreshFeeds: Subject<void> = new Subject<void>();
 
   constructor() {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );

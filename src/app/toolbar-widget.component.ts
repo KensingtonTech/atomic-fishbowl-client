@@ -275,7 +275,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     tt = tt + 'Query: ' + query;
     tt = tt + '\nService: ' + this.selectedCollection.nwserverName;
     tt = tt + '\nContent Types: ' + contentTypes;
-    tt = tt + '\nImage Limit: ' + this.selectedCollection.imageLimit;
+    tt = tt + '\nContent Limit: ' + this.selectedCollection.contentLimit;
     tt = tt + '\nMin Dimensions: ' + this.selectedCollection.minX + ' x ' + this.selectedCollection.minY;
 
     if (this.selectedCollection.sha1Enabled) { tt = tt + '\nSHA1 Hashing is Enabled'; }
@@ -447,6 +447,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   onEditCollectionClick(): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', this.selectedCollection);
     this.toolService.editCollectionNext.next(this.selectedCollection);
+    this.toolService.executeCollectionOnEdit.next(true);
     this.toolService.reOpenCollectionsModal.next(false);
     this.modalService.open(this.addCollectionModalId);
   }

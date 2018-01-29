@@ -62,7 +62,7 @@ modal { /*This is the modal frame.  Modals are hidden by default */
   background: #fff;
 
   /* margin exposes part of the modal background */
-  margin: 40px;
+  /*margin: 40px;*/
 
   /*tim's changes:*/
   position: relative;

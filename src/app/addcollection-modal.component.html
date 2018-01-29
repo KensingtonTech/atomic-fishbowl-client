@@ -17,7 +17,7 @@
                 <b>Name</b>
               </td>
               <td>
-                <input #nameBox type="text" name="name" [(ngModel)]="collectionFormModel.name" style="width: 100%;" required>
+                <input #nameBox type="text" name="name" [(ngModel)]="collectionFormModel.name" style="width: 100%;" autocomplete="off" required>
               </td>
             </tr>
             <!--COLLECTION TYPE (FIXED, ROLLING, OR MONITORING)-->
@@ -125,7 +125,7 @@
                 </div>
                 <!--QUERY TEXT INPUT BOX-->
                 <div>
-                  <input type="text" name="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" required [disabled]="showUseCaseValues || formDisabled">
+                  <input type="text" name="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
                 </div>
               </td>
             </tr>
@@ -217,10 +217,33 @@
           </table>
 
           <div *ngIf="!showUseCaseValues && hashesEnabled" class="line-separator"></div>
-
+          
           <table style="width: 100%;">
-            <!--SHA1 HASHES-->
+
+
+            <!-- Hashing Mode -->
             <tr *ngIf="!showUseCaseValues && hashesEnabled">
+              <td class="column1">
+                <span pTooltip="Hash values can be specified manually or through a feed" tooltipStyleClass="hashingTooltip"><b>Hash Source</b></span>
+              </td>
+              <td>
+                <p-radioButton name="hashingMode" value="feed" label="Feed" [(ngModel)]="hashingMode"></p-radioButton>&nbsp;&nbsp;
+                <p-radioButton name="hashingMode" value="manual" label="Manual" [(ngModel)]="hashingMode"></p-radioButton>
+              </td>
+            </tr>
+
+            <!-- Choose a feed -->
+            <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'feed'">
+              <td class="column1">
+                <span pTooltip="Searches for executables matching a SHA1 hash value" tooltipStyleClass="hashingTooltip"><b>Choose a Feed</b></span>
+              </td>
+              <td>
+                <p-dropdown name="selectedFeed" [options]="feedOptions" [(ngModel)]="selectedFeed" [style]="{'width':'150px'}"></p-dropdown>
+              </td>
+            </tr>
+
+            <!--SHA1 HASHES-->
+            <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td class="column1">
                 <span pTooltip="Searches for executables matching a SHA1 hash value" tooltipStyleClass="hashingTooltip"><b>SHA1 Hashing</b></span>
               </td>
@@ -228,7 +251,7 @@
                  <input [(ngModel)]="collectionFormModel.sha1Enabled" type="checkbox" name="sha1Enabled">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.sha1Enabled && !showUseCaseValues && hashesEnabled">
+            <tr *ngIf="collectionFormModel.sha1Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td>
                 <b>SHA1 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
                 <span class="wrap" style="font-size: 8pt;">
@@ -243,7 +266,7 @@
               </td>
             </tr>
             <!--SHA256 HASHES-->
-            <tr *ngIf="!showUseCaseValues && hashesEnabled">
+            <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td class="column1">
                 <span pTooltip="Searches for executables matching a SHA256 hash value" tooltipStyleClass="hashing256Tooltip"><b>SHA256 Hashing</b></span>
               </td>
@@ -251,7 +274,7 @@
                  <input [(ngModel)]="collectionFormModel.sha256Enabled" type="checkbox" name="sha256Enabled">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.sha256Enabled && !showUseCaseValues && hashesEnabled">
+            <tr *ngIf="collectionFormModel.sha256Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td>
                 <b>SHA256 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
                 <span class="wrap" style="font-size: 8pt;">
@@ -266,7 +289,7 @@
               </td>
             </tr>
             <!--MD5 HASHES-->
-            <tr *ngIf="!showUseCaseValues && hashesEnabled">
+            <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td class="column1">
                 <span pTooltip="Searches for executables matching a MD5 hash value" tooltipStyleClass="hashingTooltip"><b>MD5 Hashing</b></span>
               </td>
@@ -274,7 +297,7 @@
                  <input [(ngModel)]="collectionFormModel.md5Enabled" type="checkbox" name="md5Enabled">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.md5Enabled && !showUseCaseValues && hashesEnabled">
+            <tr *ngIf="collectionFormModel.md5Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td>
                 <b>MD5 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
                 <span class="wrap" style="font-size: 8pt;">
@@ -332,17 +355,17 @@
                 </mat-card-title>
                 <!--HOSTNAME-->
                 <mat-form-field class="full-width">
-                  <input #hostName matInput [(ngModel)]="serviceFormModel.hostname" type="text" name="hostname" placeholder="Hostname" required>
+                  <input #hostName matInput [(ngModel)]="serviceFormModel.hostname" type="text" name="hostname" placeholder="Hostname" autocomplete="off" required>
                   <mat-error *ngIf="!serviceFormModel.hostname">Hostname is required</mat-error>
                 </mat-form-field>
                 <!--USERNAME-->
                 <mat-form-field class="full-width">
-                  <input matInput [(ngModel)]="serviceFormModel.user" type="text" name="user" required placeholder="Username">
+                  <input matInput [(ngModel)]="serviceFormModel.user" type="text" name="user" autocomplete="off" required placeholder="Username">
                   <mat-error *ngIf="!serviceFormModel.user">Username is required</mat-error>
                 </mat-form-field>
                 <!--PASSWORD-->
                 <mat-form-field class="full-width">
-                  <input matInput [(ngModel)]="serviceFormModel.password" type="password" name="password" placeholder="Password" [required]="passwordRequired">
+                  <input matInput [(ngModel)]="serviceFormModel.password" type="password" name="password" placeholder="Password" [required]="passwordRequired" autocomplete="off">
                   <mat-error *ngIf="nwServerMode == 'add' && !serviceFormModel.password">Password is required</mat-error>
                 </mat-form-field>
                 
@@ -351,7 +374,7 @@
                   <div fxFlex="15%">
                     <!--REST PORT-->
                     <mat-form-field class="full-width">
-                      <input matInput [(ngModel)]="serviceFormModel.restPort" type="number" name="restPort" placeholder="REST Port">
+                      <input matInput [(ngModel)]="serviceFormModel.restPort" type="number" name="restPort" placeholder="REST Port" autocomplete="off">
                       <mat-error *ngIf="!serviceFormModel.restPort">REST Port is required</mat-error>
                     </mat-form-field>
                   </div>
@@ -362,7 +385,7 @@
                   <div fxFlex="20%">
                     <!--INVESTIGATION DEVICE ID-->
                     <mat-form-field class="full-width" pTooltip="In NetWitness, every core service is assigned a numeric identifier, which is used to browse that specific service in Investigation.  You can find the ID for your device by browsing to Investigation in NetWitness, selecting this service, and viewing the URL.  The URL will look like https://hostname/investigation/<DEVICENUMBER>" showDelay="1000" hideDelay="1000" tooltipStyleClass="investigationTooltip">
-                      <input matInput [(ngModel)]="serviceFormModel.deviceNumber" type="number" name="deviceNumber" placeholder="Investigation ID" required>
+                      <input matInput [(ngModel)]="serviceFormModel.deviceNumber" type="number" name="deviceNumber" placeholder="Investigation ID" autocomplete="off" required>
                       <mat-error *ngIf="!serviceFormModel.deviceNumber">Investigation ID is required</mat-error>
                     </mat-form-field>
                   </div>

@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/toPromise';
-// import { Headers, RequestOptions, Http } from '@angular/http';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { User } from './user';
 import { ToolService } from './tool.service';
@@ -48,7 +47,6 @@ export class AuthenticationService {
                 .catch(e => this.handleError(e));
   }
 
-  // getUser(userName: string): Promise<any> {
   getUser(userName: string): Promise<User> {
     return this.http.get(this.apiUrl + '/user/' + userName )
                     .toPromise()

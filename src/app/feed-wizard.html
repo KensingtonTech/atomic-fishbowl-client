@@ -1,0 +1,307 @@
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
+  <div class="modal">
+    <!--<div class="modal-body" style="left: 50px; right: 50px; top: 50px; bottom: 50px; position: absolute;" >-->
+    <div class="modal-body" style="top: 50px; width: 75%; min-width: 800px; max-width: 1280px; height: auto; min-height: 800px; max-height: 95%; overflow: hidden;" >
+
+      <!--header-->
+      <h2 *ngIf="!editing" style="margin-top: 0px; margin-bottom: 5px;">Feed Wizard - New Feed</h2>
+      <h2 *ngIf="editing && feed" style="margin-top: 0px; margin-bottom: 5px;">Feed Wizard - Editing {{feed.name}}</h2>
+
+      <!-- the initial page of the wizard -->
+      <div *ngIf="page == 1">
+        <form #highLevelDetailsForm="ngForm" (ngSubmit)="pageOneToPageTwoSubmit(highLevelDetailsForm)" novalidate>
+          <div class="table">
+
+            <!-- feed name -->
+            <div class="row">
+              <div class="cell">Feed Name</div>
+              <div class="cell">
+                <input type="text" pInputText name="feedName" [(ngModel)]="name" autocomplete="off" required/>
+              </div>
+            </div>
+
+            <!-- feed type -->
+            <div class="row">
+              <div class="cell">Type</div>
+              <div class="cell">
+                <p-selectButton name="feedType" [options]="feedTypeOptions" [(ngModel)]="type"></p-selectButton>
+              </div>
+            </div>
+
+            <!-- manual feeds -->
+            <div *ngIf="type == 'manual'" class="row">
+              <div class="cell">Select File</div>
+              <div class="cell">
+                <p-fileUpload mode="basic" name="myfiles[]" customUpload="true" (uploadHandler)="uploadHandler($event)" [chooseLabel]="label" auto="auto" accept=".csv" required>filename</p-fileUpload>
+              </div>
+            </div>
+
+            <!-- scheduled feeds -->
+
+            <!-- URL -->
+            <div *ngIf="type == 'scheduled'" class="row">
+              <div class="cell">URL</div>
+              <div class="cell">
+                <input type="text" pInputText name="url" size="100" (ngModelChange)="onUrlChange()" [(ngModel)]="url" autocomplete="off" required/>
+                <button pButton type="button" (click)="verifyUrl()" label="Verify" [disabled]="!validateUrlInput() || (!editing && urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication == 'enabled' && authChanged && !(urlUser && urlPassword))"></button>
+                <span *ngIf="urlVerified && urlVerifyClicked" class="fa fa-thumbs-up"> Success</span>
+                <span *ngIf="!urlVerified && urlTested" class="fa fa-thumbs-down"> Failure<span *ngIf="testError">: {{testError}}</span></span>
+              </div>
+            </div>
+          
+
+            <!-- AUTHENTICATION -->
+            <div *ngIf="type == 'scheduled'" class="row">
+              <div class="cell">Authentication</div>
+              <div class="cell">
+                  <p-selectButton name="urlAuthentication" [options]="enabledOptions" [(ngModel)]="urlAuthentication" (ngModelChange)="onAuthChanged()"></p-selectButton>
+                  <span *ngIf="urlAuthentication == 'enabled'">&nbsp;
+                    <span class="ui-float-label">
+                      <input type="text" pInputText name="urlUser" id="urlUser" [(ngModel)]="urlUser" autocomplete="off" (ngModelChange)="onAuthChanged()" required/>
+                      <label for="urlUser">Username</label>
+                    </span>
+                    <span class="ui-float-label">
+                      <input type="password" pInputText id="urlPassword" name="urlPassword" [(ngModel)]="urlPassword" autocomplete="off" (ngModelChange)="onAuthChanged()"/>
+                      <label for="urlPassword">Password</label>
+                    </span>
+                  </span>
+              </div>
+            </div>
+
+            <div *ngIf="type == 'scheduled'" class="row">
+              <div class="cell">Interval</div>
+              <div class="cell">
+                <p-selectButton name="selectedSchedule" [options]="intervalOptions" [(ngModel)]="selectedSchedule"></p-selectButton>
+                <!-- hours -->
+                <div *ngIf="selectedSchedule == 'hours'">Every <input type="number" name="selectedScheduleHours" pInputText [(ngModel)]="selectedScheduleHours" min="1" max="744" required/> hours</div>
+                <!-- minutes -->
+                <div *ngIf="selectedSchedule == 'minutes'"> Every <input type="number" pInputText name="selectedScheduleMinutes" [(ngModel)]="selectedScheduleMinutes" min="1" max="86400" required/> minutes</div>
+                <!-- time of day -->
+                <div *ngIf="selectedSchedule == 'day'">Every <input pInputText type="number" name="selectedScheduleDays" [(ngModel)]="selectedScheduleDays" min="1" max="31" required/> days</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- next / cancel buttons -->
+          <div style="position: absolute; bottom: 10px; right: 10px;">
+            <button pButton type="button" (click)="onCancel()" label="Cancel"></button>
+            <button *ngIf="type == 'manual'" pButton type="submit" label="Next" [disabled]="!highLevelDetailsForm.valid || lines.length == 0"></button>
+            
+            <button *ngIf="type == 'scheduled' && !editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified"></button>
+            
+            <button *ngIf="type == 'scheduled' && editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified"></button>
+          </div>
+          
+        </form>
+      </div>
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div *ngIf="page == 2">
+        <form #feedDetailsForm="ngForm" (ngSubmit)="pageTwoToPageThreeSubmit(feedDetailsForm)" novalidate>
+
+            
+            <!-- options -->
+            <div class="table" style="overflow-y: auto;">
+            
+              <!-- feed type -->
+              <div class="row">
+                <div class="cell">CSV Delimiter</div>
+                <div class="cell">
+                  <input type="text" pInputText name="delimiter" [(ngModel)]="delimiter" (ngModelChange)="delimiterChanged()" size="1" maxlength="1" required/>
+                </div>
+              </div>
+
+              <!-- has header row -->
+              <div class="row">
+                <div class="cell">Header Row</div>
+                <div class="cell">
+                  <p-checkbox name="hasHeader" [(ngModel)]="hasHeader" binary="true"></p-checkbox>
+                </div>
+              </div>
+            
+            </div>
+
+            <p></p>
+
+            <!-- display the feed -->
+            <div class="table" *ngIf="lines" style="width: 99%;">
+
+              <!-- header -->
+              <div class="header">
+                <div class="row">
+                  <div class="header-cell">Row Num.</div>
+                  <div *ngFor="let column of columnNumArr; let i = index" class="header-cell">
+                    <div pDroppable="columnIdentifier" (onDrop)="onDrop($event, i)">
+                      <span>Column {{column}}</span>
+                      <span *ngIf="columnDropPort && columnDropPort[i]?.enabled">
+                        <button pButton icon="fa fa-fw fa-close" iconPos="right" [label]="columnDropPort[i].columnId.name" (click)="onDeselectColumnId(i)"></button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- data -->
+              <div class="row-group">
+
+                <div *ngFor="let line of lines; let i = index" class="row">
+                  <div *ngIf="!hasHeader" class="cell">
+                    {{i + 1}}
+                  </div>
+                  <div *ngIf="hasHeader" class="cell">
+                    <span *ngIf="i == 0">Header</span>  
+                    <span *ngIf="i > 0">{{i}}</span>
+                  </div>
+
+                  <div *ngFor="let column of line; let x = index" class="cell" pDroppable="columnIdentifier" (onDrop)="onDrop($event, x)">
+                    {{column}}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <p></p>
+
+            <div *ngFor="let columnId of availableColumnIDs">
+              <button pButton pDraggable="columnIdentifier" type="button" icon="fa fa-fw fa-check" [label]="columnId.name" (onDragStart)="onDragStart($event,columnId)" (onDragEnd)="onDragEnd($event,columnId)"></button>
+            </div>
+
+
+          <!-- next / previous buttons -->
+          <div style="position: absolute; bottom: 10px; right: 10px;">
+            <button pButton type="button" (click)="pageTwoToPageOneSubmit()" label="Previous"></button>
+            <button pButton type="submit" label="Next" [disabled]="!feedDetailsForm.valid || !feedDetailsFormValid()"></button>
+          </div>
+
+        </form>
+      </div>
+
+
+
+
+
+
+      <div *ngIf="page == 3">
+        <form #confirmForm="ngForm" (ngSubmit)="finalSubmit()" novalidate>
+
+          <h1>Confirm Feed Parameters</h1>
+
+          <div class="table">
+
+            <div class="row">
+              <div class="cell bold">
+                Feed Name
+              </div>
+              <div class="cell">
+                {{name}}
+              </div>
+            </div>
+
+          
+            <div *ngIf="type == 'manual'" class="row">
+              <div class="cell bold">
+                CSV Filename
+              </div>
+              <div class="cell">
+                {{filename}}
+              </div>
+            </div>  
+
+            <div class="row">
+              <div class="cell bold">
+                Feed Type
+              </div>
+              <div class="cell">
+                {{utils.capitalizeFirstLetter(type)}}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="cell bold">
+                CSV Delimiter
+              </div>
+              <div class="cell">
+                {{delimiter}}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="cell bold">
+                Hash Value
+              </div>
+              <div class="cell">
+                Column {{getColumnNumber('value') + 1}}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="cell bold">
+                Hash Type
+              </div>
+              <div class="cell">
+                Column {{getColumnNumber('type') + 1}}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="cell bold">
+                Friendly Name
+              </div>
+              <div class="cell">
+                <span *ngIf="getColumnNumber('friendly')">Column {{getColumnNumber('friendly') + 1}}</span>
+                <span *ngIf="!getColumnNumber('friendly')">Column not assigned</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div *ngIf="error" style="position: relative; top: 15px;">
+            The server returned an error when submitting the feed: {{error}}
+          </div>
+        
+          <!-- next / previous buttons -->
+          <div style="position: absolute; bottom: 10px; right: 10px;">
+            <button pButton type="button" (click)="pageThreeToPageTwoSubmit()" label="Previous"></button>
+            <button pButton type="submit" label="Finish"></button>
+          </div>
+
+        </form>
+      </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+
+    </div>
+  </div>
+  <div class="modal-background"></div>
+</modal>

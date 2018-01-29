@@ -7,16 +7,22 @@ import { RouterModule } from '@angular/router';
 import { ModalModule } from './modal/modal.module';
 import { PanZoomModule } from './panzoom/panzoom.module';
 import { MasonryModule } from './masonry/masonry.module';
+// import { DatePipe } from '@angular/common';
 
 // PrimeNG
 import { CalendarModule } from 'primeng/components/calendar/calendar';
 import { TooltipModule } from 'primeng/components/tooltip/tooltip';
-import { ButtonModule } from 'primeng/primeng';
+import { ButtonModule } from 'primeng/components/button/button';
 import { RadioButtonModule } from 'primeng/components/radiobutton/radiobutton';
 import { SelectButtonModule } from 'primeng/components/selectbutton/selectbutton';
 import { DropdownModule } from 'primeng/components/dropdown/dropdown';
 import { ListboxModule } from 'primeng/components/listbox/listbox';
 import { InputTextModule } from 'primeng/components/inputtext/inputtext';
+import { FileUploadModule } from 'primeng/components/fileupload/fileupload';
+import { CheckboxModule } from 'primeng/components/checkbox/checkbox';
+import { DragDropModule } from 'primeng/components/dragdrop/dragdrop';
+import { TabViewModule } from 'primeng/components/tabview/tabview';
+import { ToolbarModule } from 'primeng/components/toolbar/toolbar';
 
 // Angular Material
 import { MatCardModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule } from '@angular/material';
@@ -64,6 +70,9 @@ import { LoginComponent } from './login.component';
 import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.component';
 import { DeleteNwServerConfirmModalComponent } from './deletenwserver-confirm-modal.component';
 import { CollectionsModalComponent } from './collections-modal';
+import { FeedsModalComponent } from './feeds-modal';
+import { FeedWizardComponent } from './feed-wizard';
+import { DeleteFeedConfirmModalComponent } from './deletefeed-confirm-modal.component';
 
 // Not yet used but imported to prevent compiler error
 import { SessionWidgetComponent } from './session-widget.component';
@@ -83,12 +92,18 @@ import * as $ from 'jquery';
                   ModalModule,
                   CalendarModule,
                   TooltipModule,
+                  ButtonModule,
                   MasonryModule,
                   RadioButtonModule,
                   SelectButtonModule,
                   DropdownModule,
                   ListboxModule,
                   InputTextModule,
+                  FileUploadModule,
+                  CheckboxModule,
+                  DragDropModule,
+                  TabViewModule,
+                  ToolbarModule,
                   MatCardModule,
                   MatInputModule,
                   MatCheckboxModule,
@@ -146,7 +161,10 @@ import * as $ from 'jquery';
                   DownloadFileConfirmModalComponent,
                   SessionWidgetComponent,
                   DeleteNwServerConfirmModalComponent,
-                  CollectionsModalComponent
+                  CollectionsModalComponent,
+                  FeedsModalComponent,
+                  FeedWizardComponent,
+                  DeleteFeedConfirmModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

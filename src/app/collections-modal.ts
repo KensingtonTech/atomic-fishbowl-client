@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
@@ -83,6 +83,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
   public nwServers: any = {};
   private utils = utils;
   public addCollectionModalId = 'add-collection-modal';
+  public feedsModalId = 'feeds-modal';
   public filterText = '';
 
   // Subscriptions
@@ -196,9 +197,18 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
     this.toolService.reOpenCollectionsModal.next(true);
   }
 
+  onFeedsClick(): void {
+    // log.debug("CollectionsModalComponent: onFeedsClick()");
+    // this.toolService.addCollectionNext.next();
+    this.modalService.close(this.id);
+    this.modalService.open(this.feedsModalId);
+    this.toolService.reOpenCollectionsModal.next(true);
+  }
+
   onEditCollectionClick(collection: Collection): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', collection);
     this.toolService.editCollectionNext.next(collection);
+    this.toolService.executeCollectionOnEdit.next(false);
     this.modalService.close(this.id);
     this.toolService.reOpenCollectionsModal.next(true);
     this.modalService.open(this.addCollectionModalId);
