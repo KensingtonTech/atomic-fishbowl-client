@@ -21,31 +21,66 @@ interface ColumnId {
   selector: 'feed-wizard-modal',
   templateUrl: './feed-wizard.html',
   styles: [`
+    .modal-body {
+      position: absolute;
+      width: 1200px;
+      height: 500px;
+      top: 50%;
+      left: 50%;
+      margin: -250px 0 0 -600px;
+      overflow: hidden;
+      background-color: rgba(255,255,255,1);
+    }
+
     .table {
       display: table;
       border-collapse: separate;
-      border-spacing: 2px;
+      border-spacing: 15px;
+      width: 100%;
     }
+
+    .csv-table {
+      border-spacing: 0;
+    }
+
     .header {
       display: table-header-group;
     }
+
     .header-cell {
       display: table-cell;
       font-weight: bold;
       font-size: 14pt;
     }
+
     .row {
       display: table-row;
     }
+
+    .left-column {
+      white-space: nowrap;
+      font-weight: bold;
+    }
+
+    .right-column {
+      width: 100%;
+    }
+
     .cell {
       display: table-cell;
       padding: 2px;
       /*border-bottom: 1px solid black;*/
     }
+
+    .csv-cell {
+      border: 1px solid black;
+    }
+
     .row-group {
       display: table-row-group;
       border: 1px solid black;
     }
+
     .row-group > .row:nth-child(even) {background: #CCC;}
     .row-group > .row:nth-child(odd) {background: #FFF;}
 
@@ -55,32 +90,29 @@ interface ColumnId {
       cursor: -moz-grab;
       cursor: -webkit-grab;
     }
+
     /* (Optional) Apply a "closed-hand" cursor during drag operation. */
     .grabbable:active {
       cursor: grabbing;
       cursor: -moz-grabbing;
       cursor: -webkit-grabbing;
     }
+
     .center {
       text-align: center;
     }
-    .link {
-      cursor: pointer;
-    }
-    .link:hover {
-      font-weight: bold;
-    }
-    .no-nw-server:hover {
-      color: red;
-    }
-    .modal-body {
-      background-color: rgba(255,255,255,1);
-    }
+
     .bold {
       font-weight: bold;
     }
+
     .ui-float-label {
       display: inline-block;
+    }
+
+    .csv-header {
+      background: red !important;
+      color: white;
     }
   `]
 })

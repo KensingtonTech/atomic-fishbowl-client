@@ -11,35 +11,29 @@ import * as log from 'loglevel';
   selector: 'confirm-feed-delete-modal',
   template: `
 <modal id="{{id}}" class="confirm-feed-delete-modal">
-    <div class="modal">
-      <div class="noselect">
-          <div class="modal-body outer" style="top: 500px;">
+  <div class="modal">
+    <div class="modal-body outer noselect" style="top: 500px;">
 
+      <div class="inner">
 
-              <div class="inner">
-
-                <div *ngIf="feed" style="position: relative;">
-                  Are you sure you want to delete feed <b>{{feed.name}}</b> ?
-                </div>
-
-                <div *ngIf="error" style="position: relative; top: 5px;">
-                  The server reported an error when deleting the feed: {{error}}
-                </div>
-
-                <div style="position: relative;">
-                  <button (click)="onConfirmDelete()">Confirm</button>
-                  <button (click)="cancelDelete()">Cancel</button>
-                </div>
-
-              </div>
-
-
-            </div>
-
-
+        <div *ngIf="feed" style="position: relative;">
+          Are you sure you want to delete feed <b>{{feed.name}}</b> ?
         </div>
+
+        <div *ngIf="error" style="position: relative; top: 5px;">
+          The server reported an error when deleting the feed: {{error}}
+        </div>
+
+        <div style="float: right; margin-top: 15px;">
+          <button pButton type="button" (click)="onConfirmDelete()" label="Confirm"></button>
+          <button pButton type="button" (click)="cancelDelete()" label="Cancel"></button>
+        </div>
+
+      </div>
+
     </div>
-    <div class="modal-background"></div>
+  </div>
+  <div class="modal-background"></div>
 </modal>
   `,
   styles: [`
@@ -55,34 +49,11 @@ import * as log from 'loglevel';
     z-index: 1050 !important;
   }
 
-  /*.inner {
-    float:left;
-    left:50%;
-    background-color: yellow;
-    position: relative;
-  }*/
-
-  .outer {
-    width: 500px;
-  }
-
-  .inner {
-    width: auto;
-    display: flex;
-    flex-direction: column;
-    margin: 0 auto;
-  }
-
-  .centerthisdiv {
-    position:relative;
-    left: -50%;
-    background-color: green;
-    float:right;
-    width:auto;
-  }
-
   .modal-body {
-    margin: initial;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
   `]
