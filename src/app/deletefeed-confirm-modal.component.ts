@@ -12,9 +12,9 @@ import * as log from 'loglevel';
   template: `
 <modal id="{{id}}" class="confirm-feed-delete-modal">
   <div class="modal">
-    <div class="modal-body outer noselect" style="top: 500px;">
+    <div class="modal-body noselect" style="top: 500px;">
 
-      <div class="inner">
+      <div>
 
         <div *ngIf="feed" style="position: relative;">
           Are you sure you want to delete feed <b>{{feed.name}}</b> ?

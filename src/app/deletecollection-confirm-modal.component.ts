@@ -10,22 +10,21 @@ import { Collection } from './collection';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <modal id="{{id}}" class="delete-collection-confirm-modal">>
-    <div class="modal">
-      <div class="noselect">
-          <!--<div class="modal-body" style="top: 30px; left: 120px; margin: 0; width: 350px;">-->
-          <div class="modal-body" style="top: 500px; width: 600px;">
-            <div>
-              <p>Are you sure you want to delete collection <b>{{collection?.name}}</b>?</p>
-              <p>This operation cannot be undone.</p>
-            </div>
-            <div style="float: right;">
-              <button (click)="deleteConfirmed()">Confirm</button>
-              <button (click)="cancelDelete()">Cancel</button>
-            </div>
-          </div>
-        </div>
+  <div class="modal">
+
+    <div class="modal-body noselect" style="top: 500px;">
+      <div>
+        <p>Are you sure you want to delete collection <b>{{collection?.name}}</b> ?</p>
+        <p>This operation cannot be undone.</p>
+      </div>
+      <div style="float: right;">
+        <button pButton type="button" (click)="deleteConfirmed()" label="Confirm"></button>
+        <button pButton type="button" (click)="cancelDelete()" label="Cancel"></button>
+      </div>
     </div>
-    <div class="modal-background"></div>
+
+  </div>
+  <div class="modal-background"></div>
 </modal>
   `,
   styles: [`
@@ -38,6 +37,13 @@ import { Collection } from './collection';
 
       /* z-index must be below .modal and above everything else  */
       z-index: 1050 !important;
+    }
+
+    .modal-body {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
   `]
 })
