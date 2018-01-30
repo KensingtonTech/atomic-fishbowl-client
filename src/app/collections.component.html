@@ -11,38 +11,15 @@
   </p-toolbar>
 
 
-<!--filter bar-->
-<!--
-<div style="position: absolute; top: 2px; right: 50px;" class="ui-g ui-fluid">
-  <div class="ui-g-12 ui-md-4">
-    <div class="ui-inputgroup">
-      <span class="ui-inputgroup-addon">
-        <i class="fa fa-search"></i>
-      </span>
-      <input name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
-      <button pButton type="button" icon="fa-close" class="ui-button-danger" (click)="clearFilter()"></button> 
-    </div>
-  </div>
-</div>
--->
-
-<!--add collection button-->
-<!--
-<div style="position: absolute; left: 170px; top: 13px;">
-  <button pButton type="button" (click)="onAddCollectionClick()" label="New Collection"></button>
-</div>
--->
-
 <div *ngIf="collections && collections.length == 0"><p>No collections are defined</p></div>
 
 <!--collections container-->
-<!--<div style="position: absolute; top: 50px; bottom: 10px; left: 20px; right: 20px; overflow: auto;">-->
 <div *ngIf="collections && collections.length > 0" style="position: relative; top: 25px; width: 100%;">
-  <div class="table" style="width: 100%; margin: auto;">
+  <div class="table tabTable" style="width: 100%; margin: auto;">
 
     <div class="header">
       <div class="row">
-        <div class="header-cell">Name</div>
+        <div class="header-cell">Collection Name</div>
         <div class="header-cell">Type</div>
         <div class="header-cell">NW Server</div>
         <div class="header-cell">Created</div>
@@ -52,7 +29,7 @@
     </div>
 
     <div [dragula]='"first-bag"' class="row-group">
-      <div class="row grabbable" *ngFor="let collection of displayedCollections">
+      <div class="row" *ngFor="let collection of displayedCollections">
         <div class="cell">
           <span *ngIf="collection.type == 'fixed' || nwServerExists(collection.nwserver)" class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
           <span *ngIf="collection.type != 'fixed' && !nwServerExists(collection.nwserver)" class="no-nw-server">{{collection.name}}</span>

@@ -100,12 +100,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   private deleteCollectionConfirmedSubscription: Subscription;
   private executeAddCollectionSubscription: Subscription;
   private executeEditCollectionSubscription: Subscription;
-  // private selectedCollectionChangedSubscription: Subscription;
   private collectionsOpenedSubscription: Subscription;
 
   ngOnInit(): void {
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
-    // this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (e: any) => this.selectedCollectionId = e.id );
 
     this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => {
       // triggered by dataService.refreshCollections()
@@ -153,10 +151,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.getCollectionDataAgainSubscription.unsubscribe();
-    // this.selectedCollectionChangedSubscription.unsubscribe();
     this.collectionsChangedSubscription.unsubscribe();
     this.deleteCollectionConfirmedSubscription.unsubscribe();
-    // this.useCasesChangedSubscription.unsubscribe();
     this.executeAddCollectionSubscription.unsubscribe();
     this.executeEditCollectionSubscription.unsubscribe();
     this.collectionsOpenedSubscription.unsubscribe();

@@ -18,7 +18,7 @@ import * as log from 'loglevel';
         <p-tabPanel header="Collections">
           <collections></collections>
         </p-tabPanel>
-        <p-tabPanel header="Feeds">
+        <p-tabPanel header="Hash Feeds">
           <feeds></feeds>
         </p-tabPanel>
       </p-tabView>
