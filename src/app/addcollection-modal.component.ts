@@ -39,7 +39,6 @@ String.prototype.isBlank = function(c) {
 
 @Component({
   selector: 'add-collection-modal',
-  // encapsulation: ViewEncapsulation.None,
 
   templateUrl: './addcollection-modal.component.html',
   styles: [`
@@ -135,6 +134,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
   private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
 
+  public tabContainerModalId = 'tab-container-modal';
+
   public mode = 'add'; // can be add, editRolling, or editFixed
   public nwServerMode = 'add'; // can be add or edit
   public formDisabled = false;
@@ -199,9 +200,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private addCollectionNextSubscription: Subscription;
   private editCollectionNextSubscription: Subscription;
   private confirmNwServerDeleteSubscription: Subscription;
-  private reOpenCollectionsModalSubscription: Subscription;
   private feedsChangedSubscription: Subscription;
   private executeCollectionOnEditSubscription: Subscription;
+  private reOpenTabsModalSubscription: Subscription;
 
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
@@ -229,7 +230,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public testErrorInForm = '';
   public disableBindingControls = false;
   public testInProgress = false;
-  private reOpenCollectionsModal = false;
+  private reOpenTabsModal = false;
 
   private feeds = {};
   public hashingMode = 'feed';
@@ -238,6 +239,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private hashFeedId: string;
 
   private executeCollectionOnEdit = false;
+  
 
   ngOnInit(): void {
 
@@ -260,7 +262,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       this.queryListOptions.push(option);
     }
 
-    this.reOpenCollectionsModalSubscription = this.toolService.reOpenCollectionsModal.subscribe( (TorF) => this.reOpenCollectionsModal = TorF );
+    this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( (TorF) => this.reOpenTabsModal = TorF );
 
     // Preferences changed subscription
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
@@ -365,7 +367,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.useCasesChangedSubscription.unsubscribe();
     this.addCollectionNextSubscription.unsubscribe();
     this.editCollectionNextSubscription.unsubscribe();
-    this.reOpenCollectionsModalSubscription.unsubscribe();
+    this.reOpenTabsModalSubscription.unsubscribe();
     this.feedsChangedSubscription.unsubscribe();
   }
 
@@ -424,8 +426,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       this.collectionFormModel.name = '';
     }
     this.modalService.close(this.id);
-    if (this.reOpenCollectionsModal) {
-      this.modalService.open('collections-modal');
+    if (this.reOpenTabsModal) {
+      this.modalService.open(this.tabContainerModalId);
     }
   }
 

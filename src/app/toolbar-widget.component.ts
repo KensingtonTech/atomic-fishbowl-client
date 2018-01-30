@@ -91,7 +91,7 @@ import * as log from 'loglevel';
 </div>
 
 <!--Modals-->
-<collections-modal [id]="collectionsModalId"></collections-modal>
+<tab-container-modal [id]="tabContainerModalId"></tab-container-modal>
 <splash-screen-modal></splash-screen-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
@@ -141,6 +141,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   public selectedCollection: Collection;
 
   public addCollectionModalId = 'add-collection-modal';
+  public tabContainerModalId = 'tab-container-modal';
   public showSearch = false;
   private searchTerms: string;
   private contentCount = new ContentCount;
@@ -157,7 +158,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   public errorIcon = false;
   public errorMessage = '';
   public queryResultsCount = 0;
-  public collectionsModalId = 'collections-modal';
   private useCases: UseCase[] = [];
   private useCasesObj = {};
 
@@ -441,14 +441,15 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   onCollectionsClick(): void {
-    this.modalService.open(this.collectionsModalId);
+    this.modalService.open(this.tabContainerModalId);
+
   }
 
   onEditCollectionClick(): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', this.selectedCollection);
     this.toolService.editCollectionNext.next(this.selectedCollection);
     this.toolService.executeCollectionOnEdit.next(true);
-    this.toolService.reOpenCollectionsModal.next(false);
+    this.toolService.reOpenTabsModal.next(false);
     this.modalService.open(this.addCollectionModalId);
   }
 

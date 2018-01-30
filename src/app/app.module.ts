@@ -7,7 +7,6 @@ import { RouterModule } from '@angular/router';
 import { ModalModule } from './modal/modal.module';
 import { PanZoomModule } from './panzoom/panzoom.module';
 import { MasonryModule } from './masonry/masonry.module';
-// import { DatePipe } from '@angular/common';
 
 // PrimeNG
 import { CalendarModule } from 'primeng/components/calendar/calendar';
@@ -69,10 +68,11 @@ import { ServerDownModalComponent } from './serverdown-modal.component';
 import { LoginComponent } from './login.component';
 import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.component';
 import { DeleteNwServerConfirmModalComponent } from './deletenwserver-confirm-modal.component';
-import { CollectionsModalComponent } from './collections-modal';
-import { FeedsModalComponent } from './feeds-modal';
+import { CollectionsComponent } from './collections.component';
+import { FeedsComponent } from './feeds.component';
 import { FeedWizardComponent } from './feed-wizard';
 import { DeleteFeedConfirmModalComponent } from './deletefeed-confirm-modal.component';
+import { TabContainerComponent } from './tabcontainer-component';
 
 // Not yet used but imported to prevent compiler error
 import { SessionWidgetComponent } from './session-widget.component';
@@ -161,10 +161,11 @@ import * as $ from 'jquery';
                   DownloadFileConfirmModalComponent,
                   SessionWidgetComponent,
                   DeleteNwServerConfirmModalComponent,
-                  CollectionsModalComponent,
-                  FeedsModalComponent,
+                  CollectionsComponent,
+                  FeedsComponent,
                   FeedWizardComponent,
-                  DeleteFeedConfirmModalComponent
+                  DeleteFeedConfirmModalComponent,
+                  TabContainerComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

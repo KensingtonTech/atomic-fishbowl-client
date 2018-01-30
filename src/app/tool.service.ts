@@ -42,18 +42,23 @@ export class ToolService {
   public executeEditCollection: Subject<any> = new Subject<any>();
   public nwServerToDelete: Subject<any> = new Subject<any>();
   public confirmNwServerDelete: Subject<string> = new Subject<string>();
+
+  // collections
   public deleteCollectionNext: Subject<Collection> = new Subject<Collection>();
   public deleteCollectionConfirmed: Subject<string> = new Subject<string>();
   public collectionSelected: Subject<Collection> = new Subject<Collection>();
-  public reOpenCollectionsModal: Subject<boolean> = new Subject<boolean>();
   public executeCollectionOnEdit: Subject<boolean> = new Subject<boolean>();
 
   // feeds
   public addFeedNext: Subject<void> = new Subject<void>();
   public editFeedNext: Subject<Feed> = new Subject<Feed>();
   public deleteFeedNext: Subject<Feed> = new Subject<Feed>();
-  public reOpenFeedsModal: Subject<boolean> = new Subject<boolean>();
   public refreshFeeds: Subject<void> = new Subject<void>();
+
+  public collectionsOpened: Subject<void> = new Subject<void>();
+  public feedsOpened: Subject<void> = new Subject<void>();
+  public tabContainerClosed: Subject<void> = new Subject<void>();
+  public reOpenTabsModal: Subject<boolean> = new Subject<boolean>();
 
   constructor() {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );

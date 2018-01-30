@@ -116,7 +116,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   public url = '';
   public lastUrl = '';
   public rawCSV = '';
-  public reOpenFeedsModal = false;
+  public reOpenTabsModal = false;
   public delimiter = ',';
   public lines = [];
   public hasHeader = true;
@@ -168,7 +168,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   // subscriptions
   private addFeedNextSubscription: Subscription;
   private editFeedNextSubscription: Subscription;
-  private reOpenFeedsModalSubscription: Subscription;
+  private reOpenTabsModalSubscription: Subscription;
+
 
 
   ngOnInit(): void {
@@ -181,7 +182,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.feed = feed;
      } );
 
-     this.reOpenFeedsModalSubscription = this.toolService.reOpenFeedsModal.subscribe( TorF => this.reOpenFeedsModal = TorF );
+     this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( TorF => this.reOpenTabsModal = TorF );
 
      this.dataService.getPublicKey().then( (pubKey) => {
       this.encryptor.log = true;
@@ -200,7 +201,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.addFeedNextSubscription.unsubscribe();
     this.editFeedNextSubscription.unsubscribe();
-    this.reOpenFeedsModalSubscription.unsubscribe();
+    // this.reOpenFeedsModalSubscription.unsubscribe();
+    this.reOpenTabsModalSubscription.unsubscribe();
   }
 
   public onOpen(): void {
@@ -312,10 +314,10 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   public onCancel(): void {
     this.modalService.close(this.id);
     // add a bit to re-open feeds modal
-    if ( this.reOpenFeedsModal ) {
-      this.modalService.open('feeds-modal');
+    if ( this.reOpenTabsModal ) {
+      this.modalService.open('tab-container-modal');
     }
-    this.reOpenFeedsModal = false; // re-sets the value to default
+    this.reOpenTabsModal = false; // re-sets the value to default
   }
 
   public pageOneToPageTwoSubmit(form) {

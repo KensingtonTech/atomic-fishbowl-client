@@ -9,8 +9,8 @@ import * as utils from './utils';
 import * as log from 'loglevel';
 
 @Component({
-  selector: 'collections-modal',
-  templateUrl: './collections-modal.html',
+  selector: 'collections',
+  templateUrl: './collections.component.html',
   styles: [`
     .table {
       display: table;
@@ -67,23 +67,31 @@ import * as log from 'loglevel';
     .modal-body {
       background-color: rgba(255,255,255,1);
     }
+    .ui-inputgroup {
+      display: inline-block;
+    }
+    .collectionsToolbar {
+      position: absolute;
+      top: 16px;
+      right: 50px;
+      width:480px;
+    }
   `]
 })
 
-export class CollectionsModalComponent implements OnInit, OnDestroy {
+export class CollectionsComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private toolService: ToolService,
               private modalService: ModalService ) {}
 
-  @Input() public id: string;
   public collections: Collection[];
   public displayedCollections: Collection[];
   private selectedCollection: Collection;
   public nwServers: any = {};
   private utils = utils;
   public addCollectionModalId = 'add-collection-modal';
-  public feedsModalId = 'feeds-modal';
+  private tabContainerModalId = 'tab-container-modal';
   public filterText = '';
 
   // Subscriptions
@@ -93,6 +101,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
   private executeAddCollectionSubscription: Subscription;
   private executeEditCollectionSubscription: Subscription;
   // private selectedCollectionChangedSubscription: Subscription;
+  private collectionsOpenedSubscription: Subscription;
 
   ngOnInit(): void {
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
@@ -111,7 +120,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
       }
       this.collections = tempCollections;
       this.displayedCollections = tempCollections;
-      log.debug('CollectionsModalComponent: collectionsChangedSubscription: collections update', this.collections);
+      log.debug('CollectionsComponent: collectionsChangedSubscription: collections update', this.collections);
     });
 
     this.deleteCollectionConfirmedSubscription = this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.deleteConfirmed(collectionId) );
@@ -126,15 +135,17 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
 
     this.dataService.refreshCollections();
 
+    this.collectionsOpenedSubscription = this.toolService.collectionsOpened.subscribe( () => this.onOpen() );
+
     this.getNwServers();
   }
 
   private getNwServers(): Promise<any> {
-    // log.debug("CollectionsModalComponent: getNwServers()");
+    // log.debug("CollectionsComponent: getNwServers()");
     return this.dataService.getNwServers()
       .then( n => {
         // setTimeout( () => {
-          log.debug('CollectionsModalComponent: getNwServers(): nwServers:', n);
+          log.debug('CollectionsComponent: getNwServers(): nwServers:', n);
           this.nwServers = n;
           // log.debug("AddCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
       });
@@ -148,6 +159,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
     // this.useCasesChangedSubscription.unsubscribe();
     this.executeAddCollectionSubscription.unsubscribe();
     this.executeEditCollectionSubscription.unsubscribe();
+    this.collectionsOpenedSubscription.unsubscribe();
   }
 
   public onOpen(): void {
@@ -156,13 +168,6 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
     this.getNwServers();
   }
 
-  public cancelledEventReceived(): void {
-
-  }
-
-  public closeModal(): void {
-    this.modalService.close(this.id);
-  }
 
   public checkNwServerExists(id: string) {
     if (id in this.nwServers) {
@@ -190,32 +195,24 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
   }
 
   onAddCollectionClick(): void {
-    // log.debug("CollectionsModalComponent: onAddCollectionClick()");
+    // log.debug("CollectionsComponent: onAddCollectionClick()");
     this.toolService.addCollectionNext.next();
-    this.modalService.close(this.id);
+    this.modalService.close(this.tabContainerModalId);
     this.modalService.open(this.addCollectionModalId);
-    this.toolService.reOpenCollectionsModal.next(true);
-  }
-
-  onFeedsClick(): void {
-    // log.debug("CollectionsModalComponent: onFeedsClick()");
-    // this.toolService.addCollectionNext.next();
-    this.modalService.close(this.id);
-    this.modalService.open(this.feedsModalId);
-    this.toolService.reOpenCollectionsModal.next(true);
+    this.toolService.reOpenTabsModal.next(true);
   }
 
   onEditCollectionClick(collection: Collection): void {
-    log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', collection);
+    log.debug('CollectionsComponent: onEditCollectionClick(): collection:', collection);
     this.toolService.editCollectionNext.next(collection);
     this.toolService.executeCollectionOnEdit.next(false);
-    this.modalService.close(this.id);
-    this.toolService.reOpenCollectionsModal.next(true);
+    this.modalService.close(this.tabContainerModalId);
+    this.toolService.reOpenTabsModal.next(true);
     this.modalService.open(this.addCollectionModalId);
   }
 
   deleteConfirmed(collectionId: string): void {
-    log.debug('CollectionsModalComponent: deleteConfirmed(): Received deleteConfirmed event');
+    log.debug('CollectionsComponent: deleteConfirmed(): Received deleteConfirmed event');
     // there are two paths - deleting the currently selected collection, or deleting the collection which isn't selected
 
     if (this.selectedCollection && collectionId === this.selectedCollection.id) {
@@ -234,13 +231,13 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
   }
 
   onDeleteCollectionClick(collection: Collection): void {
-    // log.debug('CollectionsModalComponent: onDeleteCollectionClick()');
+    // log.debug('CollectionsComponent: onDeleteCollectionClick()');
     this.toolService.deleteCollectionNext.next(collection);
     this.modalService.open('collection-confirm-delete-modal');
   }
 
   onCollectionClicked(collection: Collection): void {
-    log.debug('CollectionsModalComponent: onCollectionClicked():', collection.id, collection);
+    log.debug('CollectionsComponent: onCollectionClicked():', collection.id, collection);
     this.selectedCollection = collection;
     this.dataService.abortGetBuildingCollection();
     this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
@@ -248,12 +245,12 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
       this.toolService.deviceNumber.next( { deviceNumber: collection.deviceNumber, nwserver: collection.nwserver } );
     }
     this.connectToCollection(collection);
-    this.modalService.close(this.id);
+    this.modalService.close(this.tabContainerModalId);
   }
 
   collectionExecuted(collection: Collection): void {
     // only runs when we add a new collection or edit an existing collection
-    log.debug('CollectionsModalComponent: collectionExecuted():', collection.id, collection);
+    log.debug('CollectionsComponent: collectionExecuted():', collection.id, collection);
     this.selectedCollection = collection;
     this.dataService.abortGetBuildingCollection()
                     .then( () => {
@@ -268,7 +265,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
                       }
 
                       this.connectToCollection(collection);
-                      this.modalService.close(this.id);
+                      this.modalService.close(this.tabContainerModalId);
                     });
   }
 
@@ -294,7 +291,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
 
   getCollectionDataAgain(): void {
     // triggered by router component when we switch between views
-    log.debug('CollectionsModalComponent: getCollectionDataAgain()');
+    log.debug('CollectionsComponent: getCollectionDataAgain()');
     this.toolService.collectionSelected.next(this.selectedCollection); // let the toolbar widget know we switched collections
     this.toolService.deviceNumber.next( {
                                           deviceNumber: this.selectedCollection.deviceNumber,
@@ -304,7 +301,7 @@ export class CollectionsModalComponent implements OnInit, OnDestroy {
   }
 
   public filterChanged(): void {
-    // log.debug('CollectionsModalComponent: filterChanged(): filterText:', this.filterText);
+    // log.debug('CollectionsComponent: filterChanged(): filterText:', this.filterText);
     if (this.filterText === '') {
       this.displayedCollections = this.collections;
     }

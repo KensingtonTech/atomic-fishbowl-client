@@ -156,3 +156,37 @@ body .modal-open {
   white-space: pre-line;
   width: 375px;
 }
+
+
+/* MODAL STYLES */
+.ui-tabview-selected {
+  font-weight: bold !important;
+}
+
+/*
+.ui-tabview-panel {
+  border-left: solid 1px #000 !important;
+}*/
+
+/*
+.ui-tabview .ui-tabview-nav {
+  background: #1976d2!important;
+  background-image: initial;
+  background-position-x: initial;
+  background-position-y: initial;
+  background-size: initial;
+  background-repeat-x: initial;
+  background-repeat-y: initial;
+  background-attachment: initial;
+  background-origin: initial;
+  background-clip: initial;
+  background-color: rgb(25, 118, 210);
+
+  margin-bottom: -1px;
+  padding: 3px 3px 0 3px!important;
+  border-top-right-radius: 4px!important;
+  border-top-left-radius: 4px!important;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+*/
