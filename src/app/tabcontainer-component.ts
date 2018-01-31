@@ -10,7 +10,7 @@ import * as log from 'loglevel';
   template: `
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="onCancel()">
   <div class="modal">
-    <div class="modal-body" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
+    <div class="modal-body" style="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 1024px; background-color: white; font-size: 10pt;">
 
       <div (click)="closeModal()" style="position: absolute; top: 16px; right: 16px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
 

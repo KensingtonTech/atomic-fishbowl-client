@@ -29,6 +29,10 @@ import { MatCardModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatT
 // Dragula
 import { DragulaModule } from 'ng2-dragula';
 
+// PDF Viewer
+import { PdfViewerModule } from 'ng2-pdf-viewer';
+
+
 // Our Services
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
@@ -56,7 +60,6 @@ import { MasonryGridComponent } from './masonry-grid.component';
 import { ClassicControlBarComponent } from './classic-controlbar.component';
 import { MasonryControlBarComponent } from './masonry-controlbar.component';
 import { ClassicSessionPopupComponent } from './classic-session-popup.component';
-import { PdfViewerComponent } from 'ng2-pdf-viewer';
 import { PdfViewerModalComponent } from './pdfviewer-modal.component';
 import { ClassicTileComponent } from './classic-tile.component';
 import { MetaAccordionComponent } from './meta-accordion.component';
@@ -111,6 +114,7 @@ import * as $ from 'jquery';
                   MatToolbarModule,
                   FlexLayoutModule,
                   DragulaModule,
+                  PdfViewerModule,
                   RouterModule.forRoot([
                     {
                       path: '',
@@ -146,7 +150,6 @@ import * as $ from 'jquery';
                   ToggleFullscreenDirective,
                   MetaAccordionComponent,
                   ClassicTileComponent,
-                  PdfViewerComponent,
                   PdfViewerModalComponent,
                   SplashScreenModalComponent,
                   RouterDropdownComponent,

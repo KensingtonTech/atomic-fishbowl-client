@@ -12,7 +12,8 @@ import { MasonryComponent } from './masonry/masonry.component';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
-import * as math from 'mathjs';
+import { eval } from 'mathjs';
+
 import * as utils from './utils';
 import * as log from 'loglevel';
 declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it

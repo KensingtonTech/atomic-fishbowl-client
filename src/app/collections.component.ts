@@ -288,6 +288,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   getCollectionDataAgain(): void {
     // triggered by router component when we switch between views
     log.debug('CollectionsComponent: getCollectionDataAgain()');
+    if (!this.selectedCollection) {
+      // selectedCollection should only ever be undefined if we close the window without ever selecting a collection
+      return;
+    }
     this.toolService.collectionSelected.next(this.selectedCollection); // let the toolbar widget know we switched collections
     this.toolService.deviceNumber.next( {
                                           deviceNumber: this.selectedCollection.deviceNumber,

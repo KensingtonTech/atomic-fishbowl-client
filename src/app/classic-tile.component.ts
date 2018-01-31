@@ -148,7 +148,8 @@ export class ClassicTileComponent implements OnChanges {
     let pleft = this.data.left;
     // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
     // if (Math.abs(top - ptop) < 5 || Math.abs(left - pleft) < 5) {
-    if (abs(top - ptop) === 0 || abs(left - pleft) === 0) {
+    // if (abs(top - ptop) === 0 || abs(left - pleft) === 0) {
+    if (math.abs(top - ptop) === 0 || math.abs(left - pleft) === 0) {
       if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
         this.toolService.newImage.next(this.content);
         this.toolService.newSession.next(this.session);

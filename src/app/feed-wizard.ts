@@ -306,20 +306,20 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
         this.url = this.feed.url;
         this.urlVerified = true;
         this.urlTested = true;
+        this.selectedSchedule = this.feed.schedule.type;
+        if (this.feed.schedule.type === 'hours') {
+          this.selectedScheduleHours = this.feed.schedule.value;
+        }
+        if (this.feed.schedule.type === 'minutes') {
+          this.selectedScheduleMinutes = this.feed.schedule.value;
+        }
+        if (this.feed.schedule.type === 'day') {
+          this.selectedScheduleDays = this.feed.schedule.value;
+        }
 
         if (this.feed.authentication) {
           this.urlAuthentication = 'enabled';
           this.urlUser = this.feed.username;
-          this.selectedSchedule = this.feed.schedule.type;
-          if (this.feed.schedule.type === 'hours') {
-            this.selectedScheduleHours = this.feed.schedule.value;
-          }
-          if (this.feed.schedule.type === 'minutes') {
-            this.selectedScheduleMinutes = this.feed.schedule.value;
-          }
-          if (this.feed.schedule.type === 'day') {
-            this.selectedScheduleDays = this.feed.schedule.value;
-          }
         }
         else {
           this.urlAuthentication = 'disabled';

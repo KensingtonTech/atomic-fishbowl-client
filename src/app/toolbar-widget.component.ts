@@ -359,6 +359,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   onCollectionSelected(collection: Collection): void {
+
     this.selectedCollection = collection;
     this.selectedCollectionId = collection.id;
 
@@ -420,15 +421,16 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.toolService.caseSensitiveSearchChanged.next();
   }
 
+  /*
   getCollectionDataAgain(): void {
     log.debug('ToolbarWidgetComponent: getCollectionDataAgain()');
-    // log.debug('select collection 7');
     this.onCollectionSelected( this.selectedCollection );
     this.toolService.deviceNumber.next( {
                                           deviceNumber: this.selectedCollection.deviceNumber,
                                           nwserver:  this.selectedCollection.nwserver
                                         });
   }
+  */
 
   logoutButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: logoutButtonClick()");
