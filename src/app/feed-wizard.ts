@@ -8,8 +8,7 @@ import * as utils from './utils';
 import * as log from 'loglevel';
 import { Subscribable } from 'rxjs/Observable';
 import { UUID } from 'angular2-uuid';
-import { SelectItem } from 'primeng/primeng';
-import { clearInterval } from 'timers';
+import { SelectItem } from 'primeng/components/common/selectitem';
 declare var JSEncrypt: any;
 
 interface ColumnId {

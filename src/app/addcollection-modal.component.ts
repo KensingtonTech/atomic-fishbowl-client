@@ -8,7 +8,7 @@ import { defaultQueries } from './default-queries';
 import { Query } from './query';
 import { ContentTypes } from './contenttypes';
 import { UseCase } from './usecase';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/components/common/selectitem';
 import { Subscription } from 'rxjs/Subscription';
 import { NwServer } from './nwserver';
 import { Feed } from './feed';

@@ -3,7 +3,7 @@ import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { defaultQueries } from './default-queries';
-import { SelectItem } from 'primeng/primeng';
+import { SelectItem } from 'primeng/components/common/selectitem';
 import * as log from 'loglevel';
 
 @Component({
