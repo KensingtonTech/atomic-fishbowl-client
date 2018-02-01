@@ -159,6 +159,24 @@ body .modal-open {
 
 
 /* MODAL STYLES */
+
+.ui-tabview {
+  height: 100% !important;
+  position: relative !important;
+}
+
+.ui-tabview-panels {
+  height: 95% !important;
+  position: relative !important;
+}
+
+.ui-tabview-panel {
+  height: 100% !important;
+  position: relative !important;
+  /*padding: 0 !important;*/
+}
+
+
 .ui-tabview-selected {
   font-weight: bold !important;
 }

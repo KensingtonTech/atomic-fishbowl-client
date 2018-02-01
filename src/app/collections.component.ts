@@ -72,7 +72,7 @@ import * as log from 'loglevel';
     }
     .collectionsToolbar {
       position: absolute;
-      top: 16px;
+      top: -30px;
       right: 50px;
       width:480px;
     }
@@ -86,6 +86,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
               private modalService: ModalService ) {}
 
   public collections: Collection[];
+  public origCollections = {};
   public displayedCollections: Collection[];
   private selectedCollection: Collection;
   public nwServers: any = {};
@@ -103,10 +104,11 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   private collectionsOpenedSubscription: Subscription;
 
   ngOnInit(): void {
-    this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.getCollectionDataAgain() );
+    this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.onGetCollectionDataAgain() );
 
     this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => {
       // triggered by dataService.refreshCollections()
+      this.origCollections = collections;
       let tempCollections = [];
 
       for (let c in collections) {
@@ -248,9 +250,17 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     // only runs when we add a new collection or edit an existing collection
     log.debug('CollectionsComponent: collectionExecuted():', collection.id, collection);
     this.selectedCollection = collection;
+    let id = collection.id;
     this.dataService.abortGetBuildingCollection()
                     .then( () => {
-                      if (collection.type === 'fixed') { this.dataService.buildFixedCollection(collection.id); }
+                      if (collection.type === 'fixed') {
+                        return this.dataService.buildFixedCollection(collection.id)
+                                   .then( () => this.dataService.refreshCollections() )
+                                   .then( () => {
+                                     collection = this.origCollections[id];
+                                     this.selectedCollection = collection;
+                                    });
+                      }
                     })
                     .then( () => {
                       this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
@@ -267,6 +277,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
   connectToCollection(collection: Collection) {
     // makes data connection back to server after we've executed or clicked a collection
+    log.debug('CollectionsComponent: connectToCollection(): collection:', collection);
     if (collection.type === 'rolling' || collection.type === 'monitoring') {
       this.dataService.getCollectionData(collection)
                       .then( () => this.dataService.getRollingCollection(collection.id) );
@@ -285,19 +296,22 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getCollectionDataAgain(): void {
+  onGetCollectionDataAgain(): void {
     // triggered by router component when we switch between views
-    log.debug('CollectionsComponent: getCollectionDataAgain()');
+    log.debug('CollectionsComponent: onGetCollectionDataAgain()');
     if (!this.selectedCollection) {
       // selectedCollection should only ever be undefined if we close the window on first load without ever selecting a collection
       return;
     }
-    this.toolService.collectionSelected.next(this.selectedCollection); // let the toolbar widget know we switched collections
-    this.toolService.deviceNumber.next( {
-                                          deviceNumber: this.selectedCollection.deviceNumber,
-                                          nwserver:  this.selectedCollection.nwserver
-                                        });
-    this.connectToCollection(this.selectedCollection);
+    this.dataService.abortGetBuildingCollection()
+        .then( () => {
+          this.toolService.collectionSelected.next(this.selectedCollection); // let the toolbar widget know we switched collections
+          this.toolService.deviceNumber.next( {
+                                                deviceNumber: this.selectedCollection.deviceNumber,
+                                                nwserver:  this.selectedCollection.nwserver
+                                              });
+          this.connectToCollection(this.selectedCollection);
+        });
   }
 
   public filterChanged(): void {

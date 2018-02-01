@@ -77,7 +77,7 @@ interface FeedStatus {
 
     .feedToolbar {
       position: absolute;
-      top: 16px;
+      top: -30px;
       right: 50px;
       width:453px;
     }

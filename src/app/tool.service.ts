@@ -1,9 +1,9 @@
 import { Injectable, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import * as log from 'loglevel';
 import { Collection } from './collection';
 import { Feed } from './feed';
+import * as log from 'loglevel';
 
 @Injectable()
 
@@ -60,7 +60,10 @@ export class ToolService {
   public tabContainerClosed: Subject<void> = new Subject<void>();
   public reOpenTabsModal: Subject<boolean> = new Subject<boolean>();
 
+  public loadCollectionOnRouteChange = false; // this may be set before switching routes to instruct the new view to load a particular collcetion
+
   constructor() {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );
   }
+
 }

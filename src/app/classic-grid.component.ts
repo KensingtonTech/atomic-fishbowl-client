@@ -319,6 +319,11 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       // this.changeDetectionRef.markForCheck();
     });
 
+    if (this.toolService.loadCollectionOnRouteChange) {
+      this.toolService.loadCollectionOnRouteChange = false;
+      this.toolService.getCollectionDataAgain.next();
+    }
+
   }
 
 

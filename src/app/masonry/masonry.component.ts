@@ -216,7 +216,9 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
         // this.ngZone.runOutsideAngular( () => this.isotope.addItems(element)); // adds to isotope instance but doesn't layout
         // this.layoutItems(element);
 
-        this.ngZone.runOutsideAngular( () => this.isotope.appended(element.nativeElement) ); // this will only layout the new item
+        if (this.isotope) {
+          this.ngZone.runOutsideAngular( () => this.isotope.appended(element.nativeElement) ); // this will only layout the new item
+        }
         // this.ngZone.runOutsideAngular( () => this.isotope.prepended(element) );
       });
     }
@@ -261,7 +263,9 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
             // element.nativeElement.style.display = 'block';
             this.renderer.setStyle(this.el.nativeElement, 'display', 'block');
 
-            this.ngZone.runOutsideAngular( () => this.isotope.appended(element.nativeElement) ); // this will only layout the new item
+            if (this.isotope) {
+              this.ngZone.runOutsideAngular( () => this.isotope.appended(element.nativeElement) ); // this will only layout the new item
+            }
             imgLoad.off( 'progress', addFunc);
           };
 

@@ -410,6 +410,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.openSessionDetails();
     });
 
+    if (this.toolService.loadCollectionOnRouteChange) {
+      this.toolService.loadCollectionOnRouteChange = false;
+      this.toolService.getCollectionDataAgain.next();
+    }
+
   }
 
   stopAutoScrollerAnimation(): void {

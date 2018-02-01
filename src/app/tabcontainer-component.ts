@@ -10,7 +10,7 @@ import * as log from 'loglevel';
   template: `
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="onCancel()">
   <div class="modal">
-    <div class="modal-body" style="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 1024px; background-color: white; font-size: 10pt;">
+    <div class="modal-body" style="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; background-color: white; font-size: 10pt;"> <!--max-height: 1024px;-->
 
       <div (click)="closeModal()" style="position: absolute; top: 16px; right: 16px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
 
@@ -30,6 +30,11 @@ import * as log from 'loglevel';
 </modal>
   `,
   styles: [`
+
+  .ui-tabview {
+    height: 100% !important;
+    position: relative !important;
+  }
 
   `]
 })
