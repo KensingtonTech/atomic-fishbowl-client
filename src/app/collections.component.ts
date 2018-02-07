@@ -4,6 +4,7 @@ import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs/Subscription';
 import { NwServer } from './nwserver';
+import { SaServer } from './saserver';
 import { Collection } from './collection';
 import * as utils from './utils';
 import * as log from 'loglevel';
@@ -74,7 +75,7 @@ import * as log from 'loglevel';
       position: absolute;
       top: -30px;
       right: 50px;
-      width:480px;
+      width: 630px;
     }
   `]
 })
@@ -90,8 +91,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public displayedCollections: Collection[];
   private selectedCollection: Collection;
   public nwServers: any = {};
+  public saServers: any = {};
   private utils = utils;
-  public addCollectionModalId = 'add-collection-modal';
+  public nwCollectionModalId = 'nw-collection-modal';
+  public saCollectionModalId = 'sa-collection-modal';
   private tabContainerModalId = 'tab-container-modal';
   public filterText = '';
 
@@ -138,6 +141,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.collectionsOpenedSubscription = this.toolService.collectionsOpened.subscribe( () => this.onOpen() );
 
     this.getNwServers();
+    this.getSaServers();
   }
 
   private getNwServers(): Promise<any> {
@@ -148,6 +152,17 @@ export class CollectionsComponent implements OnInit, OnDestroy {
           log.debug('CollectionsComponent: getNwServers(): nwServers:', n);
           this.nwServers = n;
           // log.debug("AddCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
+      });
+  }
+
+  private getSaServers(): Promise<any> {
+    // log.debug("CollectionsComponent: getSaServers()");
+    return this.dataService.getSaServers()
+      .then( n => {
+        // setTimeout( () => {
+          log.debug('CollectionsComponent: getSaServers(): SaServers:', n);
+          this.saServers = n;
+          // log.debug("AddCollectionModalComponent: getSaServers(): this.saServers:", this.saServers);
       });
   }
 
@@ -164,19 +179,21 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.dataService.refreshCollections()
                     .then( () => this.filterChanged() );
     this.getNwServers();
-  }
-
-
-  public checkNwServerExists(id: string) {
-    if (id in this.nwServers) {
-      return true;
-    }
-    return false;
+    this.getSaServers();
   }
 
   public getNwServerString(id: string): string {
     if (id in this.nwServers) {
       return this.nwServers[id].host + ':' + this.nwServers[id].port;
+    }
+    else {
+      return '-';
+    }
+  }
+
+  public getSaServerString(id: string): string {
+    if (id in this.saServers) {
+      return this.saServers[id].host + ':' + this.saServers[id].port;
     }
     else {
       return '-';
@@ -192,21 +209,47 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onAddCollectionClick(): void {
-    // log.debug("CollectionsComponent: onAddCollectionClick()");
-    this.toolService.addCollectionNext.next();
+  public saServerExists(id: string): boolean {
+    if (id in this.saServers) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  onAddNwCollectionClick(): void {
+    // log.debug("CollectionsComponent: onAddNwCollectionClick()");
+    this.toolService.addNwCollectionNext.next();
     this.modalService.close(this.tabContainerModalId);
-    this.modalService.open(this.addCollectionModalId);
+    this.modalService.open(this.nwCollectionModalId);
+    this.toolService.reOpenTabsModal.next(true);
+  }
+
+  onAddSaCollectionClick(): void {
+    // log.debug("CollectionsComponent: onAddNwCollectionClick()");
+    this.toolService.addSaCollectionNext.next();
+    this.modalService.close(this.tabContainerModalId);
+    this.modalService.open(this.saCollectionModalId);
     this.toolService.reOpenTabsModal.next(true);
   }
 
   onEditCollectionClick(collection: Collection): void {
     log.debug('CollectionsComponent: onEditCollectionClick(): collection:', collection);
-    this.toolService.editCollectionNext.next(collection);
-    this.toolService.executeCollectionOnEdit.next(false);
-    this.modalService.close(this.tabContainerModalId);
-    this.toolService.reOpenTabsModal.next(true);
-    this.modalService.open(this.addCollectionModalId);
+    if (collection.serviceType === 'nw') {
+      this.toolService.editNwCollectionNext.next(collection);
+      this.toolService.executeCollectionOnEdit.next(false);
+      this.modalService.close(this.tabContainerModalId);
+      this.toolService.reOpenTabsModal.next(true);
+      this.modalService.open(this.nwCollectionModalId);
+    }
+    if (collection.serviceType === 'sa') {
+      this.toolService.editSaCollectionNext.next(collection);
+      this.toolService.executeCollectionOnEdit.next(false);
+      this.modalService.close(this.tabContainerModalId);
+      this.toolService.reOpenTabsModal.next(true);
+      this.modalService.open(this.saCollectionModalId);
+    }
   }
 
   deleteConfirmed(collectionId: string): void {

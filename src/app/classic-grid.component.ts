@@ -27,7 +27,7 @@ interface Point {
 <div (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
   <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
-      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionid]="item.session"></classic-tile>
+      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType"></classic-tile>
     </div>
   </panzoom>
   <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
@@ -36,7 +36,7 @@ interface Point {
     <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
   </div>
   <pdf-viewer-modal [apiServerUrl]="apiServerUrl" id="pdf-viewer"></pdf-viewer-modal>
-  <classic-session-popup [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" #sessionWidget></classic-session-popup>
+  <classic-session-popup [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" [serviceType]="selectedCollectionServiceType"> #sessionWidget></classic-session-popup>
 </div>
 `,
   styles: [`
@@ -82,7 +82,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private caseSensitiveSearch = false;
   private showOnlyImages: any = [];
   private lastSearchTerm = '';
-  public selectedCollectionType: string;
+  public selectedCollectionType: string = null;
+  public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
   private collectionId: string;
   public sessionsDefined = false;
   public destroyView = true;
@@ -192,6 +193,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
       this.selectedCollectionType = collection.type;
+      this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
       this.collectionId = collection.id;
       /*if (this.selectedCollectionType === 'monitoring' || this.selectedCollectionType === 'rolling') { // not needed in classic view
         this.loadAllBeforeLayout = false;

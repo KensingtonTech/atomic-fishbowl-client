@@ -3,9 +3,9 @@
     <div class="modal-body" style="width: 500px; max-height: 90%; overflow: auto; top: 5%;">
       <div>
         <h3 style="margin-top:0px; margin-bottom: 10px;">
-          <ng-template [ngIf]="mode == 'add'">Create a New Collection</ng-template>
-          <ng-template [ngIf]="mode == 'editRolling'">Edit a Collection</ng-template>
-          <ng-template [ngIf]="mode == 'editFixed'">Reprocess a Collection</ng-template>
+          <ng-template [ngIf]="mode == 'add'">Create a NetWitness Collection</ng-template>
+          <ng-template [ngIf]="mode == 'editRolling'">Edit a NetWitness Collection</ng-template>
+          <ng-template [ngIf]="mode == 'editFixed'">Reprocess a NetWitness Collection</ng-template>
         </h3>
         <fieldset [disabled]="formDisabled" style="border: none; margin: 0; padding: 0;">
         <form #addCollectionForm="ngForm" (ngSubmit)="onCollectionSubmit(addCollectionForm)" novalidate>
@@ -116,7 +116,7 @@
             <!--QUERIES-->
             <tr>
               <td class="column1" style="vertical-align: top;">
-                <b>Query</b> <span class="fa fa-info-circle fa-fw" pTooltip="The query defines which NetWitnehss sessions to extract content from.  It does not, however, limit the types of content which will be pulled into the collection.  Use Content Types to limit the content types for this collection." tooltipPosition="bottom" escape="false" tooltipStyleClass="addCollectionTooltip"></span>
+                <b>Query</b> <span class="fa fa-info-circle fa-fw" pTooltip="The query defines which NetWitness sessions to extract content from.  It does not, however, limit the types of content which will be pulled into the collection.  Use Content Types to limit the content types for this collection." tooltipPosition="bottom" escape="false" tooltipStyleClass="addCollectionTooltip"></span>
               </td>
               <td>
                 <!--QUERY DROPDOWN-->

@@ -36,12 +36,16 @@ export class ToolService {
   public showMasonryTextArea: Subject<boolean> = new Subject<boolean>();
   public showMasonryTextAreaState = true;
   public refreshMasonryLayout: Subject<void> = new Subject<void>();
-  public addCollectionNext: Subject<void> = new Subject<void>();
-  public editCollectionNext: Subject<Collection> = new Subject<Collection>();
+  public addNwCollectionNext: Subject<void> = new Subject<void>();
+  public addSaCollectionNext: Subject<void> = new Subject<void>();
+  public editNwCollectionNext: Subject<Collection> = new Subject<Collection>();
+  public editSaCollectionNext: Subject<Collection> = new Subject<Collection>();
   public executeAddCollection: Subject<any> = new Subject<any>();
   public executeEditCollection: Subject<any> = new Subject<any>();
   public nwServerToDelete: Subject<any> = new Subject<any>();
+  public saServerToDelete: Subject<any> = new Subject<any>();
   public confirmNwServerDelete: Subject<string> = new Subject<string>();
+  public confirmSaServerDelete: Subject<string> = new Subject<string>();
 
   // collections
   public deleteCollectionNext: Subject<Collection> = new Subject<Collection>();

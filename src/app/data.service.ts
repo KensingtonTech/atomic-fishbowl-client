@@ -7,6 +7,7 @@ import { HttpHeaders, HttpClient } from '@angular/common/http';
 
 import { Collection } from './collection';
 import { NwServer } from './nwserver';
+import { SaServer } from './saserver';
 import { HttpJsonStream } from './http-json-stream';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
@@ -120,6 +121,52 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 });
   }
 
+
+
+    /////////////////////NW SERVERS/////////////////////
+
+    getSaServers(): Promise<any> {
+      log.debug('DataService: getSaServers()');
+      return this.http
+                  .get(this.apiUrl + '/saserver' )
+                  .toPromise()
+                  .then( (response: any) => response as any )
+                  .catch(e => this.handleError(e));
+    }
+
+    testSaServer( server: any ): Promise<any> {
+      return this.http
+                  .post(this.apiUrl + '/saserver/test', server )
+                  .toPromise();
+    }
+
+    deleteSaServer(id: string): Promise<void> {
+      log.debug('DataService: deleteSaServer():', id);
+      return this.http.delete(this.apiUrl + '/saserver/' + id )
+                  .toPromise()
+                  .then(response => response as any)
+                  .catch(e => this.handleError(e));
+    }
+
+    addSaServer(saserver: SaServer): Promise<any> {
+      log.debug('DataService: addSaServer()');
+      let headers = new HttpHeaders().set('Content-Type', 'application/json');
+      return this.http.post(this.apiUrl + '/saserver', saserver, { headers } )
+                  .toPromise()
+                  .then(response => {
+                    log.debug('DataService: addSaServer(): response:', response);
+                  });
+    }
+
+    editSaServer(saserver: SaServer): Promise<any> {
+      log.debug('DataService: editSaServer()');
+      let headers = new HttpHeaders().set('Content-Type', 'application/json');
+      return this.http.post(this.apiUrl + '/saserver/edit', saserver, { headers } )
+                  .toPromise()
+                  .then(response => {
+                    log.debug('DataService: editSaServer(): response:', response);
+                  });
+    }
 
   /////////////////////USE CASES/////////////////////
 

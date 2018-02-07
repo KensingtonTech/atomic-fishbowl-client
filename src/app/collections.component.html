@@ -1,7 +1,8 @@
 <!-- New toolbar, for after we tab-ify-->
 <p-toolbar class="collectionsToolbar">
     <div class="ui-toolbar-group-right">
-      <button pButton type="button" (click)="onAddCollectionClick()" label="New Collection"></button>
+      <button pButton type="button" (click)="onAddNwCollectionClick()" label="New NW Collection"></button>
+      <button pButton type="button" (click)="onAddSaCollectionClick()" label="New SA Collection"></button>
       <div class="ui-inputgroup">
         <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
         <input name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
@@ -21,7 +22,7 @@
       <div class="row">
         <div class="header-cell">Collection Name</div>
         <div class="header-cell">Type</div>
-        <div class="header-cell">NW Server</div>
+        <div class="header-cell">API Endpoint</div>
         <div class="header-cell">Created</div>
         <div class="header-cell">Last Modified</div>
         <div class="header-cell center">Actions</div>
@@ -30,12 +31,17 @@
 
     <div [dragula]='"first-bag"' class="row-group">
       <div class="row" *ngFor="let collection of displayedCollections">
-        <div class="cell">
+        <div *ngIf="collection.serviceType == 'nw'" class="cell">
           <span *ngIf="collection.type == 'fixed' || nwServerExists(collection.nwserver)" class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
           <span *ngIf="collection.type != 'fixed' && !nwServerExists(collection.nwserver)" class="no-nw-server">{{collection.name}}</span>
         </div>
-        <div class="cell">{{utils.capitalizeFirstLetter(collection.type)}}</div>
-        <div class="cell">{{getNwServerString(collection.nwserver)}}</div>
+        <div *ngIf="collection.serviceType == 'sa'" class="cell">
+            <span *ngIf="collection.type == 'fixed' || saServerExists(collection.saserver)" class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
+            <span *ngIf="collection.type != 'fixed' && !saServerExists(collection.saserver)" class="no-nw-server">{{collection.name}}</span>
+          </div>
+        <div class="cell"><span *ngIf="collection.serviceType == 'nw'">NW</span><span *ngIf="collection.serviceType == 'sa'">SA</span> {{utils.capitalizeFirstLetter(collection.type)}}</div>
+        <div class="cell" *ngIf="collection.serviceType == 'nw'">{{getNwServerString(collection.nwserver)}}</div>
+        <div class="cell" *ngIf="collection.serviceType == 'sa'">{{getSaServerString(collection.saserver)}}</div>
         <div class="cell">
           <span *ngIf="collection.creator">{{collection.creator.timestamp | date:'y/MM/d HH:mm'}} by {{collection.creator.username}}</span>
         </div>
@@ -53,5 +59,6 @@
 </div>
 
 
-<add-collection-modal [id]="addCollectionModalId"></add-collection-modal>
+<nw-collection-modal [id]="nwCollectionModalId"></nw-collection-modal>
+<sa-collection-modal [id]="saCollectionModalId"></sa-collection-modal>
 <delete-collection-confirm-modal></delete-collection-confirm-modal>

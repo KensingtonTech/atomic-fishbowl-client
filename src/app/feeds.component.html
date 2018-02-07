@@ -36,7 +36,7 @@
           <span *ngIf="feed.type == 'scheduled' && ifStatusExists(feed.id) && feedStatus[feed.id].good" pTooltip="Last run at {{feedStatus[feed.id]?.time | date: 'short'}}">
             OK
           </span>
-          <span *ngIf="feed.type == 'scheduled' && feedStatus.length > 0 && !feedStatus[feed.id].good" pTooltip="Last run at {{feedStatus[feed.id]?.time | date: 'short'}}">
+          <span *ngIf="feed.type == 'scheduled' && ifStatusExists(feed.id) && !feedStatus[feed.id].good" pTooltip="Last run at {{feedStatus[feed.id]?.time | date: 'short'}}">
             Failed
           </span>
           <span *ngIf="feed.type == 'manual'">-</span>

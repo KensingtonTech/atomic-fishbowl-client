@@ -104,6 +104,7 @@ export class ClassicTileComponent implements OnChanges {
   @Input() session: any;
   @Input() sessionId: number;
   @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
+  @Input() serviceType: string; // 'nw' or 'sa'
   public showHighRes = false;
   private thumbnailString: string;
   private thumbnailLoaded = false;
@@ -152,7 +153,7 @@ export class ClassicTileComponent implements OnChanges {
     if (math.abs(top - ptop) === 0 || math.abs(left - pleft) === 0) {
       if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
         this.toolService.newImage.next(this.content);
-        this.toolService.newSession.next(this.session);
+        this.toolService.newSession.next( { session: this.session, serviceType: this.serviceType } );
         this.openPDFViewer.emit();
       }
     }

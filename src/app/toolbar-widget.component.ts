@@ -39,9 +39,11 @@ import * as log from 'loglevel';
 
       <!--Statistics Text-->
       <span>
-        <span *ngIf="selectedCollection.type == 'fixed'" class="label">Fixed Collection&nbsp;&nbsp;</span>
-        <span *ngIf="selectedCollection.type == 'rolling'" class="label">Rolling Collection&nbsp;&nbsp;</span>
-        <span *ngIf="selectedCollection.type == 'monitoring'" class="label">Monitoring Collection&nbsp;&nbsp;</span>
+        <span *ngIf="selectedCollection.type == 'fixed'" class="label">Fixed</span>
+        <span *ngIf="selectedCollection.type == 'rolling'" class="label">Rolling</span>
+        <span *ngIf="selectedCollection.type == 'monitoring'" class="label">Monitoring</span>
+        <span class="label"> {{selectedCollection.serviceType | allCaps}} Collection&nbsp;&nbsp;</span>
+
         <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeBegin | formatTime}}</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time2: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeEnd | formatTime}}</span>
@@ -140,7 +142,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private selectedCollectionId: string;
   public selectedCollection: Collection;
 
-  public addCollectionModalId = 'add-collection-modal';
+  public nwCollectionModalId = 'nw-collection-modal';
+  public saCollectionModalId = 'sa-collection-modal';
   public tabContainerModalId = 'tab-container-modal';
   public showSearch = false;
   private searchTerms: string;
@@ -273,10 +276,21 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     tt = tt + 'Query: ' + query;
-    tt = tt + '\nService: ' + this.selectedCollection.nwserverName;
+
+    if (this.selectedCollection.serviceType === 'nw') {
+      tt = tt + '\nService: ' + this.selectedCollection.nwserverName;
+    }
+    else {
+      tt = tt + '\nService: ' + this.selectedCollection.saserverName;
+    }
+
+
     tt = tt + '\nContent Types: ' + contentTypes;
     tt = tt + '\nContent Limit: ' + this.selectedCollection.contentLimit;
-    tt = tt + '\nMin Dimensions: ' + this.selectedCollection.minX + ' x ' + this.selectedCollection.minY;
+
+    if (this.selectedCollection.minX && this.selectedCollection.minY) {
+      tt = tt + '\nMin Dimensions: ' + this.selectedCollection.minX + ' x ' + this.selectedCollection.minY;
+    }
 
     if (this.selectedCollection.sha1Enabled) { tt = tt + '\nSHA1 Hashing is Enabled'; }
     if (this.selectedCollection.sha256Enabled) { tt = tt + '\nSHA256 Hashing is Enabled'; }
@@ -438,10 +452,18 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
   onEditCollectionClick(): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', this.selectedCollection);
-    this.toolService.editCollectionNext.next(this.selectedCollection);
-    this.toolService.executeCollectionOnEdit.next(true);
-    this.toolService.reOpenTabsModal.next(false);
-    this.modalService.open(this.addCollectionModalId);
+    if (this.selectedCollection.serviceType === 'nw') {
+      this.toolService.editNwCollectionNext.next(this.selectedCollection);
+      this.toolService.executeCollectionOnEdit.next(true);
+      this.toolService.reOpenTabsModal.next(false);
+      this.modalService.open(this.nwCollectionModalId);
+    }
+    if (this.selectedCollection.serviceType === 'sa') {
+      this.toolService.editSaCollectionNext.next(this.selectedCollection);
+      this.toolService.executeCollectionOnEdit.next(true);
+      this.toolService.reOpenTabsModal.next(false);
+      this.modalService.open(this.saCollectionModalId);
+    }
   }
 
 }

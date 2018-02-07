@@ -7,6 +7,7 @@ import * as log from 'loglevel';
 export class FormatTimePipe implements PipeTransform {
 
   transform(value: any, args: string): any {
+    // log.debug('FormatTimePipe: transform(): value:', value);
     if (!value) {
       return undefined;
     }

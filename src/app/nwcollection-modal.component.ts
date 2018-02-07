@@ -4,7 +4,7 @@ import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
-import { defaultQueries } from './default-queries';
+import { defaultNwQueries } from './default-nw-queries';
 import { Query } from './query';
 import { ContentTypes } from './contenttypes';
 import { UseCase } from './usecase';
@@ -12,11 +12,12 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { Subscription } from 'rxjs/Subscription';
 import { NwServer } from './nwserver';
 import { Feed } from './feed';
-import * as utils from './utils';
-import * as log from 'loglevel';
-declare var JSEncrypt: any;
 import { CollectionMeta } from './collection-meta';
 import { Collection } from './collection';
+import * as utils from './utils';
+import * as log from 'loglevel';
+import { Preferences } from './preferences';
+declare var JSEncrypt: any;
 
 /*
 declare global {
@@ -38,9 +39,9 @@ String.prototype.isBlank = function(c) {
 */
 
 @Component({
-  selector: 'add-collection-modal',
+  selector: 'nw-collection-modal',
 
-  templateUrl: './addcollection-modal.component.html',
+  templateUrl: './nwcollection-modal.component.html',
   styles: [`
 
     .full-width {
@@ -121,7 +122,7 @@ String.prototype.isBlank = function(c) {
   `]
 })
 
-export class AddCollectionModalComponent implements OnInit, OnDestroy {
+export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private toolService: ToolService,
@@ -183,7 +184,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     password: '',
     deviceNumber: 1
   };
-  public queryList = defaultQueries;
+  public queryList = defaultNwQueries;
   private queryListObj = {};
   public queryListOptions: SelectItem[] = [];
 
@@ -197,8 +198,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   // Subscriptions
   private preferencesChangedSubscription: Subscription;
   private useCasesChangedSubscription: Subscription;
-  private addCollectionNextSubscription: Subscription;
-  private editCollectionNextSubscription: Subscription;
+  private addNwCollectionNextSubscription: Subscription;
+  private editNwCollectionNextSubscription: Subscription;
   private confirmNwServerDeleteSubscription: Subscription;
   private feedsChangedSubscription: Subscription;
   private executeCollectionOnEditSubscription: Subscription;
@@ -239,16 +240,16 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   private hashFeedId: string;
 
   private executeCollectionOnEdit = false;
-  
+
 
   ngOnInit(): void {
 
-    log.debug('AddCollectionModalComponent: ngOnInit()');
+    log.debug('NwCollectionModalComponent: ngOnInit()');
 
     this.dataService.getPublicKey().then( (pubKey) => {
       this.encryptor.log = true;
       this.pubKey = pubKey;
-      log.debug('AddCollectionModalComponent: Server public key: ', this.pubKey);
+      log.debug('NwCollectionModalComponent: Server public key: ', this.pubKey);
       this.encryptor.setPublicKey(this.pubKey);
     });
 
@@ -265,8 +266,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( (TorF) => this.reOpenTabsModal = TorF );
 
     // Preferences changed subscription
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
-      log.debug('AddCollectionModalComponent: prefs observable: ', prefs);
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) =>  {
+      log.debug('NwCollectionModalComponent: prefs observable: ', prefs);
 
       if (Object.keys(prefs).length === 0) {
         return; // this handles a race condition where we subscribe before the getPreferences call has actually run
@@ -275,18 +276,18 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
         this.preferences = prefs;
 
         // We can update this every time
-        if ( 'defaultNwQuery' in prefs ) {
-          this.defaultCollectionQuery = prefs.defaultNwQuery;
-          // this.queryInputText = prefs.defaultNwQuery;
+        if ( 'presetQuery' in prefs.nw ) {
+          this.defaultCollectionQuery = prefs.nw.presetQuery;
+          // this.queryInputText = prefs.presetQuery;
         }
 
         if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
 
-          if ( 'defaultQuerySelection' in prefs ) {
+          if ( 'defaultQuerySelection' in prefs.nw ) {
             for (let i = 0; i < this.queryList.length; i++) {
               let query = this.queryList[i];
-              if (query.text === prefs.defaultQuerySelection) {
-                log.debug('AddCollectionModalComponent: ngOnInit(): setting query selector to ', query);
+              if (query.text === prefs.nw.defaultQuerySelection) {
+                log.debug('NwCollectionModalComponent: ngOnInit(): setting query selector to ', query);
                   this.selectedQuery = query.text; // changes the query in the query select box dropdown
                   this.queryInputText = query.queryString; // changes the query string in the query string input
                 break;
@@ -303,9 +304,9 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
           if ( 'defaultRollingHours' in prefs ) {
             this.collectionFormModel.lastHours = prefs.defaultRollingHours;
           }
-          if ( 'defaultNwQuery' in prefs && prefs.defaultQuerySelection === 'Default Query' ) {
-            // this.defaultCollectionQuery = prefs.defaultNwQuery;
-            this.queryInputText = prefs.defaultNwQuery; // changes the query string in the query string input
+          if ( 'presetQuery' in prefs.nw && prefs.nw.defaultQuerySelection === 'Default Query' ) {
+            // this.defaultCollectionQuery = prefs.nw.presetQuery;
+            this.queryInputText = prefs.nw.presetQuery; // changes the query string in the query string input
           }
         }
 
@@ -314,7 +315,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     });
 
     this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => {
-      log.debug('AddCollectionModalComponent: useCasesChangedSubscription(): o', o);
+      log.debug('NwCollectionModalComponent: useCasesChangedSubscription(): o', o);
       this.useCases = o.useCases;
       this.useCasesObj = o.useCasesObj;
       let useCaseOptions: SelectItem[] = [];
@@ -326,19 +327,19 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     });
 
     // Add collection next subscription
-    this.addCollectionNextSubscription = this.toolService.addCollectionNext.subscribe( () => {
+    this.addNwCollectionNextSubscription = this.toolService.addNwCollectionNext.subscribe( () => {
       this.onAddCollection();
     });
 
     // Edit collection next subscription
-    this.editCollectionNextSubscription = this.toolService.editCollectionNext.subscribe( (collection: Collection) => {
+    this.editNwCollectionNextSubscription = this.toolService.editNwCollectionNext.subscribe( (collection: Collection) => {
       this.onEditCollection(collection);
     });
 
     this.confirmNwServerDeleteSubscription = this.toolService.confirmNwServerDelete.subscribe( (id: string) => this.deleteNwServerConfirmed(id) );
 
     this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: Feed[]) => {
-      log.debug('AddCollectionModalComponent: feedsChangedSubscription(): feeds', feeds);
+      log.debug('NwCollectionModalComponent: feedsChangedSubscription(): feeds', feeds);
       let feedOptions: SelectItem[] = [];
       for (let i in feeds) {
         if (feeds.hasOwnProperty(i)) {
@@ -365,15 +366,15 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   public ngOnDestroy() {
     this.preferencesChangedSubscription.unsubscribe();
     this.useCasesChangedSubscription.unsubscribe();
-    this.addCollectionNextSubscription.unsubscribe();
-    this.editCollectionNextSubscription.unsubscribe();
+    this.addNwCollectionNextSubscription.unsubscribe();
+    this.editNwCollectionNextSubscription.unsubscribe();
     this.reOpenTabsModalSubscription.unsubscribe();
     this.feedsChangedSubscription.unsubscribe();
   }
 
 
   public onQuerySelected(): void {
-    // log.debug('AddCollectionModalComponent: querySelected(): e', e);
+    // log.debug('NwCollectionModalComponent: querySelected(): e', e);
     if (this.selectedQuery === 'Default Query') {
       this.queryInputText = this.defaultCollectionQuery;
     }
@@ -421,7 +422,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public cancel(): void {
-    log.debug('AddCollectionModalComponent: cancel()');
+    log.debug('NwCollectionModalComponent: cancel()');
     if (this.mode === 'editRolling' || this.mode === 'editFixed') {
       this.collectionFormModel.name = '';
     }
@@ -436,18 +437,18 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public cancelledEventReceived(): void {
-    log.debug('AddCollectionModalComponent: cancelledEventReceived()');
+    log.debug('NwCollectionModalComponent: cancelledEventReceived()');
     this.cancel();
   }
 
   private getNwServers(): Promise<any> {
-    // log.debug("AddCollectionModalComponent: getNwServers()");
+    // log.debug("NwCollectionModalComponent: getNwServers()");
     return this.dataService.getNwServers()
       .then( n => {
         // setTimeout( () => {
-          log.debug('AddCollectionModalComponent: getNwServers(): nwServers:', n);
+          log.debug('NwCollectionModalComponent: getNwServers(): nwServers:', n);
           this.nwServers = n;
-          // log.debug("AddCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
+          // log.debug("NwCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
 
           let o: SelectItem[] = [];
           for (let server in this.nwServers) {
@@ -462,7 +463,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public deleteNwServer(): void {
-    log.debug('AddCollectionModalComponent: deleteNwServer(): this.selectedNwServer', this.selectedNwServer);
+    log.debug('NwCollectionModalComponent: deleteNwServer(): this.selectedNwServer', this.selectedNwServer);
     if (this.formDisabled) {
       return;
     }
@@ -471,7 +472,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   private deleteNwServerConfirmed(id: string): void {
-    log.debug('AddCollectionModalComponent: deleteNwServerConfirmed(): id:', id);
+    log.debug('NwCollectionModalComponent: deleteNwServerConfirmed(): id:', id);
     // log.debug(this.nwServers[this.selectedNwServer].friendlyName);
     this.dataService.deleteNwServer(id)
       .then ( () => {
@@ -497,7 +498,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
 
   public onCollectionSubmit(f: NgForm): void {
-    // log.debug('AddCollectionModalComponent: submitForAdd()');
+    // log.debug('NwCollectionModalComponent: submitForAdd()');
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
     let newCollection: Collection = {
@@ -518,7 +519,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       // distillationEnabled: null,
       // regexDistillationEnabled: null,
       // useHashFeed: null,
-      executeTime: time
+      executeTime: time,
+      serviceType: 'nw'
     };
 
     if (this.collectionFormModel.selectedUseCase !== 'custom' && this.collectionFormModel.useCaseBinding === 'bound') {
@@ -636,7 +638,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (this.mode === 'add' || this.mode === 'editFixed') {
-      log.debug('AddCollectionModalComponent: onCollectionSubmit(): new newCollection:', newCollection);
+      log.debug('NwCollectionModalComponent: onCollectionSubmit(): new newCollection:', newCollection);
       this.dataService.addCollection(newCollection)
                       .then( () => {
                           this.toolService.executeAddCollection.next( newCollection );
@@ -647,7 +649,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
     if (this.mode === 'editRolling') {
       newCollection.id = this.editingCollectionId;
       newCollection['creator'] = this.editingCreator;
-      log.debug('AddCollectionModalComponent: onCollectionSubmit(): edited newCollection:', newCollection);
+      log.debug('NwCollectionModalComponent: onCollectionSubmit(): edited newCollection:', newCollection);
       this.dataService.editCollection(newCollection)
                       .then( () => {
                           this.toolService.executeEditCollection.next( newCollection );
@@ -660,7 +662,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public addNwServerSubmit(f: NgForm): void {
-    // log.debug("AddCollectionModalComponent: addNwServerSubmit(): f:", f);
+    // log.debug("NwCollectionModalComponent: addNwServerSubmit(): f:", f);
     this.hideServiceAddBox();
     let encPassword = this.encryptor.encrypt(f.value.password);
     let newServer = {
@@ -681,7 +683,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       // newServer.friendlyName = newServer.friendlyName + ':ssl';
       newServer.friendlyName = f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ':ssl' + ' (' + f.value.deviceNumber + ')';
     }
-    log.debug('AddCollectionModalComponent: addNwServer() newServer:', newServer);
+    log.debug('NwCollectionModalComponent: addNwServer() newServer:', newServer);
 
     if (this.nwServerMode === 'add') {
       this.dataService.addNwServer(newServer)
@@ -697,7 +699,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                         })
                         .catch( (err) => {
                           let error = JSON.parse(err);
-                          log.error('AddCollectionModalComponent: addNwServerSubmit(): error response from server:', error.error);
+                          log.error('NwCollectionModalComponent: addNwServerSubmit(): error response from server:', error.error);
                         });
     }
 
@@ -715,29 +717,29 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
                         })
                         .catch( (err) => {
                           let error = JSON.parse(err);
-                          log.error('AddCollectionModalComponent: addNwServerSubmit(): error response from server:', error.error);
+                          log.error('NwCollectionModalComponent: addNwServerSubmit(): error response from server:', error.error);
                         });
     }
 
   }
 
   public onOpen(): void {
-    // log.debug('AddCollectionModalComponent: onOpen()');
+    // log.debug('NwCollectionModalComponent: onOpen()');
     this.dataService.getFeeds();
   }
 
 
   public onSelectedTypesChanged(): void {
-    log.debug('AddCollectionModalComponent: onSelectedTypesChanged()');
+    log.debug('NwCollectionModalComponent: onSelectedTypesChanged()');
     let v = this.collectionFormModel.selectedContentTypes;
     let imagesEnabled = false;
     let pdfsEnabled = false;
     let officeEnabled = false;
     let dodgyArchivesEnabled = false;
     let hashesEnabled = false;
-    // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: v:', v);
-    // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: browserEvent:', event);
-    // log.debug('AddCollectionModalComponent: onSelectedTypesChanged: collectionFormModel.selectedContentTypes:', this.collectionFormModel.selectedContentTypes);
+    // log.debug('NwCollectionModalComponent: onSelectedTypesChanged: v:', v);
+    // log.debug('NwCollectionModalComponent: onSelectedTypesChanged: browserEvent:', event);
+    // log.debug('NwCollectionModalComponent: onSelectedTypesChanged: collectionFormModel.selectedContentTypes:', this.collectionFormModel.selectedContentTypes);
     for (let i = 0; i < v.length; i++) {
       let value = v[i];
       if (value === 'images') {
@@ -793,8 +795,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public onUseCaseChanged(): void {
-    log.debug('AddCollectionModalComponent: onUseCaseChanged()');
-    // log.debug('AddCollectionModalComponent: onUseCaseChanged: collectionFormModel.selectedUseCase:', this.collectionFormModel.selectedUseCase );
+    log.debug('NwCollectionModalComponent: onUseCaseChanged()');
+    // log.debug('NwCollectionModalComponent: onUseCaseChanged: collectionFormModel.selectedUseCase:', this.collectionFormModel.selectedUseCase );
 
     setTimeout( () => {
       let displayUseCaseDescription = false;
@@ -816,8 +818,8 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       }
 
       // an OOTB use case has been selected
-      log.debug('AddCollectionModalComponent: onUseCaseChanged: thisUseCase:', thisUseCase);
-        this.queryInputText = thisUseCase.query;
+      log.debug('NwCollectionModalComponent: onUseCaseChanged: thisUseCase:', thisUseCase);
+        this.queryInputText = thisUseCase.nwquery;
         this.collectionFormModel.selectedContentTypes = thisUseCase.contentTypes;
         this.collectionFormModel.distillationEnabled = false;
         if ('distillationTerms' in thisUseCase) {
@@ -842,7 +844,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public onUseCaseBoundChanged(): void {
-    log.debug('AddCollectionModalComponent: onUseCaseBoundChanged()');
+    log.debug('NwCollectionModalComponent: onUseCaseBoundChanged()');
     setTimeout( () => {
 
       if (this.collectionFormModel.type === 'fixed') {
@@ -883,7 +885,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   private onAddCollection(): void {
-    log.debug('AddCollectionModalComponent: onAddCollection()');
+    log.debug('NwCollectionModalComponent: onAddCollection()');
     setTimeout( () => {
       this.hashFeedId = null;
       this.mode = 'add';
@@ -894,13 +896,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       if (Object.keys(this.nwServers).length !== 0) {
         this.selectedNwServer = Object.keys(this.nwServers)[0];
       }
-      log.debug('AddCollectionModalComponent: onAddCollection(): selectedNwServer', this.selectedNwServer);
+      log.debug('NwCollectionModalComponent: onAddCollection(): selectedNwServer', this.selectedNwServer);
     }, 0);
   }
 
   private onEditCollection(collection: Collection): void {
     // Called when we receive an edit signal from toolbar
-    log.debug('AddCollectionModalComponent: onEditCollection(): collection:', collection);
+    log.debug('NwCollectionModalComponent: onEditCollection(): collection:', collection);
     setTimeout( () => {
       this.collection = collection;
 
@@ -1018,7 +1020,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
 
   public nwServerFormValid(): boolean {
-    // log.debug('AddCollectionModalComponent: nwServerFormValid()');
+    // log.debug('NwCollectionModalComponent: nwServerFormValid()');
     // log.debug('this.selectedNwServer:', this.selectedNwServer);
     // log.debug('this.nwServers:', this.nwServers);
     if (Object.keys(this.nwServers).length === 0) {
@@ -1034,13 +1036,13 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public addServiceFormValid(form: NgForm): boolean {
-    // log.debug('AddCollectionModalComponent: addServiceFormValid()');
+    // log.debug('NwCollectionModalComponent: addServiceFormValid()');
 
     if (this.nwServerMode === 'add' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) {
       return true;
     }
 
-    if (this.nwServerMode === 'edit' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) { 
+    if (this.nwServerMode === 'edit' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) {
       return true;
     }
 
@@ -1048,7 +1050,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
   }
 
   public onNwServerChanged(): void {
-    log.debug(`AddCollectionModalComponent: onNwServerChanged(): selectedNwServer: ${this.selectedNwServer}`);
+    log.debug(`NwCollectionModalComponent: onNwServerChanged(): selectedNwServer: ${this.selectedNwServer}`);
   }
 
 
@@ -1132,7 +1134,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
 
 
   public editNwServer(): void {
-    log.debug('AddCollectionModalComponent: editNwServer()');
+    log.debug('NwCollectionModalComponent: editNwServer()');
     if (this.formDisabled) {
       return;
     }
@@ -1144,7 +1146,7 @@ export class AddCollectionModalComponent implements OnInit, OnDestroy {
       this.nwServerButtonText = 'Update';
       this.showNwServiceBox = true;
       let server = this.nwServers[this.selectedNwServer];
-      log.debug('AddCollectionModalComponent: editNwServer(): server:', server);
+      log.debug('NwCollectionModalComponent: editNwServer(): server:', server);
       this.editingNwServerId = server.id;
       this.serviceFormModel.hostname = server.host;
       this.serviceFormModel.user = server.user;

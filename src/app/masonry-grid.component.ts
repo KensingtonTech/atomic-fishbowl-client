@@ -16,6 +16,8 @@ import { eval } from 'mathjs';
 
 import * as utils from './utils';
 import * as log from 'loglevel';
+import { Collection } from './collection';
+import { Preferences } from './preferences';
 declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it
 
 @Component({
@@ -33,7 +35,7 @@ declare var $: any; // we must declare jQuery in this instance because we're usi
   <div class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll;">
     <div *ngIf="!destroyView">
       <masonry #masonry tabindex="-1" class="grid" *ngIf="content && sessionsDefined && masonryKeys && masonryColumnSize" [options]="masonryOptions" [filter]="filter" [loadAllBeforeLayout]="loadAllBeforeLayout" style="width: 100%; height: 100%;">
-        <masonry-tile *ngFor="let item of content" masonry-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [attr.contentFile]="item.contentFile" [attr.id]="item.id" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize"></masonry-tile>
+        <masonry-tile *ngFor="let item of content" masonry-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [attr.contentFile]="item.contentFile" [attr.id]="item.id" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize" [serviceType]="selectedCollectionServiceType"></masonry-tile>
       </masonry>
     </div>
     <div class="scrollTarget"></div>
@@ -96,8 +98,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   };
 
-  public selectedCollectionType: string;
-  private collectionId: string;
+  public selectedCollectionType: string = null;
+  public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
+  private collectionId: string = null;
   public destroyView = true;
   private pixelsPerSecond = 200;
   private loadAllBeforeLayout = true;
@@ -109,6 +112,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private lastWindowHeight = $('masonry').height();
   private searchBarOpen = false;
   private collectionState = '';
+  private preferences: Preferences;
 
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
@@ -180,11 +184,23 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) =>  {
-      this.masonryKeys = prefs.masonryKeys;
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) =>  {
+      // this.masonryKeys = prefs.masonryKeys;
       // log.debug('masonryKeys:', this.masonryKeys)
+      this.preferences = prefs;
       this.changeDetectionRef.detectChanges();
       this.changeDetectionRef.markForCheck();
+
+      if (this.selectedCollectionServiceType) {
+        if (this.selectedCollectionServiceType === 'nw') {
+          this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.nw.masonryKeys));
+        }
+        if (this.selectedCollectionServiceType === 'sa') {
+          this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
+        }
+        this.changeDetectionRef.markForCheck();
+        this.changeDetectionRef.detectChanges();
+      }
 
       if (this.masonryColumnSize !== prefs.masonryColumnSize) {
         log.debug('MasonryGridComponent: preferencesChangedSubscription: Changing masonry column size to prefs.masonryColumnSize');
@@ -230,7 +246,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.changeDetectionRef.markForCheck();
     });
 
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: any) => {
+    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => {
       // this triggers when a user chooses a new collection
       log.debug('MasonryGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
       if (this.masonryComponentRef) {this.masonryComponentRef.destroyMe(); }
@@ -244,6 +260,17 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedCollectionType = collection.type;
       this.collectionState = collection.state;
       this.collectionId = collection.id;
+
+      if (!this.selectedCollectionServiceType) {
+        if (collection.serviceType === 'nw') {
+          this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.nw.masonryKeys));
+        }
+        if (collection.serviceType === 'sa') {
+          this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
+        }
+      }
+      this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
+
       if (collection.type === 'monitoring' || collection.type === 'rolling' || ( collection.type === 'fixed' && collection.state === 'building' )) {
         this.loadAllBeforeLayout = false;
       }
