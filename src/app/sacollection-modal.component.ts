@@ -366,7 +366,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.queryInputText = this.defaultCollectionQuery;
     }
     else {
-      this.queryInputText = JSON.stringify(this.queryListObj[this.selectedQuery].query);
+      // this.queryInputText = JSON.stringify(this.queryListObj[this.selectedQuery].query);
+      this.queryInputText = this.queryListObj[this.selectedQuery].queryString;
     }
   }
 
@@ -552,15 +553,13 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
         }
       }
 
-      if (this.hashingMode === 'manual') {
+      if (!newCollection.bound && this.hashesEnabled && this.hashingMode === 'manual') {
         newCollection.useHashFeed = false;
-        // newCollection.distillationEnabled = this.collectionFormModel.distillationEnabled;
-        // newCollection.regexDistillationEnabled =  this.collectionFormModel.regexDistillationEnabled;
         newCollection.md5Enabled = this.collectionFormModel.md5Enabled;
         newCollection.sha1Enabled = this.collectionFormModel.sha1Enabled;
         newCollection.sha256Enabled = this.collectionFormModel.sha256Enabled;
       }
-      if (this.hashingMode === 'feed' && this.selectedFeed) {
+      if (!newCollection.bound && this.hashesEnabled && this.hashingMode === 'feed' && this.selectedFeed) {
         newCollection.useHashFeed = true;
         newCollection.hashFeed = this.selectedFeed.id;
       }
@@ -583,7 +582,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }
 
 
-    if (!newCollection.bound && 'distillationEnabled' in this.collectionFormModel) {
+    if (!newCollection.bound && 'distillationEnabled' in this.collectionFormModel && this.collectionFormModel.distillationEnabled ) {
       newCollection.distillationEnabled = false;
       let endterms = utils.grokLines(this.collectionFormModel.distillationTerms);
       if ( endterms.length !== 0 ) {
@@ -592,7 +591,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && 'regexDistillationEnabled' in this.collectionFormModel) {
+    if (!newCollection.bound && 'regexDistillationEnabled' in this.collectionFormModel && this.collectionFormModel.regexDistillationEnabled) {
       newCollection.regexDistillationEnabled = false;
       let endterms = utils.grokLines(this.collectionFormModel.regexDistillationTerms);
       if ( endterms.length !== 0 ) {
@@ -601,8 +600,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && 'sha1Enabled' in this.collectionFormModel) {
-      newCollection.sha1Enabled = false
+    if (!newCollection.bound && this.hashesEnabled && 'sha1Enabled' in this.collectionFormModel && this.collectionFormModel['sha1Enabled']) {
+      newCollection.sha1Enabled = false;
       let endterms = utils.grokHashingLines(this.collectionFormModel.sha1Hashes);
       if ( endterms.length !== 0 ) {
         newCollection.sha1Enabled = true;
@@ -610,7 +609,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && 'sha256Enabled' in this.collectionFormModel) {
+    if (!newCollection.bound && this.hashesEnabled && 'sha256Enabled' in this.collectionFormModel && this.collectionFormModel['sha256Enabled']) {
       newCollection.sha256Enabled = false;
       let endterms = utils.grokHashingLines(this.collectionFormModel.sha256Hashes);
       if ( endterms.length !== 0 ) {
@@ -619,7 +618,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && 'md5Enabled' in this.collectionFormModel) {
+    if (!newCollection.bound && this.hashesEnabled && 'md5Enabled' in this.collectionFormModel && this.collectionFormModel['md5Enabled']) {
       newCollection.md5Enabled = false;
       let endterms = utils.grokHashingLines(this.collectionFormModel.md5Hashes);
       if ( endterms.length !== 0 ) {
@@ -955,14 +954,6 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
         this.selectedApiServer = '';
       }
 
-      if (collection.useHashFeed) {
-        this.hashingMode = 'feed';
-        this.hashFeedId = collection.hashFeed;
-        // now get the feed object and stick it in selectedFeed
-        this.dataService.getFeeds();
-      }
-      else{
-        this.hashingMode = 'manual';
         if (collection.distillationEnabled) {
           this.collectionFormModel.distillationEnabled = true;
           this.collectionFormModel.distillationTerms = this.convertArrayToString(collection.distillationTerms);
@@ -979,6 +970,15 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
           this.collectionFormModel.regexDistillationEnabled = false;
         }
 
+
+      if (collection.useHashFeed) {
+        this.hashingMode = 'feed';
+        this.hashFeedId = collection.hashFeed;
+        // now get the feed object and stick it in selectedFeed
+        this.dataService.getFeeds();
+      }
+      else {
+        this.hashingMode = 'manual';
         if (collection.sha1Enabled) {
           this.collectionFormModel.sha1Enabled = true;
           this.collectionFormModel.sha1Hashes = utils.getHashesFromConfig(collection.sha1Hashes);

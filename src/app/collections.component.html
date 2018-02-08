@@ -50,7 +50,10 @@
             <span *ngIf="!collection.modifier">-</span>
           </div>
         <div class="cell center" style="cursor: initial;">
-          <span class="fa fa-pencil" (click)="onEditCollectionClick(collection)"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteCollectionClick(collection)"></span>
+          <span *ngIf="collection.type == 'fixed'" class="fa fa-repeat" (click)="onEditCollectionClick(collection)"></span>
+          <span *ngIf="collection.type != 'fixed'" class="fa fa-pencil" (click)="onEditCollectionClick(collection)"></span>
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <span class="fa fa-trash" (click)="onDeleteCollectionClick(collection)"></span>
         </div>
       </div>
     </div>

@@ -563,14 +563,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
         }
       }
 
-      if (this.hashingMode === 'manual') {
+      if (!newCollection.bound && this.hashesEnabled && this.hashingMode === 'manual') {
         newCollection.useHashFeed = false;
         newCollection.regexDistillationEnabled =  this.collectionFormModel.regexDistillationEnabled;
         newCollection.md5Enabled = this.collectionFormModel.md5Enabled;
         newCollection.sha1Enabled = this.collectionFormModel.sha1Enabled;
         newCollection.sha256Enabled = this.collectionFormModel.sha256Enabled;
       }
-      if (this.hashingMode === 'feed' && this.selectedFeed) {
+      if (!newCollection.bound && this.hashesEnabled && this.hashingMode === 'feed' && this.selectedFeed) {
         newCollection.useHashFeed = true;
         newCollection.hashFeed = this.selectedFeed.id;
       }
@@ -592,7 +592,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
 
 
-    if (!newCollection.bound && this.collectionFormModel.distillationEnabled) {
+    if (!newCollection.bound && 'distillationEnabled' in this.collectionFormModel && this.collectionFormModel.distillationEnabled ) {
       let endterms = utils.grokLines(this.collectionFormModel.distillationTerms);
       newCollection.distillationEnabled = false;
       if ( endterms.length !== 0 ) {
@@ -601,7 +601,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && this.collectionFormModel.regexDistillationEnabled) {
+    if (!newCollection.bound && 'regexDistillationEnabled' in this.collectionFormModel && this.collectionFormModel.regexDistillationEnabled) {
       let endterms = utils.grokLines(this.collectionFormModel.regexDistillationTerms);
       newCollection.regexDistillationEnabled = false;
       if ( endterms.length !== 0 ) {
@@ -610,7 +610,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && this.collectionFormModel.sha1Enabled) {
+    if (!newCollection.bound && this.hashesEnabled && 'sha1Enabled' in this.collectionFormModel && this.collectionFormModel['sha1Enabled']) {
       let endterms = utils.grokHashingLines(this.collectionFormModel.sha1Hashes);
       newCollection.sha1Enabled = false;
       if ( endterms.length !== 0 ) {
@@ -619,7 +619,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && this.collectionFormModel.sha256Enabled) {
+    if (!newCollection.bound && this.hashesEnabled && 'sha256Enabled' in this.collectionFormModel && this.collectionFormModel['sha256Enabled']) {
       let endterms = utils.grokHashingLines(this.collectionFormModel.sha256Hashes);
       newCollection.sha256Enabled = false;
       if ( endterms.length !== 0 ) {
@@ -628,7 +628,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (!newCollection.bound && this.collectionFormModel.md5Enabled) {
+    if (!newCollection.bound && this.hashesEnabled && 'md5Enabled' in this.collectionFormModel && this.collectionFormModel['md5Enabled']) {
       let endterms = utils.grokHashingLines(this.collectionFormModel.md5Hashes);
       newCollection.md5Enabled = false;
       if ( endterms.length !== 0 ) {
@@ -964,30 +964,30 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
         this.selectedNwServer = '';
       }
 
+      if (collection.distillationEnabled) {
+        this.collectionFormModel.distillationEnabled = true;
+        this.collectionFormModel.distillationTerms = this.convertArrayToString(collection.distillationTerms);
+      }
+      else {
+        this.collectionFormModel.distillationEnabled = false;
+      }
+
+      if (collection.regexDistillationEnabled) {
+        this.collectionFormModel.regexDistillationEnabled = true;
+        this.collectionFormModel.regexDistillationTerms = this.convertArrayToString(collection.regexDistillationTerms);
+      }
+      else {
+        this.collectionFormModel.regexDistillationEnabled = false;
+      }
+
       if (collection.useHashFeed) {
         this.hashingMode = 'feed';
         this.hashFeedId = collection.hashFeed;
         // now get the feed object and stick it in selectedFeed
         this.dataService.getFeeds();
       }
-      else{
+      else {
         this.hashingMode = 'manual';
-        if (collection.distillationEnabled) {
-          this.collectionFormModel.distillationEnabled = true;
-          this.collectionFormModel.distillationTerms = this.convertArrayToString(collection.distillationTerms);
-        }
-        else {
-          this.collectionFormModel.distillationEnabled = false;
-        }
-
-        if (collection.regexDistillationEnabled) {
-          this.collectionFormModel.regexDistillationEnabled = true;
-          this.collectionFormModel.regexDistillationTerms = this.convertArrayToString(collection.regexDistillationTerms);
-        }
-        else {
-          this.collectionFormModel.regexDistillationEnabled = false;
-        }
-
         if (collection.sha1Enabled) {
           this.collectionFormModel.sha1Enabled = true;
           this.collectionFormModel.sha1Hashes = utils.getHashesFromConfig(collection.sha1Hashes);
