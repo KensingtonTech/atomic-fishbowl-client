@@ -70,4 +70,12 @@ export class ToolService {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );
   }
 
+  setPreference(key, value): void {
+    localStorage.setItem(key, value);
+  }
+
+  getPreference(key): any {
+    return localStorage.getItem(key);
+  }
+
 }

@@ -185,6 +185,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   private feedsChangedSubscription: Subscription;
   private executeCollectionOnEditSubscription: Subscription;
   private reOpenTabsModalSubscription: Subscription;
+  private collectionsChangedSubscription: Subscription;
 
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
@@ -221,6 +222,9 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   private hashFeedId: string;
 
   private executeCollectionOnEdit = false;
+
+  public nameValid = false;
+  private collectionNames: any;
 
 
   ngOnInit(): void {
@@ -348,7 +352,21 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     this.executeCollectionOnEditSubscription = this.toolService.executeCollectionOnEdit.subscribe( TorF => this.executeCollectionOnEdit = TorF);
 
+    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => {
+      let temp = {};
+      for (let c in collections) {
+        if (collections.hasOwnProperty(c)) {
+          let collection = collections[c];
+          temp[collection.name] = null;
+        }
+      }
+      this.collectionNames = temp;
+
+    } );
+
   }
+
+
 
   public ngOnDestroy() {
     this.preferencesChangedSubscription.unsubscribe();
@@ -357,7 +375,22 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.editSaCollectionNextSubscription.unsubscribe();
     this.reOpenTabsModalSubscription.unsubscribe();
     this.feedsChangedSubscription.unsubscribe();
+    this.collectionsChangedSubscription.unsubscribe();
   }
+
+
+
+  public onNameChanged(name): void {
+    log.debug('NwCollectionModalComponent: onNameChanged()');
+
+    if (!(name in this.collectionNames) || this.mode === 'editRolling')  {
+      this.nameValid = true;
+    }
+    else {
+      this.nameValid = false;
+    }
+  }
+
 
 
   public onQuerySelected(): void {
@@ -371,6 +404,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   public timeframeSelected(e: any): void {
     if (this.selectedTimeframe === 'Custom') {
       // display custom timeframe selector
@@ -380,6 +415,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.displayCustomTimeframeSelector = false;
     }
   }
+
+
 
   public displayServiceAddBox(): void {
     if (this.formDisabled) {
@@ -397,6 +434,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     setTimeout( () => this.hostNameRef.first.nativeElement.focus() );
   }
 
+
+
   public hideServiceAddBox(): void {
     setTimeout( () => {
       this.showApiServiceBox = false;
@@ -409,6 +448,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+
+
   public cancel(): void {
     log.debug('SaCollectionModalComponent: cancel()');
     if (this.mode === 'editRolling' || this.mode === 'editFixed') {
@@ -420,14 +461,20 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   private closeModal(): void {
     this.modalService.close(this.id);
   }
+
+
 
   public cancelledEventReceived(): void {
     log.debug('SaCollectionModalComponent: cancelledEventReceived()');
     this.cancel();
   }
+
+
 
   private getApiServers(): Promise<any> {
     // log.debug("SaCollectionModalComponent: getApiServers()");
@@ -450,6 +497,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       });
   }
 
+
+
   public deleteApiServer(): void {
     log.debug('SaCollectionModalComponent: deleteApiServer(): this.selectedApiServer', this.selectedApiServer);
     if (this.formDisabled) {
@@ -458,6 +507,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.toolService.saServerToDelete.next(this.apiServers[this.selectedApiServer]);
     this.modalService.open('confirm-saserver-delete-modal');
   }
+
+
 
   private deleteApiServerConfirmed(id: string): void {
     log.debug('SaCollectionModalComponent: deleteApiServerConfirmed(): id:', id);
@@ -651,6 +702,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
+
+
   public addApiServerSubmit(f: NgForm): void {
     // log.debug("SaCollectionModalComponent: addApiServerSubmit(): f:", f);
     this.hideServiceAddBox();
@@ -713,10 +766,13 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
+
+
   public onOpen(): void {
     // log.debug('SaCollectionModalComponent: onOpen()');
     this.dataService.getFeeds();
   }
+
 
 
   public onSelectedTypesChanged(): void {
@@ -766,12 +822,16 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+
+
   public clearTypes(): void {
     setTimeout( () => {
       this.collectionFormModel.selectedContentTypes = [];
     }, 0);
     this.onSelectedTypesChanged();
   }
+
+
 
   public allTypes() {
     let vals = [];
@@ -783,6 +843,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
     this.onSelectedTypesChanged();
   }
+
+
 
   public onUseCaseChanged(): void {
     log.debug('SaCollectionModalComponent: onUseCaseChanged()');
@@ -833,6 +895,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+
+
   public onUseCaseBoundChanged(): void {
     log.debug('SaCollectionModalComponent: onUseCaseBoundChanged()');
     setTimeout( () => {
@@ -863,6 +927,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
+
+
   private convertArrayToString(a: any): string {
     let text = '';
     for (let i = 0; i < a.length; i++) {
@@ -873,6 +939,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     }
     return text;
   }
+
+
 
   private onAddCollection(): void {
     log.debug('SaCollectionModalComponent: onAddCollection()');
@@ -889,6 +957,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       log.debug('SaCollectionModalComponent: onAddCollection(): selectedApiServer', this.selectedApiServer);
     }, 0);
   }
+
+
 
   private onEditCollection(collection: Collection): void {
     // Called when we receive an edit signal from toolbar
@@ -911,6 +981,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       }
 
       this.collectionFormModel.name = collection.name;
+      this.onNameChanged(collection.name);
       this.collectionFormModel.type = collection.type;
       this.collectionFormModel.contentLimit = collection.contentLimit;
       this.collectionFormModel.minX = collection.minX;
@@ -1004,10 +1075,9 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
         }
       }
 
-
-
     }, 0);
   }
+
 
 
   public apiServerFormValid(): boolean {
@@ -1026,6 +1096,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     return false;
   }
 
+
+
   public addServiceFormValid(form: NgForm): boolean {
     // log.debug('SaCollectionModalComponent: addServiceFormValid()');
 
@@ -1043,6 +1115,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   public onApiServerChanged(): void {
     log.debug(`SaCollectionModalComponent: onApiServerChanged(): selectedApiServer: ${this.selectedApiServer}`);
   }
+
 
 
   public testApiServer(): void {
@@ -1122,6 +1195,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
                       log.info('Test connection failed with error:', err);
                     });
   }
+
 
 
   public editApiServer(): void {

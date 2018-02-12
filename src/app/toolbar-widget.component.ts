@@ -99,6 +99,7 @@ import * as log from 'loglevel';
 <splash-screen-modal></splash-screen-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
+<collection-deleted-notify-modal></collection-deleted-notify-modal>
 `,
 
   styles: [`
@@ -175,6 +176,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private useCasesChangedSubscription: Subscription;
   private collectionSelectedSubscription: Subscription;
   private noCollectionSubscription: Subscription;
+  private collectionDeletedSubscription: Subscription;
 
   ngOnInit(): void {
 
@@ -203,6 +205,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.collectionSelectedSubscription = this.toolService.collectionSelected.subscribe( (collection: Collection) => this.onCollectionSelected(collection) );
 
     this.noCollectionSubscription = this.toolService.noCollections.subscribe( () => this.onNoCollections() );
+
+    this.collectionDeletedSubscription = this.dataService.collectionDeleted.subscribe( (collectionId: string) => this.onCollectionDeleted(collectionId) );
   }
 
   public ngOnDestroy() {
@@ -213,11 +217,19 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.useCasesChangedSubscription.unsubscribe();
     this.collectionSelectedSubscription.unsubscribe();
     this.noCollectionSubscription.unsubscribe();
+    this.collectionDeletedSubscription.unsubscribe();
   }
 
   ngAfterViewInit(): void {
     setTimeout( () => this.modalService.open('splashScreenModal'), 250);
     setTimeout( () => this.onCollectionsClick(), 3500);
+  }
+
+  onCollectionDeleted(collectionId): void {
+
+    this.toolService.noCollections.next();
+    this.dataService.refreshCollections();
+
   }
 
   buildTooltip(): string {

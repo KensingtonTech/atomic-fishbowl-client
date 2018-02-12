@@ -6,6 +6,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { NwServer } from './nwserver';
 import { SaServer } from './saserver';
 import { Collection } from './collection';
+import { Preferences } from './preferences';
+import { DragulaService } from 'ng2-dragula';
 import * as utils from './utils';
 import * as log from 'loglevel';
 
@@ -75,7 +77,7 @@ import * as log from 'loglevel';
       position: absolute;
       top: -30px;
       right: 50px;
-      width: 630px;
+      width: auto;
     }
   `]
 })
@@ -84,7 +86,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private toolService: ToolService,
-              private modalService: ModalService ) {}
+              private modalService: ModalService,
+              private dragulaService: DragulaService ) {
+                dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => !el.classList.contains('nodrag') });
+              }
 
   public collections: Collection[];
   public origCollections = {};
@@ -97,6 +102,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public saCollectionModalId = 'sa-collection-modal';
   private tabContainerModalId = 'tab-container-modal';
   public filterText = '';
+  public preferences: Preferences = null;
+  public filterEnabled = false;
 
   // Subscriptions
   private getCollectionDataAgainSubscription: Subscription;
@@ -105,6 +112,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   private executeAddCollectionSubscription: Subscription;
   private executeEditCollectionSubscription: Subscription;
   private collectionsOpenedSubscription: Subscription;
+  private preferencesChangedSubscription: Subscription;
+  private dragulaDroppedSubscription: Subscription;
 
   ngOnInit(): void {
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.onGetCollectionDataAgain() );
@@ -122,8 +131,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
         }
       }
       this.collections = tempCollections;
-      this.displayedCollections = tempCollections;
       log.debug('CollectionsComponent: collectionsChangedSubscription: collections update', this.collections);
+      this.filterChanged();
     });
 
     this.deleteCollectionConfirmedSubscription = this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.deleteConfirmed(collectionId) );
@@ -140,9 +149,50 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     this.collectionsOpenedSubscription = this.toolService.collectionsOpened.subscribe( () => this.onOpen() );
 
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => {
+      log.debug('CollectionsComponent: ngOnInit: prefs observable:', prefs);
+      if (Object.keys(prefs).length !== 0) {
+        this.preferences = prefs;
+      }
+     } );
+
+     this.dragulaDroppedSubscription = this.dragulaService.dropModel.subscribe( (bagName, el, target, source) => this.onDragulaDrop(bagName, el, target, source) );
+
     this.getNwServers();
     this.getSaServers();
   }
+
+
+
+  ngOnDestroy(): void {
+    this.getCollectionDataAgainSubscription.unsubscribe();
+    this.collectionsChangedSubscription.unsubscribe();
+    this.deleteCollectionConfirmedSubscription.unsubscribe();
+    this.executeAddCollectionSubscription.unsubscribe();
+    this.executeEditCollectionSubscription.unsubscribe();
+    this.collectionsOpenedSubscription.unsubscribe();
+    this.preferencesChangedSubscription.unsubscribe();
+    this.dragulaDroppedSubscription.unsubscribe();
+  }
+
+
+
+  onDragulaDrop(bagName, el, target, source): void {
+    // Save the order of collections to local storage
+    log.debug('CollectionsComponent: onDragulaDrop()');
+    if (this.collections.length === this.displayedCollections.length) {
+      // only do this if the user isn't filtering
+      let temp = [];
+      for (let i = 0; i < this.displayedCollections.length; i++) {
+        let collection = this.displayedCollections[i];
+        temp.push(collection.id);
+      }
+      // log.debug('CollectionsComponent: onDragulaDrop(): temp:', temp);
+      this.toolService.setPreference('collectionOrder', JSON.stringify(temp));
+    }
+  }
+
+
 
   private getNwServers(): Promise<any> {
     // log.debug("CollectionsComponent: getNwServers()");
@@ -166,14 +216,6 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       });
   }
 
-  ngOnDestroy(): void {
-    this.getCollectionDataAgainSubscription.unsubscribe();
-    this.collectionsChangedSubscription.unsubscribe();
-    this.deleteCollectionConfirmedSubscription.unsubscribe();
-    this.executeAddCollectionSubscription.unsubscribe();
-    this.executeEditCollectionSubscription.unsubscribe();
-    this.collectionsOpenedSubscription.unsubscribe();
-  }
 
   public onOpen(): void {
     this.dataService.refreshCollections()
@@ -266,9 +308,14 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     else {
       // we've deleted a collection that isn't selected
       this.dataService.deleteCollection(collectionId)
-                      .then( () => this.dataService.refreshCollections() )
-                      .then( () => this.filterChanged() );
+                      .then( () => this.dataService.refreshCollections() );
+
     }
+  }
+
+  onRefresh(): void {
+    this.dataService.refreshCollections()
+        .then( () => this.filterChanged() );
   }
 
   onDeleteCollectionClick(collection: Collection): void {
@@ -295,6 +342,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.selectedCollection = collection;
     let id = collection.id;
     this.dataService.abortGetBuildingCollection()
+                    .then( () => this.dataService.refreshCollections() )
+/*
                     .then( () => {
                       if (collection.type === 'fixed') {
                         return this.dataService.buildFixedCollection(collection.id)
@@ -305,6 +354,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
                                     });
                       }
                     })
+*/
                     .then( () => {
                       this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
 
@@ -325,17 +375,9 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       this.dataService.getCollectionData(collection)
                       .then( () => this.dataService.getRollingCollection(collection.id) );
     }
-    else { // fixed collections
-      if (collection.state === 'building') {
-        // fixed collection is still building
-        this.dataService.getCollectionData(collection)
-                        .then( () => this.dataService.getBuildingFixedCollection(collection.id) );
-        return;
-      }
-      else {
-        // fixed collection is complete
-       this.dataService.getCollectionData(collection);
-      }
+    else if (collection.type === 'fixed') {
+      this.dataService.getFixedCollection(collection.id, collection);
+      return;
     }
   }
 
@@ -360,7 +402,32 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public filterChanged(): void {
     // log.debug('CollectionsComponent: filterChanged(): filterText:', this.filterText);
     if (this.filterText === '') {
-      this.displayedCollections = this.collections;
+      // this.displayedCollections = this.collections;
+      // log.debug('origCollections:', this.origCollections);
+
+      let collectionOrder = JSON.parse(this.toolService.getPreference('collectionOrder'));
+      let temp = [];
+      let tempFound = {};
+      if (collectionOrder) {
+        for (let i = 0; i < collectionOrder.length; i++) {
+          let id = collectionOrder[i];
+          if (id in this.origCollections) {
+            temp.push(this.origCollections[id]);
+            tempFound[id] = null;
+          }
+        }
+        for (let i = 0; i < this.collections.length; i++) {
+          let collection = this.collections[i];
+          if (!(collection.id in tempFound)) {
+            temp.push(collection);
+          }
+        }
+        this.displayedCollections = temp;
+      }
+      else {
+        this.displayedCollections = this.collections;
+      }
+      this.filterEnabled = false;
     }
     else {
       let tempCollections: Collection[] = [];
@@ -371,6 +438,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
         }
       }
       this.displayedCollections = tempCollections;
+      this.filterEnabled = true;
     }
   }
 

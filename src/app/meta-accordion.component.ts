@@ -7,15 +7,21 @@ import * as log from 'loglevel';
   encapsulation: ViewEncapsulation.None,
   template: `
 
-<div *ngIf="items.length == 1">
+<div *ngIf="items.length == 1 && key != 'stop_time' && key != 'start_time'">
   {{items[0]}}
+</div>
+<div *ngIf="items.length == 1 && ( key == 'stop_time' || key == 'start_time' )">
+  {{items[0] | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}
 </div>
 
 <div *ngIf="items.length > 1" style="height: auto; overflow: hidden;" (click)="toggleList()">
 
   <div [class.hide]="hideHeader">
     <ul>
-      <li><span class="multiValues">{{items[0]}}</span></li>
+      <li>
+        <span *ngIf="key != 'stop_time' && key != 'start_time'" class="multiValues">{{items[0]}}</span>
+        <span *ngIf="key == 'stop_time' || key == 'start_time'" class="multiValues">{{items[0] | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</span>
+      </li>
     </ul>
   </div>
 
@@ -57,6 +63,7 @@ export class MetaAccordionComponent {
   constructor ( private changeDetectionRef: ChangeDetectorRef ) {}
 
   @Input() public items: string[] = [];
+  @Input() public key: string;
 
   private hideHeader = false;
   private collapsed = 'true';

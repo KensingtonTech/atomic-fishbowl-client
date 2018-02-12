@@ -79,7 +79,7 @@ interface FeedStatus {
       position: absolute;
       top: -30px;
       right: 50px;
-      width:453px;
+      width: auto;
     }
   `]
 })
@@ -152,6 +152,11 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
   public onClose(): void {
     window.clearInterval(this.feedStatusInterval);
+  }
+
+  public onRefresh(): void {
+    this.getFeeds();
+    this.getFeedStatus();
   }
 
   onAddFeedClick(): void {

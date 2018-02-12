@@ -86,7 +86,7 @@ export class PreferencesModalComponent implements OnInit {
     { label: 'RSA NetWitness', value: 'nw' },
     { label: 'Symantec Security Analytics', value: 'sa' }
   ];
-  public selectedServiceTypes: string[] = ['nw', null ]; // just netwitness by default
+  public selectedServiceTypes: string[] = [ null, null ]; // just netwitness by default
   public selectedTabIndex = 0;
 
   ngOnInit(): void {
@@ -218,9 +218,11 @@ export class PreferencesModalComponent implements OnInit {
                       this.masonrySaKeysString = this.getMasonryKeysValue(this.preferencesModel.sa.masonryKeys);
                       // selectedServiceTypes: string[] = ['nw', null ]; // just netwitness by default
                       if (prefs.serviceTypes.nw) {
+                        log.debug('got to 1');
                         this.selectedServiceTypes[0] = 'nw';
                       }
                       if (prefs.serviceTypes.sa) {
+                        log.debug('got to 2');
                         this.selectedServiceTypes[1] = 'sa';
                       }
                     })

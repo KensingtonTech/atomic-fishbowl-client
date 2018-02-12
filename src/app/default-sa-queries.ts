@@ -20,7 +20,6 @@ export const defaultSaQueries: Query[] = [
 // !!! need to add office
     queryString: `[ { "any" : [ "file_type=PDF", "file_extension=pdf", "file_extension=\\"docx\\"", "file_extension=\\"xlsx\\"", "file_extension=\\"pptx\\"" ] } ]`
     // "file_type=OFFICE",
-
   },
 
   {

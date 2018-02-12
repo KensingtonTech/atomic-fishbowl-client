@@ -41,10 +41,11 @@ export class HttpJsonStream {
     let subject: Subject<any> = new Subject<any>();
     let config = {
       // headers: {'Authorization': 'Bearer ' +  token},
-      'url': url,
-      'method': 'GET',
-      'body': '',
-      'cached': false
+      connection: 'keep-alive',
+      url: url,
+      method: 'GET',
+      body: '',
+      cached: false
     };
 
     if (Object.keys(headers).length !== 0) {

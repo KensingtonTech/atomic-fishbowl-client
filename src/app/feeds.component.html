@@ -1,6 +1,7 @@
 <!-- New toolbar, for after we tab-ify-->
 <p-toolbar class="feedToolbar">
   <div class="ui-toolbar-group-right">
+    <span (click)="onRefresh()" class="fa fa-refresh fa-2x" pTooltip="Refresh" style="vertical-align: bottom;"></span>&nbsp;
     <button pButton type="button" (click)="onAddFeedClick()" label="New Feed"></button>
     <div class="ui-inputgroup">
       <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>

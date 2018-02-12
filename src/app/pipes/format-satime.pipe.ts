@@ -6,9 +6,15 @@ import * as log from 'loglevel';
 
 export class FormatSaTimePipe implements PipeTransform {
 
-  transform(value: string[], args: string): any {
+  transform(value: string[] | string, args: string): any {
     // log.debug('FormatSaTimePipe: transform(): value:', value);
-    let v = parseInt(value[0].substring(0, value[0].indexOf(':')), 10);
+    let v = null;
+    if (typeof value === 'string') {
+      v = parseInt(value.substring(0, value.indexOf(':')), 10);
+    }
+    else { // array containing a string
+      v = parseInt(value[0].substring(0, value[0].indexOf(':')), 10);
+    }
     // log.debug('FormatSaTimePipe: transform(): v:', v);
     if (!v) {
       return undefined;

@@ -4,9 +4,6 @@ import { ToolService } from '../tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import * as log from 'loglevel';
 import * as imagesLoaded from 'imagesloaded';
-// import * as Isotope from 'isotope-layout'; // import error for now
-// import { Isotope } from 'isotope-layout';
-// import 'isotope-layout';
 declare var Isotope;
 
 @Component({
@@ -39,14 +36,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
   ngOnInit() {
     log.debug('MasonryComponent: ngOnInit()');
 
-    /*if (this.loadAllBeforeLayout) {
-      log.debug('setting');
-      this.renderer.setProperty(this.el.nativeElement, 'visibility', 'hidden');
-    }*/
-
     this.refreshMasonryLayoutSubscription = this.toolService.refreshMasonryLayout.subscribe( () => {
-      // this.changeDetectionRef.detectChanges();
-      // this.changeDetectionRef.markForCheck();
       this.layout();
     });
 
@@ -59,11 +49,11 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     });
 
     // Create masonry options object
-
     // Set default itemSelector
     if (!this.options.itemSelector) {
       this.options.itemSelector = '[masonry-brick], masonry-brick';
     }
+    // log.debug('MasonryComponent: ngOnInit(): options:', this.options);
 
     // Set element display to block
     if (this.el.nativeElement.tagName === 'MASONRY') {
@@ -71,16 +61,11 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     }
 
     // Initialize Masonry
-    // log.debug('MasonryComponent: ngOnInit(): options:', this.options);
-    // this.isotope = new masonry('.grid', this.options);
-    // this.isotope = new Isotope(this.el.nativeElement, this.options);
     this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, this.options) );
 
     // Perform actions on layoutComplete event
     this.ngZone.runOutsideAngular( () => {
       this.isotope.on( 'layoutComplete', () => {
-        // this.changeDetectionRef.detectChanges();
-        // this.changeDetectionRef.markForCheck();
         this.toolService.layoutComplete.next();
       });
     });
@@ -91,7 +76,6 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     // log.debug("MasonryComponent: ngOnChanges()", e);
 
     if ('options' in e && this.isotope !== undefined ) {
-      // log.debug("MasonryComponent: ngOnChanges() Got options", e.options.currentValue);
        this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
     }
 
@@ -161,19 +145,8 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     this.changeDetectionRef.markForCheck();
   }
 
-  /*
-  public layoutItems(item: any) {
-    log.debug('MasonryComponent: layoutItems()');
-    if (this.isotope === undefined) {
-      return;
-    }
-    let el: any = this.isotope.getItems(item);
-    this.isotope.layoutItems( el );
-    this.changeDetectionRef.markForCheck();
-  }
-*/
 
-  // public add(element: HTMLElement) {
+
   public addOld(element: ElementRef) {
 
     if (this.loadAllBeforeLayout) {
@@ -224,6 +197,8 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
     }
   }
 
+
+
   public add(element: ElementRef) {
 
         if (this.loadAllBeforeLayout) {
@@ -231,12 +206,7 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
           // Let all images load before calling layout (done with imagesLoaded run from ngAfterContentInit)
           log.debug('MasonryComponent: add(): Adding element without layout (complete fixed collections)');
 
-          // element.nativeElement.style.display = 'none';
-          // element.nativeElement.style.visibility = 'hidden';
-
-          // this.renderer.appendChild(this.el.nativeElement, element.nativeElement);
           this.elementsToAppend.appendChild(element.nativeElement);
-          // this.ngZone.runOutsideAngular( () => this.isotope.addItems(element.nativeElement) );
         }
 
 
@@ -260,7 +230,6 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
             // Tell Isotope that a child brick has been added
 
             // add brick to DOM
-            // element.nativeElement.style.display = 'block';
             this.renderer.setStyle(this.el.nativeElement, 'display', 'block');
 
             if (this.isotope) {
@@ -275,7 +244,6 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
       }
 
 
-  // public remove(element: HTMLElement) {
   public remove(element: ElementRef) {
     log.debug('MasonryComponent: remove()');
 
@@ -285,12 +253,9 @@ export class MasonryComponent implements OnInit, OnChanges, OnDestroy, AfterCont
         clearTimeout(this.removeTimer); // cancel existing layout() call so a new one can run
       }
       this.renderer.removeChild(this.el.nativeElement, element.nativeElement);
-      // log.debug('MasonryComponent: remove(): removing brick:', element);
       log.debug('MasonryComponent: remove(): removing brick:', element);
-      // this.ngZone.runOutsideAngular( () => this.isotope.remove(element)); // tell isotope that the brick has been removed
       this.ngZone.runOutsideAngular( () => this.isotope.remove(element.nativeElement)); // tell isotope that the brick has been removed
-      // this.changeDetectionRef.detectChanges();
-      // this.changeDetectionRef.markForCheck();
+
       // Layout bricks
       this.removeTimer = setTimeout( () => this.layout(), 10 );
     }

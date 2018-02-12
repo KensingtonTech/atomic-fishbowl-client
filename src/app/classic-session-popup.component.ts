@@ -22,7 +22,7 @@ import * as log from 'loglevel';
           <tr *ngFor="let key of displayedKeys">
             <td class="metalabel">{{key}}</td>
             <td>
-              <meta-accordion *ngIf="meta[key]" [items]="meta[key]" class="metavalue">
+              <meta-accordion *ngIf="meta[key]" [items]="meta[key]" [key]="key" class="metavalue">
               </meta-accordion>
               <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
             </td>
@@ -36,7 +36,7 @@ import * as log from 'loglevel';
           <tr *ngFor="let key of getMetaKeys()">
             <td class="metalabel">{{key}}</td>
             <td>
-              <meta-accordion class="metavalue" [items]="meta[key]">
+              <meta-accordion class="metavalue" [items]="meta[key]" [key]="key">
               </meta-accordion>
             </td>
           </tr>

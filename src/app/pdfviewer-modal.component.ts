@@ -67,7 +67,7 @@ import * as log from 'loglevel';
               <tr *ngFor="let key of displayedKeys">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]" [key]="key"></meta-accordion>
                   <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                 </td>
               </tr>
@@ -84,7 +84,7 @@ import * as log from 'loglevel';
               <tr *ngFor="let key of getMetaKeys()">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" [items]="meta[key]" [key]="key"></meta-accordion>
                 </td>
               </tr>
             </table>

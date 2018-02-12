@@ -80,6 +80,7 @@ import { DeleteFeedConfirmModalComponent } from './deletefeed-confirm-modal.comp
 import { TabContainerComponent } from './tabcontainer-component';
 import { SaCollectionModalComponent } from './sacollection-modal.component';
 import { DeleteSaServerConfirmModalComponent } from './deletesaserver-confirm-modal.component';
+import { CollectionDeletedNotifyModalComponent } from './collection-deleted-notify-modal.component';
 
 // Not yet used but imported to prevent compiler error
 import { SessionWidgetComponent } from './session-widget.component';
@@ -176,7 +177,8 @@ import * as $ from 'jquery';
                   DeleteFeedConfirmModalComponent,
                   TabContainerComponent,
                   SaCollectionModalComponent,
-                  DeleteSaServerConfirmModalComponent
+                  DeleteSaServerConfirmModalComponent,
+                  CollectionDeletedNotifyModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

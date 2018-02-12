@@ -36,7 +36,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public collectionStateChanged: Subject<any> = new Subject<any>();
   public sessionsReplaced: Subject<any> = new Subject<any>();
   public contentReplaced: Subject<any> = new Subject<any>();
-  public searchChanged: Subject<any> = new Subject<any>();
+  public searchReplaced: Subject<any> = new Subject<any>();
   public searchPublished: Subject<any> = new Subject<any>();
   public errorPublished: Subject<any> = new Subject<any>();
   public preferencesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
@@ -46,6 +46,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public httpJsonStreamServiceConnected = false;
   public queryResultsCountUpdated: Subject<any> = new Subject<any>();
   public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+  public collectionDeleted: Subject<string> = new Subject<string>();
 
   public init(): void {
     // Run by authentication service at login or page load
@@ -87,11 +88,13 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+
   testNwServer( server: any ): Promise<any> {
     return this.http
                 .post(this.apiUrl + '/nwserver/test', server )
                 .toPromise();
   }
+
 
   deleteNwServer(id: string): Promise<void> {
     log.debug('DataService: deleteNwServer():', id);
@@ -100,6 +103,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .then(response => response as any)
                 .catch(e => this.handleError(e));
   }
+
 
   addNwServer(nwserver: NwServer): Promise<any> {
     log.debug('DataService: addNwServer()');
@@ -110,6 +114,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                   log.debug('DataService: addNwServer(): response:', response);
                 });
   }
+
 
   editNwServer(nwserver: NwServer): Promise<any> {
     log.debug('DataService: editNwServer()');
@@ -134,11 +139,13 @@ export class DataService { // Manages NwSession objects and also Image objects i
                   .catch(e => this.handleError(e));
     }
 
+
     testSaServer( server: any ): Promise<any> {
       return this.http
                   .post(this.apiUrl + '/saserver/test', server )
                   .toPromise();
     }
+
 
     deleteSaServer(id: string): Promise<void> {
       log.debug('DataService: deleteSaServer():', id);
@@ -147,6 +154,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                   .then(response => response as any)
                   .catch(e => this.handleError(e));
     }
+
 
     addSaServer(saserver: SaServer): Promise<any> {
       log.debug('DataService: addSaServer()');
@@ -157,6 +165,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                     log.debug('DataService: addSaServer(): response:', response);
                   });
     }
+
 
     editSaServer(saserver: SaServer): Promise<any> {
       log.debug('DataService: editSaServer()');
@@ -202,6 +211,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+
   setPreferences(prefs: any): Promise<void> {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     this.preferencesChanged.next(prefs);
@@ -222,6 +232,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+
   refreshCollections(): Promise<void> {
     log.debug('DataService: refreshCollections()');
     return this.http.get(this.apiUrl + '/collection' )
@@ -229,6 +240,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .then( (response: any) => this.collectionsChanged.next(response) )
                 .catch(e => this.handleError(e));
   }
+
 
   addCollection(collection: any):  Promise<any> {
     log.debug('DataService: addCollection():', collection.id);
@@ -241,6 +253,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+
   editCollection(collection: any):  Promise<any> {
     log.debug('DataService: editCollection():', collection.id);
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
@@ -252,28 +265,47 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
-  buildFixedCollection(id: string): Promise<void> {
-    log.debug('DataService: buildFixedCollection():', id);
-    return this.http.get(this.apiUrl + '/collection/fixed/build/' + id )
-                    .toPromise()
-                    .catch(e => this.handleError(e));
-  }
 
-  getBuildingFixedCollection(id: string): void {
-    log.debug('DataService: getBuildingFixedCollection():', id);
+  getFixedCollection(id: string, collection: Collection): void {
+    log.debug('DataService: getFixedCollection():', id);
+    this.selectedCollectionChanged.next(collection);
     this.httpJsonStreamService.fetchStream(this.apiUrl + '/collection/fixed/' + id)
                               .subscribe( (o: any) => {
+                                                        // log.debug('DataService: getFixedCollection(): o:', o);
+                                                        let good = false;
                                                         if ('collection' in o) {
                                                           // log.debug("received collection update",o.collection);
                                                           this.collectionStateChanged.next(o.collection);
+                                                          good = true;
                                                         }
-                                                        else if ('error' in o) {
+                                                        if ('wholeCollection' in o) {
+                                                          // this.selectedCollectionChanged.next(collection);
+                                                          this.contentReplaced.next( o['wholeCollection']['images'] );
+                                                          this.sessionsReplaced.next( o['wholeCollection']['sessions'] );
+                                                          if ('search' in o['wholeCollection']) {
+                                                            this.searchReplaced.next( o['wholeCollection']['search'] );
+                                                          }
+                                                          good = true;
+                                                        }
+                                                        if ('collectionDeleted' in o) {
+                                                          // let collectionId = o['collectionDeleted'];
+                                                          let user = o['user'];
+                                                          this.collectionDeleted.next(user);
+                                                          good = true;
+                                                        }
+                                                        if ('heartbeat' in o) {
+                                                          good = true;
+                                                        }
+                                                        if ('error' in o) {
                                                           this.errorPublished.next(o.error);
+                                                          good = true;
                                                         }
-                                                        else if ('queryResultsCount' in o) {
+                                                        if ('queryResultsCount' in o) {
                                                           this.queryResultsCountUpdated.next(o.queryResultsCount);
+                                                          good = true;
                                                         }
-                                                        else if ('collectionUpdate' in o) {
+                                                        if ('collectionUpdate' in o) {
+                                                          good = true;
                                                           if ('session' in o.collectionUpdate) {
                                                             this.sessionPublished.next(o.collectionUpdate.session);
                                                           }
@@ -284,13 +316,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                             this.searchPublished.next(o.collectionUpdate.search);
                                                           }
                                                         }
-                                                        else if ('close' in o) { return; }
-                                                        else {
+                                                        if ('close' in o) { return; }
+                                                        if (!good) {
                                                           // there's data here that shouldn't be
-                                                          log.error('DataService: getBuildingFixedCollection(): unhandled JSON data', o);
+                                                          log.error('DataService: getFixedCollection(): unhandled JSON data', o);
                                                         }
                               });
   }
+
 
   abortGetBuildingCollection(): Promise<void> {
     log.debug('DataService: abortGetBuildingCollection()');
@@ -299,6 +332,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
       resolve();
     });
   }
+
 
   pauseMonitoringCollection(id: string): Promise<void> {
     log.debug('DataService: pauseMonitoringCollection()');
@@ -309,6 +343,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                     .catch(e => this.handleError(e));
   }
 
+
   unpauseMonitoringCollection(id: string): Promise<void> {
     log.debug('DataService: unpauseMonitoringCollection()');
     let headers = new HttpHeaders().set('afbsessionid', this.sessionId.toString() );
@@ -317,6 +352,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                     // .then( response => {} )
                     .catch(e => this.handleError(e));
   }
+
 
   getCollectionData(collection: any): Promise<string> {
     let id = collection.id;
@@ -329,11 +365,12 @@ export class DataService { // Manages NwSession objects and also Image objects i
                       this.contentReplaced.next(data.images);
                       this.sessionsReplaced.next(data.sessions);
                       if (data.search) {
-                        this.searchChanged.next(data.search);
+                        this.searchReplaced.next(data.search);
                       }
                     })
                     .catch(e => this.handleError(e));
   }
+
 
   getRollingCollection(id: string): void {
     log.debug('DataService: getRollingCollection():', id);
@@ -343,6 +380,20 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                           // log.debug("received collection update",o.collection);
                                                           this.collectionStateChanged.next(o.collection);
                                                         }
+                                                        else if ('wholeCollection' in o) {
+                                                          // this.selectedCollectionChanged.next(collection);
+                                                          this.contentReplaced.next( o['wholeCollection']['images'] );
+                                                          this.sessionsReplaced.next( o['wholeCollection']['sessions'] );
+                                                          if ('search' in o['wholeCollection']) {
+                                                            this.searchReplaced.next( o['wholeCollection']['search'] );
+                                                          }
+                                                        }
+                                                        else if ('collectionDeleted' in o) {
+                                                          // let collectionId = o['collectionDeleted'];
+                                                          let user = o['user'];
+                                                          this.collectionDeleted.next(user);
+                                                        }
+                                                        else if ('heartbeat' in o) { log.debug('heartbeat'); }
                                                         else if ('error' in o) {
                                                           this.errorPublished.next(o.error);
                                                         }
@@ -364,12 +415,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
                                                         else if ('collectionPurge' in o) {
                                                           this.sessionsPurged.next(o.collectionPurge);
                                                         }
+                                                        else if ('collectionEdited' in o) { } // do something to reload the collection
                                                         else {
                                                           // there's data here that shouldn't be
                                                           log.error('DataService: getRollingCollection(): unhandled JSON data', o);
                                                         }
                               });
   }
+
 
   deleteCollection(id: string): Promise<void> {
     log.debug('DataService: deleteCollection():', id);
@@ -378,6 +431,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .then( () => {} )
                 .catch(e => this.handleError(e));
   }
+
 
   /////////////////////FEEDS/////////////////////
 
@@ -393,11 +447,13 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+
   deleteFeed(id: string): Promise<any> {
     log.debug('DataService: deleteFeed():', id);
     return this.http.delete(this.apiUrl + '/feed/' + id )
                .toPromise();
   }
+
 
   addFeedManual(feed: Feed, file: File): Promise<any> {
     log.debug('DataService: addFeedManual()');
@@ -412,6 +468,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 });
   }
 
+
   editFeedWithoutFile(feed: Feed): Promise<any> {
     log.debug('DataService: editFeedWithoutFile()');
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
@@ -422,6 +479,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                   return response;
                 });
   }
+
 
   editFeedWithFile(feed: Feed, file: File): Promise<any> {
     log.debug('DataService: editFeedWithFile()');
@@ -436,6 +494,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 });
   }
 
+
   addFeedScheduled(feed: Feed): Promise<any> {
     log.debug('DataService: addFeedScheduled()');
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
@@ -447,16 +506,19 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 });
   }
 
+
   testFeedUrl( host: any ): Promise<any> {
     return this.http
                 .post(this.apiUrl + '/feed/testurl', host )
                 .toPromise();
   }
 
+
   getFeedFilehead(id: string): Promise<any> {
     return this.http.get(this.apiUrl + '/feed/filehead/' + id )
                .toPromise();
   }
+
 
   getFeedStatus(): Promise<any> {
     return this.http.get(this.apiUrl + '/feed/status' )
@@ -473,6 +535,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .catch(e => this.handleError(e));
   }
 
+
   deleteUser(id: string): Promise<void> {
     log.debug('DataService: deleteUser():', id);
     return this.http.delete(this.apiUrl + '/user/' + id )
@@ -480,6 +543,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 .then(response => response as any)
                 .catch(e => this.handleError(e));
   }
+
 
   addUser(user: any): Promise<any> {
     log.debug('DataService: addUser()');
@@ -491,6 +555,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                 })
                 .catch(e => this.handleError(e));
   }
+
 
   updateUser(user: any): Promise<any> {
     log.debug('DataService: updateUser()');
@@ -511,6 +576,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
     return this.http.get(this.apiUrl + '/ping')
                     .toPromise();
   }
+
 
   handleError(error: any): Promise<any> {
     if (error.status === 401) {

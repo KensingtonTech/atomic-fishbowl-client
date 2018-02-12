@@ -11,15 +11,19 @@
         <form #addCollectionForm="ngForm" (ngSubmit)="onCollectionSubmit(addCollectionForm)" novalidate>
         <div>
           <table style="width: 100%;">
+
             <!--COLLECTION NAME-->
             <tr>
               <td class="column1">
                 <b>Name</b>
               </td>
               <td>
-                <input #nameBox type="text" name="name" [(ngModel)]="collectionFormModel.name" style="width: 100%;" autocomplete="off" required>
+                <label *ngIf="!nameValid && collectionFormModel.name.length != 0" for="nameBox" style="font-size: 10pt; color: red;">A collection already exists with this name</label>
+                <label *ngIf="collectionFormModel.name.length == 0" for="nameBox" style="font-size: 10pt; color: red;">The name field is required</label>
+                <input #nameBox id="nameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="collectionFormModel.name" style="width: 100%;" autocomplete="off" required>
               </td>
             </tr>
+
             <!--COLLECTION TYPE (FIXED, ROLLING, OR MONITORING)-->
             <tr>
               <td>
@@ -326,12 +330,13 @@
                 <span *ngIf="selectedNwServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button [disabled]="formDisabled || testInProgress" pButton type="button" (click)="testNwServer()" label="Test"> </button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
               </div>
 
-              <!--PRIMENG SELECTION LIST-->
+              <!--NetWitness Server List-->
               <p-listbox *ngIf="nwServers" [disabled]="formDisabled" [(ngModel)]="selectedNwServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" [options]="nwServersOptions"></p-listbox>
 
-            <!--EXECUTE OR CANCEL BUTTONS-->
+            
+              <!--EXECUTE OR CANCEL BUTTONS-->
             <div style="margin-top: 5px; float: right;">
-              <button pButton type="submit" [disabled]="!nwServerFormValid()" label="Execute"></button>
+              <button pButton type="submit" [disabled]="!nwServerFormValid() || !nameValid" label="Execute"></button>
               <button pButton type="button" (click)="cancel()" label="Cancel"></button>
             </div>
           </div>

@@ -204,6 +204,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   private feedsChangedSubscription: Subscription;
   private executeCollectionOnEditSubscription: Subscription;
   private reOpenTabsModalSubscription: Subscription;
+  private collectionsChangedSubscription: Subscription;
 
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
@@ -240,6 +241,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   private hashFeedId: string;
 
   private executeCollectionOnEdit = false;
+
+  public nameValid = false;
+  private collectionNames: any;
 
 
   ngOnInit(): void {
@@ -361,7 +365,22 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     this.executeCollectionOnEditSubscription = this.toolService.executeCollectionOnEdit.subscribe( TorF => this.executeCollectionOnEdit = TorF);
 
+    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => {
+      let temp = {};
+      for (let c in collections) {
+        if (collections.hasOwnProperty(c)) {
+          let collection = collections[c];
+          temp[collection.name] = null;
+        }
+      }
+      this.collectionNames = temp;
+
+    } );
+
+
   }
+
+
 
   public ngOnDestroy() {
     this.preferencesChangedSubscription.unsubscribe();
@@ -370,7 +389,22 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.editNwCollectionNextSubscription.unsubscribe();
     this.reOpenTabsModalSubscription.unsubscribe();
     this.feedsChangedSubscription.unsubscribe();
+    this.collectionsChangedSubscription.unsubscribe();
   }
+
+
+
+  public onNameChanged(name): void {
+    log.debug('NwCollectionModalComponent: onNameChanged()');
+
+    if (!(name in this.collectionNames) || this.mode === 'editRolling')  {
+      this.nameValid = true;
+    }
+    else {
+      this.nameValid = false;
+    }
+  }
+
 
 
   public onQuerySelected(): void {
@@ -383,6 +417,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   public timeframeSelected(e: any): void {
     if (this.selectedTimeframe === 'Custom') {
       // display custom timeframe selector
@@ -392,6 +428,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.displayCustomTimeframeSelector = false;
     }
   }
+
+
 
   public displayServiceAddBox(): void {
     if (this.formDisabled) {
@@ -409,6 +447,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     setTimeout( () => this.hostNameRef.first.nativeElement.focus() );
   }
 
+
+
   public hideServiceAddBox(): void {
     setTimeout( () => {
       this.showNwServiceBox = false;
@@ -421,6 +461,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+
+
   public cancel(): void {
     log.debug('NwCollectionModalComponent: cancel()');
     if (this.mode === 'editRolling' || this.mode === 'editFixed') {
@@ -432,14 +474,20 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   private closeModal(): void {
     this.modalService.close(this.id);
   }
+
+
 
   public cancelledEventReceived(): void {
     log.debug('NwCollectionModalComponent: cancelledEventReceived()');
     this.cancel();
   }
+
+
 
   private getNwServers(): Promise<any> {
     // log.debug("NwCollectionModalComponent: getNwServers()");
@@ -462,6 +510,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       });
   }
 
+
+
   public deleteNwServer(): void {
     log.debug('NwCollectionModalComponent: deleteNwServer(): this.selectedNwServer', this.selectedNwServer);
     if (this.formDisabled) {
@@ -470,6 +520,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.toolService.nwServerToDelete.next(this.nwServers[this.selectedNwServer]);
     this.modalService.open('confirm-nwserver-delete-modal');
   }
+
+
 
   private deleteNwServerConfirmed(id: string): void {
     log.debug('NwCollectionModalComponent: deleteNwServerConfirmed(): id:', id);
@@ -553,6 +605,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       // We either have a custom use case or an unbound use case
       newCollection.query = this.queryInputText;
       newCollection.distillationEnabled = this.collectionFormModel.distillationEnabled;
+      newCollection.regexDistillationEnabled = this.collectionFormModel.regexDistillationEnabled;
       newCollection.contentTypes = this.collectionFormModel.selectedContentTypes;
 
       for (let i = 0; i < newCollection.contentTypes.length; i++) {
@@ -565,7 +618,6 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
       if (!newCollection.bound && this.hashesEnabled && this.hashingMode === 'manual') {
         newCollection.useHashFeed = false;
-        newCollection.regexDistillationEnabled =  this.collectionFormModel.regexDistillationEnabled;
         newCollection.md5Enabled = this.collectionFormModel.md5Enabled;
         newCollection.sha1Enabled = this.collectionFormModel.sha1Enabled;
         newCollection.sha256Enabled = this.collectionFormModel.sha256Enabled;
@@ -661,6 +713,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
+
+
   public addNwServerSubmit(f: NgForm): void {
     // log.debug("NwCollectionModalComponent: addNwServerSubmit(): f:", f);
     this.hideServiceAddBox();
@@ -723,10 +777,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
+
+
   public onOpen(): void {
     // log.debug('NwCollectionModalComponent: onOpen()');
     this.dataService.getFeeds();
   }
+
+
 
 
   public onSelectedTypesChanged(): void {
@@ -776,12 +834,16 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+
+
   public clearTypes(): void {
     setTimeout( () => {
       this.collectionFormModel.selectedContentTypes = [];
     }, 0);
     this.onSelectedTypesChanged();
   }
+
+
 
   public allTypes() {
     let vals = [];
@@ -793,6 +855,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
     this.onSelectedTypesChanged();
   }
+
+
 
   public onUseCaseChanged(): void {
     log.debug('NwCollectionModalComponent: onUseCaseChanged()');
@@ -843,6 +907,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
+
+
   public onUseCaseBoundChanged(): void {
     log.debug('NwCollectionModalComponent: onUseCaseBoundChanged()');
     setTimeout( () => {
@@ -873,6 +939,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
   }
 
+
+
   private convertArrayToString(a: any): string {
     let text = '';
     for (let i = 0; i < a.length; i++) {
@@ -883,6 +951,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
     return text;
   }
+
+
 
   private onAddCollection(): void {
     log.debug('NwCollectionModalComponent: onAddCollection()');
@@ -899,6 +969,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       log.debug('NwCollectionModalComponent: onAddCollection(): selectedNwServer', this.selectedNwServer);
     }, 0);
   }
+
+
 
   private onEditCollection(collection: Collection): void {
     // Called when we receive an edit signal from toolbar
@@ -921,6 +993,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       }
 
       this.collectionFormModel.name = collection.name;
+      this.onNameChanged(collection.name);
       this.collectionFormModel.type = collection.type;
       this.collectionFormModel.contentLimit = collection.contentLimit;
       this.collectionFormModel.minX = collection.minX;
@@ -1019,6 +1092,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   }
 
 
+
   public nwServerFormValid(): boolean {
     // log.debug('NwCollectionModalComponent: nwServerFormValid()');
     // log.debug('this.selectedNwServer:', this.selectedNwServer);
@@ -1035,6 +1109,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     return false;
   }
 
+
+
   public addServiceFormValid(form: NgForm): boolean {
     // log.debug('NwCollectionModalComponent: addServiceFormValid()');
 
@@ -1049,9 +1125,12 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     return false;
   }
 
+
+
   public onNwServerChanged(): void {
     log.debug(`NwCollectionModalComponent: onNwServerChanged(): selectedNwServer: ${this.selectedNwServer}`);
   }
+
 
 
   public testNwServer(): void {
@@ -1131,6 +1210,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
                       log.info('Test connection failed with error:', err);
                     });
   }
+
 
 
   public editNwServer(): void {

@@ -121,7 +121,7 @@ import { Preferences } from './preferences';
               <tr *ngFor="let key of displayedKeys">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]" [key]="key"></meta-accordion>
                   <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                 </td>
               </tr>
@@ -138,7 +138,7 @@ import { Preferences } from './preferences';
               <tr *ngFor="let key of getMetaKeys()">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" [items]="meta[key]" [key]="key"></meta-accordion>
                 </td>
               </tr>
             </table>
@@ -148,6 +148,9 @@ import { Preferences } from './preferences';
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
           <div *ngIf="serviceType == 'nw' && preferences.nw.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;">
             <a target="_blank" href="{{preferences.nw.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+          </div>
+          <div *ngIf="serviceType == 'sa' && preferences.sa.url && sessionId" style="position: absolute; top: 2px; right: 30px;">
+            <a target="_blank" href="{{saUrlGetter(sessionId)}}"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
           </div>
         </div>
       </div>
@@ -287,6 +290,26 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     log.debug('SessionDetailsModalComponent: cancelled()');
     this.modalService.close(this.id);
     this.isOpen = false;
+  }
+
+  convertSaTime(value: string) {
+    return parseInt(value[0].substring(0, value[0].indexOf(':')), 10) * 1000;
+  }
+
+  saUrlGetter(sessionId): string {
+    // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO
+    // let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'pb' : ['flow_id=4898292'], 'ca' : { 'start' : 1518021720000, 'end' : 1518108120000}, 'now' : 1518108153464, 'ac': 'Summary' };
+
+    let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'ac': 'Summary' };
+    struct['pb'] = [ 'flow_id=' + sessionId ];
+    let startTime = this.convertSaTime(this.meta['start_time']);
+    let stopTime = this.convertSaTime(this.meta['stop_time']);
+    struct['ca'] = { 'start' : startTime, 'end': stopTime };
+    struct['now'] = new Date().getTime();
+    let encoded = btoa(JSON.stringify(struct));
+    // log.debug('SessionDetailsModalComponent: saUrlGetter(): struct:', struct);
+
+    return this.preferences.sa.url + '/deepsee/index#' + encoded;
   }
 
 }
