@@ -54,15 +54,20 @@ import * as log from 'loglevel';
 
       <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
         <div style="width: 100%; height: 100%; overflow: hidden;" *ngIf="sessionId && meta">
-          <h3 style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
+          <h3 *ngIf="serviceType == 'nw'" style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
+          <h3 *ngIf="serviceType == 'sa'" style="margin-top: 7px; color: white;">Flow {{sessionId}} Details</h3>
 
           <div *ngIf="!showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
-              <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+              <tr>
+                <td class="metalabel" style="width: 40%;">time</td>
+                <td *ngIf="serviceType == 'nw'" class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+                <td *ngIf="serviceType == 'sa'" class="metavalue" style="width: 60%;">{{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+              </tr>
               <tr *ngFor="let key of displayedKeys">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]" [key]="key"></meta-accordion>
                   <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                 </td>
               </tr>
@@ -71,11 +76,15 @@ import * as log from 'loglevel';
 
           <div *ngIf="showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
-              <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+              <tr>
+                <td class="metalabel" style="width: 40%;">time</td>
+                <td *ngIf="serviceType == 'nw'" class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+                <td *ngIf="serviceType == 'sa'" class="metavalue" style="width: 60%;">{{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+              </tr>
               <tr *ngFor="let key of getMetaKeys()">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" [items]="meta[key]" [key]="key"></meta-accordion>
                 </td>
               </tr>
             </table>
@@ -83,7 +92,7 @@ import * as log from 'loglevel';
 
           <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
-          <div *ngIf="preferences.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;"><a target="_blank" href="{{preferences.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
+          <div *ngIf="serviceType == 'nw' && preferences.nw.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;"><a target="_blank" href="{{preferences.nw.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
         </div>
       </div>
 
@@ -129,6 +138,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   private pdfFile: string;
   private page = 1;
 
+  private serviceType: string; // 'nw' or 'sa'
   public isOpen = false;
   private selectedPage = 1;
   private numPages: number;
@@ -149,32 +159,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
                         {text: '175%', value: 1.75},
                         {text: '200%', value: 2}
                       ];
-
-  /*public zoomLevels = [
-    {text: '25%', value: 1.75}, // this is ass-backwards thanks to a bug in the library https://github.com/VadimDez/ng2-pdf-viewer/issues/95
-    {text: '50%', value: 1.5},
-    {text: '75%', value: 1.25},
-    {text: '100%', value: 1},
-    {text: '125%', value: 0.75},
-    {text: '150%', value: 0.5},
-    {text: '175%', value: 0.25},
-    {text: '200%', value: 0}
-  ];*/
-  private displayedKeys: any =  [
-    'size',
-    'service',
-    'ip.src',
-    'ip.dst',
-    'alias.host',
-    'city.dst',
-    'country.dst',
-    'action',
-    'content',
-    'ad.username.src',
-    'ad.computer.src',
-    'filename',
-    'client'
-  ]; // these are just defaults in case we can't get them from prefs
+  private displayedKeys: string[] =  [];
 
   // Subscriptions
   private preferencesChangedSubscription: Subscription;
@@ -188,16 +173,29 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {
       // log.debug("prefs observable: ", prefs);
       this.preferences = prefs;
+      /*
       if ( 'displayedKeys' in prefs ) {
         this.displayedKeys = prefs.displayedKeys;
       }
+      */
     });
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
 
-    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
+    /*this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
       log.debug('PdfViewerModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
       this.meta = session.meta;
+    });
+    */
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (arg: any ) => {
+      log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', arg);
+      if (this.serviceType !== arg.serviceType) {
+        this.displayedKeys = this.preferences[arg.serviceType].displayedKeys;
+      }
+      this.serviceType = arg.serviceType;
+      this.session = arg.session;
+      this.meta = this.session.meta;
+      // this.changeDetectionRef.markForCheck();
     });
 
     this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => {

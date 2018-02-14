@@ -14,9 +14,11 @@
 
             <!-- feed name -->
             <div class="row">
-              <div class="cell left-column">Feed Name</div>
+              <div class="cell left-column" style="vertical-align: bottom;">Feed Name</div>
               <div class="cell right-column">
-                <input type="text" pInputText name="feedName" [(ngModel)]="name" autocomplete="off" required style="width: 100%;"/>
+                <label *ngIf="!nameValid && name.length != 0" for="feedName" style="font-size: 10pt; color: red;">A feed already exists with this name</label>
+                <label *ngIf="name.length == 0" for="nameBox" style="font-size: 10pt; color: red;">The name field is required</label>
+                <input type="text" id="feedName" pInputText name="feedName" [(ngModel)]="name" (ngModelChange)="onNameChanged($event)" autocomplete="off" required style="width: 100%;"/>
               </div>
             </div>
 
@@ -85,12 +87,14 @@
 
           <!-- next / cancel buttons -->
           <div style="position: absolute; bottom: 10px; right: 10px;">
+            
             <button pButton type="button" (click)="onCancel()" label="Cancel"></button>
-            <button *ngIf="type == 'manual'" pButton type="submit" label="Next" [disabled]="!highLevelDetailsForm.valid || lines.length == 0"></button>
+
+            <button *ngIf="type == 'manual'" pButton type="submit" label="Next" [disabled]="!highLevelDetailsForm.valid || lines.length == 0 || !nameValid"></button>
             
-            <button *ngIf="type == 'scheduled' && !editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified"></button>
+            <button *ngIf="type == 'scheduled' && !editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified || !nameValid"></button>
             
-            <button *ngIf="type == 'scheduled' && editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified"></button>
+            <button *ngIf="type == 'scheduled' && editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValidf"></button>
           </div>
           
         </form>

@@ -1,7 +1,8 @@
 export interface UseCase {
   name: string;
   friendlyName: string;
-  query: string;
+  nwquery: string;
+  saquery: string;
   contentTypes: string[];
   description: string;
   distillationTerms?: string[];

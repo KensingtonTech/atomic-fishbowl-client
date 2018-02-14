@@ -1,6 +1,7 @@
 <!-- New toolbar, for after we tab-ify-->
 <p-toolbar class="feedToolbar">
   <div class="ui-toolbar-group-right">
+    <span (click)="onRefresh()" class="fa fa-refresh fa-2x" pTooltip="Refresh" style="vertical-align: bottom;"></span>&nbsp;
     <button pButton type="button" (click)="onAddFeedClick()" label="New Feed"></button>
     <div class="ui-inputgroup">
       <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
@@ -36,7 +37,7 @@
           <span *ngIf="feed.type == 'scheduled' && ifStatusExists(feed.id) && feedStatus[feed.id].good" pTooltip="Last run at {{feedStatus[feed.id]?.time | date: 'short'}}">
             OK
           </span>
-          <span *ngIf="feed.type == 'scheduled' && feedStatus.length > 0 && !feedStatus[feed.id].good" pTooltip="Last run at {{feedStatus[feed.id]?.time | date: 'short'}}">
+          <span *ngIf="feed.type == 'scheduled' && ifStatusExists(feed.id) && !feedStatus[feed.id].good" pTooltip="Last run at {{feedStatus[feed.id]?.time | date: 'short'}}">
             Failed
           </span>
           <span *ngIf="feed.type == 'manual'">-</span>

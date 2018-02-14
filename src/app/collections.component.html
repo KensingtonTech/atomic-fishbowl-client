@@ -1,7 +1,9 @@
-<!-- New toolbar, for after we tab-ify-->
+<!-- Toolbar -->
 <p-toolbar class="collectionsToolbar">
-    <div class="ui-toolbar-group-right">
-      <button pButton type="button" (click)="onAddCollectionClick()" label="New Collection"></button>
+    <div *ngIf="preferences" class="ui-toolbar-group-right">
+      <span (click)="onRefresh()" class="fa fa-refresh fa-2x" pTooltip="Refresh" style="vertical-align: bottom;"></span>&nbsp;
+      <button *ngIf="preferences.serviceTypes.nw" pButton type="button" (click)="onAddNwCollectionClick()" label="New NW Collection"></button>
+      <button *ngIf="preferences.serviceTypes.sa" pButton type="button" (click)="onAddSaCollectionClick()" label="New SA Collection"></button>
       <div class="ui-inputgroup">
         <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
         <input name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
@@ -14,37 +16,71 @@
 <div *ngIf="collections && collections.length == 0"><p>No collections are defined</p></div>
 
 <!--collections container-->
-<div *ngIf="collections && collections.length > 0" style="position: relative; top: 25px; width: 100%; margin-bottom: 25px; height: 100%; overflow: auto;">
+<div *ngIf="displayedCollections && displayedCollections.length > 0 && preferences" style="position: relative; top: 25px; width: 100%; margin-bottom: 25px; height: 100%; overflow: auto;">
   <div class="table tabTable" style="width: 100%; margin: auto;">
 
     <div class="header">
       <div class="row">
         <div class="header-cell">Collection Name</div>
         <div class="header-cell">Type</div>
-        <div class="header-cell">NW Server</div>
+        <div class="header-cell">State</div>
+        <div class="header-cell">API Endpoint</div>
         <div class="header-cell">Created</div>
         <div class="header-cell">Last Modified</div>
         <div class="header-cell center">Actions</div>
       </div>
     </div>
+    
+    <div [dragula]='"first-bag"' [dragulaModel]="displayedCollections" class="row-group">
+      <div class="row" *ngFor="let collection of displayedCollections" [class.nodrag]="filterEnabled">
+        
+        <!-- Collection Name for NetWitness -->
+        <div *ngIf="collection.serviceType == 'nw'" class="cell">
+          <span *ngIf=" ( preferences.serviceTypes.nw && nwServerExists(collection.nwserver) ) ||  ( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.nw && collection.type == 'fixed' ) " class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
 
-    <div [dragula]='"first-bag"' class="row-group">
-      <div class="row" *ngFor="let collection of displayedCollections">
-        <div class="cell">
-          <span *ngIf="collection.type == 'fixed' || nwServerExists(collection.nwserver)" class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
-          <span *ngIf="collection.type != 'fixed' && !nwServerExists(collection.nwserver)" class="no-nw-server">{{collection.name}}</span>
+          <span *ngIf="( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="NetWitness is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
+          <span *ngIf="( collection.type != 'fixed' && !nwServerExists(collection.nwserver) ) && !( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>
         </div>
-        <div class="cell">{{utils.capitalizeFirstLetter(collection.type)}}</div>
-        <div class="cell">{{getNwServerString(collection.nwserver)}}</div>
+
+        <!-- Collection Name for SA -->
+        <div *ngIf="collection.serviceType == 'sa'" class="cell">
+          <span *ngIf=" ( preferences.serviceTypes.sa && saServerExists(collection.saserver) ) ||  ( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.sa && collection.type == 'fixed' ) " class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
+          
+          <span *ngIf="( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="Symantec Security Analytics is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
+          <span *ngIf="( collection.type != 'fixed' && !saServerExists(collection.saserver) ) && !( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>
+        </div>
+
+        <!-- Collection Type -->
+        <div class="cell"><span *ngIf="collection.serviceType == 'nw'">NW</span><span *ngIf="collection.serviceType == 'sa'">SA</span> {{utils.capitalizeFirstLetter(collection.type)}}</div>
+
+        <!-- Collection State -->
+        <div class="cell">{{utils.capitalizeFirstLetter(collection.state)}}</div>
+
+        <!-- API Endpoint -->
+        <div class="cell" *ngIf="collection.serviceType == 'nw'">{{getNwServerString(collection.nwserver)}}</div>
+        <div class="cell" *ngIf="collection.serviceType == 'sa'">{{getSaServerString(collection.saserver)}}</div>
+
+        <!-- Creator -->
         <div class="cell">
           <span *ngIf="collection.creator">{{collection.creator.timestamp | date:'y/MM/d HH:mm'}} by {{collection.creator.username}}</span>
         </div>
+
+        <!-- Modifier -->
         <div class="cell">
-            <span *ngIf="collection.modifier">{{collection.modifier.timestamp | date:'y/MM/d HH:mm'}} by {{collection.modifier.username}}</span>
-            <span *ngIf="!collection.modifier">-</span>
-          </div>
+          <span *ngIf="collection.modifier">{{collection.modifier.timestamp | date:'y/MM/d HH:mm'}} by {{collection.modifier.username}}</span>
+          <span *ngIf="!collection.modifier">-</span>
+        </div>
+
+        <!-- Actions -->
         <div class="cell center" style="cursor: initial;">
-          <span class="fa fa-pencil" (click)="onEditCollectionClick(collection)"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteCollectionClick(collection)"></span>
+          
+          <!-- Edit or Reprocess-->
+          <span *ngIf="collection.type == 'fixed'" class="fa fa-repeat" (click)="onEditCollectionClick(collection)"></span>
+          <span *ngIf="collection.type != 'fixed'" class="fa fa-pencil" (click)="onEditCollectionClick(collection)"></span>
+          &nbsp;&nbsp;&nbsp;&nbsp;
+
+          <!-- Delete -->
+          <span class="fa fa-trash" (click)="onDeleteCollectionClick(collection)"></span>
         </div>
       </div>
     </div>
@@ -53,5 +89,6 @@
 </div>
 
 
-<add-collection-modal [id]="addCollectionModalId"></add-collection-modal>
+<nw-collection-modal [id]="nwCollectionModalId"></nw-collection-modal>
+<sa-collection-modal [id]="saCollectionModalId"></sa-collection-modal>
 <delete-collection-confirm-modal></delete-collection-confirm-modal>

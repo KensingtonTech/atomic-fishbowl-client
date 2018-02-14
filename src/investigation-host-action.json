@@ -1,0 +1,24 @@
+{
+    "displayName": "Atomic Fishbowl Host Lookup",
+    "cssClasses": [
+        "alias-host",
+        "host-src",
+        "host-dst"
+    ],
+    "description": "",
+    "type": "UAP.common.contextmenu.actions.URLContextAction",
+    "version": "1",
+    "modules": [
+        "investigation"
+    ],
+    "local": "false",
+    "groupName": "externalLookupGroup",
+    "urlFormat": "https://localhost?op=adhoc&service=nw&host={0}",
+    "disabled": "",
+    "id": "atomicFishbowlHostAction",
+    "moduleClasses": [
+        "UAP.investigation.navigate.view.NavigationPanel",
+        "UAP.investigation.events.view.EventGrid"
+    ],
+    "openInNewTab": "true"
+}

@@ -5,8 +5,10 @@ export interface Collection {
   name: string;
   type: string;
   state: string;
-  nwserver:  string;
-  nwserverName: string;
+  nwserver?:  string;
+  nwserverName?: string;
+  saserver?: string;
+  saserverName?: string;
   query?: string;
   contentTypes?: string[];
   contentLimit: number;
@@ -33,4 +35,5 @@ export interface Collection {
   creator?: CollectionMeta;
   modifier?: CollectionMeta;
   executeTime: number;
+  serviceType: string; // 'nw' or 'sa'
 }

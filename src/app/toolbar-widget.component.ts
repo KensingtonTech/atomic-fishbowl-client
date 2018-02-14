@@ -26,12 +26,14 @@ import * as log from 'loglevel';
         <span class="collectionTooltip" *ngIf="selectedCollection" [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
 
         <!-- Edit Icon -->
-        <span class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+        <span *ngIf="selectedCollection.type != 'fixed'" pTooltip="Edit collection" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+        <span *ngIf="selectedCollection.type == 'fixed'" pTooltip="Reprocess collection" class="fa fa-repeat fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
 
         <!--State Icons-->
         <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" pTooltip="Building collection"></span>
         <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow;" [pTooltip]="errorMessage"></span>
-        <span *ngIf="queryingIcon" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying NetWitness data"></span>
+        <span *ngIf="queryingIcon && selectedCollection.serviceType == 'nw'" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying NetWitness data"></span>
+        <span *ngIf="queryingIcon && selectedCollection.serviceType == 'sa'" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying Security Analytics data"></span>
         <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red;" pTooltip="0 results were returned from the query"></span>
         <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" pTooltip="0 results were returned from the latest query"></span>
 
@@ -39,9 +41,11 @@ import * as log from 'loglevel';
 
       <!--Statistics Text-->
       <span>
-        <span *ngIf="selectedCollection.type == 'fixed'" class="label">Fixed Collection&nbsp;&nbsp;</span>
-        <span *ngIf="selectedCollection.type == 'rolling'" class="label">Rolling Collection&nbsp;&nbsp;</span>
-        <span *ngIf="selectedCollection.type == 'monitoring'" class="label">Monitoring Collection&nbsp;&nbsp;</span>
+        <span *ngIf="selectedCollection.type == 'fixed'" class="label">Fixed</span>
+        <span *ngIf="selectedCollection.type == 'rolling'" class="label">Rolling</span>
+        <span *ngIf="selectedCollection.type == 'monitoring'" class="label">Monitoring</span>
+        <span class="label"> {{selectedCollection.serviceType | allCaps}} Collection&nbsp;&nbsp;</span>
+
         <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeBegin | formatTime}}</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time2: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeEnd | formatTime}}</span>
@@ -95,6 +99,7 @@ import * as log from 'loglevel';
 <splash-screen-modal></splash-screen-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
+<collection-deleted-notify-modal></collection-deleted-notify-modal>
 `,
 
   styles: [`
@@ -140,7 +145,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private selectedCollectionId: string;
   public selectedCollection: Collection;
 
-  public addCollectionModalId = 'add-collection-modal';
+  public nwCollectionModalId = 'nw-collection-modal';
+  public saCollectionModalId = 'sa-collection-modal';
   public tabContainerModalId = 'tab-container-modal';
   public showSearch = false;
   private searchTerms: string;
@@ -170,6 +176,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   private useCasesChangedSubscription: Subscription;
   private collectionSelectedSubscription: Subscription;
   private noCollectionSubscription: Subscription;
+  private collectionDeletedSubscription: Subscription;
 
   ngOnInit(): void {
 
@@ -198,6 +205,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.collectionSelectedSubscription = this.toolService.collectionSelected.subscribe( (collection: Collection) => this.onCollectionSelected(collection) );
 
     this.noCollectionSubscription = this.toolService.noCollections.subscribe( () => this.onNoCollections() );
+
+    this.collectionDeletedSubscription = this.dataService.collectionDeleted.subscribe( (collectionId: string) => this.onCollectionDeleted(collectionId) );
   }
 
   public ngOnDestroy() {
@@ -208,11 +217,20 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.useCasesChangedSubscription.unsubscribe();
     this.collectionSelectedSubscription.unsubscribe();
     this.noCollectionSubscription.unsubscribe();
+    this.collectionDeletedSubscription.unsubscribe();
   }
 
   ngAfterViewInit(): void {
-    setTimeout( () => this.modalService.open('splashScreenModal'), 250);
-    setTimeout( () => this.onCollectionsClick(), 3500);
+    // setTimeout( () => this.modalService.open('splashScreenModal'), 250);
+    // setTimeout( () => this.onCollectionsClick(), 3500);
+
+  }
+
+  onCollectionDeleted(collectionId): void {
+
+    this.toolService.noCollections.next();
+    this.dataService.refreshCollections();
+
   }
 
   buildTooltip(): string {
@@ -273,10 +291,21 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     tt = tt + 'Query: ' + query;
-    tt = tt + '\nService: ' + this.selectedCollection.nwserverName;
+
+    if (this.selectedCollection.serviceType === 'nw') {
+      tt = tt + '\nService: ' + this.selectedCollection.nwserverName;
+    }
+    else {
+      tt = tt + '\nService: ' + this.selectedCollection.saserverName;
+    }
+
+
     tt = tt + '\nContent Types: ' + contentTypes;
     tt = tt + '\nContent Limit: ' + this.selectedCollection.contentLimit;
-    tt = tt + '\nMin Dimensions: ' + this.selectedCollection.minX + ' x ' + this.selectedCollection.minY;
+
+    if (this.selectedCollection.minX && this.selectedCollection.minY) {
+      tt = tt + '\nMin Dimensions: ' + this.selectedCollection.minX + ' x ' + this.selectedCollection.minY;
+    }
 
     if (this.selectedCollection.sha1Enabled) { tt = tt + '\nSHA1 Hashing is Enabled'; }
     if (this.selectedCollection.sha256Enabled) { tt = tt + '\nSHA256 Hashing is Enabled'; }
@@ -433,15 +462,22 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
   onCollectionsClick(): void {
     this.modalService.open(this.tabContainerModalId);
-
   }
 
   onEditCollectionClick(): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', this.selectedCollection);
-    this.toolService.editCollectionNext.next(this.selectedCollection);
-    this.toolService.executeCollectionOnEdit.next(true);
-    this.toolService.reOpenTabsModal.next(false);
-    this.modalService.open(this.addCollectionModalId);
+    if (this.selectedCollection.serviceType === 'nw') {
+      this.toolService.editNwCollectionNext.next(this.selectedCollection);
+      this.toolService.executeCollectionOnEdit.next(true);
+      this.toolService.reOpenTabsModal.next(false);
+      this.modalService.open(this.nwCollectionModalId);
+    }
+    if (this.selectedCollection.serviceType === 'sa') {
+      this.toolService.editSaCollectionNext.next(this.selectedCollection);
+      this.toolService.executeCollectionOnEdit.next(true);
+      this.toolService.reOpenTabsModal.next(false);
+      this.modalService.open(this.saCollectionModalId);
+    }
   }
 
 }

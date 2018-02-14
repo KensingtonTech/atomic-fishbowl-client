@@ -36,20 +36,22 @@ export class HttpJsonStream {
     this.toolService.HttpJsonStreamConnected.next(this.connected);
   }
 
-  fetchStream(url: string, headers = {} ): Observable<any> {
+  fetchStream(url: string, headers: any = {} ): Observable<any> {
     log.debug(`HttpJsonStream: fetchStream(): ${url}`);
     let subject: Subject<any> = new Subject<any>();
     let config = {
       // headers: {'Authorization': 'Bearer ' +  token},
-      'url': url,
-      'method': 'GET',
-      'body': '',
-      'cached': false
+      url: url,
+      method: 'GET',
+      body: '',
+      cached: false
     };
 
     if (Object.keys(headers).length !== 0) {
       config['headers'] = headers;
     }
+
+    // log.debug('headers', config['headers'] );
 
     this.oboeService = oboe(config);
 

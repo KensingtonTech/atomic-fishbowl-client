@@ -10,8 +10,11 @@ import * as log from 'loglevel';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div *ngIf="masonryColumnSize" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
+
   <div style="position: relative; min-height: 50px;">
-    <div class="selectable">
+
+    <!--NetWitness Tiles-->
+    <div *ngIf="serviceType == 'nw'" class="selectable">
       <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
         {{session.meta['time'] | formatTime}}
       </div>
@@ -20,6 +23,25 @@ import * as log from 'loglevel';
       </div>
       <div style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
         {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
+      </div>
+      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
+        <i *ngIf="content.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
+        <i *ngIf="content.contentType == 'office'" [class.fa-file-word-o]="content.contentSubType == 'word'" [class.fa-file-excel-o]="content.contentSubType == 'excel'" [class.fa-file-powerpoint-o]="content.contentSubType == 'powerpoint'" class="fa fa-2x"></i>
+      </div>
+    </div>
+
+    <!--SA Tiles-->
+    <div *ngIf="serviceType == 'sa'" class="selectable">
+      <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        {{session.meta['stop_time'] | formatSaTime}}
+      </div>
+      <div style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        {{session.id}}
+      </div>
+      <div style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
       </div>
       <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
         <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
@@ -189,6 +211,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
   @Input() private session: any;
   @Input() private masonryKeys: any;
   @Input() public masonryColumnSize: number;
+  @Input() public serviceType: string; // 'nw' or 'sa'
   public displayTextArea = true;
   private originalSession: any; // Session data that hasn't been de-duped
   private enabledTrigger = 'disabled';
@@ -232,7 +255,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
     // log.debug("onClick")
     // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
 
-    this.toolService.newSession.next(this.originalSession);
+    this.toolService.newSession.next( { session: this.originalSession, serviceType: this.serviceType });
     this.toolService.newImage.next(this.content);
 
     if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {

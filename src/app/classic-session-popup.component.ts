@@ -3,6 +3,7 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
+import { Preferences } from './preferences';
 import * as log from 'loglevel';
 
 @Component( {
@@ -21,7 +22,7 @@ import * as log from 'loglevel';
           <tr *ngFor="let key of displayedKeys">
             <td class="metalabel">{{key}}</td>
             <td>
-              <meta-accordion *ngIf="meta[key]" [items]="meta[key]" class="metavalue">
+              <meta-accordion *ngIf="meta[key]" [items]="meta[key]" [key]="key" class="metavalue">
               </meta-accordion>
               <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
             </td>
@@ -35,7 +36,7 @@ import * as log from 'loglevel';
           <tr *ngFor="let key of getMetaKeys()">
             <td class="metalabel">{{key}}</td>
             <td>
-              <meta-accordion class="metavalue" [items]="meta[key]">
+              <meta-accordion class="metavalue" [items]="meta[key]" [key]="key">
               </meta-accordion>
             </td>
           </tr>
@@ -82,8 +83,6 @@ import * as log from 'loglevel';
 
 } )
 
-// https://172.16.0.56/investigation/13/reconstruction/893035630/AUTO
-
 export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(private dataService: DataService,
@@ -93,30 +92,17 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
 
   @Input('sessionId') sessionId: number;
   @Input('enabled') enabled: number;
+  @Input() public serviceType: string; // 'nw' or 'sa'
   public showAll = false;
   private deviceNumber: number;
   public enabledTrigger: string;
-  private preferences: any;
+  private preferences: Preferences;
   private sessions: any;
   public meta: any;
   private nativeElement = this.el.nativeElement;
   private metaUpdated = false;
   private hideAllMeta = true;
-  private displayedKeys: any =  [
-    'size',
-    'service',
-    'ip.src',
-    'ip.dst',
-    'alias.host',
-    'city.dst',
-    'country.dst',
-    'action',
-    'content',
-    'ad.username.src',
-    'ad.computer.src',
-    'filename',
-    'client'
-  ];
+  private displayedKeys: string[] =  [];
 
   private sessionsReplacedSubscription: Subscription;
   private sessionPublishedSubscription: Subscription;
@@ -136,11 +122,12 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
       this.sessions[sessionId] = s;
     });
 
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => {  // log.debug("prefs observable: ", prefs);
       this.preferences = prefs;
-      if ( 'displayedKeys' in prefs ) {
+      /*if ( 'displayedKeys' in prefs ) {
         this.displayedKeys = prefs.displayedKeys;
       }
+      */
     });
 
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
@@ -170,8 +157,13 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
     return a;
   }
 
-  ngOnChanges(): void {
+  ngOnChanges(e: any): void {
     // log.debug("SessionWidgetComponent ngOnChanges()", this.enabled);
+
+    if ( 'serviceType' in e && e.serviceType.currentValue) {
+      let serviceType = e.serviceType.currentValue;
+      this.displayedKeys = this.preferences[serviceType].displayedKeys;
+    }
 
     if (this.enabled ) {
       // for some odd reason, we can't use shortcut syntax as it evidently doesn't change the var reference
@@ -183,18 +175,10 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
 
     if (this.sessionId) {
       if ( this.sessionId in this.sessions ) {
-        // log.debug("session id " + this.sessionId + ' found');
         this.meta = this.sessions[this.sessionId].meta;
-        this.toolService.newSession.next(this.sessions[this.sessionId]);
-        // this.updated = this.updated + 1;
-        // this.metaUpdated = false;
-        // this.metaUpdated = true;
+        this.toolService.newSession.next( { session: this.sessions[this.sessionId], serviceType: this.serviceType } );
       }
-//      else {
-//        log.debug("session id " + this.sessionId + ' not found!');
-//      }
     }
-    // this.enabledTrigger = this.enabled ? 'enabled' : 'disabled';
   }
 
   showAllClick(): void {

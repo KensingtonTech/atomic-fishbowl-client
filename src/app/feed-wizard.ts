@@ -172,6 +172,9 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   public urlChanged = false;
   public urlVerifyClicked = false;
 
+  public nameValid = false;
+  private feedNames: any;
+
   private initialColumnIDs: ColumnId[] = [
     { id: 'value', name: 'Hash Value'},
     { id: 'type', name: 'Hash Type'},
@@ -200,6 +203,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   private addFeedNextSubscription: Subscription;
   private editFeedNextSubscription: Subscription;
   private reOpenTabsModalSubscription: Subscription;
+  private feedsChangedSubscription: Subscription;
 
 
 
@@ -221,7 +225,20 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.encryptor.setPublicKey(this.pubKey);
     });
 
+    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: any) => {
+      let temp = {};
+      for (let c in feeds) {
+        if (feeds.hasOwnProperty(c)) {
+          let feed = feeds[c];
+          temp[feed.name] = null;
+        }
+      }
+      this.feedNames = temp;
+    } );
+
   }
+
+
 
   ngAfterViewInit(): void {
     log.debug('FeedWizardComponent: ngAfterViewInit()');
@@ -229,12 +246,30 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.changeDetectionRef.detectChanges();
   }
 
+
+
   ngOnDestroy(): void {
     this.addFeedNextSubscription.unsubscribe();
     this.editFeedNextSubscription.unsubscribe();
     // this.reOpenFeedsModalSubscription.unsubscribe();
     this.reOpenTabsModalSubscription.unsubscribe();
+    this.feedsChangedSubscription.unsubscribe();
   }
+
+
+
+  public onNameChanged(name): void {
+    log.debug('NwCollectionModalComponent: onNameChanged()');
+
+    if (!(name in this.feedNames) || this.editing)  {
+      this.nameValid = true;
+    }
+    else {
+      this.nameValid = false;
+    }
+  }
+
+
 
   public onOpen(): void {
     log.debug('FeedWizardComponent: onOpen()');
@@ -276,6 +311,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     else {
       // we're editing an existing feed
       this.name = this.feed.name;
+      this.onNameChanged(this.feed.name);
       this.type = this.feed.type;
       this.delimiter = this.feed.delimiter;
       this.editingId = this.feed.id;
@@ -342,6 +378,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+
+
   public onCancel(): void {
     this.modalService.close(this.id);
     // add a bit to re-open feeds modal
@@ -351,21 +389,31 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.reOpenTabsModal = false; // re-sets the value to default
   }
 
+
+
   public pageOneToPageTwoSubmit(form) {
     this.page = 2;
   }
+
+
 
   public pageTwoToPageThreeSubmit(form) {
     this.page = 3;
   }
 
+
+
   public pageTwoToPageOneSubmit() {
     this.page = 1;
   }
 
+
+
   public pageThreeToPageTwoSubmit() {
     this.page = 2;
   }
+
+
 
   public validateUrlInput(): boolean {
     // ^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$
@@ -373,6 +421,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     let re = /^(?:http(s)?:\/\/)[\w.-]+/;
     return re.test(this.url);
   }
+
+
 
   public onUrlChange(): void {
     // log.debug('FeedWizardComponent: onUrlChange()');
@@ -383,6 +433,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.urlChanged = true;
     }
   }
+
+
 
   public verifyUrl(): void {
     // verify the URL here
@@ -433,12 +485,16 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   }
 
+
+
   public onAuthChanged(): void {
     log.debug('FeedWizardComponent: onAuthChanged()');
     this.authChanged = true;
     this.urlVerified = false;
     this.urlTested = false;
   }
+
+
 
   public uploadHandlerOld(event): void {
     log.debug('FeedWizardComponent: uploadHandler(): event:', event);
@@ -458,6 +514,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     reader.onload = loadHandler;
     reader.readAsText(slice, 'UTF-8');
   }
+
+
 
   public uploadHandler(event): void {
     log.debug('FeedWizardComponent: uploadHandler(): event:', event);
@@ -526,6 +584,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
 
+
   private parseCSV(csvText: string): void {
     let sepLines = csvText.split('\n');
     let splitLines = [];
@@ -558,6 +617,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   }
 
+
+
   public delimiterChanged(): void {
     log.debug('FeedWizardComponent: delimiterChanged()');
     if (this.delimiter) {
@@ -571,17 +632,23 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+
+
   public onDragStart(event, columnId: ColumnId): void {
     log.debug('FeedWizardComponent: onDragStart(): event:', event);
     log.debug('FeedWizardComponent: onDragStart(): columnId:', columnId);
     this.draggingColumnID = columnId;
   }
 
+
+
   public onDragEnd(event, columnId: ColumnId): void {
     log.debug('FeedWizardComponent: onDragEnd(): event:', event);
     log.debug('FeedWizardComponent: onDragEnd(): columnId:', columnId);
     this.draggingColumnID = null;
   }
+
+
 
   public onDrop(event, index): void {
     log.debug('FeedWizardComponent: onDrop(): event:', event);
@@ -605,11 +672,15 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+
+
   public onDeselectColumnId(index): void {
     log.debug('FeedWizardComponent: onDeselectColumnId(): index:', index);
     this.columnDropPort[index].enabled = false;
     this.availableColumnIDs.push(this.columnDropPort[index].columnId);
   }
+
+
 
   public feedDetailsFormValid(): boolean {
     let hashValue = true;
@@ -635,6 +706,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     return false;
   }
 
+
+
   public getColumnNumber(type): number {
     for (let key in this.columnDropPort) {
       if (this.columnDropPort.hasOwnProperty(key)) {
@@ -648,6 +721,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     return null;
   }
+
 
 
   public finalSubmit(): void {

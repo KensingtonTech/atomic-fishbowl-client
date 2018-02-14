@@ -5,6 +5,7 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import * as utils from './utils';
 import * as log from 'loglevel';
+import { Preferences } from './preferences';
 
 @Component({
   selector: 'session-details-modal',
@@ -107,15 +108,20 @@ import * as log from 'loglevel';
 
       <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
         <div style="width: 100%; height: 100%; overflow: hidden;" *ngIf="sessionId && meta">
-          <h3 style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
+          <h3 *ngIf="serviceType == 'nw'" style="margin-top: 7px; color: white;">Session {{sessionId}} Details</h3>
+          <h3 *ngIf="serviceType == 'sa'" style="margin-top: 7px; color: white;">Flow {{sessionId}} Details</h3>
 
           <div *ngIf="!showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
-              <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+              <tr>
+                <td class="metalabel" style="width: 40%;">time</td>
+                <td *ngIf="serviceType == 'nw'" class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+                <td *ngIf="serviceType == 'sa'" class="metavalue" style="width: 60%;">{{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+              </tr>
               <tr *ngFor="let key of displayedKeys">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" *ngIf="meta[key]" [items]="meta[key]" [key]="key"></meta-accordion>
                   <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
                 </td>
               </tr>
@@ -124,11 +130,15 @@ import * as log from 'loglevel';
 
           <div *ngIf="showAll" style="width: 100%; height: 100%; overflow: auto; padding-right: 20px;">
             <table class="wrap" style="width: 100%; table-layout: fixed;">
-              <tr><td class="metalabel" style="width: 40%;">time</td><td class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+              <tr>
+                <td class="metalabel" style="width: 40%;">time</td>
+                <td *ngIf="serviceType == 'nw'" class="metavalue" style="width: 60%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+                <td *ngIf="serviceType == 'sa'" class="metavalue" style="width: 60%;">{{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+              </tr>
               <tr *ngFor="let key of getMetaKeys()">
                 <td class="metalabel">{{key}}</td>
                 <td>
-                  <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
+                  <meta-accordion class="metavalue" [items]="meta[key]" [key]="key"></meta-accordion>
                 </td>
               </tr>
             </table>
@@ -136,7 +146,12 @@ import * as log from 'loglevel';
 
           <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
-          <div *ngIf="preferences.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;"><a target="_blank" href="{{preferences.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
+          <div *ngIf="serviceType == 'nw' && preferences.nw.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;">
+            <a target="_blank" href="{{preferences.nw.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+          </div>
+          <div *ngIf="serviceType == 'sa' && preferences.sa.url && sessionId" style="position: absolute; top: 2px; right: 30px;">
+            <a target="_blank" href="{{saUrlGetter(sessionId)}}"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+          </div>
         </div>
       </div>
 
@@ -196,30 +211,16 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   public sessionId: number;
   public isOpen = false;
   private hideAllMeta = true;
-  private preferences: any;
+  private preferences: Preferences;
   private deviceNumber: number;
-  private displayedKeys: any =  [
-    // these are just defaults in case we can't get them from prefs
-    'size',
-    'service',
-    'ip.src',
-    'ip.dst',
-    'alias.host',
-    'city.dst',
-    'country.dst',
-    'action',
-    'content',
-    'ad.username.src',
-    'ad.computer.src',
-    'filename',
-    'client'
-  ];
+  private displayedKeys: string[] =  [];
 
   // Subscriptions
   private deviceNumberSubscription: Subscription;
   private preferencesChangedSubscription: Subscription;
   private newSessionSubscription: Subscription;
   private newImageSubscription: Subscription;
+  private serviceType: string; // 'nw' or 'sa'
 
 
   ngOnInit(): void {
@@ -227,20 +228,26 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {
                                                                       // log.debug("prefs observable: ", prefs);
                                                                       this.preferences = prefs;
+                                                                      /*
                                                                       if ( 'displayedKeys' in prefs ) {
                                                                         this.displayedKeys = prefs.displayedKeys;
                                                                         this.changeDetectionRef.markForCheck();
                                                                       }
+                                                                      */
                                                                     });
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => {
       this.deviceNumber = $event.deviceNumber;
       this.changeDetectionRef.markForCheck();
     });
 
-    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
-      log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', session);
-      this.session = session;
-      this.meta = session.meta;
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (arg: any ) => {
+      log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', arg);
+      if (this.serviceType !== arg.serviceType) {
+        this.displayedKeys = this.preferences[arg.serviceType].displayedKeys;
+      }
+      this.serviceType = arg.serviceType;
+      this.session = arg.session;
+      this.meta = this.session.meta;
       this.changeDetectionRef.markForCheck();
     });
 
@@ -283,6 +290,26 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     log.debug('SessionDetailsModalComponent: cancelled()');
     this.modalService.close(this.id);
     this.isOpen = false;
+  }
+
+  convertSaTime(value: string) {
+    return parseInt(value[0].substring(0, value[0].indexOf(':')), 10) * 1000;
+  }
+
+  saUrlGetter(sessionId): string {
+    // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO
+    // let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'pb' : ['flow_id=4898292'], 'ca' : { 'start' : 1518021720000, 'end' : 1518108120000}, 'now' : 1518108153464, 'ac': 'Summary' };
+
+    let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'ac': 'Summary' };
+    struct['pb'] = [ 'flow_id=' + sessionId ];
+    let startTime = this.convertSaTime(this.meta['start_time']);
+    let stopTime = this.convertSaTime(this.meta['stop_time']);
+    struct['ca'] = { 'start' : startTime, 'end': stopTime };
+    struct['now'] = new Date().getTime();
+    let encoded = btoa(JSON.stringify(struct));
+    // log.debug('SessionDetailsModalComponent: saUrlGetter(): struct:', struct);
+
+    return this.preferences.sa.url + '/deepsee/index#' + encoded;
   }
 
 }

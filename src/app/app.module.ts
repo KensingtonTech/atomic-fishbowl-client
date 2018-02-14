@@ -41,7 +41,9 @@ import { ToolService } from './tool.service';
 // Our Pipes
 import { FromEpochPipe } from './pipes/from-epoch.pipe';
 import { FormatTimePipe } from './pipes/format-time.pipe';
+import { FormatSaTimePipe } from './pipes/format-satime.pipe';
 import { MapValuesPipe } from './pipes/mapValues.pipe';
+import { AllCapsPipe } from './pipes/allcaps.pipe';
 
 // Our Directives
 import { ToggleFullscreenDirective } from './fullscreen.directive';
@@ -49,9 +51,10 @@ import { ClickOutsideDirective } from './click-outside.directive';
 
 // Our Components
 import { AppComponent } from './app.component';
+import { DefaultRouteComponent } from './default-route.component';
 import { ToolbarWidgetComponent } from './toolbar-widget.component';
 import { SplashScreenModalComponent } from './splashscreen-modal.component';
-import { AddCollectionModalComponent } from './addcollection-modal.component';
+import { NwCollectionModalComponent } from './nwcollection-modal.component';
 import { DeleteCollectionConfirmModalComponent } from './deletecollection-confirm-modal.component';
 import { PreferencesModalComponent } from './preferences-modal.component';
 import { ManageUsersModalComponent } from './manageusers-modal.component';
@@ -76,6 +79,9 @@ import { FeedsComponent } from './feeds.component';
 import { FeedWizardComponent } from './feed-wizard';
 import { DeleteFeedConfirmModalComponent } from './deletefeed-confirm-modal.component';
 import { TabContainerComponent } from './tabcontainer-component';
+import { SaCollectionModalComponent } from './sacollection-modal.component';
+import { DeleteSaServerConfirmModalComponent } from './deletesaserver-confirm-modal.component';
+import { CollectionDeletedNotifyModalComponent } from './collection-deleted-notify-modal.component';
 
 // Not yet used but imported to prevent compiler error
 import { SessionWidgetComponent } from './session-widget.component';
@@ -118,32 +124,31 @@ import * as $ from 'jquery';
                   RouterModule.forRoot([
                     {
                       path: '',
-                      redirectTo: '/masonryGrid',
-                      pathMatch: 'full'
-                    },
-                    {
-                      path: 'classicGrid',
-                      component: ClassicGridComponent
+                      component: DefaultRouteComponent
                     },
                     {
                       path: 'masonryGrid',
                       component: MasonryGridComponent
                     },
+
                     {
-                      path: 'login',
-                      component: LoginComponent
+                      path: 'classicGrid',
+                      component: ClassicGridComponent
                     }
                   ])
                 ],
   declarations: [ AppComponent,
+                  DefaultRouteComponent,
                   ClassicGridComponent,
                   MasonryGridComponent,
                   ClassicSessionPopupComponent,
                   ToolbarWidgetComponent,
                   FromEpochPipe,
                   FormatTimePipe,
+                  FormatSaTimePipe,
                   MapValuesPipe,
-                  AddCollectionModalComponent,
+                  AllCapsPipe,
+                  NwCollectionModalComponent,
                   DeleteCollectionConfirmModalComponent,
                   ClassicControlBarComponent,
                   PreferencesModalComponent,
@@ -168,7 +173,10 @@ import * as $ from 'jquery';
                   FeedsComponent,
                   FeedWizardComponent,
                   DeleteFeedConfirmModalComponent,
-                  TabContainerComponent
+                  TabContainerComponent,
+                  SaCollectionModalComponent,
+                  DeleteSaServerConfirmModalComponent,
+                  CollectionDeletedNotifyModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

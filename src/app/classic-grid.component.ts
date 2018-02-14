@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
 import { PanZoomConfig } from './panzoom/panzoom-config';
@@ -11,8 +12,8 @@ import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
-import * as utils from './utils';
 import { Element } from '@angular/compiler';
+import * as utils from './utils';
 import * as log from 'loglevel';
 
 interface Point {
@@ -27,7 +28,7 @@ interface Point {
 <div (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
   <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
-      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionid]="item.session"></classic-tile>
+      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType"></classic-tile>
     </div>
   </panzoom>
   <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
@@ -36,7 +37,7 @@ interface Point {
     <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
   </div>
   <pdf-viewer-modal [apiServerUrl]="apiServerUrl" id="pdf-viewer"></pdf-viewer-modal>
-  <classic-session-popup [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" #sessionWidget></classic-session-popup>
+  <classic-session-popup [enabled]="sessionWidgetEnabled" [sessionId]="hoveredContentSession" [serviceType]="selectedCollectionServiceType"> #sessionWidget></classic-session-popup>
 </div>
 `,
   styles: [`
@@ -55,7 +56,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                 private elRef: ElementRef,
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
-                private toolService: ToolService ) {} // (<any>$).expr.cacheLength = 1;
+                private toolService: ToolService,
+                private router: Router,
+                private route: ActivatedRoute ) {} // (<any>$).expr.cacheLength = 1;
 
   public panzoomConfig = new PanZoomConfig;
   private panzoomModel: PanZoomModel;
@@ -82,7 +85,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private caseSensitiveSearch = false;
   private showOnlyImages: any = [];
   private lastSearchTerm = '';
-  public selectedCollectionType: string;
+  public selectedCollectionType: string = null;
+  public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
   private collectionId: string;
   public sessionsDefined = false;
   public destroyView = true;
@@ -91,6 +95,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private searchBarOpen = false;
   private pauseMonitoring = false;
   private transitionZoomLevel = 3.9;
+  private previousFocusedElement: Node;
+
+  public tabContainerModalId = 'tab-container-modal';
+  private urlParametersLoaded = false;
 
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
@@ -104,12 +112,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private sessionPublishedSubscription: Subscription;
   private contentReplacedSubscription: Subscription;
   private contentPublishedSubscription: Subscription;
-  private searchChangedSubscription: Subscription;
+  private searchReplacedSubscription: Subscription;
   private searchPublishedSubscription: Subscription;
   private sessionsPurgedSubscription: Subscription;
   private modelChangedSubscription: Subscription;
   private newApiSubscription: Subscription;
-  private previousFocusedElement: Node;
+  private onSplashScreenAtStartupClosedSubscription: Subscription;
+
 
 
   ngOnDestroy(): void {
@@ -125,22 +134,92 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.sessionPublishedSubscription.unsubscribe();
     this.contentReplacedSubscription.unsubscribe();
     this.contentPublishedSubscription.unsubscribe();
-    this.searchChangedSubscription.unsubscribe();
+    this.searchReplacedSubscription.unsubscribe();
     this.searchPublishedSubscription.unsubscribe();
     this.sessionsPurgedSubscription.unsubscribe();
     this.modelChangedSubscription.unsubscribe();
     this.newApiSubscription.unsubscribe();
+    this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
   }
+
+
+
+  parseQueryParams(params: any): void {
+    if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) ) ) {
+
+      if (params['op'] !== 'adhoc') {
+        return;
+      }
+
+      if (params['service'] !== 'nw' && params['service'] !== 'sa') {
+        return;
+      }
+
+      if ('ip' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
+        return;
+      }
+
+      if ('host' in params && 'ip' in params) {
+        // you can't have both ip and host
+        return;
+      }
+
+      this.toolService.urlParametersLoaded = true;
+      this.toolService.queryParams = params;
+
+    }
+  }
+
 
 
   ngOnInit(): void {
     log.debug('ClassicGridComponent: ngOnInit()');
+    this.toolService.lastRoute = 'classicGrid';
+
+
+    // New startup code
+    this.onSplashScreenAtStartupClosedSubscription = this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
+      if (!this.toolService.queryParams) {
+        this.modalService.open(this.tabContainerModalId);
+      }
+    });
+
+    // log.debug('splashLoaded:', this.toolService.splashLoaded);
+    
+    let queryParams = this.route.snapshot.queryParams || null;
+    if ( !this.toolService.splashLoaded && ( (!queryParams  && !this.toolService.urlParametersLoaded) || ( !this.toolService.urlParametersLoaded && queryParams && Object.keys(queryParams).length === 0 ) ) ) {
+      // only load the splash screen if we don't have ad hoc query parameters
+      setTimeout( () => this.modalService.open('splashScreenModal'), 250);
+    }
+    if (Object.keys(queryParams).length !== 0) {
+      // enter this block when first navigating to this page with custom url parameters
+      this.parseQueryParams(queryParams);
+      // the above function will store any query parameters in toolService.
+      // we then must re-navigate to this page to clear the url bar query parameters
+      log.debug('ClassicGridComponent: redirecting to .');
+      this.router.navigate(['.'], { queryParams: {} } );
+    }
+
+    else if (this.toolService.queryParams) {
+      // if we have query parameters, load the appropriate ad hoc modal
+      this.toolService.splashLoaded = true; // we don't want the splash to load if the user navigates to a different view
+      if (this.toolService.queryParams['service'] === 'nw') {
+        this.toolService.addNwAdhocCollectionNext.next(this.toolService.queryParams);
+      }
+      if (this.toolService.queryParams['service'] === 'sa') {
+        this.toolService.addSaAdhocCollectionNext.next(this.toolService.queryParams);
+      }
+      this.toolService.queryParams = null;
+      this.toolService.urlParametersLoaded = false;
+    }
+    // End new startup code
 
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
 
 
+    // PanZoom Config
     this.panzoomConfig.invertMouseWheel = true;
     this.panzoomConfig.useHardwareAcceleration = true;
     this.panzoomConfig.chromeUseTransform = true;
@@ -150,22 +229,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.panzoomConfig.initialZoomToFit = { x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
     this.panzoomConfig.freeMouseWheel = true;
     this.panzoomConfig.freeMouseWheelFactor = 0.01;
-
-    this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => {
-      this.panzoomModel = model;
-      this.sessionWidgetDecider();
-    });
-    this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: PanZoomAPI) => {
-      log.debug('ClassicGridComponent: newApiSubscription: Got new API');
-      this.panZoomAPI = api;
-    });
+    this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => this.onModelChanged(model) );
+    this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: PanZoomAPI) => this.onGotNewApi(api) );
 
 
     // Take subscriptions
 
-    this.searchBarOpenSubscription = this.toolService.searchBarOpen.subscribe( (state: boolean) => {
-      this.searchBarOpen = state;
-    });
+    this.searchBarOpenSubscription = this.toolService.searchBarOpen.subscribe( (state: boolean) => this.onSearchBarOpen(state) );
 
     this.caseSensitiveSearchChangedSubscription = this.toolService.caseSensitiveSearchChanged.subscribe( () => this.toggleCaseSensitiveSearch() );
 
@@ -173,151 +243,27 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     this.maskChangedSubscription = this.toolService.maskChanged.subscribe( (event: any) => this.maskChanged(event) );
 
-    this.noCollectionsSubscription = this.toolService.noCollections.subscribe( () => {
-      log.debug('ClassicGridComponent: noCollectionsSubscription');
-      this.destroyView = true;
-      this.sessionsDefined = false;
-      this.resetContent();
-      this.resetContentCount();
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
-    });
+    this.noCollectionsSubscription = this.toolService.noCollections.subscribe( () => this.onNoCollections() );
 
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: any) => { // this triggers whenever we choose a new collection
-      log.debug('ClassicGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
-      this.destroyView = true;
-      this.sessionsDefined = false;
-      this.resetContent();
-      this.resetContentCount();
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
-      this.selectedCollectionType = collection.type;
-      this.collectionId = collection.id;
-      /*if (this.selectedCollectionType === 'monitoring' || this.selectedCollectionType === 'rolling') { // not needed in classic view
-        this.loadAllBeforeLayout = false;
-      }
-      else {
-        this.loadAllBeforeLayout = true;
-      }*/
-    });
+    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: any) => this.onSelectedCollectionChanged(collection) );
 
-    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => { // this triggers when a monitoring collection refreshes
-      log.debug('ClassicGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
-      if (collection.state === 'monitoring')  {
-        this.destroyView = true;
-        this.changeDetectionRef.detectChanges();
-        this.changeDetectionRef.markForCheck();
-        this.resetContent();
-        this.sessionsDefined = false;
-        this.resetContentCount();
-        this.toolService.changingCollections.next(false);
-        this.destroyView = false;
-        this.changeDetectionRef.detectChanges();
-        this.changeDetectionRef.markForCheck();
-      }
-    });
+    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => this.onCollectionStateChanged(collection) );
 
-    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => {
-      log.debug('ClassicGridComponent: sessionsReplacedSubscription: sessionsReplaced:', s); // when an a whole new collection is selected
-      this.sessionsDefined = true;
-      this.sessions = s;
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
-    });
+    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => this.onSessionsReplaced(s) );
 
-    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {
-      log.debug('ClassicGridComponent: sessionPublishedSubscription: sessionPublished', s); // when an individual session is pushed from a building collection (or monitoring or rolling)
-      let sessionId = s.id;
-      this.sessionsDefined = true;
-      this.sessions[sessionId] = s;
-    });
+    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => this.onSessionPublished(s) );
 
-    this.contentReplacedSubscription = this.dataService.contentReplaced.subscribe( (i: any) => {
-      log.debug('ClassicGridComponent: contentReplacedSubscription: contentReplaced:', i); // when a new collection is selected
-      this.destroyView = true;
-      this.content = i;
-      this.displayedContent = i.sort(this.sortContent);
-      this.search = [];
-      this.countContent();
-      this.destroyView = false;
-// !!! not sure if we need this first set of detectors here - test it later !!!
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
-      this.sessionWidgetDecider();
-      this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
-    });
+    this.contentReplacedSubscription = this.dataService.contentReplaced.subscribe( (i: any) => this.onContentReplaced(i) );
 
 
-    this.contentPublishedSubscription = this.dataService.contentPublished.subscribe( (newContent: any) =>  { // when content is pushed from a still-building rolling, or monitoring collection
-      log.debug('ClassicGridComponent: contentPublishedSubscription: contentPublished:', newContent);
+    this.contentPublishedSubscription = this.dataService.contentPublished.subscribe( (newContent: any) => this.onContentPublished(newContent) );
 
-      // update content counts here to save cycles not calculating image masks
-      for (let i = 0; i < newContent.length; i++) {
-        this.content.push(newContent[i]);
-        if (newContent[i].contentType === 'image' ) {
-          this.contentCount.images++;
-        }
-        else if (newContent[i].contentType === 'pdf' ) {
-          this.contentCount.pdfs++;
-        }
-        else if (newContent[i].contentType === 'office' ) {
-          this.contentCount.officeDocs++;
-        }
-        else if (newContent[i].contentType === 'hash' ) {
-          this.contentCount.hashes++;
-        }
-        else if ( this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType) ) {
-            this.contentCount.dodgyArchives++;
-        }
-      }
-      this.contentCount.total = this.content.length;
-      this.toolService.contentCount.next( this.contentCount );
-
-      // if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
-      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
-      this.sessionWidgetDecider();
-    });
-
-    this.searchChangedSubscription = this.dataService.searchChanged.subscribe( (s: Search[]) =>  { // this receives complete search term data from complete collection
-      this.search = s;
-      log.debug('ClassicGridComponent: searchChangedSubscription: searchChanged:', this.search);
-      // this.changeDetectionRef.detectChanges();
-      // this.changeDetectionRef.markForCheck();
-    });
+    this.searchReplacedSubscription = this.dataService.searchReplaced.subscribe( (s: Search[]) => this.onSearchReplaced(s) );
 
 
-    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: Search[]) => { // this receives a partial search term data from a building collection
-      log.debug('ClassicGridComponent: searchPublishedSubscription: searchPublished:', s);
-      for (let i = 0; i < s.length; i++) {
-        this.search.push(s[i]);
-      }
-      // log.debug("ClassicGridComponent: searchPublishedSubscription: this.search:", this.search);
-      // this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
-    });
+    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: Search[]) => this.onSearchPublished(s) );
 
-    this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) =>  {
-      log.debug('ClassicGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
-
-      let searchRemoved = this.purgeSessions(sessionsToPurge);
-
-// !!! this displayedContent line should be revisited so that it takes in to account last mask and search!!!
-      // this.displayedContent = this.content.sort(this.sortContent);
-// !!!
-
-      this.maskChanged(this.lastMask);
-      this.countContent();
-      if (searchRemoved > 0 && this.searchBarOpen) {
-        this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-      }
-      // this.changeDetectionRef.detectChanges();
-      // this.changeDetectionRef.markForCheck();
-    });
+    this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) => this.onSessionsPurged(sessionsToPurge) );
 
     if (this.toolService.loadCollectionOnRouteChange) {
       this.toolService.loadCollectionOnRouteChange = false;
@@ -325,6 +271,195 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
 
   }
+
+
+
+  onSessionsPurged(sessionsToPurge: number[]): void {
+    log.debug('ClassicGridComponent: sessionsPurgedSubscription: sessionsPurged:', sessionsToPurge);
+
+    let searchRemoved = this.purgeSessions(sessionsToPurge);
+
+// !!! this displayedContent line should be revisited so that it takes in to account last mask and search!!!
+    // this.displayedContent = this.content.sort(this.sortContent);
+// !!!
+
+    this.maskChanged(this.lastMask);
+    this.countContent();
+    if (searchRemoved > 0 && this.searchBarOpen) {
+      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+    }
+    // this.changeDetectionRef.detectChanges();
+    // this.changeDetectionRef.markForCheck();
+  }
+
+
+
+  onSearchPublished(s: Search[]): void {
+    // this receives a partial search term data from a building collection
+    log.debug('ClassicGridComponent: searchPublishedSubscription: searchPublished:', s);
+    for (let i = 0; i < s.length; i++) {
+      this.search.push(s[i]);
+    }
+    // log.debug("ClassicGridComponent: searchPublishedSubscription: this.search:", this.search);
+    // this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+  }
+
+
+
+  onSearchReplaced(s: Search[]): void {
+    // this receives complete search term data from complete collection
+    this.search = s;
+    log.debug('ClassicGridComponent: searchReplacedSubscription: searchReplaced:', this.search);
+    // this.changeDetectionRef.detectChanges();
+    // this.changeDetectionRef.markForCheck();
+  }
+
+
+
+  onContentPublished(newContent: any): void {
+    // when content is pushed from a still-building rolling, or monitoring collection
+    log.debug('ClassicGridComponent: contentPublishedSubscription: contentPublished:', newContent);
+
+    // update content counts here to save cycles not calculating image masks
+    for (let i = 0; i < newContent.length; i++) {
+      this.content.push(newContent[i]);
+      if (newContent[i].contentType === 'image' ) {
+        this.contentCount.images++;
+      }
+      else if (newContent[i].contentType === 'pdf' ) {
+        this.contentCount.pdfs++;
+      }
+      else if (newContent[i].contentType === 'office' ) {
+        this.contentCount.officeDocs++;
+      }
+      else if (newContent[i].contentType === 'hash' ) {
+        this.contentCount.hashes++;
+      }
+      else if ( this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType) ) {
+          this.contentCount.dodgyArchives++;
+      }
+    }
+    this.contentCount.total = this.content.length;
+    this.toolService.contentCount.next( this.contentCount );
+
+    // if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
+    this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+    this.sessionWidgetDecider();
+  }
+
+
+
+  onContentReplaced(i: any): void {
+    log.debug('ClassicGridComponent: contentReplacedSubscription: contentReplaced:', i); // when a new collection is selected
+    this.destroyView = true;
+    this.content = i;
+    this.displayedContent = i.sort(this.sortContent);
+    this.search = [];
+    this.countContent();
+    this.destroyView = false;
+// !!! not sure if we need this first set of detectors here - test it later !!!
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+    this.sessionWidgetDecider();
+    this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+  }
+
+
+
+  onSessionPublished(s: any): void {
+    log.debug('ClassicGridComponent: sessionPublishedSubscription: sessionPublished', s); // when an individual session is pushed from a building collection (or monitoring or rolling)
+    let sessionId = s.id;
+    this.sessionsDefined = true;
+    this.sessions[sessionId] = s;
+  }
+
+
+
+  onSessionsReplaced(s: any): void {
+    // when an a whole new collection is selected
+    log.debug('ClassicGridComponent: sessionsReplacedSubscription: sessionsReplaced:', s);
+    this.sessionsDefined = true;
+    this.sessions = s;
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+  }
+
+
+
+  onCollectionStateChanged(collection: any): void {
+    // this triggers when a monitoring collection refreshes
+    log.debug('ClassicGridComponent: collectionStateChangedSubscription: collectionStateChanged:', collection.state);
+    if (collection.state === 'monitoring')  {
+      this.destroyView = true;
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+      this.resetContent();
+      this.sessionsDefined = false;
+      this.resetContentCount();
+      this.toolService.changingCollections.next(false);
+      this.destroyView = false;
+      this.changeDetectionRef.detectChanges();
+      this.changeDetectionRef.markForCheck();
+    }
+  }
+
+
+  onSelectedCollectionChanged(collection: any): void {
+    // this triggers whenever we choose a new collection
+    log.debug('ClassicGridComponent: selectedCollectionChangedSubscription: selectedCollectionChanged:', collection);
+    this.destroyView = true;
+    this.sessionsDefined = false;
+    this.resetContent();
+    this.resetContentCount();
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+    this.selectedCollectionType = collection.type;
+    this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
+    this.collectionId = collection.id;
+    /*if (this.selectedCollectionType === 'monitoring' || this.selectedCollectionType === 'rolling') { // not needed in classic view
+      this.loadAllBeforeLayout = false;
+    }
+    else {
+      this.loadAllBeforeLayout = true;
+    }*/
+  }
+
+
+  onNoCollections(): void {
+    log.debug('ClassicGridComponent: noCollectionsSubscription');
+    this.destroyView = true;
+    this.sessionsDefined = false;
+    this.resetContent();
+    this.resetContentCount();
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+  }
+
+
+  onSearchBarOpen(state: boolean): void {
+    this.searchBarOpen = state;
+  }
+
+
+
+  onModelChanged(model: PanZoomModel): void {
+    this.panzoomModel = model;
+    this.sessionWidgetDecider();
+  }
+
+
+
+  onGotNewApi(api: PanZoomAPI): void {
+    log.debug('ClassicGridComponent: newApiSubscription: Got new API');
+    this.panZoomAPI = api;
+  }
+
 
 
   public onWindowResize(): void {

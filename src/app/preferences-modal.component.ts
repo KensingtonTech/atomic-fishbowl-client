@@ -1,9 +1,11 @@
-import { Component, ChangeDetectionStrategy, ElementRef, ViewChild, Input, Output, EventEmitter, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
-import { NgForm } from '@angular/forms';
-import { defaultQueries } from './default-queries';
+// import { NgForm } from '@angular/forms';
+import { defaultNwQueries } from './default-nw-queries';
+import { defaultSaQueries } from './default-sa-queries';
 import { SelectItem } from 'primeng/components/common/selectitem';
+import { Preferences } from './preferences';
 import * as log from 'loglevel';
 
 @Component({
@@ -21,24 +23,15 @@ import * as log from 'loglevel';
 export class PreferencesModalComponent implements OnInit {
 
   constructor(private dataService: DataService,
-              private modalService: ModalService,
-              private changeDetectionRef: ChangeDetectorRef ) {}
-
-  @Input('enabled') enabled: boolean;
-  @ViewChild('topDiv') topDiv: ElementRef;
+              private modalService: ModalService) {}
 
   public id = 'preferences-modal';
 
-  private defaultNwInvestigateUrl = '';
-  private defaultDefaultNwquery = `filetype='pdf','office 2007 document'`;
-  private defaultMinX = 1;
-  private defaultMinY = 1;
-  private defaultDisplayedKeys = [ 'size', 'service', 'ip.src', 'ip.dst', 'alias.host', 'city.dst', 'country.dst', 'action', 'content', 'ad.username.src', 'ad.computer.src', 'filename', 'client'];
-  private defaultDefaultContentLimit = 1000;
-  private defaultDefaultRollingHours = 1;
-  public defaultQueries = defaultQueries;
-  public defaultQueriesOptions: SelectItem[] = [];
-  private defaultMasonryColumnSize = 350;
+  public defaultNwQueries = defaultNwQueries;
+  public defaultNwQueriesOptions: SelectItem[] = [];
+
+  public defaultSaQueries = defaultSaQueries;
+  public defaultSaQueriesOptions: SelectItem[] = [];
 
   private defaultMasonryKeys: any = [
                                 { key: 'alias.host', friendly: 'Hostname' },
@@ -47,27 +40,65 @@ export class PreferencesModalComponent implements OnInit {
                                 { key: 'ad.domain.src', friendly: 'AD Domain' }
                               ];
 
-  public preferencesModel: any = { nwInvestigateUrl: this.defaultNwInvestigateUrl,
-                                    defaultNwQuery: this.defaultDefaultNwquery,
-                                    minX: this.defaultMinX,
-                                    minY: this.defaultMinY,
-                                    displayedKeys: this.getDisplayedKeysValue(this.defaultDisplayedKeys),
-                                    defaultContentLimit: this.defaultDefaultContentLimit,
-                                    defaultRollingHours: this.defaultDefaultRollingHours,
-                                    defaultQuerySelection: this.defaultQueries[0].text, // this only has effect on the first run of Atomic Fishbowl.  After the prefs have been set, it will be read in from the prefs
-                                    masonryColumnSize: this.defaultMasonryColumnSize,
-                                    masonryKeys: this.getMasonryKeysValue(this.defaultMasonryKeys),
-                                    contentTimeout: null,
-                                    queryTimeout: null,
-                                    queryDelayMinutes: null,
-                                    maxContentErrors: null
+  public displayedNwKeysString: string = null;
+  public masonryNwKeysString: string = null;
+  public displayedSaKeysString: string = null;
+  public masonrySaKeysString: string = null;
+
+  public preferencesModel: Preferences = {
+                                    // global
+                                    minX: null,
+                                    minY: null,
+                                    defaultContentLimit: null,
+                                    defaultRollingHours: null,
+                                    masonryColumnSize: null,
+                                    serviceTypes: { nw: false, sa: false },
+                                    debugLogging: false,
+
+                                    // netwitness
+                                    nw: {
+                                      nwInvestigateUrl: null,
+                                      presetQuery: null,
+                                      displayedKeys: null, // this.getDisplayedKeysValue(this.defaultDisplayedKeys),
+                                      defaultQuerySelection: null, // this.defaultNwQueries[0].text, // this only has effect on the first run of Atomic Fishbowl.  After the prefs have been set, it will be read in from the prefs
+                                      masonryKeys: null, // this.getMasonryKeysValue(this.defaultMasonryKeys),
+                                      contentTimeout: null,
+                                      queryTimeout: null,
+                                      queryDelayMinutes: null,
+                                      maxContentErrors: null
+                                    },
+
+                                    // solera
+                                    sa: {
+                                      url: null,
+                                      contentTimeout: null,
+                                      queryTimeout: null,
+                                      queryDelayMinutes: null,
+                                      maxContentErrors: null,
+                                      presetQuery: null,
+                                      defaultQuerySelection: null,
+                                      displayedKeys: null,
+                                      masonryKeys: null
+                                    }
                                   };
 
+  public serviceTypeOptions: SelectItem[] = [
+    { label: 'RSA NetWitness', value: 'nw' },
+    { label: 'Symantec Security Analytics', value: 'sa' }
+  ];
+  public selectedServiceTypes: string[] = [ null, null ]; // just netwitness by default
+  public selectedTabIndex = 0;
+
   ngOnInit(): void {
-    for (let i = 0; i < this.defaultQueries.length; i++) {
-      let query = this.defaultQueries[i];
+    for (let i = 0; i < this.defaultNwQueries.length; i++) {
+      let query = this.defaultNwQueries[i];
       let option: SelectItem = { label: query.text, value: query.text };
-      this.defaultQueriesOptions.push(option);
+      this.defaultNwQueriesOptions.push(option);
+    }
+    for (let i = 0; i < this.defaultSaQueries.length; i++) {
+      let query = this.defaultSaQueries[i];
+      let option: SelectItem = { label: query.text, value: query.text };
+      this.defaultSaQueriesOptions.push(option);
     }
   }
 
@@ -177,74 +208,52 @@ export class PreferencesModalComponent implements OnInit {
   onOpen(): void {
     log.debug('PreferencesModalComponent: onOpen()');
     this.dataService.getPreferences()
-                    .then( (prefs: any) => {  log.debug('PreferencesModalComponent: onOpen(): prefs:', prefs);
-                                              if ( 'nwInvestigateUrl' in prefs ) {
-                                                this.preferencesModel.nwInvestigateUrl = prefs.nwInvestigateUrl;
-                                              }
-                                              if ( 'defaultQuerySelection' in prefs ) {
-                                                this.preferencesModel.defaultQuerySelection = prefs.defaultQuerySelection;
-                                              }
-                                              if ( 'defaultNwQuery' in prefs ) {
-                                                this.preferencesModel.defaultNwQuery = prefs.defaultNwQuery;
-                                              }
-                                              if ( 'minX' in prefs ) {
-                                                this.preferencesModel.minX = prefs.minX;
-                                              }
-                                              if ( 'minY' in prefs ) {
-                                                this.preferencesModel.minY = prefs.minY;
-                                              }
-                                              if ( 'displayedKeys' in prefs ) {
-                                                this.preferencesModel.displayedKeys = this.getDisplayedKeysValue(prefs.displayedKeys);
-                                              }
-                                              if ( 'defaultContentLimit' in prefs ) {
-                                                this.preferencesModel.defaultContentLimit = prefs.defaultContentLimit;
-                                              }
-                                              if ( 'defaultRollingHours' in prefs ) {
-                                                this.preferencesModel.defaultRollingHours = prefs.defaultRollingHours;
-                                              }
-                                              if ( 'masonryColumnSize' in prefs ) {
-                                                this.preferencesModel.masonryColumnSize = prefs.masonryColumnSize;
-                                              }
-                                              if ( 'masonryKeys' in prefs ) {
-                                                this.preferencesModel.masonryKeys = this.getMasonryKeysValue(prefs.masonryKeys);
-                                              }
-                                              if ( 'contentTimeout' in prefs ) {
-                                                this.preferencesModel.contentTimeout = prefs.contentTimeout;
-                                              }
-                                              if ( 'queryTimeout' in prefs ) {
-                                                this.preferencesModel.queryTimeout = prefs.queryTimeout;
-                                              }
-                                              if ( 'queryDelayMinutes' in prefs ) {
-                                                this.preferencesModel.queryDelayMinutes = prefs.queryDelayMinutes;
-                                              }
-                                              if ( 'maxContentErrors' in prefs ) {
-                                                this.preferencesModel.maxContentErrors = prefs.maxContentErrors;
-                                              }
-                                              this.changeDetectionRef.markForCheck();
-                                            })
+                    .then( (prefs: Preferences) => {
+                      log.debug('PreferencesModalComponent: onOpen(): prefs:', prefs);
+                      delete prefs['_id'];
+                      this.preferencesModel = prefs;
+                      this.displayedNwKeysString = this.getDisplayedKeysValue(this.preferencesModel.nw.displayedKeys);
+                      this.masonryNwKeysString = this.getMasonryKeysValue(this.preferencesModel.nw.masonryKeys);
+                      this.displayedSaKeysString = this.getDisplayedKeysValue(this.preferencesModel.sa.displayedKeys);
+                      this.masonrySaKeysString = this.getMasonryKeysValue(this.preferencesModel.sa.masonryKeys);
+                      // selectedServiceTypes: string[] = ['nw', null ]; // just netwitness by default
+                      if (prefs.serviceTypes.nw) {
+                        this.selectedServiceTypes[0] = 'nw';
+                      }
+                      if (prefs.serviceTypes.sa) {
+                        this.selectedServiceTypes[1] = 'sa';
+                      }
+                    })
                     .then( () => log.debug(this.preferencesModel) );
   }
 
-  submitPreferences(f: any): void {
-    log.debug('PreferencesModalComponent: submitPreferences(): f', f);
-    let prefs = {
-      nwInvestigateUrl: f.value.nwInvestigateUrl,
-      defaultNwQuery: f.value.defaultNwQuery,
-      minX: f.value.minX,
-      minY: f.value.minY,
-      displayedKeys: this.setDisplayedKeysValue(f.value.displayedKeys),
-      defaultRollingHours: f.value.defaultRollingHours,
-      defaultQuerySelection: f.value.defaultQuerySelection,
-      defaultContentLimit: f.value.defaultContentLimit,
-      masonryColumnSize: f.value.masonryColumnSize,
-      masonryKeys: this.setMasonryKeysValue(f.value.masonryKeys),
-      queryTimeout: f.value.queryTimeout,
-      contentTimeout: f.value.contentTimeout,
-      queryDelayMinutes: f.value.queryDelayMinutes,
-      maxContentErrors: f.value.maxContentErrors
-    };
+  submitPreferences(): void {
+    log.debug('PreferencesModalComponent: submitPreferences()');
+    let prefs: Preferences = this.preferencesModel;
+    prefs.nw.masonryKeys = this.setMasonryKeysValue(this.masonryNwKeysString);
+    prefs.nw.displayedKeys = this.setDisplayedKeysValue(this.displayedNwKeysString);
+    prefs.sa.masonryKeys = this.setMasonryKeysValue(this.masonrySaKeysString);
+    prefs.sa.displayedKeys = this.setDisplayedKeysValue(this.displayedSaKeysString);
+
     this.dataService.setPreferences(prefs)
                     .then( () => this.closeModal() );
+  }
+
+  public onServiceTypeChanged(): void {
+    log.debug('PreferencesModalComponent: onServiceTypeChanged()');
+    let nw = false;
+    let sa = false;
+    for (let i = 0; i < this.selectedServiceTypes.length; i++) {
+      let type = this.selectedServiceTypes[i];
+      if (type === 'nw') {
+        nw = true;
+      }
+      if (type === 'sa') {
+        sa = true;
+      }
+    }
+    this.preferencesModel.serviceTypes.nw = nw;
+    this.preferencesModel.serviceTypes.sa = sa;
   }
 
 }
