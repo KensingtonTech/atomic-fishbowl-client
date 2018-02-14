@@ -221,8 +221,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   ngAfterViewInit(): void {
-    setTimeout( () => this.modalService.open('splashScreenModal'), 250);
-    setTimeout( () => this.onCollectionsClick(), 3500);
+    // setTimeout( () => this.modalService.open('splashScreenModal'), 250);
+    // setTimeout( () => this.onCollectionsClick(), 3500);
+
   }
 
   onCollectionDeleted(collectionId): void {
@@ -461,7 +462,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
   onCollectionsClick(): void {
     this.modalService.open(this.tabContainerModalId);
-
   }
 
   onEditCollectionClick(): void {

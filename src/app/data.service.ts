@@ -48,11 +48,11 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
   public collectionDeleted: Subject<string> = new Subject<string>();
 
-  public init(): void {
+  public init(): Promise<any> {
     // Run by authentication service at login or page load
     log.debug('DataService: init()');
-    this.getPreferences();
     this.getUseCases();
+    return this.getPreferences();
   }
 
   /////////////////////SERVER VERSION/////////////////////
@@ -266,6 +266,60 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
 
+
+  getRollingCollection(id: string): void {
+    log.debug('DataService: getRollingCollection():', id);
+    this.httpJsonStreamService.fetchStream(this.apiUrl + '/collection/rolling/' + id, { afbsessionid: this.sessionId } )
+                              .subscribe( (o: any) => {
+                                                        if ('collection' in o) {
+                                                          // log.debug("received collection update",o.collection);
+                                                          this.collectionStateChanged.next(o.collection);
+                                                        }
+                                                        else if ('wholeCollection' in o) {
+                                                          // this.selectedCollectionChanged.next(collection);
+                                                          this.contentReplaced.next( o['wholeCollection']['images'] );
+                                                          this.sessionsReplaced.next( o['wholeCollection']['sessions'] );
+                                                          if ('search' in o['wholeCollection']) {
+                                                            this.searchReplaced.next( o['wholeCollection']['search'] );
+                                                          }
+                                                        }
+                                                        else if ('collectionDeleted' in o) {
+                                                          // let collectionId = o['collectionDeleted'];
+                                                          let user = o['user'];
+                                                          this.collectionDeleted.next(user);
+                                                        }
+                                                        else if ('heartbeat' in o) { log.debug('heartbeat'); }
+                                                        else if ('error' in o) {
+                                                          this.errorPublished.next(o.error);
+                                                        }
+                                                        else if ('queryResultsCount' in o) {
+                                                          this.queryResultsCountUpdated.next(o.queryResultsCount);
+                                                        }
+                                                        else if ('collectionUpdate' in o) {
+                                                          if ('session' in o.collectionUpdate) {
+                                                            this.sessionPublished.next(o.collectionUpdate.session);
+                                                          }
+                                                          if ('images' in o.collectionUpdate) {
+                                                            this.contentPublished.next(o.collectionUpdate.images);
+                                                          }
+                                                          if ('search' in o.collectionUpdate) {
+                                                            this.searchPublished.next(o.collectionUpdate.search);
+                                                          }
+                                                        }
+                                                        else if ('close' in o) { return; }
+                                                        else if ('collectionPurge' in o) {
+                                                          this.sessionsPurged.next(o.collectionPurge);
+                                                        }
+                                                        else if ('collectionEdited' in o) { } // do something to reload the collection
+                                                        else {
+                                                          // there's data here that shouldn't be
+                                                          log.error('DataService: getRollingCollection(): unhandled JSON data', o);
+                                                        }
+                              });
+  }
+
+
+
   getFixedCollection(id: string, collection: Collection): void {
     log.debug('DataService: getFixedCollection():', id);
     this.selectedCollectionChanged.next(collection);
@@ -371,57 +425,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
                     .catch(e => this.handleError(e));
   }
 
-
-  getRollingCollection(id: string): void {
-    log.debug('DataService: getRollingCollection():', id);
-    this.httpJsonStreamService.fetchStream(this.apiUrl + '/collection/rolling/' + id, {'afbsessionid': this.sessionId} )
-                              .subscribe( (o: any) => {
-                                                        if ('collection' in o) {
-                                                          // log.debug("received collection update",o.collection);
-                                                          this.collectionStateChanged.next(o.collection);
-                                                        }
-                                                        else if ('wholeCollection' in o) {
-                                                          // this.selectedCollectionChanged.next(collection);
-                                                          this.contentReplaced.next( o['wholeCollection']['images'] );
-                                                          this.sessionsReplaced.next( o['wholeCollection']['sessions'] );
-                                                          if ('search' in o['wholeCollection']) {
-                                                            this.searchReplaced.next( o['wholeCollection']['search'] );
-                                                          }
-                                                        }
-                                                        else if ('collectionDeleted' in o) {
-                                                          // let collectionId = o['collectionDeleted'];
-                                                          let user = o['user'];
-                                                          this.collectionDeleted.next(user);
-                                                        }
-                                                        else if ('heartbeat' in o) { log.debug('heartbeat'); }
-                                                        else if ('error' in o) {
-                                                          this.errorPublished.next(o.error);
-                                                        }
-                                                        else if ('queryResultsCount' in o) {
-                                                          this.queryResultsCountUpdated.next(o.queryResultsCount);
-                                                        }
-                                                        else if ('collectionUpdate' in o) {
-                                                          if ('session' in o.collectionUpdate) {
-                                                            this.sessionPublished.next(o.collectionUpdate.session);
-                                                          }
-                                                          if ('images' in o.collectionUpdate) {
-                                                            this.contentPublished.next(o.collectionUpdate.images);
-                                                          }
-                                                          if ('search' in o.collectionUpdate) {
-                                                            this.searchPublished.next(o.collectionUpdate.search);
-                                                          }
-                                                        }
-                                                        else if ('close' in o) { return; }
-                                                        else if ('collectionPurge' in o) {
-                                                          this.sessionsPurged.next(o.collectionPurge);
-                                                        }
-                                                        else if ('collectionEdited' in o) { } // do something to reload the collection
-                                                        else {
-                                                          // there's data here that shouldn't be
-                                                          log.error('DataService: getRollingCollection(): unhandled JSON data', o);
-                                                        }
-                              });
-  }
 
 
   deleteCollection(id: string): Promise<void> {

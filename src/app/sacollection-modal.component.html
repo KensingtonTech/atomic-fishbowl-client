@@ -6,6 +6,7 @@
           <ng-template [ngIf]="mode == 'add'">Create a Security Analytics Collection</ng-template>
           <ng-template [ngIf]="mode == 'editRolling'">Edit a Security Analytics Collection</ng-template>
           <ng-template [ngIf]="mode == 'editFixed'">Reprocess a Security Analytics Collection</ng-template>
+          <ng-template [ngIf]="mode == 'adhoc'">Create an Ad Hoc Security Analytics Collection</ng-template>
         </h3>
         <fieldset [disabled]="formDisabled" style="border: none; margin: 0; padding: 0;">
         <form #addCollectionForm="ngForm" (ngSubmit)="onCollectionSubmit(addCollectionForm)" novalidate>
@@ -86,7 +87,7 @@
           <div class="line-separator"></div>
 
           <!--USE CASES-->
-          <table style="width: 100%;">
+          <table *ngIf="mode != 'adhoc'" style="width: 100%;">
             <tr>
               <td class="column1" style="vertical-align: top;">
                 <b>Use Case</b>
@@ -133,7 +134,8 @@
 
                 <!--QUERY TEXT INPUT BOX-->
                 <div>
-                  <input type="text" name="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
+                  <label *ngIf="mode == 'adhoc'" for="query" style="font-size: 10pt;">Your investigation target will be automatically added to the query when you execute</label>
+                  <input type="text" name="query" id="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
                 </div>
               </td>
             </tr>

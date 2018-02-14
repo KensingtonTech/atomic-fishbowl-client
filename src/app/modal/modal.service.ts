@@ -1,7 +1,10 @@
-﻿export class ModalService {
-    private modals: any[] = [];
+﻿import { ModalComponent } from './modal.component';
 
-    add(modal: any) {
+export class ModalService {
+
+    private modals: ModalComponent[] = [];
+
+    add(modal: ModalComponent) {
         // add modal to array of active modals
         this.modals.push(modal);
     }
@@ -17,7 +20,7 @@
     }
 
     open(id: string) {
-        let modal = null;
+        let modal: ModalComponent = null;
         // open modal specified by id
         for (let i = 0; i < this.modals.length; i++) {
             if (this.modals[i].id === id) {
@@ -29,7 +32,7 @@
     }
 
     close(id: string) {
-        let modal = null;
+        let modal: ModalComponent = null;
         // close modal specified by id
         for (let i = 0; i < this.modals.length; i++) {
             if (this.modals[i].id === id) {
@@ -39,4 +42,12 @@
         }
         modal.close();
     }
+
+    closeAll(): void {
+        for ( let i = 0; i < this.modals.length; i++ ) {
+            let modal: ModalComponent = this.modals[i];
+            modal.close();
+        }
+    }
+
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer2, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
-import { Router, NavigationStart } from '@angular/router';
+import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
 import { NgStyle } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
@@ -13,11 +13,11 @@ import { ContentMask } from './contentmask';
 import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
 import { eval } from 'mathjs';
+import { Collection } from './collection';
+import { Preferences } from './preferences';
 
 import * as utils from './utils';
 import * as log from 'loglevel';
-import { Collection } from './collection';
-import { Preferences } from './preferences';
 declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it
 
 @Component({
@@ -67,6 +67,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService,
                 private router: Router,
+                private route: ActivatedRoute,
                 private zone: NgZone ) {}
 
   @ViewChildren('masonry') masonryRef: QueryList<any>;
@@ -114,6 +115,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private searchBarOpen = false;
   private collectionState = '';
   private preferences: Preferences;
+  public tabContainerModalId = 'tab-container-modal';
+  private urlParametersLoaded = false;
 
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
@@ -138,6 +141,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private openPDFViewerSubscription: Subscription;
   private openSessionViewerSubscription: Subscription;
   private collectionDeletedSubscription: Subscription;
+  private onSplashScreenAtStartupClosedSubscription: Subscription;
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
@@ -163,10 +167,80 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.openPDFViewerSubscription.unsubscribe();
     this.openSessionViewerSubscription.unsubscribe();
     this.collectionDeletedSubscription.unsubscribe();
+    this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
   }
+
+
+
+  parseQueryParams(params: any): void {
+    if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) ) ) {
+
+      if (params['op'] !== 'adhoc') {
+        return;
+      }
+
+      if (params['service'] !== 'nw' && params['service'] !== 'sa') {
+        return;
+      }
+
+      if ('ip' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
+        return;
+      }
+
+      if ('host' in params && 'ip' in params) {
+        // you can't have both ip and host
+        return;
+      }
+
+      this.toolService.urlParametersLoaded = true;
+      this.toolService.queryParams = params;
+
+    }
+  }
+
+
 
   ngOnInit(): void {
     log.debug('MasonryGridComponent: ngOnInit()');
+    this.toolService.lastRoute = 'masonryGrid';
+
+
+    // New startup code
+    log.debug('MasonryGridComponent: ngOnInit(): toolService.urlParametersLoaded:', this.toolService.urlParametersLoaded)
+    log.debug('MasonryGridComponent: ngOnInit(): toolService.queryParams:', this.toolService.queryParams)
+    this.onSplashScreenAtStartupClosedSubscription = this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
+      if (!this.toolService.queryParams) {
+        this.modalService.open(this.tabContainerModalId);
+      }
+    });
+    
+    let queryParams = this.route.snapshot.queryParams || null;
+    if ( !this.toolService.splashLoaded && ( (!queryParams  && !this.toolService.urlParametersLoaded) || ( !this.toolService.urlParametersLoaded && queryParams && Object.keys(queryParams).length === 0 ) ) ) {
+      // only load the splash screen if we don't have ad hoc query parameters
+      setTimeout( () => this.modalService.open('splashScreenModal'), 250);
+    }
+    if (Object.keys(queryParams).length !== 0) {
+      // enter this block when first navigating to this page with custom url parameters
+      this.parseQueryParams(queryParams);
+      // the above function will store any query parameters in toolService.
+      // we then must re-navigate to this page to clear the url bar query parameters
+      this.router.navigate(['.'], { queryParams: {} } );
+    }
+
+    else if (this.toolService.queryParams) {
+      // if we have query parameters, load the appropriate ad hoc modal
+      this.toolService.splashLoaded = true; // we don't want the splash to load if the user navigates to a different view
+      if (this.toolService.queryParams['service'] === 'nw') {
+        this.toolService.addNwAdhocCollectionNext.next(this.toolService.queryParams);
+      }
+      if (this.toolService.queryParams['service'] === 'sa') {
+        this.toolService.addSaAdhocCollectionNext.next(this.toolService.queryParams);
+      }
+      this.toolService.queryParams = null;
+      this.toolService.urlParametersLoaded = false;
+    }
+    // End new startup code
+
 
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');

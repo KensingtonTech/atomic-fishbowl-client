@@ -6,6 +6,7 @@
           <ng-template [ngIf]="mode == 'add'">Create a NetWitness Collection</ng-template>
           <ng-template [ngIf]="mode == 'editRolling'">Edit a NetWitness Collection</ng-template>
           <ng-template [ngIf]="mode == 'editFixed'">Reprocess a NetWitness Collection</ng-template>
+          <ng-template [ngIf]="mode == 'adhoc'">Create an Ad Hoc NetWitness Collection</ng-template>
         </h3>
         <fieldset [disabled]="formDisabled" style="border: none; margin: 0; padding: 0;">
         <form #addCollectionForm="ngForm" (ngSubmit)="onCollectionSubmit(addCollectionForm)" novalidate>
@@ -85,8 +86,8 @@
 
           <div class="line-separator"></div>
 
-            <!--USE CASES-->
-          <table style="width: 100%;">
+          <!--USE CASES-->
+          <table *ngIf="mode != 'adhoc'" style="width: 100%;">
             <tr>
               <td class="column1" style="vertical-align: top;">
                 <b>Use Case</b>
@@ -129,7 +130,8 @@
                 </div>
                 <!--QUERY TEXT INPUT BOX-->
                 <div>
-                  <input type="text" name="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
+                    <label *ngIf="mode == 'adhoc'" for="query" style="font-size: 10pt;">Your investigation target will be automatically added to the query when you execute</label>
+                    <input type="text" name="query" id="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
                 </div>
               </td>
             </tr>
@@ -317,7 +319,7 @@
             </tr>
           </table>
           <!--SELECT A NETWITNESS SERVICE BOX-->
-          <div *ngIf="nwServers" style="position: relative; margin-top: 15px; height: auto; overflow: visible;">
+          <div *ngIf="apiServers" style="position: relative; margin-top: 15px; height: auto; overflow: visible;">
             <h4 style="margin-top: 0px; margin-bottom: 5px;">Select a NetWitness Service</h4>
             
             
@@ -325,18 +327,18 @@
             <!--ADD / REMOVE / EDIT NWSERVER BUTTONS-->
               <div style="padding-top: 3px;">
                 <span (click)="displayServiceAddBox()" [class.fa-deselect]="formDisabled" class="fa fa-plus fa-1">&nbsp;&nbsp;</span>
-                <span (click)="deleteNwServer()" [class.fa-deselect]="formDisabled" class="fa fa-minus fa-1">&nbsp;&nbsp;</span>
-                <span *ngIf="selectedNwServer" [class.fa-deselect]="formDisabled" (click)="editNwServer()" class="fa fa-pencil fa-1"></span>
-                <span *ngIf="selectedNwServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button [disabled]="formDisabled || testInProgress" pButton type="button" (click)="testNwServer()" label="Test"> </button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
+                <span (click)="deleteApiServer()" [class.fa-deselect]="formDisabled" class="fa fa-minus fa-1">&nbsp;&nbsp;</span>
+                <span *ngIf="selectedApiServer" [class.fa-deselect]="formDisabled" (click)="editApiServer()" class="fa fa-pencil fa-1"></span>
+                <span *ngIf="selectedApiServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button [disabled]="formDisabled || testInProgress" pButton type="button" (click)="testApiServer()" label="Test"> </button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
               </div>
 
               <!--NetWitness Server List-->
-              <p-listbox *ngIf="nwServers" [disabled]="formDisabled" [(ngModel)]="selectedNwServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" [options]="nwServersOptions"></p-listbox>
+              <p-listbox *ngIf="apiServers" [disabled]="formDisabled" [(ngModel)]="selectedApiServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" [options]="apiServersOptions"></p-listbox>
 
             
               <!--EXECUTE OR CANCEL BUTTONS-->
             <div style="margin-top: 5px; float: right;">
-              <button pButton type="submit" [disabled]="!nwServerFormValid() || !nameValid" label="Execute"></button>
+              <button pButton type="submit" [disabled]="!apiServerFormValid() || !nameValid" label="Execute"></button>
               <button pButton type="button" (click)="cancel()" label="Cancel"></button>
             </div>
           </div>
@@ -347,15 +349,15 @@
 
 
         <!--ADD A NETWITNESS SERVICE BOX-->
-        <div *ngIf="showNwServiceBox" #addServiceBox style="margin-top: 20px; padding: 5px;">
+        <div *ngIf="showApiServiceBox" #addServiceBox style="margin-top: 20px; padding: 5px;">
 
-          <form #addServiceForm="ngForm" (ngSubmit)="addNwServerSubmit(addServiceForm)" novalidate>
+          <form #addServiceForm="ngForm" (ngSubmit)="addApiServerSubmit(addServiceForm)" novalidate>
             <mat-card>
               <mat-card-content>
-                <mat-card-title *ngIf="nwServerMode == 'add'">
+                <mat-card-title *ngIf="apiServerMode == 'add'">
                   Add a NetWitness Service
                 </mat-card-title>
-                <mat-card-title *ngIf="nwServerMode == 'edit'">
+                <mat-card-title *ngIf="apiServerMode == 'edit'">
                   Edit a NetWitness Service
                 </mat-card-title>
                 <!--HOSTNAME-->
@@ -371,7 +373,7 @@
                 <!--PASSWORD-->
                 <mat-form-field class="full-width">
                   <input matInput [(ngModel)]="serviceFormModel.password" type="password" name="password" placeholder="Password" [required]="passwordRequired" autocomplete="off">
-                  <mat-error *ngIf="nwServerMode == 'add' && !serviceFormModel.password">Password is required</mat-error>
+                  <mat-error *ngIf="apiServerMode == 'add' && !serviceFormModel.password">Password is required</mat-error>
                 </mat-form-field>
                 
 
@@ -397,8 +399,8 @@
                 </div>
                 <!--SAVE SERVICE OR TEST OR CANCEL-->
                 <mat-card-actions align="end">
-                  <button mat-button type="button" (click)="testNwServer()" [disabled]="!addServiceFormValid(addServiceForm) || testInProgress" color="accent">Test</button> 
-                  <button mat-button type="submit" [disabled]="!addServiceFormValid(addServiceForm)">{{nwServerButtonText}}</button> 
+                  <button mat-button type="button" (click)="testApiServer()" [disabled]="!addServiceFormValid(addServiceForm) || testInProgress" color="accent">Test</button> 
+                  <button mat-button type="submit" [disabled]="!addServiceFormValid(addServiceForm)">{{apiServerButtonText}}</button> 
                   <button mat-button type="button" (click)="hideServiceAddBox()">Cancel</button>
                 </mat-card-actions>
 

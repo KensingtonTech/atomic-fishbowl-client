@@ -88,6 +88,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private modalService: ModalService,
               private dragulaService: DragulaService ) {
+                let bag: any = dragulaService.find('first-bag');
+                if (bag !== undefined) {
+                this.dragulaService.destroy('first-bag');
+                };
                 dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => !el.classList.contains('nodrag') });
               }
 

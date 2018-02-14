@@ -12,13 +12,14 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { Subscription } from 'rxjs/Subscription';
 import { SaServer } from './saserver';
 import { Feed } from './feed';
-import * as utils from './utils';
-import * as log from 'loglevel';
 import { CollectionMeta } from './collection-meta';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
+import { Moment } from 'moment';
+import * as utils from './utils';
+import * as log from 'loglevel';
+import * as moment from 'moment';
 declare var JSEncrypt: any;
-
 
 @Component({
   selector: 'sa-collection-modal',
@@ -118,10 +119,10 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
   public tabContainerModalId = 'tab-container-modal';
 
-  public mode = 'add'; // can be add, editRolling, or editFixed
+  public mode = 'add'; // can be add, editRolling, editFixed, or adhoc
   public apiServerMode = 'add'; // can be add or edit
   public formDisabled = false;
-  private defaultCollectionQuery = `filetype='pdf','office 2007 document'`;
+  private defaultCollectionQuery = '';
   private defaultCollectionType = 'rolling';
   public contentTypes = ContentTypes;
   private defaultUseCaseBinding = 'bound';
@@ -152,7 +153,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     md5Enabled: false,
     md5Hashes: ''
   };
-  public queryInputText = this.defaultCollectionQuery;
+  // public queryInputText = this.defaultCollectionQuery;
+  public queryInputText = '';
   public selectedApiServer = '';
   public apiServers: any = {};
   public apiServersOptions: SelectItem[];
@@ -186,6 +188,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   private executeCollectionOnEditSubscription: Subscription;
   private reOpenTabsModalSubscription: Subscription;
   private collectionsChangedSubscription: Subscription;
+  private addSaAdhocCollectionNextSubscription: Subscription;
 
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
@@ -225,6 +228,10 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
   public nameValid = false;
   private collectionNames: any;
+  private origName: string = null;
+
+  private adhocParams: any;
+
 
 
   ngOnInit(): void {
@@ -251,71 +258,9 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( (TorF) => this.reOpenTabsModal = TorF );
 
     // Preferences changed subscription
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) =>  {
-      log.debug('SaCollectionModalComponent: prefs observable: ', prefs);
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
 
-      if (Object.keys(prefs).length === 0) {
-        return; // this handles a race condition where we subscribe before the getPreferences call has actually run
-      }
-      setTimeout( () => { // wrap it all in a setTimeout so our model updates properly
-        this.preferences = prefs;
-
-
-        // We can update this every time
-        if ( 'presetQuery' in prefs.sa ) {
-          this.defaultCollectionQuery = prefs.sa.presetQuery;
-          // this.queryInputText = prefs.sa.presetQuery;
-        }
-
-
-        if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
-
-
-          if ( 'defaultQuerySelection' in prefs.sa ) {
-            for (let i = 0; i < this.queryList.length; i++) {
-              let query = this.queryList[i];
-              if (query.text === prefs.sa.defaultQuerySelection) {
-                log.debug('SaCollectionModalComponent: ngOnInit(): setting query selector to ', query);
-                  this.selectedQuery = query.text; // changes the query in the query select box dropdown
-                  this.queryInputText = query.queryString; // changes the query string in the query string input
-                break;
-              }
-            }
-          }
-
-          if ( 'minX' in prefs && 'minY' in prefs ) {
-            this.collectionFormModel.minX = prefs.minX;
-            this.collectionFormModel.minY = prefs.minY;
-          }
-          if ( 'defaultContentLimit' in prefs ) {
-            this.collectionFormModel.contentLimit = prefs.defaultContentLimit;
-          }
-          if ( 'defaultRollingHours' in prefs ) {
-            this.collectionFormModel.lastHours = prefs.defaultRollingHours;
-          }
-
-          if ( 'presetQuery' in prefs.sa && prefs.sa.defaultQuerySelection === 'Preset Query' ) {
-            // this.defaultCollectionQuery = prefs.sa.presetQuery;
-            this.queryInputText = prefs.sa.presetQuery; // changes the query string in the query string input
-          }
-
-        }
-
-        this.firstRun = false;
-      }, 0);
-    });
-
-    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => {
-      log.debug('SaCollectionModalComponent: useCasesChangedSubscription(): o', o);
-      this.useCases = o.useCases;
-      this.useCasesObj = o.useCasesObj;
-      let useCaseOptions: SelectItem[] = [];
-      useCaseOptions.push( { label: 'Custom', value: 'custom' } );
-      for (let i = 0; i < this.useCases.length; i++) {
-        useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
-      }
-      this.useCaseOptions = useCaseOptions;
-    });
+    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => this.onUseCasesChanged(o) );
 
     // Add collection next subscription
     this.addSaCollectionNextSubscription = this.toolService.addSaCollectionNext.subscribe( () => {
@@ -329,41 +274,13 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     this.confirmSaServerDeleteSubscription = this.toolService.confirmSaServerDelete.subscribe( (id: string) => this.deleteApiServerConfirmed(id) );
 
-    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: Feed[]) => {
-      log.debug('SaCollectionModalComponent: feedsChangedSubscription(): feeds', feeds);
-      let feedOptions: SelectItem[] = [];
-      for (let i in feeds) {
-        if (feeds.hasOwnProperty(i)) {
-          let feed = feeds[i];
-          let name = feed.name;
-          feedOptions.push( { label: name, value: feed } );
-        }
-      }
-      this.feeds = feeds;
-      this.feedOptions = feedOptions;
-
-      if (this.hashFeedId && this.hashFeedId in feeds) {
-        this.selectedFeed = this.feeds[this.hashFeedId];
-      }
-      else {
-        this.selectedFeed = this.feedOptions[0].value;
-      }
-    });
+    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: Feed[]) => this.onFeedsChanged(feeds) );
 
     this.executeCollectionOnEditSubscription = this.toolService.executeCollectionOnEdit.subscribe( TorF => this.executeCollectionOnEdit = TorF);
 
-    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => {
-      let temp = {};
-      for (let c in collections) {
-        if (collections.hasOwnProperty(c)) {
-          let collection = collections[c];
-          temp[collection.name] = null;
-        }
-      }
-      this.collectionNames = temp;
+    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) );
 
-    } );
-
+    this.addSaAdhocCollectionNextSubscription = this.toolService.addSaAdhocCollectionNext.subscribe( (params: any) => this.onAdhocCollection(params) );
   }
 
 
@@ -376,6 +293,114 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.reOpenTabsModalSubscription.unsubscribe();
     this.feedsChangedSubscription.unsubscribe();
     this.collectionsChangedSubscription.unsubscribe();
+    this.addSaAdhocCollectionNextSubscription.unsubscribe();
+  }
+
+
+
+  onPreferencesChanged(prefs: Preferences): void {
+    log.debug('SaCollectionModalComponent: onPreferencesChanged(): prefs observable: ', prefs);
+
+    if (Object.keys(prefs).length === 0) {
+      return; // this handles a race condition where we subscribe before the getPreferences call has actually run
+    }
+
+    setTimeout( () => { // wrap it all in a setTimeout so our model updates properly
+      this.preferences = prefs;
+
+
+      // We can update this every time
+      if ( 'presetQuery' in prefs.sa ) {
+        this.defaultCollectionQuery = prefs.sa.presetQuery;
+        // this.queryInputText = prefs.sa.presetQuery;
+      }
+
+
+      if (this.firstRun) { // we only want to update these the first time we open.  After that, leave them alone, as we don't want the user to have to change them every time he opens the window.  In other words, leave the last-used settings for the next time the user opens the modal
+
+
+        if ( 'defaultQuerySelection' in prefs.sa ) {
+          for (let i = 0; i < this.queryList.length; i++) {
+            let query = this.queryList[i];
+            if (query.text === prefs.sa.defaultQuerySelection) {
+              log.debug('SaCollectionModalComponent: onPreferencesChanged(): setting query selector to ', query);
+              this.selectedQuery = query.text; // changes the query in the query select box dropdown
+              this.queryInputText = query.queryString; // changes the query string in the query string input
+              break;
+            }
+          }
+        }
+
+        if ( 'minX' in prefs && 'minY' in prefs ) {
+          this.collectionFormModel.minX = prefs.minX;
+          this.collectionFormModel.minY = prefs.minY;
+        }
+        if ( 'defaultContentLimit' in prefs ) {
+          this.collectionFormModel.contentLimit = prefs.defaultContentLimit;
+        }
+        if ( 'defaultRollingHours' in prefs ) {
+          this.collectionFormModel.lastHours = prefs.defaultRollingHours;
+        }
+
+        if ( 'presetQuery' in prefs.sa && prefs.sa.defaultQuerySelection === 'Preset Query' ) {
+          this.selectedQuery = 'Preset Query';
+          this.queryInputText = prefs.sa.presetQuery; // changes the query string in the query string input
+        }
+
+      }
+
+      this.firstRun = false;
+    }, 0);
+  }
+
+
+
+  onFeedsChanged(feeds: Feed[]): void {
+    log.debug('SaCollectionModalComponent: onFeedsChanged(): feeds', feeds);
+    let feedOptions: SelectItem[] = [];
+    for (let i in feeds) {
+      if (feeds.hasOwnProperty(i)) {
+        let feed = feeds[i];
+        let name = feed.name;
+        feedOptions.push( { label: name, value: feed } );
+      }
+    }
+    this.feeds = feeds;
+    this.feedOptions = feedOptions;
+
+    if (this.hashFeedId && this.hashFeedId in feeds) {
+      this.selectedFeed = this.feeds[this.hashFeedId];
+    }
+    else {
+      this.selectedFeed = this.feedOptions[0].value;
+    }
+  }
+
+
+
+  onCollectionsChanged(collections: any): void {
+    let temp = {};
+    for (let c in collections) {
+      if (collections.hasOwnProperty(c)) {
+        let collection = collections[c];
+        temp[collection.name] = null;
+      }
+    }
+    this.collectionNames = temp;
+  }
+
+
+
+  onUseCasesChanged(o: any): void {
+    log.debug('SaCollectionModalComponent: onUseCasesChanged(): o', o);
+    this.useCases = o.useCases;
+    this.useCasesObj = o.useCasesObj;
+    let useCaseOptions: SelectItem[] = [];
+    useCaseOptions.push( { label: 'Custom', value: 'custom' } );
+    for (let i = 0; i < this.useCases.length; i++) {
+      useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
+    }
+    this.useCaseOptions = useCaseOptions;
   }
 
 
@@ -383,7 +408,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   public onNameChanged(name): void {
     log.debug('NwCollectionModalComponent: onNameChanged()');
 
-    if (!(name in this.collectionNames) || this.mode === 'editRolling')  {
+    if (!(name in this.collectionNames) || (this.mode === 'editRolling' && name === this.origName))  {
       this.nameValid = true;
     }
     else {
@@ -592,6 +617,23 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     else {
       // We either have a custom use case or an unbound use case
       newCollection.query = this.queryInputText;
+
+      if (this.mode === 'adhoc') {
+        log.debug('SaCollectionModalComponent: onCollectionSubmit(): queryInputText:', this.queryInputText);
+        let query = JSON.parse(this.queryInputText);
+        if ('host' in this.adhocParams) {
+          query.push( { any: [ 'autogenerated_domain~' + this.adhocParams['host'], 'http_server~' + this.adhocParams['host'] ] } )
+        }
+        if ('ip' in this.adhocParams && this.adhocParams['side'] === 'src') {
+          query.push( { any: [ 'ipv4_initiator=\"' + this.adhocParams['ip'] + '\"' ] } )
+        }
+        if ('ip' in this.adhocParams && this.adhocParams['side'] === 'dst') {
+          query.push( { any: [ 'ipv4_responder=\"' + this.adhocParams['ip'] + '\"' ] } )
+        }
+        log.debug('SaCollectionModalComponent: onCollectionSubmit(): query:', query);
+        newCollection.query = JSON.stringify(query);
+      }
+
       newCollection.distillationEnabled = this.collectionFormModel.distillationEnabled;
       newCollection.regexDistillationEnabled = this.collectionFormModel.regexDistillationEnabled;
       newCollection.contentTypes = this.collectionFormModel.selectedContentTypes;
@@ -678,7 +720,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (this.mode === 'add' || this.mode === 'editFixed') {
+    if (this.mode === 'add' || this.mode === 'editFixed' || this.mode === 'adhoc') {
       log.debug('SaCollectionModalComponent: onCollectionSubmit(): new newCollection:', newCollection);
       this.dataService.addCollection(newCollection)
                       .then( () => {
@@ -941,7 +983,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   }
 
 
-
+  
   private onAddCollection(): void {
     log.debug('SaCollectionModalComponent: onAddCollection()');
     setTimeout( () => {
@@ -955,6 +997,57 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
         this.selectedApiServer = Object.keys(this.apiServers)[0];
       }
       log.debug('SaCollectionModalComponent: onAddCollection(): selectedApiServer', this.selectedApiServer);
+    }, 0);
+  }
+
+
+
+  private onAdhocCollection(params: any): void {
+
+    log.debug('SaCollectionModalComponent: onAdhocCollection(): params:', params);
+
+    this.adhocParams = params;
+
+    if (Object.keys(params).length === 0) {
+      return;
+    }
+    
+    setTimeout( () => {
+      this.hashFeedId = null;
+      this.mode = 'adhoc';
+
+      // Collection type
+      this.collectionFormModel.type = 'fixed';
+
+      // Collection name
+      let now = moment().format('YYYY/MM/DD HH:mm:ssZ');
+      if ('host' in params) {
+        this.collectionFormModel.name = 'Adhoc investigation for host \'' + params['host'] + '\' at ' + now;
+      }
+      else if ('ip' in params) {
+        this.collectionFormModel.name = 'Adhoc investigation for ' + params['side'] + ' IP ' + params['ip'] + ' at ' + now;
+      }
+      this.onNameChanged(this.collectionFormModel.name);
+      this.nameBoxRef.first.nativeElement.focus();
+
+      // Use case
+      this.collectionFormModel.selectedUseCase = 'custom'; // this sets it to 'custom'
+      this.showUseCaseValues = false;
+      this.displayUseCaseDescription = false;
+
+      
+      // Content types
+      this.collectionFormModel.selectedContentTypes = [ 'pdfs', 'officedocs', 'images', 'dodgyarchives' ];
+
+      // Timeframe
+      this.selectedTimeframe = 'Last 24 Hours';
+
+      // API Server
+      if (Object.keys(this.apiServers).length !== 0) {
+        this.selectedApiServer = Object.keys(this.apiServers)[0];
+      }
+      log.debug('SaCollectionModalComponent: onAdhocCollection(): selectedApiServer', this.selectedApiServer);
+      this.modalService.open(this.id);
     }, 0);
   }
 
@@ -981,11 +1074,18 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       }
 
       this.collectionFormModel.name = collection.name;
+      this.origName = collection.name;
       this.onNameChanged(collection.name);
       this.collectionFormModel.type = collection.type;
       this.collectionFormModel.contentLimit = collection.contentLimit;
-      this.collectionFormModel.minX = collection.minX;
-      this.collectionFormModel.minY = collection.minY;
+      if ('minX' in collection && 'minY' in collection) {
+        this.collectionFormModel.minX = collection.minX;
+        this.collectionFormModel.minY = collection.minY;
+      }
+      else {
+        this.collectionFormModel.minX = this.preferences.minX;
+        this.collectionFormModel.minY = this.preferences.minY;
+      }
       this.collectionFormModel.selectedUseCase = collection.usecase;
 
       if (collection.bound) {
@@ -1077,6 +1177,10 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     }, 0);
   }
+
+
+
+  
 
 
 

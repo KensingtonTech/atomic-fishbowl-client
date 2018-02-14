@@ -51,6 +51,7 @@ import { ClickOutsideDirective } from './click-outside.directive';
 
 // Our Components
 import { AppComponent } from './app.component';
+import { DefaultRouteComponent } from './default-route.component';
 import { ToolbarWidgetComponent } from './toolbar-widget.component';
 import { SplashScreenModalComponent } from './splashscreen-modal.component';
 import { NwCollectionModalComponent } from './nwcollection-modal.component';
@@ -123,24 +124,21 @@ import * as $ from 'jquery';
                   RouterModule.forRoot([
                     {
                       path: '',
-                      redirectTo: '/masonryGrid',
-                      pathMatch: 'full'
-                    },
-                    {
-                      path: 'classicGrid',
-                      component: ClassicGridComponent
+                      component: DefaultRouteComponent
                     },
                     {
                       path: 'masonryGrid',
                       component: MasonryGridComponent
                     },
+
                     {
-                      path: 'login',
-                      component: LoginComponent
+                      path: 'classicGrid',
+                      component: ClassicGridComponent
                     }
                   ])
                 ],
   declarations: [ AppComponent,
+                  DefaultRouteComponent,
                   ClassicGridComponent,
                   MasonryGridComponent,
                   ClassicSessionPopupComponent,

@@ -30,13 +30,14 @@ export class AuthenticationService {
     this.dataService.abortGetBuildingCollection();
     this.http.get(this.apiUrl + '/logout' )
                     .toPromise()
-                    .then( () => {} )
+                    .then( () => {
+                      this.loggedInUser = null;
+                      this.loggedInChanged.next(false);
+                    } )
                     .catch( (err) => { log.error('AuthenticationService: logout(): ERROR during logout'); });
-
-    this.loggedInUser = null;
-    this.loggedInChanged.next(false);
-    this.router.navigate(['login']);
   }
+
+
 
   getUsers(): Promise<User> {
     return this.http
@@ -47,6 +48,8 @@ export class AuthenticationService {
                 .catch(e => this.handleError(e));
   }
 
+
+
   getUser(userName: string): Promise<User> {
     return this.http.get(this.apiUrl + '/user/' + userName )
                     .toPromise()
@@ -56,39 +59,25 @@ export class AuthenticationService {
                     });*/
                     .then ( response => response as User );
   }
-
-  isLoggedIn(): Promise<boolean> {
-    return this.http.get(this.apiUrl + '/isloggedin' )
-                    .toPromise()
-                    .then( (response: any) => {
-                      // let res = response.json();
-                      let res = response;
-                      this.loggedInUser = res.user;
-                      this.sessionId = res.sessionId;
-                      this.toolService.sessionId.next(this.sessionId);
-                      return true;
-                    })
-                    .catch( () => false ); // check that this tslint-suggested change is kosher
-  }
+  
+  
 
   public login(u: User): Promise<boolean> {
-    // let headers = new Headers({ 'Content-Type': 'application/json' });
-    // let options = new RequestOptions({ headers: headers });
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     let user: User = { username: u.username, password: u.password};
-    // return this.http.post(this.apiUrl + '/login', user, options)
     return this.http.post(this.apiUrl + '/login', user, { headers } )
-                    .toPromise()
-                    .then( (response: any) => {
-                      // let res = response.json();
-                      let res = response;
-                      log.debug('AuthenticationService: login(): Got login response:', res);
+    .toPromise()
+    .then( (response: any) => {
+      let res = response;
+      log.debug('AuthenticationService: login(): Got login response:', res);
                       this.loggedInUser = res.user;
                       this.sessionId = res.sessionId;
                       this.toolService.sessionId.next(this.sessionId);
+                      return this.dataService.init();
+                    })
+                    .then( () => {
                       this.loggedInChanged.next(true);
-                      this.dataService.init();
-                      this.router.navigate(['/']);
+                      // this.router.navigate(['/']);
                       return true;
                     })
                     .catch( (e: any) => {
@@ -99,19 +88,58 @@ export class AuthenticationService {
                     });
   }
 
-  checkCredentials(): void {
-    this.isLoggedIn()
-        .then( (res) => {
-          if (res === false) {
-            this.loggedInChanged.next(false);
-            this.router.navigate(['login']);
-          }
-          else {
-            this.loggedInChanged.next(true);
-            this.dataService.init();
-          }
-        });
+
+
+  isLoggedIn(): Promise<boolean> {
+    log.debug('AuthenticationService: isLoggedIn()');
+    return this.http.get(this.apiUrl + '/isloggedin' )
+                    .toPromise()
+                    .then( (res: any) => {
+                      this.loggedInUser = res.user;
+                      this.sessionId = res.sessionId;
+                      this.toolService.sessionId.next(this.sessionId);
+                      return true;
+                    })
+                    .catch( () => {
+                      return Promise.reject(false);
+                    });
   }
+
+
+
+  checkCredentials(): Promise<any> {
+    // log.debug('AuthenticationService: checkCredentials()');
+    return this.isLoggedIn()
+              .then( () => {
+                return this.dataService.init();
+               } )
+              .then( () => {
+                this.loggedInChanged.next(true);
+                return true;
+              })
+              .catch( () => {
+                this.loggedInChanged.next(false);
+                return false;
+              } );
+  }
+
+                  
+
+
+  /*checkCredentials(): Promise<any> {
+    return this.isLoggedIn()
+              .then( (res) => {
+                if (res === false) {
+                  this.loggedInChanged.next(false);
+                  // this.router.navigate(['login']);
+                  return false;
+                }
+                else {
+                  this.dataService.init();
+                  this.loggedInChanged.next(true);
+                }
+              });
+  }*/
 
   handleError(error: any): Promise<any> {
     log.error('ERROR: ', error);
