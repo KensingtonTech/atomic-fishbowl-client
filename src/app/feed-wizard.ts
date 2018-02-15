@@ -4,11 +4,10 @@ import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Feed, FeedSchedule } from './feed';
-import * as utils from './utils';
-import * as log from 'loglevel';
-import { Subscribable } from 'rxjs/Observable';
 import { UUID } from 'angular2-uuid';
 import { SelectItem } from 'primeng/components/common/selectitem';
+import * as utils from './utils';
+import * as log from 'loglevel';
 declare var JSEncrypt: any;
 
 interface ColumnId {
@@ -204,7 +203,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   private editFeedNextSubscription: Subscription;
   private reOpenTabsModalSubscription: Subscription;
   private feedsChangedSubscription: Subscription;
-
+  private publicKeyChangedSubscription: Subscription;
 
 
   ngOnInit(): void {
@@ -217,13 +216,9 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.feed = feed;
      } );
 
-     this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( TorF => this.reOpenTabsModal = TorF );
+    this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( TorF => this.reOpenTabsModal = TorF );
 
-     this.dataService.getPublicKey().then( (pubKey) => {
-      this.encryptor.log = true;
-      this.pubKey = pubKey;
-      this.encryptor.setPublicKey(this.pubKey);
-    });
+    this.publicKeyChangedSubscription = this.dataService.publicKeyChanged.subscribe( key => this.onPublicKeyChanged(key) );
 
     this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: any) => {
       let temp = {};
@@ -251,15 +246,26 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.addFeedNextSubscription.unsubscribe();
     this.editFeedNextSubscription.unsubscribe();
-    // this.reOpenFeedsModalSubscription.unsubscribe();
     this.reOpenTabsModalSubscription.unsubscribe();
     this.feedsChangedSubscription.unsubscribe();
+    this.publicKeyChangedSubscription.unsubscribe();
+  }
+
+
+
+  onPublicKeyChanged(key: string) {
+    if (!key) {
+      return;
+    }
+    this.encryptor.log = true;
+    this.pubKey = key;
+    this.encryptor.setPublicKey(this.pubKey);
   }
 
 
 
   public onNameChanged(name): void {
-    log.debug('NwCollectionModalComponent: onNameChanged()');
+    // log.debug('NwCollectionModalComponent: onNameChanged()');
 
     if (!(name in this.feedNames) || this.editing)  {
       this.nameValid = true;
@@ -743,7 +749,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.dataService.addFeedManual(feed, this.file)
           .then( () => {
             this.onCancel();
-            this.toolService.refreshFeeds.next();
           })
           .catch( (err) => {
             log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -769,7 +774,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
           this.dataService.editFeedWithFile(feed, this.file)
               .then( () => {
                 this.onCancel();
-                this.toolService.refreshFeeds.next();
               })
               .catch( (err) => {
                 log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -781,7 +785,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
           this.dataService.editFeedWithoutFile(feed)
           .then( () => {
             this.onCancel();
-            this.toolService.refreshFeeds.next();
           })
           .catch( (err) => {
             log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -827,7 +830,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.dataService.addFeedScheduled(feed)
       .then( () => {
         this.onCancel();
-        this.toolService.refreshFeeds.next();
       })
       .catch( (err) => {
         log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -875,7 +877,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.dataService.editFeedWithoutFile(feed)
       .then( () => {
         this.onCancel();
-        this.toolService.refreshFeeds.next();
       })
       .catch( (err) => {
         log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);

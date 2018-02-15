@@ -1,11 +1,11 @@
-import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
-// import { NgForm } from '@angular/forms';
 import { defaultNwQueries } from './default-nw-queries';
 import { defaultSaQueries } from './default-sa-queries';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { Preferences } from './preferences';
+import { Subscription } from 'rxjs/Subscription';
 import * as log from 'loglevel';
 
 @Component({
@@ -20,7 +20,7 @@ import * as log from 'loglevel';
   `]
 })
 
-export class PreferencesModalComponent implements OnInit {
+export class PreferencesModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private modalService: ModalService) {}
@@ -89,6 +89,11 @@ export class PreferencesModalComponent implements OnInit {
   public selectedServiceTypes: string[] = [ null, null ]; // just netwitness by default
   public selectedTabIndex = 0;
 
+  // Subscriptions
+  private preferencesChangedSubscription: Subscription;
+
+
+
   ngOnInit(): void {
     for (let i = 0; i < this.defaultNwQueries.length; i++) {
       let query = this.defaultNwQueries[i];
@@ -100,7 +105,17 @@ export class PreferencesModalComponent implements OnInit {
       let option: SelectItem = { label: query.text, value: query.text };
       this.defaultSaQueriesOptions.push(option);
     }
+
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (preferences: Preferences) => this.onPreferencesChanged(preferences) );
   }
+
+
+
+  ngOnDestroy(): void {
+    this.preferencesChangedSubscription.unsubscribe();
+  }
+
+
 
   getDisplayedKeysValue(a: any): string {
     let text = '';
@@ -112,6 +127,8 @@ export class PreferencesModalComponent implements OnInit {
     }
     return text;
   }
+
+
 
   getMasonryKeysValue(a: any): string {
     let text = '';
@@ -145,6 +162,7 @@ export class PreferencesModalComponent implements OnInit {
     // log.debug('PreferencesModalComponent: setDisplayedKeysValue(): keysArray:', keysArray);
     return keysArray;
   }
+
 
 
   setMasonryKeysValue(v: string): any {
@@ -191,41 +209,54 @@ export class PreferencesModalComponent implements OnInit {
     return keysArray;
   }
 
+
+
   cancel(): void {
     // this.resetForm();
     this.modalService.close(this.id);
   }
 
+
+
   closeModal(): void {
     this.modalService.close(this.id);
   }
+
+
 
   cancelledEventReceived(): void {
     // log.debug('PreferencesModalComponent: cancelledEventReceived()';
     // this.resetForm();
   }
 
-  onOpen(): void {
-    log.debug('PreferencesModalComponent: onOpen()');
-    this.dataService.getPreferences()
-                    .then( (prefs: Preferences) => {
-                      log.debug('PreferencesModalComponent: onOpen(): prefs:', prefs);
-                      delete prefs['_id'];
-                      this.preferencesModel = prefs;
-                      this.displayedNwKeysString = this.getDisplayedKeysValue(this.preferencesModel.nw.displayedKeys);
-                      this.masonryNwKeysString = this.getMasonryKeysValue(this.preferencesModel.nw.masonryKeys);
-                      this.displayedSaKeysString = this.getDisplayedKeysValue(this.preferencesModel.sa.displayedKeys);
-                      this.masonrySaKeysString = this.getMasonryKeysValue(this.preferencesModel.sa.masonryKeys);
-                      // selectedServiceTypes: string[] = ['nw', null ]; // just netwitness by default
-                      if (prefs.serviceTypes.nw) {
-                        this.selectedServiceTypes[0] = 'nw';
-                      }
-                      if (prefs.serviceTypes.sa) {
-                        this.selectedServiceTypes[1] = 'sa';
-                      }
-                    })
-                    .then( () => log.debug(this.preferencesModel) );
+
+
+  onPreferencesChanged(preferences: Preferences) {
+    if (Object.keys(preferences).length === 0) {
+      return;
+    }
+    log.debug('PreferencesModalComponent: onPreferencesChanged(): preferences:', preferences);
+    delete preferences['_id'];
+    this.preferencesModel = preferences;
+    this.displayedNwKeysString = this.getDisplayedKeysValue(this.preferencesModel.nw.displayedKeys);
+    this.masonryNwKeysString = this.getMasonryKeysValue(this.preferencesModel.nw.masonryKeys);
+    this.displayedSaKeysString = this.getDisplayedKeysValue(this.preferencesModel.sa.displayedKeys);
+    this.masonrySaKeysString = this.getMasonryKeysValue(this.preferencesModel.sa.masonryKeys);
+    // selectedServiceTypes: string[] = ['nw', null ]; // just netwitness by default
+    if (preferences.serviceTypes.nw) {
+      this.selectedServiceTypes[0] = 'nw';
+    }
+    if (preferences.serviceTypes.sa) {
+      this.selectedServiceTypes[1] = 'sa';
+    }
+    // log.debug(this.preferencesModel);
   }
+
+
+
+  onOpen(): void {}
+
+
 
   submitPreferences(): void {
     log.debug('PreferencesModalComponent: submitPreferences()');
@@ -238,6 +269,8 @@ export class PreferencesModalComponent implements OnInit {
     this.dataService.setPreferences(prefs)
                     .then( () => this.closeModal() );
   }
+
+
 
   public onServiceTypeChanged(): void {
     log.debug('PreferencesModalComponent: onServiceTypeChanged()');

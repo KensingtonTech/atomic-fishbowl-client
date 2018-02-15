@@ -103,61 +103,66 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
   // Subscriptions
   private feedsChangedSubscription: Subscription;
-  private refreshFeedsSubscription: Subscription;
   private feedsOpenedSubscription: Subscription;
   private tabContainerClosedSubscription: Subscription;
+  private feedStatusChangedSubscription: Subscription;
 
 
 
   ngOnInit(): void {
 
-    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds) => {
-      let tempFeeds: Feed[] = [];
-      for (let n in feeds) {
-        if (feeds.hasOwnProperty(n)) {
-          tempFeeds.push(feeds[n]);
-        }
-      }
-      this.feeds = tempFeeds;
-      this.filterChanged();
-    } );
-
-    this.refreshFeedsSubscription = this.toolService.refreshFeeds.subscribe( () => this.getFeeds() );
+    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds) => this.onFeedsChanged(feeds) );
 
     this.feedsOpenedSubscription = this.toolService.feedsOpened.subscribe( () => this.onOpen() );
 
     this.tabContainerClosedSubscription = this.toolService.tabContainerClosed.subscribe( () => this.onClose() );
 
-    this.getFeeds();
-    this.getFeedStatus();
+    this.feedStatusChangedSubscription = this.dataService.feedStatusChanged.subscribe( feedStatus => this.onFeedStatusChanged(feedStatus) );
   }
+
+
 
   ngOnDestroy(): void {
     this.feedsChangedSubscription.unsubscribe();
-    this.refreshFeedsSubscription.unsubscribe();
     this.feedsOpenedSubscription.unsubscribe();
     this.tabContainerClosedSubscription.unsubscribe();
+    this.feedStatusChangedSubscription.unsubscribe();
   }
 
-  private getFeeds(): void {
-    log.debug('FeedsComponent: getNwServers()');
-    this.dataService.getFeeds();
+
+
+  onFeedStatusChanged(feedStatus): void {
+    if (Object.keys(feedStatus).length === 0) {
+      return;
+    }
+    this.feedStatus = feedStatus;
   }
 
-  public onOpen(): void {
-    this.getFeedStatus();
-    this.feedStatusInterval = window.setInterval( () => this.getFeedStatus(), 10 * 1000 );
-    this.getFeeds();
+
+
+  onFeedsChanged(feeds) {
+    if (Object.keys(feeds).length === 0) {
+      return;
+    }
+    let tempFeeds: Feed[] = [];
+    for (let n in feeds) {
+      if (feeds.hasOwnProperty(n)) {
+        tempFeeds.push(feeds[n]);
+      }
+    }
+    this.feeds = tempFeeds;
+    this.filterChanged();
   }
 
-  public onClose(): void {
-    window.clearInterval(this.feedStatusInterval);
-  }
 
-  public onRefresh(): void {
-    this.getFeeds();
-    this.getFeedStatus();
-  }
+
+  public onOpen(): void {}
+
+
+
+  public onClose(): void {}
+
+
 
   onAddFeedClick(): void {
     log.debug('FeedsComponent: onAddFeedClick()');
@@ -167,6 +172,8 @@ export class FeedsComponent implements OnInit, OnDestroy {
     this.modalService.open(this.feedWizardModalId);
   }
 
+
+
   onEditFeedClick(feed: Feed): void {
     log.debug('FeedsComponent: onEditFeedClick(): feed:', feed);
     this.toolService.editFeedNext.next(feed);
@@ -175,11 +182,15 @@ export class FeedsComponent implements OnInit, OnDestroy {
     this.modalService.open(this.feedWizardModalId);
   }
 
+
+
   onDeleteFeedClick(feed: Feed): void {
     log.debug('FeedsComponent: onDeleteFeedClick()');
     this.toolService.deleteFeedNext.next(feed);
     this.modalService.open(this.deleteFeedModalId);
   }
+
+
 
   public filterChanged(): void {
     // log.debug('FeedsComponent: filterChanged(): filterText:', this.filterText);
@@ -198,19 +209,14 @@ export class FeedsComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   public clearFilter(): void {
     this.filterText = '';
     this.filterChanged();
   }
 
-  private getFeedStatus(): void {
-    this.dataService.getFeedStatus()
-        .then( res => {
-          // log.debug('FeedsComponent: getFeedStatus(): res:', res);
-          this.feedStatus = res;
-        })
-        .catch( err => log.error('Caught error getting feed status:', err) );
-  }
+
 
   public ifStatusExists(id: string): boolean {
     // log.debug('FeedsComponent: ifStatusExists(): feedStatus:', this.feedStatus);

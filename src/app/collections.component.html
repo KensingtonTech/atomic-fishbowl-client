@@ -1,7 +1,6 @@
 <!-- Toolbar -->
 <p-toolbar class="collectionsToolbar">
     <div *ngIf="preferences" class="ui-toolbar-group-right">
-      <span (click)="onRefresh()" class="fa fa-refresh fa-2x" pTooltip="Refresh" style="vertical-align: bottom;"></span>&nbsp;
       <button *ngIf="preferences.serviceTypes.nw" pButton type="button" (click)="onAddNwCollectionClick()" label="New NW Collection"></button>
       <button *ngIf="preferences.serviceTypes.sa" pButton type="button" (click)="onAddSaCollectionClick()" label="New SA Collection"></button>
       <div class="ui-inputgroup">

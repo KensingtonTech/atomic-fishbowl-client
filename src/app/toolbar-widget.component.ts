@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChildren, Input, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, Input, QueryList, ViewEncapsulation } from '@angular/core';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
 import { Collection } from './collection';
@@ -133,7 +133,7 @@ import * as log from 'loglevel';
   `]
 } )
 
-export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
   constructor (private dataService: DataService,
                private modalService: ModalService,
@@ -198,6 +198,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
 
     this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => {
+      if (Object.keys(o).length === 0) {
+        return;
+      }
       this.useCases = o.useCases;
       this.useCasesObj = o.useCasesObj;
     });
@@ -208,6 +211,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
 
     this.collectionDeletedSubscription = this.dataService.collectionDeleted.subscribe( (collectionId: string) => this.onCollectionDeleted(collectionId) );
   }
+
+
 
   public ngOnDestroy() {
     this.contentCountSubscription.unsubscribe();
@@ -220,18 +225,13 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy, AfterViewInit 
     this.collectionDeletedSubscription.unsubscribe();
   }
 
-  ngAfterViewInit(): void {
-    // setTimeout( () => this.modalService.open('splashScreenModal'), 250);
-    // setTimeout( () => this.onCollectionsClick(), 3500);
 
-  }
 
   onCollectionDeleted(collectionId): void {
-
     this.toolService.noCollections.next();
-    this.dataService.refreshCollections();
-
   }
+
+
 
   buildTooltip(): string {
     let tt = '';

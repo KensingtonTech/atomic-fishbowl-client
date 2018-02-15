@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import 'rxjs/add/operator/toPromise';
+import { toPromise } from 'rxjs/operator/toPromise';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { User } from './user';
 import { ToolService } from './tool.service';
@@ -39,28 +39,24 @@ export class AuthenticationService {
 
 
 
-  getUsers(): Promise<User> {
+  /*getUsers(): Promise<User> {
     return this.http
                 .get(this.apiUrl + '/users' )
                 .toPromise()
                 // .then(response => response.json() as User[] )
                 .then(response => response as User[] )
                 .catch(e => this.handleError(e));
-  }
+  }*/
 
 
 
-  getUser(userName: string): Promise<User> {
+  /*getUser(userName: string): Promise<User> {
     return this.http.get(this.apiUrl + '/user/' + userName )
                     .toPromise()
-                    /*.then( response => {
-                      let user = response.json();
-                      return user;
-                    });*/
                     .then ( response => response as User );
-  }
-  
-  
+  }*/
+
+
 
   public login(u: User): Promise<boolean> {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
@@ -123,23 +119,7 @@ export class AuthenticationService {
               } );
   }
 
-                  
 
-
-  /*checkCredentials(): Promise<any> {
-    return this.isLoggedIn()
-              .then( (res) => {
-                if (res === false) {
-                  this.loggedInChanged.next(false);
-                  // this.router.navigate(['login']);
-                  return false;
-                }
-                else {
-                  this.dataService.init();
-                  this.loggedInChanged.next(true);
-                }
-              });
-  }*/
 
   handleError(error: any): Promise<any> {
     log.error('ERROR: ', error);

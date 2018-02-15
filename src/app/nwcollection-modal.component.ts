@@ -183,12 +183,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   private useCasesChangedSubscription: Subscription;
   private addNwCollectionNextSubscription: Subscription;
   private editNwCollectionNextSubscription: Subscription;
-  private confirmNwServerDeleteSubscription: Subscription;
+  // private confirmNwServerDeleteSubscription: Subscription;
   private feedsChangedSubscription: Subscription;
   private executeCollectionOnEditSubscription: Subscription;
   private reOpenTabsModalSubscription: Subscription;
   private collectionsChangedSubscription: Subscription;
   private addNwAdhocCollectionNextSubscription: Subscription;
+  private publicKeyChangedSubscription: Subscription;
+  private apiServersChangedSubscription: Subscription;
 
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
@@ -227,24 +229,19 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   private executeCollectionOnEdit = false;
 
   public nameValid = false;
-  private collectionNames: any;
+  private collectionNames = {};
   private origName: string = null;
 
   private adhocParams: any;
+
+  private newApiServer: NwServer = null;
 
 
   ngOnInit(): void {
 
     log.debug('NwCollectionModalComponent: ngOnInit()');
 
-    this.dataService.getPublicKey().then( (pubKey) => {
-      this.encryptor.log = true;
-      this.pubKey = pubKey;
-      log.debug('NwCollectionModalComponent: Server public key: ', this.pubKey);
-      this.encryptor.setPublicKey(this.pubKey);
-    });
-
-    this.getApiServers();
+    this.publicKeyChangedSubscription = this.dataService.publicKeyChanged.subscribe( key => this.onPublicKeyChanged(key) );
 
     for (let i = 0; i < this.queryList.length; i++) {
       this.queryListObj[this.queryList[i].text] = this.queryList[i];
@@ -262,16 +259,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => this.onUseCasesChanged(o) );
 
     // Add collection next subscription
-    this.addNwCollectionNextSubscription = this.toolService.addNwCollectionNext.subscribe( () => {
-      this.onAddCollection();
-    });
+    this.addNwCollectionNextSubscription = this.toolService.addNwCollectionNext.subscribe( () => this.onAddCollection() );
 
     // Edit collection next subscription
-    this.editNwCollectionNextSubscription = this.toolService.editNwCollectionNext.subscribe( (collection: Collection) => {
-      this.onEditCollection(collection);
-    });
-
-    this.confirmNwServerDeleteSubscription = this.toolService.confirmNwServerDelete.subscribe( (id: string) => this.deleteApiServerConfirmed(id) );
+    this.editNwCollectionNextSubscription = this.toolService.editNwCollectionNext.subscribe( (collection: Collection) => this.onEditCollection(collection) );
 
     this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: Feed[]) => this.onFeedsChanged(feeds) );
 
@@ -280,6 +271,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) );
 
     this.addNwAdhocCollectionNextSubscription = this.toolService.addNwAdhocCollectionNext.subscribe( (params: any) => this.onAdhocCollection(params) );
+
+    this.apiServersChangedSubscription = this.dataService.nwServersChanged.subscribe( (apiServers) => this.onApiServersChanged(apiServers) );
 
   }
 
@@ -294,6 +287,20 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.feedsChangedSubscription.unsubscribe();
     this.collectionsChangedSubscription.unsubscribe();
     this.addNwAdhocCollectionNextSubscription.unsubscribe();
+    this.publicKeyChangedSubscription.unsubscribe();
+    this.apiServersChangedSubscription.unsubscribe();
+    this.executeCollectionOnEditSubscription.unsubscribe();
+  }
+
+
+
+  onPublicKeyChanged(key: string) {
+    if (!key) {
+      return;
+    }
+    this.encryptor.log = true;
+    this.pubKey = key;
+    this.encryptor.setPublicKey(this.pubKey);
   }
 
 
@@ -349,6 +356,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   onCollectionsChanged(collections: any): void {
+    if (Object.keys(collections).length === 0) {
+      return;
+    }
     let temp = {};
     for (let c in collections) {
       if (collections.hasOwnProperty(c)) {
@@ -362,6 +372,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   onFeedsChanged(feeds: Feed[]): void {
+    if (Object.keys(feeds).length === 0) {
+      return;
+    }
     log.debug('NwCollectionModalComponent: onFeedsChanged(): feeds', feeds);
     let feedOptions: SelectItem[] = [];
     for (let i in feeds) {
@@ -385,6 +398,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   onUseCasesChanged(o: any): void {
+    if (Object.keys(o).length === 0) {
+      return;
+    }
     log.debug('NwCollectionModalComponent: onUseCasesChanged(): o', o);
     this.useCases = o.useCases;
     this.useCasesObj = o.useCasesObj;
@@ -493,25 +509,35 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  private getApiServers(): Promise<any> {
-    // log.debug("NwCollectionModalComponent: getApiServers()");
-    return this.dataService.getNwServers()
-      .then( n => {
-        // setTimeout( () => {
-          log.debug('NwCollectionModalComponent: getApiServers(): apiServers:', n);
-          this.apiServers = n;
-          // log.debug("NwCollectionModalComponent: getApiServers(): this.apiServers:", this.apiServers);
+  private onApiServersChanged(apiServers) {
+    if (Object.keys(apiServers).length === 0) {
+      return;
+    }
+    log.debug('NwCollectionModalComponent: onApiServersChanged(): apiServers:', apiServers);
+    this.apiServers = apiServers;
+    // log.debug("NwCollectionModalComponent: onApiServersChanged(): this.apiServers:", this.apiServers);
 
-          let o: SelectItem[] = [];
-          for (let server in this.apiServers) {
-            if (this.apiServers.hasOwnProperty(server)) {
-              // log.debug('nwserver:', server);
-              o.push( { label: this.apiServers[server].friendlyName, value: this.apiServers[server].id } )  ;
-            }
-          }
-          this.apiServersOptions = o;
-        // }, 0);
-      });
+    let o: SelectItem[] = [];
+    for (let server in this.apiServers) {
+      if (this.apiServers.hasOwnProperty(server)) {
+        // log.debug('nwserver:', server);
+        o.push( { label: this.apiServers[server].friendlyName, value: this.apiServers[server].id } )  ;
+      }
+    }
+    this.apiServersOptions = o;
+
+    if (this.newApiServer && this.selectedApiServer === '') {
+      setTimeout( () => this.selectedApiServer = this.newApiServer.id);
+      this.newApiServer = null;
+    }
+    else if (Object.keys(this.apiServers).length === 0) {
+      // log.debug('this.selectedApiServer:', this.selectedApiServer);
+      setTimeout( () => this.selectedApiServer = '', 0);
+    }
+    else if (Object.keys(this.apiServers).length === 1) {
+      // log.debug('this.selectedApiServer:', this.selectedApiServer);
+      setTimeout( () => this.selectedApiServer = Object.keys(this.apiServers)[0], 0);
+    }
   }
 
 
@@ -523,32 +549,6 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
     this.toolService.nwServerToDelete.next(this.apiServers[this.selectedApiServer]);
     this.modalService.open('confirm-nwserver-delete-modal');
-  }
-
-
-
-  private deleteApiServerConfirmed(id: string): void {
-    log.debug('NwCollectionModalComponent: deleteApiServerConfirmed(): id:', id);
-    // log.debug(this.apiServers[this.selectedApiServer].friendlyName);
-    this.dataService.deleteNwServer(id)
-      .then ( () => {
-        this.getApiServers()
-          .then( () => {
-            if (Object.keys(this.apiServers).length === 0) {
-              // log.debug('this.selectedApiServer:', this.selectedApiServer);
-              setTimeout( () => this.selectedApiServer = '', 0);
-            }
-            if (Object.keys(this.apiServers).length === 1) {
-              // log.debug('this.selectedApiServer:', this.selectedApiServer);
-              setTimeout( () => this.selectedApiServer = Object.keys(this.apiServers)[0], 0);
-            }
-            else {
-              log.debug('apiServers key length was:', Object.keys(this.apiServers).length);
-              log.debug('apiServers keys:', Object.keys(this.apiServers));
-            }
-          });
-      });
-
   }
 
 
@@ -761,40 +761,22 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
     log.debug('NwCollectionModalComponent: addNwServer() newServer:', newServer);
 
+    this.newApiServer = newServer;
+
     if (this.apiServerMode === 'add') {
       this.dataService.addNwServer(newServer)
-                      .then( () => {
-                          this.getApiServers()
-                              .then( () => {
-                                log.debug('addApiServerSubmit: returned from getApiServers');
-                                log.debug('addApiServerSubmit: this.selectedApiServer:', this.selectedApiServer);
-                                if (this.selectedApiServer === '') {
-                                  setTimeout( () => this.selectedApiServer = newServer.id);
-                                }
-                              });
-                        })
-                        .catch( (err) => {
-                          let error = JSON.parse(err);
-                          log.error('NwCollectionModalComponent: addApiServerSubmit(): error response from server:', error.error);
-                        });
+                      .catch( (err) => {
+                        let error = JSON.parse(err);
+                        log.error('NwCollectionModalComponent: addApiServerSubmit(): error response from server:', error.error);
+                      });
     }
 
     if (this.apiServerMode === 'edit') {
       this.dataService.editNwServer(newServer)
-                      .then( () => {
-                          this.getApiServers()
-                              .then( () => {
-                                log.debug('addApiServerSubmit: returned from editNwServers');
-                                log.debug('addApiServerSubmit: this.selectedApiServer:', this.selectedApiServer);
-                                if (this.selectedApiServer === '') {
-                                  setTimeout( () => this.selectedApiServer = newServer.id);
-                                }
-                              });
-                        })
-                        .catch( (err) => {
-                          let error = JSON.parse(err);
-                          log.error('NwCollectionModalComponent: addApiServerSubmit(): error response from server:', error.error);
-                        });
+                      .catch( (err) => {
+                        let error = JSON.parse(err);
+                        log.error('NwCollectionModalComponent: addApiServerSubmit(): error response from server:', error.error);
+                      });
     }
 
   }
@@ -803,7 +785,6 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
   public onOpen(): void {
     // log.debug('NwCollectionModalComponent: onOpen()');
-    this.dataService.getFeeds();
   }
 
 
@@ -1003,7 +984,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     if (Object.keys(params).length === 0) {
       return;
     }
-    
+
     setTimeout( () => {
       this.hashFeedId = null;
       this.mode = 'adhoc';
@@ -1027,7 +1008,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.showUseCaseValues = false;
       this.displayUseCaseDescription = false;
 
-      
+
       // Content types
       this.collectionFormModel.selectedContentTypes = [ 'pdfs', 'officedocs', 'images', 'dodgyarchives' ];
 
@@ -1137,7 +1118,6 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
         this.hashingMode = 'feed';
         this.hashFeedId = collection.hashFeed;
         // now get the feed object and stick it in selectedFeed
-        this.dataService.getFeeds();
       }
       else {
         this.hashingMode = 'manual';

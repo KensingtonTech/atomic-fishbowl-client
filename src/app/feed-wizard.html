@@ -94,7 +94,7 @@
             
             <button *ngIf="type == 'scheduled' && !editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified || !nameValid"></button>
             
-            <button *ngIf="type == 'scheduled' && editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValidf"></button>
+            <button *ngIf="type == 'scheduled' && editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValid"></button>
           </div>
           
         </form>

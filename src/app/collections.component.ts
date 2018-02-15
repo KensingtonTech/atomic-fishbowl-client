@@ -90,8 +90,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
               private dragulaService: DragulaService ) {
                 let bag: any = dragulaService.find('first-bag');
                 if (bag !== undefined) {
-                this.dragulaService.destroy('first-bag');
-                };
+                  this.dragulaService.destroy('first-bag');
+                }
                 dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => !el.classList.contains('nodrag') });
               }
 
@@ -118,26 +118,13 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   private collectionsOpenedSubscription: Subscription;
   private preferencesChangedSubscription: Subscription;
   private dragulaDroppedSubscription: Subscription;
+  private nwServersChangedSubscription: Subscription;
+  private saServersChangedSubscription: Subscription;
 
   ngOnInit(): void {
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.onGetCollectionDataAgain() );
 
-    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => {
-      // triggered by dataService.refreshCollections()
-      this.origCollections = collections;
-      let tempCollections = [];
-
-      for (let c in collections) {
-        if (collections.hasOwnProperty(c)) {
-          let collection = collections[c];
-          // let option: SelectItem = { label: collection.name, value: collection.id };
-          tempCollections.push(collection);
-        }
-      }
-      this.collections = tempCollections;
-      log.debug('CollectionsComponent: collectionsChangedSubscription: collections update', this.collections);
-      this.filterChanged();
-    });
+    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) );
 
     this.deleteCollectionConfirmedSubscription = this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.deleteConfirmed(collectionId) );
 
@@ -148,8 +135,6 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.executeEditCollectionSubscription = this.toolService.executeEditCollection.subscribe( (collection: Collection) => {
       this.collectionExecuted(collection);
     });
-
-    this.dataService.refreshCollections();
 
     this.collectionsOpenedSubscription = this.toolService.collectionsOpened.subscribe( () => this.onOpen() );
 
@@ -162,8 +147,9 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
      this.dragulaDroppedSubscription = this.dragulaService.dropModel.subscribe( (bagName, el, target, source) => this.onDragulaDrop(bagName, el, target, source) );
 
-    this.getNwServers();
-    this.getSaServers();
+    this.nwServersChangedSubscription = this.dataService.nwServersChanged.subscribe( apiServers => this.onNwServersChanged(apiServers) );
+    this.saServersChangedSubscription = this.dataService.saServersChanged.subscribe( apiServers => this.onSaServersChanged(apiServers) );
+
   }
 
 
@@ -177,6 +163,50 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.collectionsOpenedSubscription.unsubscribe();
     this.preferencesChangedSubscription.unsubscribe();
     this.dragulaDroppedSubscription.unsubscribe();
+    this.nwServersChangedSubscription.unsubscribe();
+    this.saServersChangedSubscription.unsubscribe();
+  }
+
+
+
+  onNwServersChanged(apiServers): void {
+    if (Object.keys(apiServers).length === 0) {
+      return;
+    }
+    this.nwServers = apiServers;
+  }
+
+
+
+  onSaServersChanged(apiServers): void {
+    if (Object.keys(apiServers).length === 0) {
+      return;
+    }
+    this.saServers = apiServers;
+  }
+
+
+
+  onCollectionsChanged(collections): void {
+      // triggered by update of collections
+
+      if (Object.keys(collections).length === 0) {
+        return;
+      }
+
+      this.origCollections = collections;
+      let tempCollections = [];
+
+      for (let c in collections) {
+        if (collections.hasOwnProperty(c)) {
+          let collection = collections[c];
+          // let option: SelectItem = { label: collection.name, value: collection.id };
+          tempCollections.push(collection);
+        }
+      }
+      this.collections = tempCollections;
+      log.debug('CollectionsComponent: onCollectionsChanged(): collections update', this.collections);
+      this.filterChanged();
   }
 
 
@@ -198,35 +228,9 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  private getNwServers(): Promise<any> {
-    // log.debug("CollectionsComponent: getNwServers()");
-    return this.dataService.getNwServers()
-      .then( n => {
-        // setTimeout( () => {
-          log.debug('CollectionsComponent: getNwServers(): nwServers:', n);
-          this.nwServers = n;
-          // log.debug("AddCollectionModalComponent: getNwServers(): this.nwServers:", this.nwServers);
-      });
-  }
-
-  private getSaServers(): Promise<any> {
-    // log.debug("CollectionsComponent: getSaServers()");
-    return this.dataService.getSaServers()
-      .then( n => {
-        // setTimeout( () => {
-          log.debug('CollectionsComponent: getSaServers(): SaServers:', n);
-          this.saServers = n;
-          // log.debug("AddCollectionModalComponent: getSaServers(): this.saServers:", this.saServers);
-      });
-  }
+  public onOpen(): void {}
 
 
-  public onOpen(): void {
-    this.dataService.refreshCollections()
-                    .then( () => this.filterChanged() );
-    this.getNwServers();
-    this.getSaServers();
-  }
 
   public getNwServerString(id: string): string {
     if (id in this.nwServers) {
@@ -237,6 +241,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   public getSaServerString(id: string): string {
     if (id in this.saServers) {
       return this.saServers[id].host + ':' + this.saServers[id].port;
@@ -245,6 +251,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       return '-';
     }
   }
+
+
 
   public nwServerExists(id: string): boolean {
     if (id in this.nwServers) {
@@ -255,6 +263,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   public saServerExists(id: string): boolean {
     if (id in this.saServers) {
       return true;
@@ -264,6 +274,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   onAddNwCollectionClick(): void {
     // log.debug("CollectionsComponent: onAddNwCollectionClick()");
     this.toolService.addNwCollectionNext.next();
@@ -272,6 +284,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.toolService.reOpenTabsModal.next(true);
   }
 
+
+
   onAddSaCollectionClick(): void {
     // log.debug("CollectionsComponent: onAddNwCollectionClick()");
     this.toolService.addSaCollectionNext.next();
@@ -279,6 +293,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.modalService.open(this.saCollectionModalId);
     this.toolService.reOpenTabsModal.next(true);
   }
+
+
 
   onEditCollectionClick(collection: Collection): void {
     log.debug('CollectionsComponent: onEditCollectionClick(): collection:', collection);
@@ -298,6 +314,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   deleteConfirmed(collectionId: string): void {
     log.debug('CollectionsComponent: deleteConfirmed(): Received deleteConfirmed event');
     // there are two paths - deleting the currently selected collection, or deleting the collection which isn't selected
@@ -306,27 +324,24 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       // we've deleted the currently selected collection
       this.dataService.abortGetBuildingCollection()
                       .then( () => this.toolService.noCollections.next() )
-                      .then( () => this.dataService.deleteCollection(collectionId) )
-                      .then( () => this.dataService.refreshCollections() );
+                      .then( () => this.dataService.deleteCollection(collectionId) );
     }
     else {
       // we've deleted a collection that isn't selected
-      this.dataService.deleteCollection(collectionId)
-                      .then( () => this.dataService.refreshCollections() );
+      this.dataService.deleteCollection(collectionId);
 
     }
   }
 
-  onRefresh(): void {
-    this.dataService.refreshCollections()
-        .then( () => this.filterChanged() );
-  }
+
 
   onDeleteCollectionClick(collection: Collection): void {
     // log.debug('CollectionsComponent: onDeleteCollectionClick()');
     this.toolService.deleteCollectionNext.next(collection);
     this.modalService.open('collection-confirm-delete-modal');
   }
+
+
 
   onCollectionClicked(collection: Collection): void {
     log.debug('CollectionsComponent: onCollectionClicked():', collection.id, collection);
@@ -340,25 +355,14 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.modalService.close(this.tabContainerModalId);
   }
 
+
+
   collectionExecuted(collection: Collection): void {
     // only runs when we add a new collection or edit an existing collection
     log.debug('CollectionsComponent: collectionExecuted():', collection.id, collection);
     this.selectedCollection = collection;
     let id = collection.id;
     this.dataService.abortGetBuildingCollection()
-                    .then( () => this.dataService.refreshCollections() )
-/*
-                    .then( () => {
-                      if (collection.type === 'fixed') {
-                        return this.dataService.buildFixedCollection(collection.id)
-                                   .then( () => this.dataService.refreshCollections() )
-                                   .then( () => {
-                                     collection = this.origCollections[id];
-                                     this.selectedCollection = collection;
-                                    });
-                      }
-                    })
-*/
                     .then( () => {
                       this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
 
@@ -372,6 +376,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
                     });
   }
 
+
+
   connectToCollection(collection: Collection) {
     // makes data connection back to server after we've executed or clicked a collection
     log.debug('CollectionsComponent: connectToCollection(): collection:', collection);
@@ -384,6 +390,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       return;
     }
   }
+
+
 
   onGetCollectionDataAgain(): void {
     // triggered by router component when we switch between views
@@ -402,6 +410,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
           this.connectToCollection(this.selectedCollection);
         });
   }
+
+
 
   public filterChanged(): void {
     // log.debug('CollectionsComponent: filterChanged(): filterText:', this.filterText);
@@ -445,6 +455,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       this.filterEnabled = true;
     }
   }
+
+
 
   public clearFilter(): void {
     this.filterText = '';

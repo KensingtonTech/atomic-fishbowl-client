@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { buildProperties } from './build-properties';
 import { ToolService } from './tool.service';
+import { Subscription } from 'rxjs/Subscription';
 import * as log from 'loglevel';
 
 @Component({
@@ -39,7 +40,7 @@ import * as log from 'loglevel';
 
 })
 
-export class SplashScreenModalComponent implements OnInit {
+export class SplashScreenModalComponent implements OnInit, OnDestroy {
 
   constructor(private modalService: ModalService,
               private dataService: DataService,
@@ -51,18 +52,27 @@ export class SplashScreenModalComponent implements OnInit {
   private closeTimeout: any;
   public firstLoad = true;
 
+  private serverVersionSubscription: Subscription;
+
 
   ngOnInit(): void {
     log.debug('SplashScreenModalComponent: ngOnInit()');
+
     this.version = `${buildProperties.major}.${buildProperties.minor}.${buildProperties.patch}.${buildProperties.build}-${buildProperties.level}`;
-    this.dataService.getServerVersion()
-                    .then( (ver: string) => this.serverVersion = ver);
+
+    this.serverVersionSubscription = this.dataService.serverVersionChanged.subscribe( version => this.serverVersion = version );
+  }
+
+
+
+  ngOnDestroy(): void {
+    this.serverVersionSubscription.unsubscribe();
   }
 
 
 
   onOpen(): void {
-    log.debug("SplashScreenModalComponent: onOpen(): toolService.splashLoaded:", this.toolService.splashLoaded);
+    log.debug('SplashScreenModalComponent: onOpen(): toolService.splashLoaded:', this.toolService.splashLoaded);
     if (!this.toolService.splashLoaded) {
       this.toolService.splashLoaded = true;
       this.closeTimeout = setTimeout( () => {

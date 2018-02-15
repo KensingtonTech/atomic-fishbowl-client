@@ -85,7 +85,6 @@ export class DeleteFeedConfirmModalComponent implements OnInit, OnDestroy {
   onConfirmDelete(): void {
     this.dataService.deleteFeed(this.feed.id)
         .then( () => {
-          this.toolService.refreshFeeds.next();
           this.closeModal();
         })
         .catch( (err) => {

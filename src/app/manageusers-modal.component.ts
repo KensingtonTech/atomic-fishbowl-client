@@ -147,23 +147,21 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public displayUserEditForm = false;
   public addUserForm: FormGroup;
   public editUserForm: FormGroup;
-  private confirmUserDeleteSubscription: Subscription;
   private pubKey: string;
   private encryptor: any = new JSEncrypt();
   public editUserPasswordMatcher = new EditUserPasswordMatcher();
   public addUserPasswordMatcher = new AddUserPasswordMatcher();
 
+  // Subscriptions
+  private confirmUserDeleteSubscription: Subscription;
+  private publicKeyChangedSubscription: Subscription;
+  private usersUpdatedSubscription: Subscription;
+
   ngOnInit(): void {
     log.debug('ManageUsersModalComponent: ngOnInit');
 
-    this.dataService.getPublicKey().then( (pubKey) => {
-      this.encryptor.log = true;
-      this.pubKey = pubKey;
-      log.debug('ManageUsersModalComponent: Server public key: ', this.pubKey);
-      this.encryptor.setPublicKey(this.pubKey);
-    });
+    this.publicKeyChangedSubscription = this.dataService.publicKeyChanged.subscribe( key => this.onPublicKeyChanged(key) );
 
-    this.getUsers();
     this.addUserForm = this.fb.group({
       username: ['', Validators.compose( [ Validators.required, spaceValidator, Validators.minLength(this.minUsernameLength), userExists.bind(this)]) ],
       fullname: '',
@@ -188,10 +186,25 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     });
 
     this.confirmUserDeleteSubscription = this.toolService.confirmUserDelete.subscribe( (id: string) => { this.deleteUserConfirmed(id); } );
+
+    this.usersUpdatedSubscription = this.dataService.usersChanged.subscribe( users => this.onUsersUpdated(users) );
   }
 
   public ngOnDestroy() {
     this.confirmUserDeleteSubscription.unsubscribe();
+    this.publicKeyChangedSubscription.unsubscribe();
+    this.usersUpdatedSubscription.unsubscribe();
+  }
+
+
+
+  onPublicKeyChanged(key: string) {
+    if (!key) {
+      return;
+    }
+    this.encryptor.log = true;
+    this.pubKey = key;
+    this.encryptor.setPublicKey(this.pubKey);
   }
 
 
@@ -230,9 +243,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       },
       enabled: true
     });
-    this.dataService.addUser(newUser)
-                    .then( () => this.getUsers() );
-
+    this.dataService.addUser(newUser);
   }
 
   hideUserAddBox(): void {
@@ -286,8 +297,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       updatedUser.password = encPassword;
     }
     // log.debug('updatedUser:', updatedUser);
-    this.dataService.updateUser(updatedUser)
-                    .then( () => this.getUsers() );
+    this.dataService.updateUser(updatedUser);
     this.hideUserEditBox();
   }
 
@@ -329,12 +339,11 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     log.debug('ManageUsersModalComponent: cancelledEventReceived()');
   }
 
-  getUsers(): void {
-    this.dataService.getUsers().then(n => {
-                                            // log.debug("ManageUsersModalComponent: getUsers():", n);
-                                            this.users = n;
-                                            // this.changeDetectionRef.markForCheck();
-                                          });
+  onUsersUpdated(users): void {
+    if (Object.keys(users).length === 0) {
+      return;
+    }
+    this.users = users;
   }
 
   findUser(id: string): User {
@@ -362,14 +371,12 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
   deleteUserConfirmed(id: string): void {
     log.debug('ManageUsersModalComponent: deleteUserConfirmed(id)', id);
-    this.dataService.deleteUser(id)
-                    .then ( () => this.getUsers() );
+    this.dataService.deleteUser(id);
   }
 
   onOpen(): void {
     log.debug('ManageUsersModalComponent: onOpen()');
     this.errorDefined = false;
-    this.getUsers();
   }
 
 

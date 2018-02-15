@@ -206,14 +206,14 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     // New startup code
-    log.debug('MasonryGridComponent: ngOnInit(): toolService.urlParametersLoaded:', this.toolService.urlParametersLoaded)
-    log.debug('MasonryGridComponent: ngOnInit(): toolService.queryParams:', this.toolService.queryParams)
+    log.debug('MasonryGridComponent: ngOnInit(): toolService.urlParametersLoaded:', this.toolService.urlParametersLoaded);
+    log.debug('MasonryGridComponent: ngOnInit(): toolService.queryParams:', this.toolService.queryParams);
     this.onSplashScreenAtStartupClosedSubscription = this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
       if (!this.toolService.queryParams) {
         this.modalService.open(this.tabContainerModalId);
       }
     });
-    
+
     let queryParams = this.route.snapshot.queryParams || null;
     if ( !this.toolService.splashLoaded && ( (!queryParams  && !this.toolService.urlParametersLoaded) || ( !this.toolService.urlParametersLoaded && queryParams && Object.keys(queryParams).length === 0 ) ) ) {
       // only load the splash screen if we don't have ad hoc query parameters
