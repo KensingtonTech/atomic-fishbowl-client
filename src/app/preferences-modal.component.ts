@@ -57,7 +57,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
                                     // netwitness
                                     nw: {
-                                      nwInvestigateUrl: null,
+                                      url: null,
                                       presetQuery: null,
                                       displayedKeys: null, // this.getDisplayedKeysValue(this.defaultDisplayedKeys),
                                       defaultQuerySelection: null, // this.defaultNwQueries[0].text, // this only has effect on the first run of Atomic Fishbowl.  After the prefs have been set, it will be read in from the prefs

@@ -47,8 +47,10 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
     });*/
     this.scrollToBottomStoppedSubscription = this.toolService.scrollToBottomStopped.subscribe( () => {
       log.debug('MasonryControlBarComponent: scrollToBottomStoppedSubscription: scrollToBottomStopped');
+      // setTimeout( () => this.scrollStarted = false, 0);
       this.scrollStarted = false;
       this.changeDetectionRef.markForCheck();
+      this.changeDetectionRef.detectChanges();
     });
 
     this.showMeta = this.toolService.showMasonryTextAreaState;

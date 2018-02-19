@@ -35,7 +35,7 @@
         
         <!-- Collection Name for NetWitness -->
         <div *ngIf="collection.serviceType == 'nw'" class="cell">
-          <span *ngIf=" ( preferences.serviceTypes.nw && nwServerExists(collection.nwserver) ) ||  ( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.nw && collection.type == 'fixed' ) " class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
+          <span *ngIf=" ( preferences.serviceTypes.nw && nwServerExists(collection.nwserver) ) ||  ( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.nw && collection.type == 'fixed' ) " class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
 
           <span *ngIf="( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="NetWitness is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
           <span *ngIf="( collection.type != 'fixed' && !nwServerExists(collection.nwserver) ) && !( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>
@@ -43,7 +43,7 @@
 
         <!-- Collection Name for SA -->
         <div *ngIf="collection.serviceType == 'sa'" class="cell">
-          <span *ngIf=" ( preferences.serviceTypes.sa && saServerExists(collection.saserver) ) ||  ( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.sa && collection.type == 'fixed' ) " class="link" (click)="onCollectionClicked(collection)">{{collection.name}}</span>
+          <span *ngIf=" ( preferences.serviceTypes.sa && saServerExists(collection.saserver) ) ||  ( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.sa && collection.type == 'fixed' ) " class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
           
           <span *ngIf="( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="Symantec Security Analytics is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
           <span *ngIf="( collection.type != 'fixed' && !saServerExists(collection.saserver) ) && !( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>

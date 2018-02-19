@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
-import { MasonryComponent } from './masonry.component';
+import { MasonryDirective } from './masonry.directive';
 import { MasonryBrickDirective } from './masonry-brick.directive';
 
-const DIRECTIVES = [MasonryComponent, MasonryBrickDirective];
+const DIRECTIVES = [MasonryDirective, MasonryBrickDirective];
 
 @NgModule({
     declarations: DIRECTIVES,

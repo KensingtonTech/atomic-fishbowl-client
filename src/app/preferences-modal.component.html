@@ -70,7 +70,7 @@
                     <b>NetWitness UI URL</b>
                   </td>
                   <td style="width: 99%;">
-                    <input type="text" name="nwInvestigateUrl" [(ngModel)]="preferencesModel.nw.nwInvestigateUrl" style="width: 100%;" required>
+                    <input type="text" name="url" [(ngModel)]="preferencesModel.nw.url" style="width: 100%;" required>
                   </td>
                 </tr>
                 <tr>
@@ -107,10 +107,10 @@
                 </tr>
                 <tr>
                   <td>
-                    <b>Query Delay</b>
+                    <b>Rolling Query Delay</b>
                   </td>
                   <td>
-                    <input type="number" name="nwQueryDelayMinutes" [(ngModel)]="preferencesModel.nw.queryDelayMinutes" style="width: 40px;" required> minutes
+                    <input type="number" min="1" name="nwQueryDelayMinutes" [(ngModel)]="preferencesModel.nw.queryDelayMinutes" style="width: 40px;" required> minutes
                   </td>
                 </tr>
                 <tr>
@@ -150,6 +150,12 @@
               </table>
             </div>
         </p-tabPanel>
+
+
+
+
+
+
 
         <!-- Solera Preferences -->
         <p-tabPanel header="Symantec SA">
@@ -202,10 +208,10 @@
               </tr>
               <tr>
                 <td>
-                  <b>Query Delay</b>
+                  <b>Rolling Query Delay</b>
                 </td>
                 <td>
-                  <input type="number" name="saQueryDelayMinutes" [(ngModel)]="preferencesModel.sa.queryDelayMinutes" style="width: 40px;" required> minutes
+                  <input type="number" min="1" name="saQueryDelayMinutes" [(ngModel)]="preferencesModel.sa.queryDelayMinutes" style="width: 40px;" required> minutes
                 </td>
               </tr>
               <tr>

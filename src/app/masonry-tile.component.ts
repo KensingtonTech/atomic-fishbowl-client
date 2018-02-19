@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Inject, forwardRef } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
+import { MasonryGridComponent } from './masonry-grid.component';
 import * as utils from './utils';
 import * as log from 'loglevel';
 
@@ -9,7 +10,7 @@ import * as log from 'loglevel';
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div *ngIf="masonryColumnSize" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
+<div *ngIf="masonryColumnSize && session" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
 
   <div style="position: relative; min-height: 50px;">
 
@@ -51,9 +52,9 @@ import * as log from 'loglevel';
       </div>
     </div>
 
-    <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="apiServerUrl + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
@@ -198,31 +199,28 @@ import * as log from 'loglevel';
   `]
 })
 
-export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
+export class MasonryTileComponent implements OnInit, OnDestroy {
 
   constructor(  public el: ElementRef,
                 private changeDetectionRef: ChangeDetectorRef,
-                private toolService: ToolService ) {} // this.changeDetectionRef.detach(); private http: Http
+                private toolService: ToolService,
+                @Inject(forwardRef(() => MasonryGridComponent)) private parent: MasonryGridComponent ) {}
 
   public utils = utils;
 
-  @Input() private apiServerUrl: string;
   @Input() private content: any;
-  @Input() private session: any;
+  @Input() public sessionId: number;
   @Input() private masonryKeys: any;
   @Input() public masonryColumnSize: number;
   @Input() public serviceType: string; // 'nw' or 'sa'
+
+  public session;
   public displayTextArea = true;
   private originalSession: any; // Session data that hasn't been de-duped
   private enabledTrigger = 'disabled';
-  private data: any = {}; // prevent opening pdf modal if dragging the view
   private showMasonryTextAreaSubscription: Subscription;
-/*
-  private displayedMetaKeys = [ {key: 'alias.host', name: 'Hostname'},
-                                {key: 'service', name: 'Service'},
-                                {key: 'search.text', name: 'Search Text'}
-                              ];
-*/
+
+
 
   ngOnInit(): void {
     this.displayTextArea = this.toolService.showMasonryTextAreaState;
@@ -230,32 +228,32 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
       this.displayTextArea = show;
       this.changeDetectionRef.markForCheck();
     });
+
+    let parentSession = this.parent.sessions[this.sessionId];
+    this.originalSession = JSON.parse(JSON.stringify(parentSession));
+    let session = { meta: {} };
+    for (let key in parentSession.meta) {
+      // de-dupe meta
+      if (parentSession.meta.hasOwnProperty(key)) {
+        session['meta'][key] = utils.uniqueArrayValues(parentSession.meta[key]);
+      }
+    }
+    this.session = session;
+
   }
+
+
 
   ngOnDestroy(): void {
     this.showMasonryTextAreaSubscription.unsubscribe();
   }
 
-  ngOnChanges(e: any): void {
-    // log.debug("MasonryTileComponent: OnChanges():", e);
-    /*if ('content' in e && e.content.currentValue) {
-     log.debug('MasonryTileComponent: ngOnChanges: content:', e.content.currentValue);
-    }*/
-    if ('session' in e && e.session.currentValue !== undefined) { // de-dupe meta keys
-      this.originalSession = JSON.parse(JSON.stringify(e.session.currentValue)); // silly way of copying an object, but it works
-      for (let key in e.session.currentValue.meta) {
-        if (e.session.currentValue.meta.hasOwnProperty(key)) {
-          this.session.meta[key] = utils.uniqueArrayValues(e.session.currentValue.meta[key]);
-        }
-      }
-    }
-  }
+
 
   onClick(e: any): void {
-    // log.debug("onClick")
-    // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
+    // log.debug('MasonryTileComponent: onClick()')
 
-    this.toolService.newSession.next( { session: this.originalSession, serviceType: this.serviceType });
+    this.toolService.newSession.next( this.originalSession );
     this.toolService.newImage.next(this.content);
 
     if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
@@ -268,9 +266,6 @@ export class MasonryTileComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  handleError(error: any): Promise<any> {
-    log.error('ERROR:', error);
-    return Promise.reject(error.message || error);
-  }
+
 
 }

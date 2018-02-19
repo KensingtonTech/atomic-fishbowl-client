@@ -108,6 +108,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public filterText = '';
   public preferences: Preferences = null;
   public filterEnabled = false;
+  private editing = false;
 
   // Subscriptions
   private getCollectionDataAgainSubscription: Subscription;
@@ -126,14 +127,16 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) );
 
-    this.deleteCollectionConfirmedSubscription = this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.deleteConfirmed(collectionId) );
+    this.deleteCollectionConfirmedSubscription = this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.onDeleteConfirmed(collectionId) );
 
     this.executeAddCollectionSubscription = this.toolService.executeAddCollection.subscribe( (collection: Collection) => {
-      this.collectionExecuted(collection);
+      this.editing = false;
+      this.onCollectionExecuted(collection);
     });
 
     this.executeEditCollectionSubscription = this.toolService.executeEditCollection.subscribe( (collection: Collection) => {
-      this.collectionExecuted(collection);
+      this.editing = true;
+      this.onCollectionExecuted(collection);
     });
 
     this.collectionsOpenedSubscription = this.toolService.collectionsOpened.subscribe( () => this.onOpen() );
@@ -316,15 +319,15 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  deleteConfirmed(collectionId: string): void {
-    log.debug('CollectionsComponent: deleteConfirmed(): Received deleteConfirmed event');
+  onDeleteConfirmed(collectionId: string): void {
+    log.debug('CollectionsComponent: onDeleteConfirmed(): Received onDeleteConfirmed event');
     // there are two paths - deleting the currently selected collection, or deleting the collection which isn't selected
 
     if (this.selectedCollection && collectionId === this.selectedCollection.id) {
       // we've deleted the currently selected collection
-      this.dataService.abortGetBuildingCollection()
-                      .then( () => this.toolService.noCollections.next() )
-                      .then( () => this.dataService.deleteCollection(collectionId) );
+      this.dataService.leaveCollection();
+      this.dataService.noCollections.next();
+      this.dataService.deleteCollection(collectionId);
     }
     else {
       // we've deleted a collection that isn't selected
@@ -343,52 +346,18 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  onCollectionClicked(collection: Collection): void {
-    log.debug('CollectionsComponent: onCollectionClicked():', collection.id, collection);
-    this.selectedCollection = collection;
-    this.dataService.abortGetBuildingCollection();
-    this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
-    if ('deviceNumber' in collection && 'nwserver' in collection) {
-      this.toolService.deviceNumber.next( { deviceNumber: collection.deviceNumber, nwserver: collection.nwserver } );
-    }
-    this.connectToCollection(collection);
-    this.modalService.close(this.tabContainerModalId);
-  }
-
-
-
-  collectionExecuted(collection: Collection): void {
-    // only runs when we add a new collection or edit an existing collection
-    log.debug('CollectionsComponent: collectionExecuted():', collection.id, collection);
-    this.selectedCollection = collection;
-    let id = collection.id;
-    this.dataService.abortGetBuildingCollection()
-                    .then( () => {
-                      this.toolService.collectionSelected.next(collection); // let the toolbar widget know we switched collections
-
-                      if ('deviceNumber' in collection && 'nwserver' in collection) {
-                        // broadcast the deviceNumber to all components who need to know about it
-                        this.toolService.deviceNumber.next( { deviceNumber: collection.deviceNumber, nwserver: collection.nwserver } );
-                      }
-
-                      this.connectToCollection(collection);
-                      this.modalService.close(this.tabContainerModalId);
-                    });
-  }
-
-
-
-  connectToCollection(collection: Collection) {
-    // makes data connection back to server after we've executed or clicked a collection
-    log.debug('CollectionsComponent: connectToCollection(): collection:', collection);
-    if (collection.type === 'rolling' || collection.type === 'monitoring') {
-      this.dataService.getCollectionData(collection)
-                      .then( () => this.dataService.getRollingCollection(collection.id) );
-    }
-    else if (collection.type === 'fixed') {
-      this.dataService.getFixedCollection(collection.id, collection);
+  onCollectionExecuted(collection: Collection): void {
+    // only runs when we click a collection, add a new collection, or edit an existing collection
+    if (!this.editing && this.selectedCollection && this.selectedCollection.id === collection.id) {
+      this.modalService.close(this.tabContainerModalId);
       return;
     }
+    log.debug('CollectionsComponent: onCollectionExecuted():', collection.id, collection);
+    this.editing = false; // just resets this value for the next run
+    this.selectedCollection = collection;
+    this.connectToCollection(collection);
+    this.modalService.close(this.tabContainerModalId);
+
   }
 
 
@@ -396,19 +365,37 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   onGetCollectionDataAgain(): void {
     // triggered by router component when we switch between views
     log.debug('CollectionsComponent: onGetCollectionDataAgain()');
-    if (!this.selectedCollection) {
-      // selectedCollection should only ever be undefined if we close the window on first load without ever selecting a collection
+    if (!this.selectedCollection || (this.selectedCollection && !( this.selectedCollection.id in this.origCollections) ) ) {
+      // selectedCollection should only ever be undefined if we close the window on first load without ever selecting a collection...
+      // we need the second clause in case we delete a collection and switch views.  It will try to reload the deleted collection...
+      // resulting in a server crash
       return;
     }
-    this.dataService.abortGetBuildingCollection()
-        .then( () => {
-          this.toolService.collectionSelected.next(this.selectedCollection); // let the toolbar widget know we switched collections
-          this.toolService.deviceNumber.next( {
-                                                deviceNumber: this.selectedCollection.deviceNumber,
-                                                nwserver:  this.selectedCollection.nwserver
-                                              });
-          this.connectToCollection(this.selectedCollection);
-        });
+    this.connectToCollection(this.selectedCollection);
+  }
+
+
+
+  connectToCollection(collection: Collection) {
+    // makes data connection back to server after we've executed or clicked a collection
+    log.debug('CollectionsComponent: connectToCollection(): collection:', collection);
+
+    this.dataService.selectedCollectionChanged.next(collection);
+
+    this.dataService.leaveCollection();
+
+    if ('deviceNumber' in collection && 'nwserver' in collection) {
+      this.toolService.deviceNumber.next( { deviceNumber: collection.deviceNumber, nwserver: collection.nwserver } );
+    }
+
+    if (collection.type === 'rolling' || collection.type === 'monitoring') {
+      this.dataService.getRollingCollection(collection.id);
+    }
+
+    else if (collection.type === 'fixed') {
+      this.dataService.getFixedCollection(collection.id);
+      return;
+    }
   }
 
 

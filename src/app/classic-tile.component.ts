@@ -111,17 +111,23 @@ export class ClassicTileComponent implements OnChanges {
   private enabledTrigger = 'disabled';
   private data: any = {}; // prevent opening pdf modal if dragging the view
 
+
+
   enableMe(): void {
     // log.debug("enableMe");
     this.enabledTrigger = 'enabled';
     this.changeDetectionRef.markForCheck();
   }
 
+
+
   disableMe(): void {
     // log.debug('disableMe()')
     this.enabledTrigger = 'disabled';
     this.changeDetectionRef.markForCheck();
   }
+
+
 
   ngOnChanges(o: any): void {
     // log.debug("onChanges:", o);
@@ -138,9 +144,13 @@ export class ClassicTileComponent implements OnChanges {
     }
   }
 
+
+  
   onMouseDown(e: any): void {
     this.data = { top: e.pageX, left: e.pageY };
   }
+
+
 
   onMouseUp(e: any): void {
     let top   = e.pageX;
@@ -153,11 +163,13 @@ export class ClassicTileComponent implements OnChanges {
     if (math.abs(top - ptop) === 0 || math.abs(left - pleft) === 0) {
       if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
         this.toolService.newImage.next(this.content);
-        this.toolService.newSession.next( { session: this.session, serviceType: this.serviceType } );
+        this.toolService.newSession.next( this.session );
         this.openPDFViewer.emit();
       }
     }
   }
+
+
 
 }
 

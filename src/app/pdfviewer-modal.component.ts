@@ -5,13 +5,14 @@ import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
+import { Preferences } from './preferences';
 import * as utils from './utils';
 import * as log from 'loglevel';
 
 @Component({
   selector: 'pdf-viewer-modal',
   template: `
-<modal id="{{id}}" (opened)="opened()" (cancelled)="cancelled()">
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelled()">
   <div class="modal">
     <div class="modal-body" *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
 
@@ -29,7 +30,7 @@ import * as log from 'loglevel';
             <b>Zoom</b>
           </span>
           <span style="line-height: 2em; display: inline-block; vertical-align: middle;">
-            <select [(ngModel)]="pdfZoom">
+            <select [(ngModel)]="pdfZoom" (ngModelChange)="onZoomLevelChange($event)">
               <option *ngFor="let zoomLevel of zoomLevels" [ngValue]="zoomLevel.value">{{zoomLevel.text}}</option>
             </select>
             &nbsp;&nbsp;
@@ -90,9 +91,19 @@ import * as log from 'loglevel';
             </table>
           </div>
 
+          <!-- cancel -->
           <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
+
+          <!-- show/hide eyeball-->
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
-          <div *ngIf="serviceType == 'nw' && preferences.nw.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;"><a target="_blank" href="{{preferences.nw.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
+
+          <!-- bullseyes -->
+          <div *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;">
+            <a target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+          </div>
+          <div *ngIf="serviceType == 'sa' && preferences.sa.url && sessionId && meta" style="position: absolute; top: 2px; right: 30px;">
+            <a target="_blank" href="{{saUrlGetter(sessionId)}}"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+          </div>
         </div>
       </div>
 
@@ -124,27 +135,30 @@ import * as log from 'loglevel';
   `]
 })
 
-export class PdfViewerModalComponent implements OnInit, OnDestroy {
+
+
+export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  @Input('id') public id: string;
-  @Input('apiServerUrl') apiServerUrl: string;
+  @Input() public id: string;
+  @Input() public serviceType: string; // 'nw' or 'sa'
 
   public utils = utils;
   public showAll = false;
   private pdfFile: string;
   private page = 1;
 
-  private serviceType: string; // 'nw' or 'sa'
-  public isOpen = false;
-  private selectedPage = 1;
-  private numPages: number;
+  // private serviceType: string; // 'nw' or 'sa'
   private session: any;
   private meta: any;
   private sessionId: number;
+
+  public isOpen = false;
+  private selectedPage = 1;
+  private numPages: number;
   private preferences: any;
   private deviceNumber: number;
   public content: any;
@@ -168,58 +182,81 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   private newImageSubscription: Subscription;
   private confirmDownloadFileSubscription: Subscription;
 
+
+
   ngOnInit(): void {
     log.debug('PdfViewerModalComponent: ngOnInit()');
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {
-      // log.debug("prefs observable: ", prefs);
-      this.preferences = prefs;
-      /*
-      if ( 'displayedKeys' in prefs ) {
-        this.displayedKeys = prefs.displayedKeys;
-      }
-      */
-    });
+    
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
+
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
 
-    /*this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any) => {
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any ) => {
       log.debug('PdfViewerModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
-      this.meta = session.meta;
-    });
-    */
-    this.newSessionSubscription = this.toolService.newSession.subscribe( (arg: any ) => {
-      log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', arg);
-      if (this.serviceType !== arg.serviceType) {
-        this.displayedKeys = this.preferences[arg.serviceType].displayedKeys;
-      }
-      this.serviceType = arg.serviceType;
-      this.session = arg.session;
-      this.meta = this.session.meta;
-      // this.changeDetectionRef.markForCheck();
     });
 
     this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => {
       log.debug('PdfViewerModalComponent: newImageSubscription: Got new content:', content);
       this.content = content;
-      this.sessionId = this.content.session;
+      // this.sessionId = this.content.session;
       let pdfFile = this.content.contentFile;
       if ('proxyContentFile' in this.content) {
         pdfFile = this.content.proxyContentFile;
       }
       this.pdfFile = pdfFile;
-      // this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
     });
 
     this.confirmDownloadFileSubscription = this.toolService.confirmDownloadFile.subscribe( (f: string) => this.downloadConfirmed(f) );
+
+    this.pdfZoom = Number(this.toolService.getPreference('pdfZoomlevel'));
+
   }
 
-  public ngOnDestroy() {
+
+
+  ngOnDestroy() {
     this.preferencesChangedSubscription.unsubscribe();
     this.deviceNumberSubscription.unsubscribe();
     this.newSessionSubscription.unsubscribe();
     this.newImageSubscription.unsubscribe();
     this.confirmDownloadFileSubscription.unsubscribe();
   }
+
+
+
+  onPreferencesChanged(prefs: Preferences) {
+    log.debug('PdfViewerModalComponent onPreferencesChanged(): prefs', prefs);
+    if (Object.keys(prefs).length === 0) {
+      return;
+    }
+    this.preferences = prefs;
+  }
+
+
+
+  ngOnChanges(values: any) {
+    log.debug('PdfViewerModalComponent ngOnChanges(): values', values);
+
+    if ( 'serviceType' in values
+        && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
+        || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
+      this.displayedKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
+      log.debug('PdfViewerModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
+    }
+
+  }
+
+
+
+  onOpen(): void {
+    log.debug('PdfViewerModalComponent onOpen(): displayedKeys', this.displayedKeys);
+    this.isOpen = true;
+    this.meta = this.session['meta'];
+    this.sessionId = this.session['id'];
+  }
+
+
 
   getMetaKeys(): any {
     let a = [];
@@ -231,24 +268,28 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     return a;
   }
 
+
+
   showAllClick(): void {
     this.showAll = !this.showAll;
   }
 
-  opened(): void {
-    this.isOpen = true;
-  }
+
 
   cancelled(): void {
     this.modalService.close(this.id);
     this.isOpen = false;
   }
 
+
+
   absorbPdfInfo(p: any): void {
     // log.debug('absorbPdfInfo', p);
     this.numPages = p.numPages;
   }
 
+
+  
   rotate(): void {
     if (this.rotation === 0) {
       this.rotation = 90;
@@ -264,11 +305,15 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     }
   }
 
+
+
   downloadLinkClicked(file: string): void {
     log.debug('PdfViewerModalComponent: downloadLinkClicked(): file', file);
     this.toolService.fileToDownload.next(file);
     this.modalService.open('downloadfile-confirm-modal');
   }
+
+
 
   downloadConfirmed(file: string): void {
     /*log.debug('PdfViewerModalComponent: downloadConfirmed(): file', file);
@@ -277,5 +322,41 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
       saveAs(blob, filename+".txt");*/
   }
+
+
+
+  convertSaTime(value: string) {
+    return parseInt(value[0].substring(0, value[0].indexOf(':')), 10) * 1000;
+  }
+
+
+
+  saUrlGetter(sessionId): string {
+    if (!this.meta || !sessionId || this.serviceType != 'sa' || !('start_time' in this.meta && 'stop_time' in this.meta)) {
+      return;
+    }
+
+    // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO
+    // let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'pb' : ['flow_id=4898292'], 'ca' : { 'start' : 1518021720000, 'end' : 1518108120000}, 'now' : 1518108153464, 'ac': 'Summary' };
+
+    let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'ac': 'Summary' };
+    struct['pb'] = [ 'flow_id=' + sessionId ];
+    let startTime = this.convertSaTime(this.meta['start_time']);
+    let stopTime = this.convertSaTime(this.meta['stop_time']);
+    struct['ca'] = { 'start' : startTime, 'end': stopTime };
+    struct['now'] = new Date().getTime();
+    let encoded = btoa(JSON.stringify(struct));
+    // log.debug('SessionDetailsModalComponent: saUrlGetter(): struct:', struct);
+
+    return this.preferences.sa.url + '/deepsee/index#' + encoded;
+  }
+
+
+
+  onZoomLevelChange(event): void {
+    log.debug('PdfViewerModalComponent: onZoomLevelChange(): event', event);
+    this.toolService.setPreference('pdfZoomlevel', this.pdfZoom);
+  }
+
 
 }

@@ -11,7 +11,7 @@ export interface Preferences {
 }
 
 interface NwPreferences {
-  nwInvestigateUrl: string;
+  url: string;
   defaultQuerySelection: string;
   presetQuery: string;
   queryTimeout: number;

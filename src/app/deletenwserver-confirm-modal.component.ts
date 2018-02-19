@@ -55,7 +55,7 @@ export class DeleteNwServerConfirmModalComponent implements OnInit, OnDestroy {
   public id = 'confirm-nwserver-delete-modal';
   public nwServer: NwServer;
   private nwServerToDeleteSubscription: Subscription;
-  private error: string = null;
+  public error: string = null;
 
   ngOnInit(): void {
     this.nwServerToDeleteSubscription = this.toolService.nwServerToDelete.subscribe( (server: NwServer) => { this.nwServer = server; });

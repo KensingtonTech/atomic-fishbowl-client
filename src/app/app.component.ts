@@ -15,9 +15,9 @@ import * as log from 'loglevel';
 </div>
 
 <div *ngIf="serverReachable && !isMobile" style="position: relative; width: 100vw; height: 100vh;">
-  
+
   <login-form *ngIf="!loggedIn && credentialsChecked"></login-form>
-  
+
   <toolbar-widget *ngIf="loggedIn"></toolbar-widget>
   <router-outlet *ngIf="loggedIn"></router-outlet>
   <img *ngIf="loggedIn" class="noselect" src="/resources/logo.png" style="position: absolute; left:10px; bottom: 15px;">

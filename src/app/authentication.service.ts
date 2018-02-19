@@ -17,44 +17,36 @@ export class AuthenticationService {
                 private router: Router,
                 private http: HttpClient,
                 private toolService: ToolService ) {
-                  this.toolService.logout.subscribe( () => this.logout() );
+                  this.toolService.logout.subscribe( () => {
+                    // log.debug('got to 4');
+                    this.logout();
+                  } );
                 }
 
   public loggedInChanged: Subject<boolean> = new Subject<boolean>();
   private apiUrl = '/api';
   public loggedInUser: User;
-  public sessionId: number;
+  public clientSessionId: number;
+
+
 
   public logout(): void {
     log.debug('AuthenticationService: logout(): logging out');
-    this.dataService.abortGetBuildingCollection();
+    this.dataService.leaveCollection();
     this.http.get(this.apiUrl + '/logout' )
                     .toPromise()
                     .then( () => {
+                      // log.debug('got to 2');
                       this.loggedInUser = null;
                       this.loggedInChanged.next(false);
                     } )
-                    .catch( (err) => { log.error('AuthenticationService: logout(): ERROR during logout'); });
+                    .catch( (err) => {
+                      if (err.status !== 401) {
+                        // log.debug('got to 3');
+                        log.error('AuthenticationService: logout(): ERROR during logout:', err);
+                      }
+                    });
   }
-
-
-
-  /*getUsers(): Promise<User> {
-    return this.http
-                .get(this.apiUrl + '/users' )
-                .toPromise()
-                // .then(response => response.json() as User[] )
-                .then(response => response as User[] )
-                .catch(e => this.handleError(e));
-  }*/
-
-
-
-  /*getUser(userName: string): Promise<User> {
-    return this.http.get(this.apiUrl + '/user/' + userName )
-                    .toPromise()
-                    .then ( response => response as User );
-  }*/
 
 
 
@@ -67,8 +59,8 @@ export class AuthenticationService {
       let res = response;
       log.debug('AuthenticationService: login(): Got login response:', res);
                       this.loggedInUser = res.user;
-                      this.sessionId = res.sessionId;
-                      this.toolService.sessionId.next(this.sessionId);
+                      this.clientSessionId = res.sessionId;
+                      this.toolService.clientSessionId.next(this.clientSessionId);
                       return this.dataService.init();
                     })
                     .then( () => {
@@ -92,8 +84,8 @@ export class AuthenticationService {
                     .toPromise()
                     .then( (res: any) => {
                       this.loggedInUser = res.user;
-                      this.sessionId = res.sessionId;
-                      this.toolService.sessionId.next(this.sessionId);
+                      this.clientSessionId = res.sessionId;
+                      this.toolService.clientSessionId.next(this.clientSessionId);
                       return true;
                     })
                     .catch( () => {

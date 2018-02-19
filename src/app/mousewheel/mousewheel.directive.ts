@@ -1,5 +1,5 @@
 import { Directive, ElementRef, Output, EventEmitter, OnInit, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
-declare var Hamster: any;
+declare var Hamster;
 import * as log from 'loglevel';
 
 @Directive({
@@ -17,21 +17,20 @@ export class KMousewheelDirective implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnInit(): void {
     log.debug('KMousewheelDirective: ngOnInit(): Creating new HamsterJS instance');
-    this.hamster = this.ngZone.runOutsideAngular( () => Hamster(this.elRef.nativeElement) );
+    // this.hamster = this.ngZone.runOutsideAngular( () => Hamster(this.elRef.nativeElement) );
   }
 
   ngAfterViewInit(): void {
     log.debug('KMousewheelDirective: ngAfterViewInit(): Binding mouse wheel');
     // bind Hamster wheel event
-    this.hamster.wheel( (event: any, delta: any, deltaX: any, deltaY: any) => this.mouseWheelFunc(event, delta, deltaX, deltaY) );
+    // this.hamster.wheel( (event: any, delta: any, deltaX: any, deltaY: any) => this.mouseWheelFunc(event, delta, deltaX, deltaY) );
 
-/*    this.ngZone.runOutsideAngular( () => {
+    this.ngZone.runOutsideAngular( () => {
       const nativeElement = this.elRef.nativeElement;
-      //nativeElement.addEventListener(this.event, this._handler, false);
       this.hamster = Hamster(this.elRef.nativeElement); //new method of creating hamster object
-      this.hamster.wheel( (event: any, delta: any, deltaX: any, deltaY: any) => this.mouseWheelFunc(event, delta, deltaX, deltaY) ); //new method
+      this.hamster.wheel( (event: any, delta: any, deltaX: any, deltaY: any) => this.mouseWheelFunc(event, delta, deltaX, deltaY) ); // new method
     });
-*/
+
   }
 
   ngOnDestroy(): void {

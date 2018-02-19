@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, ViewChild, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, ViewChild, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
@@ -8,9 +8,9 @@ import * as log from 'loglevel';
 
 @Component( {
   selector: 'classic-session-popup',
-  // encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div [@faderAnimation]="enabledTrigger" style="position: absolute; right: 0; top: 0; bottom: 0; width: 350px; background-color: rgba(0,0,0,.8); padding-left: 5px; color: white; font-size: 12px;">
+<div [@faderAnimation]="enabledTrigger" style="position: absolute; right: 0; top: 30px; bottom: 0; width: 350px; background-color: rgba(0,0,0,.8); padding-left: 5px; color: white; font-size: 12px;">
   <div style="display: flex; flex-direction: column; position: relative; width: 100%; height: 100%;" *ngIf="sessionId && meta">
     <h3 style="margin-top: 10px; margin-bottom: 5px;">Session {{sessionId}} Details</h3>
 
@@ -18,7 +18,11 @@ import * as log from 'loglevel';
 
       <div *ngIf="!showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
         <table class="wrap" style="width: 100%; table-layout: fixed;">
-          <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
+          <tr>
+            <td class="metalabel" style="width: 35%;">time</td>
+            <td *ngIf="serviceType == 'nw'" class="metavalue" style="width: 65%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+            <td *ngIf="serviceType == 'sa' && meta.stop_time" class="metavalue" style="width: 65%;">{{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+          </tr>
           <tr *ngFor="let key of displayedKeys">
             <td class="metalabel">{{key}}</td>
             <td>
@@ -32,7 +36,11 @@ import * as log from 'loglevel';
 
       <div *ngIf="showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
         <table class="wrap" style="width: 100%; table-layout: fixed;">
-          <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | fromEpoch}}</td></tr>
+          <tr>
+            <td class="metalabel" style="width: 35%;">time</td>
+            <td *ngIf="serviceType == 'nw'" class="metavalue" style="width: 65%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+            <td *ngIf="serviceType == 'sa' && meta.stop_time" class="metavalue" style="width: 65%;">{{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+          </tr>
           <tr *ngFor="let key of getMetaKeys()">
             <td class="metalabel">{{key}}</td>
             <td>
@@ -44,9 +52,17 @@ import * as log from 'loglevel';
       </div>
 
     </div>
-
+  
+    <!-- Show all toggle -->
     <div (click)="showAllClick()" style="position: absolute; top: 5px; right: 40px;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
-    <div *ngIf="preferences.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 5px; right: 3px;"><a target="_blank" href="{{preferences.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
+    
+    <!-- bullseye -->
+    <div *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" style="position: absolute; top: 5px; right: 3px;">
+      <a target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+    </div>
+    <div *ngIf="serviceType == 'sa' && preferences.sa.url && sessionId && meta" style="position: absolute; top: 5px; right: 3px;">
+      <a target="_blank" href="{{saUrlGetter(sessionId)}}"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+    </div>
   </div>
 </div>
 `,
@@ -87,65 +103,52 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
 
   constructor(private dataService: DataService,
               private changeDetectionRef: ChangeDetectorRef,
-              private el: ElementRef,
               private toolService: ToolService ) {}
 
-  @Input('sessionId') sessionId: number;
-  @Input('enabled') enabled: number;
+  @Input() public enabled: boolean;
   @Input() public serviceType: string; // 'nw' or 'sa'
+  @Input() public session: any;
+  public sessionId;
+  public meta: any;
+
   public showAll = false;
   private deviceNumber: number;
   public enabledTrigger: string;
   private preferences: Preferences;
-  private sessions: any;
-  public meta: any;
-  private nativeElement = this.el.nativeElement;
-  private metaUpdated = false;
-  private hideAllMeta = true;
   private displayedKeys: string[] =  [];
 
-  private sessionsReplacedSubscription: Subscription;
-  private sessionPublishedSubscription: Subscription;
   private preferencesChangedSubscription: Subscription;
   private deviceNumberSubscription: Subscription;
+
 
 
   ngOnInit(): void {
     this.enabledTrigger = 'disabled';
 
-    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => { // log.debug("sessionsReplaced", s);
-      this.sessions = s;
-    });
-
-    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {  // log.debug("sessionPublished", s);
-      let sessionId = s.id;
-      this.sessions[sessionId] = s;
-    });
-
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => {  // log.debug("prefs observable: ", prefs);
       this.preferences = prefs;
-      /*if ( 'displayedKeys' in prefs ) {
-        this.displayedKeys = prefs.displayedKeys;
-      }
-      */
     });
 
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
   }
 
+
+
   ngOnDestroy(): void {
     log.debug('ClassicSessionPopupComponent: ngOnDestroy()');
 
-    this.sessionsReplacedSubscription.unsubscribe();
-    this.sessionPublishedSubscription.unsubscribe();
     this.preferencesChangedSubscription.unsubscribe();
     this.deviceNumberSubscription.unsubscribe();
   }
 
+
+
   getMetaForKey(k: string): any {
-    // log.debug("getMetaForKey()", this.meta[k]);
+    // log.debug('ClassicSessionPopupComponent: getMetaForKey()', this.meta[k]);
     return this.meta[k];
   }
+
+
 
   getMetaKeys(): any {
     let a = [];
@@ -157,32 +160,64 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
     return a;
   }
 
-  ngOnChanges(e: any): void {
-    // log.debug("SessionWidgetComponent ngOnChanges()", this.enabled);
 
-    if ( 'serviceType' in e && e.serviceType.currentValue) {
-      let serviceType = e.serviceType.currentValue;
+
+  ngOnChanges(values: any): void {
+    log.debug('ClassicSessionPopupComponent ngOnChanges(): values', values);
+
+    if ( 'serviceType' in values && values.serviceType.currentValue) {
+      let serviceType = values.serviceType.currentValue;
       this.displayedKeys = this.preferences[serviceType].displayedKeys;
     }
 
+    if ('session' in values && values.session.currentValue) {
+      this.meta = values.session.currentValue['meta'];
+      this.sessionId = values.session.currentValue['id'];
+    }
+
     if (this.enabled ) {
-      // for some odd reason, we can't use shortcut syntax as it evidently doesn't change the var reference
       this.enabledTrigger = 'enabled';
     }
     else {
       this.enabledTrigger = 'disabled';
     }
 
-    if (this.sessionId) {
-      if ( this.sessionId in this.sessions ) {
-        this.meta = this.sessions[this.sessionId].meta;
-        this.toolService.newSession.next( { session: this.sessions[this.sessionId], serviceType: this.serviceType } );
-      }
-    }
   }
+
+
 
   showAllClick(): void {
     this.showAll = !this.showAll;
   }
+
+
+
+  convertSaTime(value: string) {
+    return parseInt(value[0].substring(0, value[0].indexOf(':')), 10) * 1000;
+  }
+
+
+
+  saUrlGetter(sessionId): string {
+    if (!this.meta || !sessionId || this.serviceType != 'sa' || !('start_time' in this.meta && 'stop_time' in this.meta)) {
+      return;
+    }
+    // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO
+    // let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'pb' : ['flow_id=4898292'], 'ca' : { 'start' : 1518021720000, 'end' : 1518108120000}, 'now' : 1518108153464, 'ac': 'Summary' };
+
+    let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'ac': 'Summary' };
+    struct['pb'] = [ 'flow_id=' + sessionId ];
+    let startTime = this.convertSaTime(this.meta['start_time']);
+
+    let stopTime = this.convertSaTime(this.meta['stop_time']);
+    struct['ca'] = { 'start' : startTime, 'end': stopTime };
+    struct['now'] = new Date().getTime();
+    let encoded = btoa(JSON.stringify(struct));
+    // log.debug('ClassicSessionPopupComponent: saUrlGetter(): struct:', struct);
+
+    return this.preferences.sa.url + '/deepsee/index#' + encoded;
+  }
+
+
 
 }

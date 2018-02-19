@@ -231,7 +231,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
       let deltaY = e.deltaY;
 
       if (this.config.zoomOnMouseWheel) {
-        event.preventDefault();
+        // event.preventDefault();
 
         if (this.zoomAnimation) {
           return; // already zooming
@@ -317,7 +317,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   private onMouseMove(event: any) {
     // Called when moving the mouse with the left button down
     // log.debug(`onMouseMove()`);
-    event.preventDefault();
+    // event.preventDefault();
     event.stopPropagation();
 
     // log.debug(`onMouseMove(): pageX: ${event.pageX} pageY: ${event.pageY}`);
@@ -414,7 +414,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private onTouchStart(event: any) {
     // log.debug('onTouchStart()', event);
-    event.preventDefault();
+    // event.preventDefault();
 
     if (event.touches.length === 1) {
       // single touch, get ready for panning
@@ -439,7 +439,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private onTouchMove(event: any) {
     // log.debug('onTouchMove()');
-    event.preventDefault();
+    // event.preventDefault();
 
     if (event.touches.length === 1) {
       // single touch, emulate mouse move

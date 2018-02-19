@@ -3,24 +3,23 @@ import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
+import { Preferences } from './preferences';
 import * as utils from './utils';
 import * as log from 'loglevel';
-import { Preferences } from './preferences';
 
 @Component({
   selector: 'session-details-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // encapsulation: ViewEncapsulation.None,
-  // {{meta.time | fromEpoch}}
   template: `
-<modal id="{{id}}" (opened)="opened()" (cancelled)="cancelled()">
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelled()">
   <div class="modal">
     <div class="modal-body" *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: rgba(128, 128, 128, .95); font-size: 10pt;">
 
 
       <div *ngIf="content" style="position: absolute; height: 100%; top: 0; left: 0; right: 350px;">
         <div style="position: relative;" class="imgContainer">
-          <img class="myImg" *ngIf="content.contentType == 'image'" [src]="apiServerUrl + content.contentFile" draggable="false">
+          <img class="myImg" *ngIf="content.contentType == 'image'" [src]="content.contentFile" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedZipEntry'"  src="/resources/zip_icon_locked.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'unsupportedZipEntry'"  src="/resources/zip_icon_unknown.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedRarEntry'"  src="/resources/rar_icon_locked.png" draggable="false">
@@ -144,10 +143,15 @@ import { Preferences } from './preferences';
             </table>
           </div>
 
+          <!-- cancel -->
           <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
+          
+          <!-- show/hide eyeball-->
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
-          <div *ngIf="serviceType == 'nw' && preferences.nw.nwInvestigateUrl && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;">
-            <a target="_blank" href="{{preferences.nw.nwInvestigateUrl}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+
+          <!-- bullseyes -->
+          <div *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" style="position: absolute; top: 2px; right: 30px;">
+            <a target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
           </div>
           <div *ngIf="serviceType == 'sa' && preferences.sa.url && sessionId" style="position: absolute; top: 2px; right: 30px;">
             <a target="_blank" href="{{saUrlGetter(sessionId)}}"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
@@ -193,7 +197,7 @@ import { Preferences } from './preferences';
   `]
 })
 
-export class SessionDetailsModalComponent implements OnInit, OnDestroy {
+export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
@@ -201,7 +205,7 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef ) {}
 
   @Input('id') public id: string;
-  @Input('apiServerUrl') apiServerUrl: string;
+  @Input() public serviceType: string; // 'nw' or 'sa'
 
   public utils = utils;
   public showAll = false;
@@ -220,46 +224,24 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
   private preferencesChangedSubscription: Subscription;
   private newSessionSubscription: Subscription;
   private newImageSubscription: Subscription;
-  private serviceType: string; // 'nw' or 'sa'
+
 
 
   ngOnInit(): void {
     log.debug('SessionDetailsModalComponent: ngOnInit()');
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {
-                                                                      // log.debug("prefs observable: ", prefs);
-                                                                      this.preferences = prefs;
-                                                                      /*
-                                                                      if ( 'displayedKeys' in prefs ) {
-                                                                        this.displayedKeys = prefs.displayedKeys;
-                                                                        this.changeDetectionRef.markForCheck();
-                                                                      }
-                                                                      */
-                                                                    });
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
+
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => {
       this.deviceNumber = $event.deviceNumber;
       this.changeDetectionRef.markForCheck();
     });
 
-    this.newSessionSubscription = this.toolService.newSession.subscribe( (arg: any ) => {
-      log.debug('SessionDetailsModalComponent: newSessionSubscription: Got new session', arg);
-      if (this.serviceType !== arg.serviceType) {
-        this.displayedKeys = this.preferences[arg.serviceType].displayedKeys;
-      }
-      this.serviceType = arg.serviceType;
-      this.session = arg.session;
-      this.meta = this.session.meta;
-      this.changeDetectionRef.markForCheck();
-    });
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any ) => this.onNewSession(session) );
 
-    this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => {
-      log.debug('SessionDetailsModalComponent: newcontentSubscription: Got new content:', content);
-      this.content = content;
-      this.sessionId = this.content.session;
-      this.changeDetectionRef.markForCheck();
-      // this.pdfFile = this.content.contentFile;
-      // this.pdfFileUrl = this.apiServerUrl + this.pdfFile;
-    });
+    this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => this.onNewImage(content) );
   }
+
+
 
   public ngOnDestroy() {
     this.preferencesChangedSubscription.unsubscribe();
@@ -267,6 +249,45 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     this.newSessionSubscription.unsubscribe();
     this.newImageSubscription.unsubscribe();
   }
+
+
+
+  ngOnChanges(values: any) {
+    log.debug('SessionDetailsModalComponent ngOnChanges(): values', values);
+
+    if ( 'serviceType' in values
+        && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
+        || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
+      this.displayedKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
+      log.debug('SessionDetailsModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
+    }
+
+  }
+
+
+
+  onPreferencesChanged(prefs: Preferences): void {
+    log.debug("SessionDetailsModalComponent: onPreferencesChanged(): prefs: ", prefs);
+    this.preferences = prefs;
+  }
+
+
+
+  onNewSession(session): void {
+    log.debug('SessionDetailsModalComponent: onNewSession: session:', session);
+    this.session = session;
+  }
+
+
+
+  onNewImage(content): void {
+    log.debug('SessionDetailsModalComponent: onNewImage: content:', content);
+    this.content = content;
+    this.sessionId = this.content.session;
+    this.changeDetectionRef.markForCheck();
+  }
+
+
 
   getMetaKeys(): any {
     let a = [];
@@ -278,13 +299,21 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     return a;
   }
 
+
+
   showAllClick(): void {
     this.showAll = !this.showAll;
   }
 
-  opened(): void {
+
+
+  onOpen(): void {
     this.isOpen = true;
+    this.meta = this.session['meta'];
+    this.sessionId = this.session['id'];
   }
+
+
 
   cancelled(): void {
     log.debug('SessionDetailsModalComponent: cancelled()');
@@ -292,9 +321,13 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy {
     this.isOpen = false;
   }
 
+
+
   convertSaTime(value: string) {
     return parseInt(value[0].substring(0, value[0].indexOf(':')), 10) * 1000;
   }
+
+
 
   saUrlGetter(sessionId): string {
     // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO

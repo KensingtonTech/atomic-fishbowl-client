@@ -94,7 +94,7 @@ import * as log from 'loglevel';
   <span class="fa fa-times" (click)="toggleSearch()" style="color: white;"></span>
 </div>
 
-<!--Modals-->
+<!-- modals -->
 <tab-container-modal [id]="tabContainerModalId"></tab-container-modal>
 <splash-screen-modal></splash-screen-modal>
 <preferences-modal></preferences-modal>
@@ -174,42 +174,29 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private errorPublishedSubscription: Subscription;
   private queryResultsCountUpdatedSubscription: Subscription;
   private useCasesChangedSubscription: Subscription;
-  private collectionSelectedSubscription: Subscription;
+  private selectedCollectionChangedSubscription: Subscription;
   private noCollectionSubscription: Subscription;
-  private collectionDeletedSubscription: Subscription;
 
   ngOnInit(): void {
 
-    // take subscriptions
-    this.contentCountSubscription = this.toolService.contentCount.subscribe( (c: any) => {
-      log.debug('ToolbarWidgetComponent: ngOnInit(): contentCount:', c);
-      this.contentCount = c;
-    });
+    log.debug('ToolbarWidgetComponent: ngOnInit()');
 
-    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => {
-      // log.debug("collection", collection);
-      this.iconDecider(collection.state);
-      this.selectedCollection.state = collection.state;
-    });
+    // take subscriptions
+
+    this.contentCountSubscription = this.toolService.contentCount.subscribe( (count: any) => this.onContentCountChanged(count) );
+
+    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (state: string) => this.onCollectionStateChanged(state) );
 
     this.errorPublishedSubscription = this.dataService.errorPublished.subscribe( (e: string) => this.errorMessage = e );
 
-    this.queryResultsCountUpdatedSubscription = this.dataService.queryResultsCountUpdated.subscribe( (count: number) => this.queryResultsCount = count);
+    this.queryResultsCountUpdatedSubscription = this.dataService.queryResultsCountUpdated.subscribe( (count: number) => this.onQueryResultsCountUpdated(count) );
 
+    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (useCases: any) => this.onUseCasesChanged(useCases) );
 
-    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => {
-      if (Object.keys(o).length === 0) {
-        return;
-      }
-      this.useCases = o.useCases;
-      this.useCasesObj = o.useCasesObj;
-    });
+    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
 
-    this.collectionSelectedSubscription = this.toolService.collectionSelected.subscribe( (collection: Collection) => this.onCollectionSelected(collection) );
+    this.noCollectionSubscription = this.dataService.noCollections.subscribe( () => this.onNoCollections() );
 
-    this.noCollectionSubscription = this.toolService.noCollections.subscribe( () => this.onNoCollections() );
-
-    this.collectionDeletedSubscription = this.dataService.collectionDeleted.subscribe( (collectionId: string) => this.onCollectionDeleted(collectionId) );
   }
 
 
@@ -220,15 +207,46 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.errorPublishedSubscription.unsubscribe();
     this.queryResultsCountUpdatedSubscription.unsubscribe();
     this.useCasesChangedSubscription.unsubscribe();
-    this.collectionSelectedSubscription.unsubscribe();
+    this.selectedCollectionChangedSubscription.unsubscribe();
     this.noCollectionSubscription.unsubscribe();
-    this.collectionDeletedSubscription.unsubscribe();
   }
 
 
 
-  onCollectionDeleted(collectionId): void {
-    this.toolService.noCollections.next();
+  onQueryResultsCountUpdated(count: number): void {
+    log.debug('ToolbarWidgetComponent: onQueryResultsCountUpdated(): count:', count);
+    this.queryResultsCount = count;
+  }
+
+
+
+  onCollectionStateChanged(state: string): void {
+    log.debug('ToolbarWidgetComponent: onCollectionStateChanged(): state:', state);
+    this.iconDecider(state);
+    this.selectedCollection.state = state;
+  }
+
+
+
+  onContentCountChanged(count: any) {
+    log.debug('ToolbarWidgetComponent: onContentCountChanged(): contentCount:', count);
+    // setTimeout needed to prevent ExpressionChangedAfterItHasBeenCheckedError in dev mode.
+    // The problem is that the modals are a child of this component, but when a grid chooses to reload a collection when it inits (when switching between views)...
+    // the grid view invokes onGetCollectionDataAgain() of CollectionsComponent, which is a child of this component.
+    // This causes the stupid error as things are happening out-of-order for the change detection system
+    // It isn't worth reworking the code to fix properly
+    setTimeout( () => this.contentCount = count, 0);
+  }
+
+
+
+  onUseCasesChanged(useCases: any): void {
+    log.debug('ToolbarWidgetComponent: onUseCasesChanged(): contentCount:', useCases);
+    if (Object.keys(useCases).length === 0) {
+      return;
+    }
+    this.useCases = useCases.useCases;
+    this.useCasesObj = useCases.useCasesObj;
   }
 
 
@@ -251,7 +269,12 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
       let useCaseName = this.selectedCollection.usecase;
       let useCase = this.useCasesObj[useCaseName];
       useCaseFriendlyName = useCase.friendlyName;
-      query = useCase.query;
+      if (this.selectedCollection.serviceType === 'nw') {
+        query = useCase.nwquery;
+      }
+      else {
+        query = useCase.saquery;
+      }
       contentTypes = useCase.contentTypes.join(' ');
       tt = tt + 'Use Case: ' + useCaseFriendlyName + '\n';
       if ('distillationTerms' in useCase && useCase.distillationTerms.length > 0) {
@@ -387,13 +410,13 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.modalService.close(id);
   }
 
-  onCollectionSelected(collection: Collection): void {
+  onSelectedCollectionChanged(collection: Collection): void {
 
     this.selectedCollection = collection;
     this.selectedCollectionId = collection.id;
 
-    log.debug('ToolbarWidgetComponent: onCollectionSelected(): selectedCollectionId', this.selectedCollectionId);
-    log.debug('ToolbarWidgetComponent: onCollectionSelected():', collection );
+    log.debug('ToolbarWidgetComponent: onSelectedCollectionChanged(): selectedCollectionId', this.selectedCollectionId);
+    log.debug('ToolbarWidgetComponent: onSelectedCollectionChanged(): collection:', collection );
 
     if (this.showSearch) {
       this.toggleSearch();
@@ -452,12 +475,14 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
   logoutButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: logoutButtonClick()");
-    this.authService.logout();
+    // this.authService.logout();
+    this.toolService.logout.next();
   }
 
   onNoCollections(): void {
     this.selectedCollection = null;
     this.selectedCollectionId = null;
+    this.contentCount = new ContentCount;
   }
 
   onCollectionsClick(): void {

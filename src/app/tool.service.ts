@@ -46,7 +46,6 @@ export class ToolService {
   // Users
   public confirmUserDelete: Subject<any> = new Subject<any>();
   public userToDelete: Subject<any> = new Subject<any>();
-  public noCollections: Subject<void> = new Subject<void>();
 
   // Authentication
   public logout: Subject<any> = new Subject<any>();
@@ -56,7 +55,7 @@ export class ToolService {
   public newImage: Subject<any> = new Subject<any>();
   public fileToDownload: Subject<any> = new Subject<any>();
   public confirmDownloadFile: Subject<any> = new Subject<any>();
-  public sessionId: Subject<any> = new Subject<any>();
+  public clientSessionId: Subject<any> = new Subject<any>();
   public HttpJsonStreamConnected: Subject<any> = new Subject<any>();
   public onSplashScreenAtStartupClosed: Subject<void> = new Subject<void>();
 
@@ -71,26 +70,34 @@ export class ToolService {
   public confirmSaServerDelete: Subject<string> = new Subject<string>();
 
 
-  // collections
+  // collections //
   public getCollectionDataAgain: Subject<any> = new Subject<any>();
-  public changingCollections: Subject<any> = new Subject<any>();
   public deleteCollectionNext: Subject<Collection> = new Subject<Collection>();
   public deleteCollectionConfirmed: Subject<string> = new Subject<string>();
-  public collectionSelected: Subject<Collection> = new Subject<Collection>();
   public executeCollectionOnEdit: Subject<boolean> = new Subject<boolean>();
-  public addNwCollectionNext: Subject<void> = new Subject<void>();
-  public addSaCollectionNext: Subject<void> = new Subject<void>();
-  public editNwCollectionNext: Subject<Collection> = new Subject<Collection>();
-  public editSaCollectionNext: Subject<Collection> = new Subject<Collection>();
   public executeAddCollection: Subject<any> = new Subject<any>();
   public executeEditCollection: Subject<any> = new Subject<any>();
+
+  // communicates to collection dialogs that when they open, they should be in 'adhoc' mode
   public addNwAdhocCollectionNext: BehaviorSubject<any> = new BehaviorSubject<any>({});
   public addSaAdhocCollectionNext: BehaviorSubject<any> = new BehaviorSubject<any>({});
+
+  // communicates to collection dialogs that when they open, they should be in 'add' mode
+  public addNwCollectionNext: Subject<void> = new Subject<void>();
+  public addSaCollectionNext: Subject<void> = new Subject<void>();
+
+  // communicates to collection dialogs that when they open, they should be in 'edit' mode
+  public editNwCollectionNext: Subject<Collection> = new Subject<Collection>();
+  public editSaCollectionNext: Subject<Collection> = new Subject<Collection>();
+
+
 
   // feeds
   public addFeedNext: Subject<void> = new Subject<void>();
   public editFeedNext: Subject<Feed> = new Subject<Feed>();
   public deleteFeedNext: Subject<Feed> = new Subject<Feed>();
+
+
 
   // Tab Container
   public collectionsOpened: Subject<void> = new Subject<void>();
