@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Inject, forwardRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ElementRef, Input, Inject, forwardRef } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
@@ -201,9 +201,7 @@ import * as log from 'loglevel';
 
 export class MasonryTileComponent implements OnInit, OnDestroy {
 
-  constructor(  public el: ElementRef,
-                private changeDetectionRef: ChangeDetectorRef,
-                private toolService: ToolService,
+  constructor(  private toolService: ToolService,
                 @Inject(forwardRef(() => MasonryGridComponent)) private parent: MasonryGridComponent ) {}
 
   public utils = utils;
@@ -217,16 +215,14 @@ export class MasonryTileComponent implements OnInit, OnDestroy {
   public session;
   public displayTextArea = true;
   private originalSession: any; // Session data that hasn't been de-duped
-  private enabledTrigger = 'disabled';
   private showMasonryTextAreaSubscription: Subscription;
 
 
 
   ngOnInit(): void {
     this.displayTextArea = this.toolService.showMasonryTextAreaState;
-    this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (show) => {
-      this.displayTextArea = show;
-      this.changeDetectionRef.markForCheck();
+    this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (TorF) => {
+      this.displayTextArea = TorF;
     });
 
     let parentSession = this.parent.sessions[this.sessionId];
@@ -239,7 +235,6 @@ export class MasonryTileComponent implements OnInit, OnDestroy {
       }
     }
     this.session = session;
-
   }
 
 
@@ -257,11 +252,9 @@ export class MasonryTileComponent implements OnInit, OnDestroy {
     this.toolService.newImage.next(this.content);
 
     if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
-      // log.debug("display pdf");
       this.toolService.openPDFViewer.next();
     }
     else {
-      // log.debug("display image");
       this.toolService.openSessionViewer.next();
     }
   }

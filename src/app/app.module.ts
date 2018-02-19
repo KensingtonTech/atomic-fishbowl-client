@@ -6,7 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ModalModule } from './modal/modal.module';
 import { PanZoomModule } from './panzoom/panzoom.module';
-import { MasonryModule } from './masonry/masonry.module';
+import { IsotopeModule } from './isotope/isotope.module';
 
 // PrimeNG
 import { CalendarModule } from 'primeng/components/calendar/calendar';
@@ -102,7 +102,7 @@ import * as $ from 'jquery';
                   CalendarModule,
                   TooltipModule,
                   ButtonModule,
-                  MasonryModule,
+                  IsotopeModule,
                   RadioButtonModule,
                   SelectButtonModule,
                   DropdownModule,

@@ -15,7 +15,7 @@ import * as log from 'loglevel';
 @Component( {
   selector: 'toolbar-widget',
   template: `
-<div style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
+<div style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;" class="afb-toolbar">
 
   <div *ngIf="selectedCollection">
     <div style="position: absolute; top: 6px; width: 100%">

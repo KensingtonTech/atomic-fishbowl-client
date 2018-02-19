@@ -1,7 +1,7 @@
 /**
- * MasonryOptions
+ * IsotopeOptions
  */
-export interface MasonryOptions {
+export interface IsotopeOptions {
     itemSelector?: string;
     masonry: {
       columnWidth: number | string,
