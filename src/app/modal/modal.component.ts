@@ -2,6 +2,7 @@
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
+declare var $: any;
 import * as log from 'loglevel';
 
 @Component({

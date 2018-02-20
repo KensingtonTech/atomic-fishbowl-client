@@ -33,12 +33,11 @@ export class IsotopeBrickDirective implements OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
 
-    this.el.nativeElement.style.display = 'none'; // isotope.directive will unhide the element after it's been layed-out
+    this.el.nativeElement.style.display = 'none'; // isotope.directive will unhide the element after it's been laid-out
     this.ngZone.runOutsideAngular( () => {
       this.imgsLoaded = imagesLoaded(this.el.nativeElement);
       this.imgsLoaded.on('always', this.onImagesLoadedComplete);
      } );
-
     if (this.enableObserver) {
       // enable mutation watcher
       log.debug('IsotopeBrickDirective: ngAfterViewInit(): Enabling mutation observer');

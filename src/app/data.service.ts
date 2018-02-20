@@ -6,7 +6,6 @@ import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { Collection } from './collection';
 import { NwServer } from './nwserver';
 import { SaServer } from './saserver';
-import { HttpJsonStream } from './http-json-stream';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
 import { UseCase } from './usecase';
@@ -27,9 +26,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
       log.debug(`DataService: clientSessionIdSubscription(): got clientSessionId: ${clientSessionId}`);
       this.clientSessionId = clientSessionId;
     });
-
-    this.toolService.HttpJsonStreamConnected.subscribe( (connected: boolean) => this.httpJsonStreamServiceConnected = connected );
-
 
     // Subscribe to socket events
     this.socket.on('disconnect', reason => {
@@ -101,7 +97,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   private socket = io();
   private collectionsSocket = io('/collections');
-  private httpJsonStreamService: HttpJsonStream = new HttpJsonStream(this.toolService);
 
   // Observables
   public contentPublished: Subject<any> = new Subject<any>();
@@ -133,7 +128,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
   // Properties
   private apiUrl = '/api';
   private clientSessionId: number;
-  public httpJsonStreamServiceConnected = false;
 
   public init(): Promise<any> {
     // Run by authentication service at login or page load

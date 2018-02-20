@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ElementRef, Input, Inject, forwardRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, ElementRef, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
@@ -199,9 +199,10 @@ import * as log from 'loglevel';
   `]
 })
 
-export class MasonryTileComponent implements OnInit, OnDestroy {
+export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
 
   constructor(  private toolService: ToolService,
+                private changeDetectionRef: ChangeDetectorRef,
                 @Inject(forwardRef(() => MasonryGridComponent)) private parent: MasonryGridComponent ) {}
 
   public utils = utils;
@@ -217,17 +218,18 @@ export class MasonryTileComponent implements OnInit, OnDestroy {
   private originalSession: any; // Session data that hasn't been de-duped
   private showMasonryTextAreaSubscription: Subscription;
 
+  private times = 0;
+
 
 
   ngOnInit(): void {
+    // log.debug('init');
     this.displayTextArea = this.toolService.showMasonryTextAreaState;
-    this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (TorF) => {
-      this.displayTextArea = TorF;
-    });
+    this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (TorF) => this.onToggleTextArea(TorF) );
 
     let parentSession = this.parent.sessions[this.sessionId];
     this.originalSession = JSON.parse(JSON.stringify(parentSession));
-    let session = { meta: {} };
+    let session = { meta: {}, id: this.sessionId };
     for (let key in parentSession.meta) {
       // de-dupe meta
       if (parentSession.meta.hasOwnProperty(key)) {
@@ -239,8 +241,27 @@ export class MasonryTileComponent implements OnInit, OnDestroy {
 
 
 
+  ngAfterViewInit(): void {
+    this.changeDetectionRef.detach();
+  }
+
+
   ngOnDestroy(): void {
     this.showMasonryTextAreaSubscription.unsubscribe();
+  }
+
+
+
+  onToggleTextArea(TorF): void {
+    this.displayTextArea = TorF;
+    this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  ngOnChanges(values): void {
+    this.changeDetectionRef.reattach();
+    setTimeout( () => this.changeDetectionRef.detach(), 0);
   }
 
 

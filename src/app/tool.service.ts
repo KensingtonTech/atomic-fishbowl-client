@@ -56,8 +56,7 @@ export class ToolService {
   public fileToDownload: Subject<any> = new Subject<any>();
   public confirmDownloadFile: Subject<any> = new Subject<any>();
   public clientSessionId: Subject<any> = new Subject<any>();
-  public HttpJsonStreamConnected: Subject<any> = new Subject<any>();
-  public onSplashScreenAtStartupClosed: Subject<void> = new Subject<void>();
+    public onSplashScreenAtStartupClosed: Subject<void> = new Subject<void>();
 
   // Open viewwers
   public openPDFViewer: Subject<any> = new Subject<any>();

@@ -89,7 +89,6 @@ import { SessionWidgetComponent } from './session-widget.component';
 // Other
 // import 'hammerjs'; // required for Material gesture support
 import { FlexLayoutModule } from '@angular/flex-layout';
-import * as $ from 'jquery';
 
 @NgModule({
   imports:      [ BrowserModule,

@@ -4,6 +4,7 @@ import { ToolService } from './tool.service';
 import { Content } from './content';
 import { abs } from 'mathjs';
 import * as log from 'loglevel';
+import * as math from 'mathjs';
 
 @Component({
   selector: 'classic-tile',

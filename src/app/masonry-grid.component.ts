@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ComponentRef, ElementRef, Renderer2, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
 import { NgStyle } from '@angular/common';
-import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
 import { Content } from './content';
@@ -12,13 +11,26 @@ import { IsotopeDirective } from './isotope/isotope.directive';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
-import { eval } from 'mathjs';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
-
+import * as math from 'mathjs';
 import * as utils from './utils';
 import * as log from 'loglevel';
-declare var $: any; // we must declare jQuery in this instance because we're using a jQuery plugin and don't have the typescript defs for it
+declare var $: any;
+
+/*interface VelocityOptions {
+  duration: number;
+  container: JQuery;
+  easing: string;
+  complete: Function;
+}
+
+declare global {
+  interface JQuery {
+    // declare our velocity JQuery plugin
+    velocity(action: string, options?: VelocityOptions): JQuery;
+  }
+}*/
 
 @Component({
   selector: 'masonry-grid-view',
@@ -35,11 +47,9 @@ declare var $: any; // we must declare jQuery in this instance because we're usi
 
   <div #canvas tabindex="-1" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll; outline: 0px solid transparent;">
 
-    <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys && masonryColumnSize" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
+    <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
 
         <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
-
-        <!--<masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [sessionId]="item.session" [attr.contentFile]="item.contentFile" [attr.id]="item.id" [attr.sessionid]="item.session" [attr.contentType]="item.contentType" [attr.hashType]="item.hashType" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize" [serviceType]="selectedCollectionServiceType">-->
 
         </masonry-tile>
 
@@ -60,7 +70,7 @@ declare var $: any; // we must declare jQuery in this instance because we're usi
       margin-top: 20px;
     }
 
-    isotope:focus {
+    isotope {
       outline-width: 0;
     }
 
@@ -70,11 +80,11 @@ declare var $: any; // we must declare jQuery in this instance because we're usi
 export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(  private dataService: DataService,
+                private toolService: ToolService,
                 private renderer: Renderer2,
                 private elRef: ElementRef,
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
-                private toolService: ToolService,
                 private router: Router,
                 private route: ActivatedRoute,
                 private zone: NgZone ) {}
@@ -84,15 +94,15 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas') private canvasRef: ElementRef;
 
   private search: Search[] = []; // 'search' is an array containing text extracted from PDF's which can be searched
-  private content: Content[] = [];
+  public content: Content[] = [];
   public sessions: any = {};
-  private sessionsDefined = false;
+  public sessionsDefined = false;
   private contentCount = new ContentCount; // { images: number, pdfs: number, officeDocs: number, dodgyArchives: number, hashes: number, total: number }
 
   private caseSensitiveSearch = false;
   private lastSearchTerm = '';
   private pauseMonitoring = false;
-  private masonryColumnSize = 350; // default is 350
+  public masonryColumnSize = 350; // default is 350
   public filter = '*';
   private isotopeOptions: IsotopeOptions =  {
     layoutMode: 'masonry',
@@ -114,7 +124,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private collectionId: string = null;
   private pixelsPerSecond = 200;
   private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
-  private masonryKeys: any = null;
+  public masonryKeys: any = null;
   private lastMask = new ContentMask;
   // private lastWindowHeight = $('masonry').height();
   private searchBarOpen = false;
@@ -367,8 +377,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // this.masonryKeys = prefs.masonryKeys;
     // log.debug('masonryKeys:', this.masonryKeys)
     this.preferences = prefs;
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
 
     if (this.selectedCollectionServiceType) {
       if (this.selectedCollectionServiceType === 'nw') {
@@ -377,15 +385,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.selectedCollectionServiceType === 'sa') {
         this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
       }
-      this.changeDetectionRef.markForCheck();
-      this.changeDetectionRef.detectChanges();
     }
 
     if (this.masonryColumnSize !== prefs.masonryColumnSize) {
       log.debug('MasonryGridComponent: onPreferencesChanged(): Changing masonry column size to prefs.masonryColumnSize');
       this.masonryColumnSize = prefs.masonryColumnSize;
-      this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
       let newIsotopeOptions: IsotopeOptions = Object.assign({}, this.isotopeOptions); // deep copy so that the reference is changed and can thus be detected
       newIsotopeOptions.masonry.columnWidth = this.masonryColumnSize;
       this.isotopeOptions = newIsotopeOptions;
@@ -396,6 +400,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       log.debug('MasonryGridComponent: onPreferencesChanged(): calling layout');
       if (this.isotopeDirectiveRef) { this.isotopeDirectiveRef.layout(); } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
     }
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -434,7 +439,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.masonryKeys = null;
 
     this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -450,7 +454,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resetContentCount();
     this.stopAutoScroll();
     this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
     this.selectedCollectionType = collection.type;
     this.collectionState = collection.state;
     this.collectionId = collection.id;
@@ -463,7 +466,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
         this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
       }
     }
-    this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
+    setTimeout( () => this.selectedCollectionServiceType = collection.serviceType, 0); // 'nw' or 'sa'
 
   }
 
@@ -477,7 +480,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.isotopeDirectiveRef) { this.isotopeDirectiveRef.destroyMe(); }
       this.destroyView = true;
       this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
       if (this.autoScrollStarted) { this.restartAutoScroll(); }
       this.search = [];
       this.sessions = {};
@@ -498,8 +500,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     log.debug('MasonryGridComponent: onSessionsReplaced: sessions:', s);
     this.sessionsDefined = true;
     this.sessions = s;
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.detectChanges();
   }
 
 
@@ -518,14 +520,12 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     log.debug('MasonryGridComponent: onContentReplaced(): content:', content);
     if (this.content.length !== 0 && this.isotopeDirectiveRef) { this.isotopeDirectiveRef.destroyMe(); } // we need this for when we replace the collection and it is biggish.  Prevents performance issues by completely blowing away Isotope rather than letting it tear itself down
     this.destroyView = true;
-    this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
 
     content.sort(this.sortContent);
     this.content = content;
     this.countContent();
     this.destroyView = false;
-    this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
 
     setTimeout( () => {
@@ -572,7 +572,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.toolService.contentCount.next( this.contentCount );
 
     if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
-    this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
 
@@ -582,8 +581,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // this receives complete search term data from complete collection
     this.search = s;
     log.debug('MasonryGridComponent: onSearchReplaced(): search:', this.search);
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -596,8 +593,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     // log.debug("MasonryGridComponent: searchPublishedSubscription: this.search:", this.search);
     // if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); } // we don't do this here because the content arrives after the search term
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
+
   }
 
 
@@ -612,7 +608,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
     }
     this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
     // this.lastWindowHeight = $('isotope').height();
   }
 
@@ -622,7 +617,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  //////////////////SCROLLING//////////////////
+  ////////////////// SCROLLING //////////////////
 
 
   onScrollToBottomClicked(): void {
@@ -743,7 +738,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     let distance = math.eval(`${offset} - ${scrollTop}`); // how far the container needs to scroll in order to hit the scrolltarget
     // log.debug('MasonryGridComponent: scrollDuration(): distance:', distance);
 
+    // let expr: expression = `( ${distance} / ${this.pixelsPerSecond} ) * 1000`;
     let scrollDuration = math.eval( `( ${distance} / ${this.pixelsPerSecond} ) * 1000`);
+    // let scrollDuration = eval( `( ${distance} / ${this.pixelsPerSecond} ) * 1000`);
     // log.debug('MasonryGridComponent: scrollDuration(): scrollDuration:', scrollDuration);
 
     return scrollDuration;
@@ -929,7 +926,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (searchTerms === '') {
       this.maskChanged(this.lastMask);
       this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
       return;
     }
 
@@ -956,7 +952,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
   }
 
 
