@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "project": {
-    "name": "two21b-client"
+    "name": "atomic-fishbowl-client"
   },
   "apps": [
     {
@@ -26,11 +26,11 @@
       ],
       "scripts": [
         "../node_modules/jquery/dist/jquery.min.js",
+        "../node_modules/velocity-animate/velocity.min.js",
+        "../node_modules/isotope-layout/dist/isotope.pkgd.min.js",
+        "../node_modules/imagesloaded/imagesloaded.pkgd.min.js",
         "../node_modules/jsencrypt/bin/jsencrypt.min.js",
         "../node_modules/moment/min/moment-with-locales.min.js",
-        "../node_modules/isotope-layout/dist/isotope.pkgd.min.js",
-        "../node_modules/velocity-animate/velocity.min.js",
-        "../node_modules/imagesloaded/imagesloaded.pkgd.min.js",
         "../node_modules/screenfull/dist/screenfull.js",
         "./app/mousewheel/hamster.js"
       ],

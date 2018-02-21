@@ -39,7 +39,9 @@ declare global {
 <div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px; background-color: black;">
   <div style="position: absolute; left: 0; width: 100px; height: 100%;">
     <masonry-control-bar></masonry-control-bar>
-    <div *ngIf="selectedCollectionType == 'monitoring' && !destroyView" style="position: absolute; left: 15px; top: 100px; color: white; z-index: 100;">
+
+    <!-- pause / resume buttons for monitoring collections -->
+    <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 15px; top: 100px; color: white; z-index: 100;">
       <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
       <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
     </div>
@@ -60,8 +62,8 @@ declare global {
 </div>
 
 <!-- modals -->
-<pdf-viewer-modal id="pdf-viewer" [serviceType]="selectedCollectionServiceType"></pdf-viewer-modal>
-<session-details-modal id="sessionDetails" [serviceType]="selectedCollectionServiceType"></session-details-modal>
+<pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType"></pdf-viewer-modal>
+<session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType"></session-details-modal>
 `,
 
   styles: [`
@@ -453,10 +455,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.content = [];
     this.resetContentCount();
     this.stopAutoScroll();
-    this.changeDetectionRef.detectChanges();
     this.selectedCollectionType = collection.type;
+    this.pauseMonitoring = false;
     this.collectionState = collection.state;
     this.collectionId = collection.id;
+    this.changeDetectionRef.detectChanges();
 
     if (!this.selectedCollectionServiceType) {
       if (collection.serviceType === 'nw') {
@@ -804,7 +807,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  ////////////////////END ANIMATION////////////////////
+  //////////////////// END ANIMATION ////////////////////
 
 
 

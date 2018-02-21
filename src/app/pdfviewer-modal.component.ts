@@ -14,7 +14,7 @@ import * as log from 'loglevel';
   template: `
 <modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelled()">
   <div class="modal">
-    <div class="modal-body" *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
+    <div class="modal-body" *ngIf="isOpen && serviceType" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
 
       <div style="position: absolute; left: 0; right: 365px; top: 0; height: 30px;">
 
@@ -151,7 +151,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
   private pdfFile: string;
   private page = 1;
 
-  // private serviceType: string; // 'nw' or 'sa'
   private session: any;
   private meta: any;
   private sessionId: number;
@@ -186,7 +185,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnInit(): void {
     log.debug('PdfViewerModalComponent: ngOnInit()');
-    
+
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
 
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
@@ -216,6 +215,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
 
   ngOnDestroy() {
+    log.debug('PdfViewerModalComponent onPreferencesChanged(): ngOnDestroy()');
     this.preferencesChangedSubscription.unsubscribe();
     this.deviceNumberSubscription.unsubscribe();
     this.newSessionSubscription.unsubscribe();
@@ -231,6 +231,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
     this.preferences = prefs;
+    this.displayedKeys = this.preferences[this.serviceType].displayedKeys;
   }
 
 
@@ -238,12 +239,14 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(values: any) {
     log.debug('PdfViewerModalComponent ngOnChanges(): values', values);
 
-    if ( 'serviceType' in values
+    /*if ( 'serviceType' in values && this.preferences
         && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
         || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
+
       this.displayedKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
       log.debug('PdfViewerModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
-    }
+
+    }*/
 
   }
 
@@ -289,7 +292,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
   }
 
 
-  
+
   rotate(): void {
     if (this.rotation === 0) {
       this.rotation = 90;
@@ -332,7 +335,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
 
   saUrlGetter(sessionId): string {
-    if (!this.meta || !sessionId || this.serviceType != 'sa' || !('start_time' in this.meta && 'stop_time' in this.meta)) {
+    if (!this.meta || !sessionId || this.serviceType !== 'sa' || !('start_time' in this.meta && 'stop_time' in this.meta)) {
       return;
     }
 

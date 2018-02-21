@@ -145,7 +145,7 @@ import * as log from 'loglevel';
 
           <!-- cancel -->
           <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
-          
+
           <!-- show/hide eyeball-->
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
 
@@ -255,20 +255,21 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
   ngOnChanges(values: any) {
     log.debug('SessionDetailsModalComponent ngOnChanges(): values', values);
 
-    if ( 'serviceType' in values
+    /*if ( 'serviceType' in values
         && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
         || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
       this.displayedKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
       log.debug('SessionDetailsModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
-    }
+    }*/
 
   }
 
 
 
   onPreferencesChanged(prefs: Preferences): void {
-    log.debug("SessionDetailsModalComponent: onPreferencesChanged(): prefs: ", prefs);
+    log.debug('SessionDetailsModalComponent: onPreferencesChanged(): prefs:', prefs);
     this.preferences = prefs;
+    this.displayedKeys = this.preferences[this.serviceType].displayedKeys;
   }
 
 

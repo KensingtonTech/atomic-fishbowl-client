@@ -26,14 +26,21 @@ interface Point {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
+
   <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
+
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
-      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [apiServerUrl]="apiServerUrl" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType"></classic-tile>
+
+      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
+      </classic-tile>
+
     </div>
+
   </panzoom>
 
   <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
 
+  <!-- pause / resume buttons for monitoring collections -->
   <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 210px; top: 10px; color: white; z-index: 100;">
     <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
     <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
@@ -42,8 +49,8 @@ interface Point {
 </div>
 
 <!-- modals -->
-<pdf-viewer-modal id="pdf-viewer" [serviceType]="selectedCollectionServiceType"></pdf-viewer-modal>
-<classic-session-popup [session]="popUpSession" [enabled]="sessionWidgetEnabled" [serviceType]="selectedCollectionServiceType" #sessionWidget></classic-session-popup>
+<pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType"></pdf-viewer-modal>
+<classic-session-popup *ngIf="selectedCollectionServiceType" [session]="popUpSession" [enabled]="sessionWidgetEnabled" [serviceType]="selectedCollectionServiceType" #sessionWidget></classic-session-popup>
 `,
   styles: [`
 
@@ -77,11 +84,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   public sessionWidgetEnabled = false;
   public hoveredContentSession: number;
   public highResSessions: number[] = [];
-  public apiServerUrl: string = '//' + window.location.hostname;
   private deviceNumber: number;
   private search: Search[] = [];
   public displayedContent: Content[] = [];
-  
+
   public sessions: any;
   public popUpSession: any;
 
@@ -309,8 +315,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
     // log.debug("ClassicGridComponent: searchPublishedSubscription: this.search:", this.search);
     // this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -358,7 +362,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     // if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
     this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
     this.sessionWidgetDecider();
   }
 
@@ -375,7 +378,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.detectChanges();
     this.sessionWidgetDecider();
     this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
-    this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
 
@@ -395,8 +397,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     log.debug('ClassicGridComponent: onSessionsReplaced(): sessionsReplaced:', s);
     this.sessionsDefined = true;
     this.sessions = s;
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -414,7 +414,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.resetContentCount();
       this.destroyView = false;
       this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
     }
   }
 
@@ -430,14 +429,14 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.sessions = {};
     this.content = [];
     this.resetContentCount();
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
     this.selectedCollectionType = collection.type;
     this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
     this.collectionId = collection.id;
+    this.pauseMonitoring = false;
+    this.changeDetectionRef.detectChanges();
   }
 
-  
+
 
   onNoCollections(): void {
     log.debug('ClassicGridComponent: onNoCollections()');
@@ -452,7 +451,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.collectionId = null;
     this.selectedCollectionServiceType = null;
     this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -633,7 +631,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     // log.debug("ClassicGridComponent: showSessionWidget()", i);
     // if (!this.sessionWidgetEnabled) {
       this.hoveredContentSession = sessionId;
-      this.popUpSession = this.sessions[sessionId]
+      this.popUpSession = this.sessions[sessionId];
       this.highResSessions = sessionsForHighRes;
       this.sessionWidgetEnabled = true;
       this.changeDetectionRef.detectChanges();
@@ -680,7 +678,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     if (searchTerms === '') {
       this.maskChanged(this.lastMask);
       this.changeDetectionRef.detectChanges();
-      this.changeDetectionRef.markForCheck();
       return;
     }
 
@@ -717,7 +714,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
 
     this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.markForCheck();
   }
 
 

@@ -52,10 +52,10 @@ import * as log from 'loglevel';
       </div>
 
     </div>
-  
+
     <!-- Show all toggle -->
     <div (click)="showAllClick()" style="position: absolute; top: 5px; right: 40px;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
-    
+
     <!-- bullseye -->
     <div *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" style="position: absolute; top: 5px; right: 3px;">
       <a target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
@@ -125,9 +125,7 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   ngOnInit(): void {
     this.enabledTrigger = 'disabled';
 
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => {  // log.debug("prefs observable: ", prefs);
-      this.preferences = prefs;
-    });
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
 
     this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( (event: any) => this.deviceNumber = event.deviceNumber );
   }
@@ -139,6 +137,13 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
 
     this.preferencesChangedSubscription.unsubscribe();
     this.deviceNumberSubscription.unsubscribe();
+  }
+
+
+
+  onPreferencesChanged(prefs: Preferences): void {
+    this.preferences = prefs;
+    this.displayedKeys = this.preferences[this.serviceType].displayedKeys;
   }
 
 
@@ -165,10 +170,10 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   ngOnChanges(values: any): void {
     log.debug('ClassicSessionPopupComponent ngOnChanges(): values', values);
 
-    if ( 'serviceType' in values && values.serviceType.currentValue) {
+    /*if ( 'serviceType' in values && values.serviceType.currentValue && this.preferences) {
       let serviceType = values.serviceType.currentValue;
       this.displayedKeys = this.preferences[serviceType].displayedKeys;
-    }
+    }*/
 
     if ('session' in values && values.session.currentValue) {
       this.meta = values.session.currentValue['meta'];
@@ -199,7 +204,7 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
 
 
   saUrlGetter(sessionId): string {
-    if (!this.meta || !sessionId || this.serviceType != 'sa' || !('start_time' in this.meta && 'stop_time' in this.meta)) {
+    if (!this.meta || !sessionId || this.serviceType !== 'sa' || !('start_time' in this.meta && 'stop_time' in this.meta)) {
       return;
     }
     // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO
