@@ -2,6 +2,7 @@ import { Directive, OnInit, OnChanges, Input, Output, ElementRef, EventEmitter, 
 import { IsotopeOptions } from './isotope-options';
 import { ToolService } from '../tool.service';
 import * as log from 'loglevel';
+declare var $: any;
 declare var Isotope;
 
 @Directive({
@@ -61,7 +62,7 @@ export class IsotopeDirective implements OnInit, OnChanges {
 
 
   ngOnChanges(values: any): void {
-    // log.debug("IsotopeDirective: ngOnChanges()", e);
+    // log.debug('IsotopeDirective: ngOnChanges()', e);
 
     if ('options' in values && this.isotope !== undefined ) {
        this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
@@ -112,6 +113,7 @@ export class IsotopeDirective implements OnInit, OnChanges {
 
 
   public add(element: ElementRef) {
+    // log.debug('IsotopeDirective: add()');
 
     this.ngZone.runOutsideAngular( () => {
 
@@ -127,7 +129,7 @@ export class IsotopeDirective implements OnInit, OnChanges {
 
 
   public remove(element: ElementRef) {
-    log.debug('IsotopeDirective: remove()');
+    // log.debug('IsotopeDirective: remove()');
 
     // Tell Isotope that a child brick has been removed
     if (!this.isDestroyed ) {

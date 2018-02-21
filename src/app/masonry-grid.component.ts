@@ -380,35 +380,23 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   onPreferencesChanged(prefs: Preferences): void {
-    // this.masonryKeys = prefs.masonryKeys;
-    // log.debug('masonryKeys:', this.masonryKeys)
-    this.preferences = prefs;
 
     if (this.selectedCollectionServiceType) {
       if (this.selectedCollectionServiceType === 'nw') {
-        this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.nw.masonryKeys));
+        this.masonryKeys = JSON.parse(JSON.stringify(prefs.nw.masonryKeys));
       }
       if (this.selectedCollectionServiceType === 'sa') {
-        this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
+        this.masonryKeys = JSON.parse(JSON.stringify(prefs.sa.masonryKeys));
       }
     }
 
-    /*if (this.masonryColumnWidth !== prefs.masonryColumnWidth) {
-      log.debug('MasonryGridComponent: onPreferencesChanged(): Changing masonry column size to prefs.masonryColumnWidth');
-      this.masonryColumnWidth = prefs.masonryColumnWidth;
-      let newIsotopeOptions: IsotopeOptions = Object.assign({}, this.isotopeOptions); // deep copy so that the reference is changed and can thus be detected
-      newIsotopeOptions.masonry.columnWidth = this.masonryColumnWidth;
-      this.isotopeOptions = newIsotopeOptions;
+    // we need to trigger a layout when we change masonry meta keys in preferences
+    if ( this.isotopeDirectiveRef && JSON.stringify(prefs.nw.masonryKeys) !== JSON.stringify(this.preferences.nw.masonryKeys) ) {
+      log.debug('MasonryGridComponent: onPreferencesChanged(): Masonry keys have changed.  Calling Isotope layout');
+      this.isotopeDirectiveRef.layout();
     }
-    else {*/
-      // not sure why I had this here - we only need to trigger layout when the column size changes
-      // I spoke too soon - we also need to call it when we add a masonry meta key in preferences
-      log.debug('MasonryGridComponent: onPreferencesChanged(): calling layout');
-      if (this.isotopeDirectiveRef) {
-        this.isotopeDirectiveRef.layout();
-      } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
-    // }
 
+    this.preferences = prefs;
     this.changeDetectionRef.detectChanges();
   }
 
@@ -418,6 +406,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.masonryColumnWidth !== width) {
       log.debug('MasonryGridComponent: onMasonryColumnWidthChanged(): Changing masonry column size to', width);
       this.masonryColumnWidth = width;
+      this.changeDetectionRef.detectChanges();
+
       let newIsotopeOptions: IsotopeOptions = Object.assign({}, this.isotopeOptions); // deep copy so that the reference is changed and can thus be detected
       newIsotopeOptions.masonry.columnWidth = this.masonryColumnWidth;
       this.isotopeOptions = newIsotopeOptions;
@@ -435,12 +425,14 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   onMaskChanged($event: ContentMask): void {
     if (this.autoScrollStarted) {
       this.stopAutoScroll();
     }
     this.maskChanged($event);
   }
+
 
 
   onNoCollections(): void {
@@ -462,6 +454,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.changeDetectionRef.detectChanges();
   }
+
 
 
   onSelectedCollectionChanged(collection: Collection): void {
@@ -554,11 +547,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout( () => {
       // Sets keyboard focus
       if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnWidth && !this.destroyView) {
-        // log.debug('MasonryGridComponent: onContentReplaced(): canvasRef', this.canvasRef);
-        // log.debug('MasonryGridComponent: onContentReplaced(): isotopeRef', this.isotopeRef);
-        // this.isotopeRef.first.nativeElement.firstElementChild.firstElementChild.focus();
         this.canvasRef.nativeElement.focus();
-        // log.debug('MasonryGridComponent: onContentReplaced(): activeElement', document.activeElement);
       }
     }, 50);
   }
