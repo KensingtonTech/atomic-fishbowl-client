@@ -10,7 +10,7 @@ import * as log from 'loglevel';
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div *ngIf="masonryColumnSize && session" [ngStyle]="{'width.px': masonryColumnSize}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
+<div *ngIf="masonryColumnWidth && session" [ngStyle]="{'width.px': masonryColumnWidth}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
 
   <div style="position: relative; min-height: 50px;">
 
@@ -210,7 +210,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
   @Input() private content: any;
   @Input() public sessionId: number;
   @Input() private masonryKeys: any;
-  @Input() public masonryColumnSize: number;
+  @Input() public masonryColumnWidth: number;
   @Input() public serviceType: string; // 'nw' or 'sa'
 
   public session;
@@ -223,7 +223,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
 
   ngOnInit(): void {
-    // log.debug('init');
+    // log.debug('MasonryTileComponent: ngOnInit()');
     this.displayTextArea = this.toolService.showMasonryTextAreaState;
     this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (TorF) => this.onToggleTextArea(TorF) );
 

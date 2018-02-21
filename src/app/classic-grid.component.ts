@@ -31,7 +31,7 @@ interface Point {
 
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
 
-      <classic-tile *ngFor="let item of displayedContent" [highResSessions]="highResSessions" (openPDFViewer)="openPdfViewer()" [content]="item" [session]="sessions[item.session]" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
+      <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
       </classic-tile>
 
     </div>
@@ -70,7 +70,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService,
                 private router: Router,
-                private route: ActivatedRoute ) {} // (<any>$).expr.cacheLength = 1;
+                private route: ActivatedRoute ) {}
 
   public panzoomConfig = new PanZoomConfig;
   private panzoomModel: PanZoomModel;
@@ -83,7 +83,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private contentCount = new ContentCount;
   public sessionWidgetEnabled = false;
   public hoveredContentSession: number;
-  public highResSessions: number[] = [];
+  // public highResSessions: number[] = [];
+  public highResSessions: any = {};
   private deviceNumber: number;
   private search: Search[] = [];
   public displayedContent: Content[] = [];
@@ -628,11 +629,20 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
 
   private showSessionWidget(sessionId: number, sessionsForHighRes: number[] ): void {
-    // log.debug("ClassicGridComponent: showSessionWidget()", i);
+    // log.debug('ClassicGridComponent: showSessionWidget()', i);
     // if (!this.sessionWidgetEnabled) {
       this.hoveredContentSession = sessionId;
       this.popUpSession = this.sessions[sessionId];
-      this.highResSessions = sessionsForHighRes;
+
+      let sessionsForHighResTemp = {};
+      for (let i = 0; i < sessionsForHighRes.length; i++) {
+        let id = sessionsForHighRes[i];
+        sessionsForHighResTemp[id] = true;
+      }
+      // this.highResSessions = sessionsForHighRes;
+      // this.highResSessions = sessionsForHighResTemp;
+      this.toolService.showHighResSessions.next(sessionsForHighResTemp);
+
       this.sessionWidgetEnabled = true;
       this.changeDetectionRef.detectChanges();
     // }

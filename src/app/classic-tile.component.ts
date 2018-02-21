@@ -1,6 +1,8 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, AfterViewInit, Inject, forwardRef } from '@angular/core';
 import { ToolService } from './tool.service';
 import { Content } from './content';
+import { Subscription } from 'rxjs/Subscription';
+import { ClassicGridComponent } from './classic-grid.component';
 import * as log from 'loglevel';
 import * as math from 'mathjs';
 
@@ -79,73 +81,73 @@ import * as math from 'mathjs';
     }
 
   `],
-/*
-  animations: [
-    trigger('faderAnimation', [
-      //state('enabled',  style({ opacity: 1, display: 'inline-block' })),
-      state('enabled',  style({ opacity: 1 })),
-      state('disabled', style({ opacity: 0 })),
-      transition('* => *', animate('1s')),
-    ])
-  ]
-*/
 })
 
-export class ClassicTileComponent implements OnChanges {
+export class ClassicTileComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
 
-  constructor(private el: ElementRef,
-              private changeDetectionRef: ChangeDetectorRef,
-              private toolService: ToolService ) {}
+  constructor(private changeDetectionRef: ChangeDetectorRef,
+              private toolService: ToolService,
+              @Inject(forwardRef(() => ClassicGridComponent)) private parent: ClassicGridComponent ) {}
 
-  @Input() highResSessions: number[];
   @Input() content: Content;
-  @Input() session: any;
   @Input() sessionId: number;
-  @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
   @Input() serviceType: string; // 'nw' or 'sa'
+  @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
+  public session: any;
   public showHighRes = false;
-  private thumbnailString: string;
-  private thumbnailLoaded = false;
-  private enabledTrigger = 'disabled';
-  private data: any = {}; // prevent opening pdf modal if dragging the view
+  private mouseDownData: any = {}; // prevent opening pdf modal if dragging the view
+
+  private showHighResSessionsSubscription: Subscription;
 
 
 
-  enableMe(): void {
-    // log.debug("enableMe");
-    this.enabledTrigger = 'enabled';
-    this.changeDetectionRef.markForCheck();
+  ngOnInit(): void {
+    this.showHighResSessionsSubscription = this.toolService.showHighResSessions.subscribe( (sessions: any) => this.onShowHighResSessions(sessions) );
+    this.session = this.parent.sessions[this.sessionId];
   }
 
 
 
-  disableMe(): void {
-    // log.debug('disableMe()')
-    this.enabledTrigger = 'disabled';
-    this.changeDetectionRef.markForCheck();
-  }
+  onShowHighResSessions(sessions: any): void {
+    let oldHighRes = this.showHighRes;
 
-
-
-  ngOnChanges(o: any): void {
-    // log.debug("onChanges:", o);
-    let foundHighRes = false;
-    if (o.highResSessions && this.sessionId) {
-      let highResSessions = o.highResSessions.currentValue;
-      if ( highResSessions.includes(this.sessionId) ) {
-        this.showHighRes = true;
-        foundHighRes = true;
-      }
+    if (this.sessionId && this.sessionId in sessions ) {
+      this.showHighRes = true;
     }
-    if (this.showHighRes && !foundHighRes) { // this was previously high res but the session didn't match.  set it back to low-res
+    else {
       this.showHighRes = false;
     }
+
+    if (this.showHighRes !== oldHighRes) {
+      this.changeDetectionRef.detectChanges();
+    }
+
+  }
+
+
+
+  ngAfterViewInit(): void {
+    this.changeDetectionRef.detach();
+  }
+
+
+
+  ngOnDestroy(): void {
+    this.showHighResSessionsSubscription.unsubscribe();
+  }
+
+
+
+  ngOnChanges(values: any): void {
+    // log.debug('ClassicTileComponent: onChanges():', values);
+    this.changeDetectionRef.reattach();
+    setTimeout( () => this.changeDetectionRef.detach(), 0);
   }
 
 
 
   onMouseDown(e: any): void {
-    this.data = { top: e.pageX, left: e.pageY };
+    this.mouseDownData = { top: e.pageX, left: e.pageY };
   }
 
 
@@ -153,11 +155,9 @@ export class ClassicTileComponent implements OnChanges {
   onMouseUp(e: any): void {
     let top   = e.pageX;
     let left  = e.pageY;
-    let ptop  = this.data.top;
-    let pleft = this.data.left;
-    // if (Math.abs(top - ptop) < 15 || Math.abs(left - pleft) < 15) {
-    // if (Math.abs(top - ptop) < 5 || Math.abs(left - pleft) < 5) {
-    // if (abs(top - ptop) === 0 || abs(left - pleft) === 0) {
+    let ptop  = this.mouseDownData.top;
+    let pleft = this.mouseDownData.left;
+    // prevent opening pdf modal if dragging the view
     if (math.abs(top - ptop) === 0 || math.abs(left - pleft) === 0) {
       if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
         this.toolService.newImage.next(this.content);

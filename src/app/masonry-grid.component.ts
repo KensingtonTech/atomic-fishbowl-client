@@ -51,7 +51,7 @@ declare global {
 
     <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
 
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnSize}" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnSize]="masonryColumnSize" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
+        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
 
         </masonry-tile>
 
@@ -104,7 +104,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private caseSensitiveSearch = false;
   private lastSearchTerm = '';
   private pauseMonitoring = false;
-  public masonryColumnSize = 350; // default is 350
+  public masonryColumnWidth = Number(this.toolService.getPreference('masonryColumnWidth')) || 350; // default is 350
   public filter = '*';
   private isotopeOptions: IsotopeOptions =  {
     layoutMode: 'masonry',
@@ -112,7 +112,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     initLayout: true,
     resize: true,
     masonry: {
-      columnWidth: this.masonryColumnSize,
+      columnWidth: this.masonryColumnWidth,
       gutter: 20,
       horizontalOrder: true,
       fitWidth: true,
@@ -169,6 +169,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private openSessionViewerSubscription: Subscription;
   private onSplashScreenAtStartupClosedSubscription: Subscription;
   private refreshMasonryLayoutSubscription: Subscription;
+  private masonryColumnWidthChangedSubscription: Subscription;
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
@@ -196,6 +197,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.openSessionViewerSubscription.unsubscribe();
     this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
     this.refreshMasonryLayoutSubscription.unsubscribe();
+    this.masonryColumnWidthChangedSubscription.unsubscribe();
   }
 
 
@@ -320,6 +322,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.refreshMasonryLayoutSubscription = this.toolService.refreshMasonryLayout.subscribe( () => this.onRefreshMasonryLayout() );
 
+    this.masonryColumnWidthChangedSubscription = this.toolService.masonryColumnWidthChanged.subscribe( (width: number) => this.onMasonryColumnWidthChanged(width) );
+
   }
 
 
@@ -389,20 +393,36 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    if (this.masonryColumnSize !== prefs.masonryColumnSize) {
-      log.debug('MasonryGridComponent: onPreferencesChanged(): Changing masonry column size to prefs.masonryColumnSize');
-      this.masonryColumnSize = prefs.masonryColumnSize;
+    /*if (this.masonryColumnWidth !== prefs.masonryColumnWidth) {
+      log.debug('MasonryGridComponent: onPreferencesChanged(): Changing masonry column size to prefs.masonryColumnWidth');
+      this.masonryColumnWidth = prefs.masonryColumnWidth;
       let newIsotopeOptions: IsotopeOptions = Object.assign({}, this.isotopeOptions); // deep copy so that the reference is changed and can thus be detected
-      newIsotopeOptions.masonry.columnWidth = this.masonryColumnSize;
+      newIsotopeOptions.masonry.columnWidth = this.masonryColumnWidth;
       this.isotopeOptions = newIsotopeOptions;
     }
-    else {
+    else {*/
       // not sure why I had this here - we only need to trigger layout when the column size changes
       // I spoke too soon - we also need to call it when we add a masonry meta key in preferences
       log.debug('MasonryGridComponent: onPreferencesChanged(): calling layout');
-      if (this.isotopeDirectiveRef) { this.isotopeDirectiveRef.layout(); } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
-    }
+      if (this.isotopeDirectiveRef) {
+        this.isotopeDirectiveRef.layout();
+      } // we don't execute the layout after changing masonry meta key preferences if we're changing the column size, so that layout is only triggered once
+    // }
+
     this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  onMasonryColumnWidthChanged(width: number): void {
+    if (this.masonryColumnWidth !== width) {
+      log.debug('MasonryGridComponent: onMasonryColumnWidthChanged(): Changing masonry column size to', width);
+      this.masonryColumnWidth = width;
+      let newIsotopeOptions: IsotopeOptions = Object.assign({}, this.isotopeOptions); // deep copy so that the reference is changed and can thus be detected
+      newIsotopeOptions.masonry.columnWidth = this.masonryColumnWidth;
+      this.isotopeOptions = newIsotopeOptions;
+      this.changeDetectionRef.detectChanges();
+    }
   }
 
 
@@ -533,7 +553,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     setTimeout( () => {
       // Sets keyboard focus
-      if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnSize && !this.destroyView) {
+      if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnWidth && !this.destroyView) {
         // log.debug('MasonryGridComponent: onContentReplaced(): canvasRef', this.canvasRef);
         // log.debug('MasonryGridComponent: onContentReplaced(): isotopeRef', this.isotopeRef);
         // this.isotopeRef.first.nativeElement.firstElementChild.firstElementChild.focus();

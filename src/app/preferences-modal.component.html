@@ -1,8 +1,8 @@
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
+<modal id="{{id}}" (cancelled)="cancelledEventReceived()">
   <div class="modal">
     <div class="modal-body" style="width:500px;" >
       <h3 style="margin-top:0px; margin-bottom: 10px;">Preferences</h3>
-      <form #preferencesForm="ngForm" (ngSubmit)="submitPreferences()" novalidate>
+      <form #preferencesForm="ngForm" (ngSubmit)="onSubmitPreferences()" novalidate>
       
       <!--Service Type Selector-->
       <table style="width: 100%">
@@ -17,6 +17,21 @@
       </table>
 
       <p-tabView [activeIndex]="selectedTabIndex">
+
+          <p-tabPanel header="User">
+              <table style="width: 100%">
+    
+                <tr>
+                  <td>
+                    <b>Masonry Column Width</b>
+                  </td>
+                  <td>
+                    <input type="number" name="masonryColumnWidth" [(ngModel)]="masonryColumnWidth" style="width: 40px;" required> pixels
+                  </td>
+                </tr>
+    
+              </table>
+            </p-tabPanel>
 
         <p-tabPanel header="Global">
           <table style="width: 100%">
@@ -45,14 +60,16 @@
                 <input type="number" name="defaultRollingHours" [(ngModel)]="preferencesModel.defaultRollingHours" style="width: 40px;" required>
               </td>
             </tr>
+            <!--
             <tr>
               <td>
                 <b>Masonry Column Width</b>
               </td>
               <td>
-                <input type="number" name="masonryColumnSize" [(ngModel)]="preferencesModel.masonryColumnSize" style="width: 40px;" required> pixels
+                <input type="number" name="masonryColumnWidth" [(ngModel)]="preferencesModel.masonryColumnWidth" style="width: 40px;" required> pixels
               </td>
             </tr>
+            -->
 
           </table>
         </p-tabPanel>

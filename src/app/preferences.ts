@@ -3,7 +3,6 @@ export interface Preferences {
   minY: number;
   defaultContentLimit: number;
   defaultRollingHours: number;
-  masonryColumnSize: number;
   debugLogging: boolean;
   serviceTypes: { nw: boolean, sa: boolean };
   nw: NwPreferences;

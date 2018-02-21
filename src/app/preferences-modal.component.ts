@@ -7,6 +7,7 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { Preferences } from './preferences';
 import { Subscription } from 'rxjs/Subscription';
 import * as log from 'loglevel';
+import { ToolService } from './tool.service';
 
 @Component({
   selector: 'preferences-modal',
@@ -23,7 +24,8 @@ import * as log from 'loglevel';
 export class PreferencesModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
-              private modalService: ModalService) {}
+              private modalService: ModalService,
+              private toolService: ToolService) {}
 
   public id = 'preferences-modal';
 
@@ -45,13 +47,15 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
   public displayedSaKeysString: string = null;
   public masonrySaKeysString: string = null;
 
+  public masonryColumnWidth: number;
+
   public preferencesModel: Preferences = {
                                     // global
                                     minX: null,
                                     minY: null,
                                     defaultContentLimit: null,
                                     defaultRollingHours: null,
-                                    masonryColumnSize: null,
+                                    // masonryColumnWidth: null,
                                     serviceTypes: { nw: false, sa: false },
                                     debugLogging: false,
 
@@ -107,6 +111,9 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     }
 
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (preferences: Preferences) => this.onPreferencesChanged(preferences) );
+
+    this.masonryColumnWidth = Number(this.toolService.getPreference('masonryColumnWidth')) || 350;
+
   }
 
 
@@ -254,12 +261,12 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
 
 
-  onOpen(): void {}
+  onSubmitPreferences(): void {
+    log.debug('PreferencesModalComponent: onSubmitPreferences()');
 
+    this.toolService.setPreference('masonryColumnWidth', this.masonryColumnWidth);
+    this.toolService.masonryColumnWidthChanged.next(this.masonryColumnWidth);
 
-
-  submitPreferences(): void {
-    log.debug('PreferencesModalComponent: submitPreferences()');
     let prefs: Preferences = this.preferencesModel;
     prefs.nw.masonryKeys = this.setMasonryKeysValue(this.masonryNwKeysString);
     prefs.nw.displayedKeys = this.setDisplayedKeysValue(this.displayedNwKeysString);
