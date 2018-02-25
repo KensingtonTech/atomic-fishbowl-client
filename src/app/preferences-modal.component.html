@@ -29,6 +29,14 @@
                     <input type="number" name="masonryColumnWidth" [(ngModel)]="masonryColumnWidth" style="width: 40px;" required> pixels
                   </td>
                 </tr>
+                <tr>
+                  <td>
+                    <b>Masonry Autoscroll Speed</b>
+                  </td>
+                  <td>
+                    <input type="number" name="autoScrollSpeed" [(ngModel)]="autoScrollSpeed" style="width: 40px;" required> pixels per second
+                  </td>
+                </tr>
     
               </table>
             </p-tabPanel>
@@ -60,21 +68,19 @@
                 <input type="number" name="defaultRollingHours" [(ngModel)]="preferencesModel.defaultRollingHours" style="width: 40px;" required>
               </td>
             </tr>
-            <!--
             <tr>
               <td>
-                <b>Masonry Column Width</b>
+                <b>Login Token Expiration</b>
               </td>
               <td>
-                <input type="number" name="masonryColumnWidth" [(ngModel)]="preferencesModel.masonryColumnWidth" style="width: 40px;" required> pixels
+                <input type="number" min="1" max="8760" name="tokenExpirationHours" [(ngModel)]="preferencesModel.tokenExpirationHours" style="width: 40px;" required pTooltip="This setting will only impact new logins.  Existing logged-in sessions will not be logged out until their token expires.  Be careful with this.  If you set it too high, newly logged-in clients will not have to login again until their token expires."> hours
               </td>
             </tr>
-            -->
 
           </table>
         </p-tabPanel>
       
-        <p-tabPanel header="NetWitness">
+        <p-tabPanel header="RSA NetWitness">
 
           <!--NetWitness Preferences-->
           <p *ngIf="!preferencesModel.serviceTypes.nw">
@@ -104,6 +110,14 @@
                   </td>
                   <td>
                     <input type="text" name="nwPresetQuery" [(ngModel)]="preferencesModel.nw.presetQuery" style="width: 100%;" required>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <b>Session Limit</b>
+                  </td>
+                  <td>
+                    <input type="number" min="1" max="5000" name="nwSessionLimit" [(ngModel)]="preferencesModel.nw.sessionLimit" style="width: 40px;" required pTooltip="The maximum number of sessions to extract content from."> sessions
                   </td>
                 </tr>
                 <tr>
@@ -205,6 +219,14 @@
                 </td>
                 <td>
                   <input type="text" name="saPresetQuery" [(ngModel)]="preferencesModel.sa.presetQuery" style="width: 100%;" required>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <b>Flow Limit</b>
+                </td>
+                <td>
+                  <input type="number" min="1" max="5000" name="saSessionLimit" [(ngModel)]="preferencesModel.sa.sessionLimit" style="width: 40px;" required pTooltip="The maximum number of flows to extract content from."> flows
                 </td>
               </tr>
               <tr>

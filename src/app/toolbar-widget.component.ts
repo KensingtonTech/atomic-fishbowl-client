@@ -36,6 +36,7 @@ import * as log from 'loglevel';
         <span *ngIf="queryingIcon && selectedCollection.serviceType == 'sa'" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying Security Analytics data"></span>
         <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red;" pTooltip="0 results were returned from the query"></span>
         <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" pTooltip="0 results were returned from the latest query"></span>
+        <span *ngIf="workerProgress != null">{{workerLabel}}: {{workerProgress}}&nbsp;&nbsp;</span>
 
       </span>
 
@@ -166,6 +167,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   public queryResultsCount = 0;
   private useCases: UseCase[] = [];
   private useCasesObj = {};
+  public workerProgress: number = null;
+  public workerLabel: string = null;
 
 
   // Subscriptions
@@ -176,6 +179,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private useCasesChangedSubscription: Subscription;
   private selectedCollectionChangedSubscription: Subscription;
   private noCollectionSubscription: Subscription;
+  private workerProgressSubscription: Subscription;
 
   ngOnInit(): void {
 
@@ -197,6 +201,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
     this.noCollectionSubscription = this.dataService.noCollections.subscribe( () => this.onNoCollections() );
 
+    this.workerProgressSubscription = this.dataService.workerProgress.subscribe( progress => this.onWorkerProgress(progress) );
+
   }
 
 
@@ -209,6 +215,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.useCasesChangedSubscription.unsubscribe();
     this.selectedCollectionChangedSubscription.unsubscribe();
     this.noCollectionSubscription.unsubscribe();
+    this.workerProgressSubscription.unsubscribe();
   }
 
 
@@ -224,6 +231,14 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onCollectionStateChanged(): state:', state);
     this.iconDecider(state);
     this.selectedCollection.state = state;
+  }
+
+
+
+  onWorkerProgress(progress: any): void {
+    log.debug('ToolbarWidgetComponent: onWorkerProgress(): progress:', progress);
+    this.workerProgress = progress.workerProgress;
+    this.workerLabel = progress.label;
   }
 
 
@@ -271,9 +286,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
       useCaseFriendlyName = useCase.friendlyName;
       if (this.selectedCollection.serviceType === 'nw') {
         query = useCase.nwquery;
+        tt = tt + 'Service Type: NetWitness\n';
       }
       else {
         query = useCase.saquery;
+        tt = tt + 'Service Type: Symantec SA\n';
       }
       contentTypes = useCase.contentTypes.join(' ');
       tt = tt + 'Use Case: ' + useCaseFriendlyName + '\n';
@@ -295,6 +312,12 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     }
     else {
       // custom collection
+      if (this.selectedCollection.serviceType === 'nw') {
+        tt = tt + 'Service Type: NetWitness\n';
+      }
+      else {
+        tt = tt + 'Service Type: Symantec SA\n';
+      }
       query = this.selectedCollection.query;
       contentTypes = this.selectedCollection.contentTypes.join(' ');
       if (this.selectedCollection.distillationEnabled) { distillationEnabled = '\nDistillation is Enabled'; }

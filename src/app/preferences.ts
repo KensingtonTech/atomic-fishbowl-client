@@ -7,6 +7,7 @@ export interface Preferences {
   serviceTypes: { nw: boolean, sa: boolean };
   nw: NwPreferences;
   sa: SaPreferences;
+  tokenExpirationHours: number;
 }
 
 interface NwPreferences {
@@ -20,6 +21,7 @@ interface NwPreferences {
   maxContentErrors: number;
   displayedKeys: string[];
   masonryKeys: MasonryKey[];
+  sessionLimit: number;
 }
 
 interface SaPreferences {
@@ -32,6 +34,7 @@ interface SaPreferences {
   maxContentErrors: number;
   displayedKeys: string[];
   masonryKeys: MasonryKey[];
+  sessionLimit: number;
 }
 
 interface MasonryKey {

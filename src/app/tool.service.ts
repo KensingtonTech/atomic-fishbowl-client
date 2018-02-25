@@ -43,6 +43,7 @@ export class ToolService {
   public showMasonryTextAreaState = true;
   public refreshMasonryLayout: Subject<void> = new Subject<void>();
   public masonryColumnWidthChanged: Subject<number> = new Subject<number>();
+  public masonryAutoscrollSpeedChanged: Subject<number> = new Subject<number>();
 
   // Users
   public confirmUserDelete: Subject<any> = new Subject<any>();

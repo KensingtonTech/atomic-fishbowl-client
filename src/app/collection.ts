@@ -36,4 +36,5 @@ export interface Collection {
   modifier?: CollectionMeta;
   executeTime: number;
   serviceType: string; // 'nw' or 'sa'
+  onlyContentFromArchives?: boolean;
 }

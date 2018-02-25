@@ -51,7 +51,7 @@ declare global {
 
     <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
 
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
+        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [attr.contentType]="item.contentType" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
 
         </masonry-tile>
 
@@ -124,7 +124,10 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public selectedCollectionType: string = null;
   public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
   private collectionId: string = null;
-  private pixelsPerSecond = 200;
+
+  // private pixelsPerSecond = 200;
+  private pixelsPerSecond = Number(this.toolService.getPreference('autoScrollSpeed')) || 200; // default is 200 pixels per second
+
   private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
   public masonryKeys: any = null;
   private lastMask = new ContentMask;
@@ -170,6 +173,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private onSplashScreenAtStartupClosedSubscription: Subscription;
   private refreshMasonryLayoutSubscription: Subscription;
   private masonryColumnWidthChangedSubscription: Subscription;
+  private masonryAutoscrollSpeedChangedSubscription: Subscription;
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
@@ -198,6 +202,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
     this.refreshMasonryLayoutSubscription.unsubscribe();
     this.masonryColumnWidthChangedSubscription.unsubscribe();
+    this.masonryAutoscrollSpeedChangedSubscription.unsubscribe();
   }
 
 
@@ -286,9 +291,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.caseSensitiveSearchChangedSubscription = this.toolService.caseSensitiveSearchChanged.subscribe( () => this.toggleCaseSensitiveSearch() );
 
-    this.searchTermsChangedSubscription = this.toolService.searchTermsChanged.subscribe( ($event: any) => this.onSearchTermsChanged($event) );
+    this.searchTermsChangedSubscription = this.toolService.searchTermsChanged.subscribe( (event: any) => this.onSearchTermsChanged(event) );
 
-    this.maskChangedSubscription = this.toolService.maskChanged.subscribe( ($event: ContentMask) => this.onMaskChanged($event) );
+    this.maskChangedSubscription = this.toolService.maskChanged.subscribe( (event: ContentMask) => this.onMaskChanged(event) );
 
     this.noCollectionsSubscription = this.dataService.noCollections.subscribe( () => this.onNoCollections() );
 
@@ -323,6 +328,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.refreshMasonryLayoutSubscription = this.toolService.refreshMasonryLayout.subscribe( () => this.onRefreshMasonryLayout() );
 
     this.masonryColumnWidthChangedSubscription = this.toolService.masonryColumnWidthChanged.subscribe( (width: number) => this.onMasonryColumnWidthChanged(width) );
+
+    this.masonryAutoscrollSpeedChangedSubscription = this.toolService.masonryAutoscrollSpeedChanged.subscribe( (autoScrollSpeed: number) => this.onAutoscrollSpeedChanged(autoScrollSpeed) );
 
   }
 
@@ -389,6 +396,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
         this.masonryKeys = JSON.parse(JSON.stringify(prefs.sa.masonryKeys));
       }
     }
+    this.changeDetectionRef.detectChanges(); // we need this to be before layout()
 
     // we need to trigger a layout when we change masonry meta keys in preferences
     if ( this.isotopeDirectiveRef && JSON.stringify(prefs.nw.masonryKeys) !== JSON.stringify(this.preferences.nw.masonryKeys) ) {
@@ -397,7 +405,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.preferences = prefs;
-    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -411,26 +418,41 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       let newIsotopeOptions: IsotopeOptions = Object.assign({}, this.isotopeOptions); // deep copy so that the reference is changed and can thus be detected
       newIsotopeOptions.masonry.columnWidth = this.masonryColumnWidth;
       this.isotopeOptions = newIsotopeOptions;
+
+      // we have a second detectChanges() as we need the tiles to update their width prior to layout being called
+      // otherwise, the spacing between the tiles will be all wrong
       this.changeDetectionRef.detectChanges();
     }
   }
 
 
 
-  onSearchTermsChanged($event: any): void {
-    if (this.autoScrollStarted) {
-      this.stopAutoScroll();
+  onAutoscrollSpeedChanged(autoScrollSpeed: number): void {
+    if (this.pixelsPerSecond !== autoScrollSpeed) {
+      log.debug('MasonryGridComponent: onAutoscrollSpeedChanged(): Setting autoscroller speed to', autoScrollSpeed);
+      this.pixelsPerSecond = autoScrollSpeed;
+      if (this.autoScrollStarted) {
+        this.restartAutoScroll();
+      }
     }
-    this.searchTermsChanged($event);
   }
 
 
 
-  onMaskChanged($event: ContentMask): void {
+  onSearchTermsChanged(event: any): void {
     if (this.autoScrollStarted) {
       this.stopAutoScroll();
     }
-    this.maskChanged($event);
+    this.searchTermsChanged(event);
+  }
+
+
+
+  onMaskChanged(event: ContentMask): void {
+    if (this.autoScrollStarted) {
+      this.stopAutoScroll();
+    }
+    this.maskChanged(event);
   }
 
 
@@ -773,7 +795,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   private restartAutoScroll(): void {
-    // this gets called from onCollectionStateChanged()
+    // this gets called from onCollectionStateChanged() and onAutoscrollSpeedChanged()
     log.debug('MasonryGridComponent: restartAutoScroll()');
     this.stopScrollerAnimation();
     // this.lastWindowHeight = $('isotope').height();

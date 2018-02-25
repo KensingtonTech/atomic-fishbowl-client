@@ -19,9 +19,9 @@
                 <b>Name</b>
               </td>
               <td>
-                <label *ngIf="!nameValid && collectionFormModel.name.length != 0" for="nameBox" style="font-size: 10pt; color: red;">A collection already exists with this name</label>
-                <label *ngIf="collectionFormModel.name.length == 0" for="nameBox" style="font-size: 10pt; color: red;">The name field is required</label>
-                <input #nameBox id="nameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="collectionFormModel.name" style="width: 100%;" autocomplete="off" required>
+                <label *ngIf="!nameValid && name.length != 0" for="nameBox" style="font-size: 10pt; color: red;">A collection already exists with this name</label>
+                <label *ngIf="name.length == 0" for="nameBox" style="font-size: 10pt; color: red;">The name field is required</label>
+                <input #nameBox id="nameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="name" style="width: 100%;" autocomplete="off" required>
               </td>
             </tr>
 
@@ -31,15 +31,15 @@
                 <b>Type</b>
               </td>
               <td>
-                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="rolling" label="Rolling" [(ngModel)]="collectionFormModel.type" (onClick)="onUseCaseBoundChanged()" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="rolling" label="Rolling" [(ngModel)]="type" (onClick)="onUseCaseBoundChanged()" pTooltip="Rolling collections run continuously, displaying results for only the last N hours.  Results that have aged out are removed. Results are updated every minute." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
                 
-                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="monitoring" label="Monitoring" [(ngModel)]="collectionFormModel.type" (onClick)="onUseCaseBoundChanged()" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
+                <span *ngIf="mode == 'editRolling' || mode == 'add'"><p-radioButton [disabled]="formDisabled" name="type" value="monitoring" label="Monitoring" [(ngModel)]="type" (onClick)="onUseCaseBoundChanged()" pTooltip="Monitoring collections allow an analyst to monitor content flowing past a certain point in a network, such as a proxy.  Its contents will be replaced every minute, and the view will automatically be scrolled." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton>&nbsp;&nbsp;</span>
 
-                <span *ngIf="mode != 'editRolling'"><p-radioButton [disabled]="formDisabled" name="type" value="fixed" label="Fixed" [(ngModel)]="collectionFormModel.type" (onClick)="onUseCaseBoundChanged()" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
+                <span *ngIf="mode != 'editRolling'"><p-radioButton [disabled]="formDisabled" name="type" value="fixed" label="Fixed" [(ngModel)]="type" (onClick)="onUseCaseBoundChanged()" pTooltip="Fixed collections are run a single time on a predefined timeframe.  They do not subsequently update." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
               </td>
             </tr>
             <!--FIXED TIMEFRAME SELECTOR-->
-            <tr *ngIf="collectionFormModel.type == 'fixed'">
+            <tr *ngIf="type == 'fixed'">
               <td class="column1">
                 <b>Timeframe</b>
               </td>
@@ -50,23 +50,23 @@
               </td>
             </tr>
             <!--ROLLING HOURS SELECTOR-->
-            <tr *ngIf="collectionFormModel.type == 'rolling'">
+            <tr *ngIf="type == 'rolling'">
               <td class="column1">
                 <b>Timeframe</b>
               </td>
               <td>
-                Last <input type="text" name="lastHours" [(ngModel)]="collectionFormModel.lastHours" style="width: 30px;"> hours
+                Last <input type="text" name="lastHours" [(ngModel)]="lastHours" style="width: 30px;"> hours
               </td>
             </tr>
             <!--CALENDAR FROM FOR FIXED COLLECTIONS-->
-            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type == 'fixed'">
+            <tr *ngIf="displayCustomTimeframeSelector && type == 'fixed'">
               <td><i>From</i>
               </td>
               <td><p-calendar name="time1" showTime="showTime" showIcon="true" [(ngModel)]="timeBegin" inputStyleClass="ourFont"></p-calendar>
               </td>
             </tr>
             <!--CALENDAR FROM TO FIXED COLLECTIONS-->
-            <tr *ngIf="displayCustomTimeframeSelector && collectionFormModel.type == 'fixed'">
+            <tr *ngIf="displayCustomTimeframeSelector && type == 'fixed'">
               <td><i>To</i>
               </td>
               <td><p-calendar name="time2" showTime="showTime" showIcon="true" [(ngModel)]="timeEnd" inputStyleClass="ourFont"></p-calendar>
@@ -75,10 +75,10 @@
             <!--CONTENT LIMIT-->
             <tr>
               <td class="column1">
-                <span pTooltip="Limits the number of content items to pull into the collection in a single query" tooltipStyleClass="contentLimitDistillationTooltip"><b>Content Limit</b></span>
+                <span pTooltip="Limits the number of content items to pull into the collection in a single query." tooltipStyleClass="contentLimitDistillationTooltip"><b>Content Limit</b></span>
               </td>
               <td>
-                <input type="number" name="contentLimit" [(ngModel)]="collectionFormModel.contentLimit" style="width: 60px;" required>
+                <input type="number" name="contentLimit" [(ngModel)]="contentLimit" style="width: 60px;" required>
               </td>
             </tr>
           </table>
@@ -94,7 +94,7 @@
               </td>
               <td>
                 <div style="display: block;">
-                  <p-dropdown [disabled]="formDisabled" name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="collectionFormModel.selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
+                  <p-dropdown [disabled]="formDisabled" name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
                 </div>
                 <div *ngIf="displayUseCaseDescription" class="description-text" style="margin-top: 5px;">
                   {{useCaseDescription}}
@@ -103,14 +103,14 @@
             </tr>
 
             <!--USE CASE BINDINGS-->
-            <tr *ngIf="collectionFormModel.selectedUseCase != 'custom'" [hidden]="collectionFormModel.type == 'fixed'">
+            <tr *ngIf="selectedUseCase != 'custom'" [hidden]="type == 'fixed'">
               <td class="column1" style="vertical-align: top;">
                   <b>Use Case Bindings</b>
               </td>
               <td>
-                <span><p-radioButton name="useCaseBinding" value="bound" label="Bound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="collectionFormModel.useCaseBinding" [disabled]="disableBindingControls" pTooltip="If bound, all collection variables will be defined by the pre-defined use case, and no collection options may be customized.  If the OOTB use cases should be updated in a future release, then this collection will automatically use the updated use case." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>&nbsp;&nbsp;
+                <span><p-radioButton name="useCaseBinding" value="bound" label="Bound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="useCaseBinding" [disabled]="disableBindingControls" pTooltip="If bound, all collection variables will be defined by the pre-defined use case, and no collection options may be customized.  If the OOTB use cases should be updated in a future release, then this collection will automatically use the updated use case." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>&nbsp;&nbsp;
                   
-                <span><p-radioButton name="useCaseBinding" value="unbound" label="Unbound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="collectionFormModel.useCaseBinding" [disabled]="disableBindingControls" pTooltip="If unbound, all collection variables will be loaded from the pre-defined use case, and all collection options may be customized.  After the collection is executed, the Use Case type will be 'custom'.  If the OOTB use cases should be updated in a future release, then this collection will NOT receive the updates." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
+                <span><p-radioButton name="useCaseBinding" value="unbound" label="Unbound" (onClick)="onUseCaseBoundChanged()" [(ngModel)]="useCaseBinding" [disabled]="disableBindingControls" pTooltip="If unbound, all collection variables will be loaded from the pre-defined use case, and all collection options may be customized.  After the collection is executed, the Use Case type will be 'custom'.  If the OOTB use cases should be updated in a future release, then this collection will NOT receive the updates." tooltipPosition="top" tooltipStyleClass="addCollectionTooltip"></p-radioButton></span>
               </td>
             </tr>
 
@@ -135,8 +135,14 @@
                 <!--QUERY TEXT INPUT BOX-->
                 <div>
                   <label *ngIf="mode == 'adhoc'" for="query" style="font-size: 10pt;">Your investigation target will be automatically added to the query when you execute</label>
-                  <input type="text" name="query" id="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
+                  <input type="text" name="query" id="query" (ngModelChange)="queryInputTextChanged()" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
                 </div>
+
+                <div *ngIf="selectedUseCase == 'custom' || (selectedUseCase != 'custom' && useCaseBinding == 'unbound')" style="margin-top: 5px;">
+                  <p-button label="Validate JSON" (click)="onValidateJsonClicked()" pTooltip="Tests whether the query string is valid JSON.  It doesn't guarantee that the query will work with SA."></p-button>
+                  <span style="font-size: 10pt; font-weight: bold;">&nbsp;&nbsp;{{jsonValidationMessage}}</span>
+                </div>
+
               </td>
             </tr>
 
@@ -152,11 +158,15 @@
               </td>
               <td>
                 <div>
-                  <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="collectionFormModel.selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont" required [disabled]="showUseCaseValues || formDisabled"></p-selectButton>
+                  <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont" required [disabled]="showUseCaseValues || formDisabled"></p-selectButton>
                 </div>
                 <div *ngIf="!showUseCaseValues" style="margin-top: 3px;">
-                  <button type="button" (click)="allTypes()" pButton label="All" [disabled]="showUseCaseValues || formDisabled"></button>
-                  <button type="button" (click)="clearTypes()" pButton label="None" [disabled]="showUseCaseValues || formDisabled"></button>
+                  <button type="button" (click)="onAllTypesSelected()" pButton label="All" [disabled]="showUseCaseValues || formDisabled"></button>
+                  <button type="button" (click)="onClearTypesSelected()" pButton label="None" [disabled]="showUseCaseValues || formDisabled"></button>
+                  &nbsp;&nbsp;<p-checkbox name="onlyContentFromArchives" label="Only content from archives" binary="true" [(ngModel)]="onlyContentFromArchives" pTooltip="If ticked, this option will cause content that is directly returned by the query to be ignored, excepting Dodgy Archives.  Only content contained within ZIP and RAR archives will be processed.  This is needed to exclude Office documents which are not within archives from the results, which get detected as ZIP archives by the upstream service."></p-checkbox>
+                </div>
+                <div *ngIf="showUseCaseValues" style="margin-top: 3px;">
+                  <p-checkbox disabled="true" name="onlyContentFromArchives" label="Only content from archives" binary="true" [(ngModel)]="onlyContentFromArchives" pTooltip="If ticked, this option will cause content that is directly returned by the query to be ignored, excepting Dodgy Archives.  Only content contained within ZIP and RAR archives will be processed.  This is needed to exclude Office documents which are not within archives from the results, which get detected as ZIP archives by the upstream service."></p-checkbox>
                 </div>
               </td>
             </tr>
@@ -168,27 +178,27 @@
             <!--MINIMUM IMAGE DIMENSIONS-->
             <tr *ngIf="imagesEnabled">
               <td class="column1">
-                <span pTooltip="Image files with dimensions smaller than this will not be pulled into the collection" tooltipStyleClass="minDimensionsTooltip"><b>Min. Dimensions</b></span>
+                <span pTooltip="Image files with dimensions smaller than this will not be pulled into the collection." tooltipStyleClass="minDimensionsTooltip"><b>Min. Dimensions</b></span>
               </td>
               <td>
-                <input type="number" name="minX" [(ngModel)]="collectionFormModel.minX" style="width: 40px;" required> width x &nbsp;<input type="number" name="minY" [(ngModel)]="collectionFormModel.minY" style="width: 40px;" required> height
+                <input type="number" name="minX" [(ngModel)]="minX" style="width: 40px;" required> width x &nbsp;<input type="number" name="minY" [(ngModel)]="minY" style="width: 40px;" required> height
               </td>
             </tr>
           </table>
 
-          <div *ngIf="(showUseCaseValues && collectionFormModel.distillationEnabled) || !showUseCaseValues && ( pdfsEnabled || officeEnabled )" class="line-separator"></div>
+          <div *ngIf="(showUseCaseValues && distillationEnabled) || !showUseCaseValues && ( pdfsEnabled || officeEnabled )" class="line-separator"></div>
           
           <table style="width: 100%;">
             <!-->TEXT DISTILLATION-->
-            <tr *ngIf="(showUseCaseValues && collectionFormModel.distillationEnabled) || !showUseCaseValues && ( pdfsEnabled || officeEnabled )">
+            <tr *ngIf="(showUseCaseValues && distillationEnabled) || !showUseCaseValues && ( pdfsEnabled || officeEnabled )">
               <td class="column1">
-                <span pTooltip="Searches documents for text keywords" tooltipStyleClass="textDistillationTooltip"><b>Text Distill</b></span>
+                <span pTooltip="Searches documents for text keywords." tooltipStyleClass="textDistillationTooltip"><b>Text Distill</b></span>
               </td>
               <td>
-                 <input [(ngModel)]="collectionFormModel.distillationEnabled" type="checkbox" name="distillationEnabled" [disabled]="showUseCaseValues">
+                 <input [(ngModel)]="distillationEnabled" type="checkbox" name="distillationEnabled" [disabled]="showUseCaseValues">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.distillationEnabled && ( pdfsEnabled || officeEnabled )">
+            <tr *ngIf="distillationEnabled && ( pdfsEnabled || officeEnabled )">
               <td>
                 <b>Search Terms</b><br><br>
                 <span style="font-size: 8pt;">
@@ -199,19 +209,19 @@
                 </span>
               </td>
               <td>
-                <textarea name="distillationTerms" wrap="off" [(ngModel)]="collectionFormModel.distillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="distillationTerms" wrap="off" [(ngModel)]="distillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
             <!--REGEX DISTILLATION-->
-            <tr *ngIf="(showUseCaseValues && collectionFormModel.regexDistillationEnabled) || !showUseCaseValues && ( pdfsEnabled || officeEnabled )">
+            <tr *ngIf="(showUseCaseValues && regexDistillationEnabled) || !showUseCaseValues && ( pdfsEnabled || officeEnabled )">
               <td class="column1">
-                <span pTooltip="Searches documents for Regular Expression matches" tooltipStyleClass="regexDistillationTooltip"><b>Regex Distill</b>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <span pTooltip="Searches documents for Regular Expression matches." tooltipStyleClass="regexDistillationTooltip"><b>Regex Distill</b>&nbsp;&nbsp;&nbsp;&nbsp;</span>
               </td>
               <td>
-                 <input [(ngModel)]="collectionFormModel.regexDistillationEnabled" type="checkbox" name="regexDistillationEnabled" [disabled]="showUseCaseValues">
+                 <input [(ngModel)]="regexDistillationEnabled" type="checkbox" name="regexDistillationEnabled" [disabled]="showUseCaseValues">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.regexDistillationEnabled && ( pdfsEnabled || officeEnabled )">
+            <tr *ngIf="regexDistillationEnabled && ( pdfsEnabled || officeEnabled )">
               <td>
                 <b>Regex Terms</b><span class="fa fa-info-circle fa-fw" #regexInfoIcon escape="false" pTooltip="Uses perl-style regular expressions.<br>Only match functionality is supported.<br>Perl-style modifiers such as 'i' for case-insensitivity are NOT supported.<br>Search only words, and do not use beginning or end of line metacharacters (e.g. '^' or '$').<br>Note that multi-word matches may or may not work, depending on how the document was laid out internally and how the text is generated by 'pdftotext'." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
                 <span style="font-size: 8pt;">
@@ -222,7 +232,7 @@
                 </span>
               </td>
               <td>
-                <textarea name="regexDistillationTerms" wrap="off" [(ngModel)]="collectionFormModel.regexDistillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="regexDistillationTerms" wrap="off" [(ngModel)]="regexDistillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
           </table>
@@ -235,7 +245,7 @@
             <!-- Hashing Mode -->
             <tr *ngIf="!showUseCaseValues && hashesEnabled">
               <td class="column1">
-                <span pTooltip="Hash values can be specified manually or through a feed" tooltipStyleClass="hashingTooltip"><b>Hash Source</b></span>
+                <span pTooltip="Hash values can be specified manually or through a feed." tooltipStyleClass="hashingTooltip"><b>Hash Source</b></span>
               </td>
               <td>
                 <p-radioButton name="hashingMode" value="feed" label="Feed" [(ngModel)]="hashingMode"></p-radioButton>&nbsp;&nbsp;
@@ -246,7 +256,7 @@
             <!-- Choose a feed -->
             <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'feed'">
               <td class="column1">
-                <span pTooltip="Searches for executables matching a SHA1 hash value" tooltipStyleClass="hashingTooltip"><b>Choose a Feed</b></span>
+                <span pTooltip="Searches for executables matching a SHA1 hash value." tooltipStyleClass="hashingTooltip"><b>Choose a Feed</b></span>
               </td>
               <td>
                 <p-dropdown name="selectedFeed" [options]="feedOptions" [(ngModel)]="selectedFeed" [style]="{'width':'150px'}"></p-dropdown>
@@ -256,13 +266,13 @@
             <!--SHA1 HASHES-->
             <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td class="column1">
-                <span pTooltip="Searches for executables matching a SHA1 hash value" tooltipStyleClass="hashingTooltip"><b>SHA1 Hashing</b></span>
+                <span pTooltip="Searches for executables matching a SHA1 hash value." tooltipStyleClass="hashingTooltip"><b>SHA1 Hashing</b></span>
               </td>
               <td>
-                 <input [(ngModel)]="collectionFormModel.sha1Enabled" type="checkbox" name="sha1Enabled">
+                 <input [(ngModel)]="sha1Enabled" type="checkbox" name="sha1Enabled">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.sha1Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
+            <tr *ngIf="sha1Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td>
                 <b>SHA1 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
                 <span class="wrap" style="font-size: 8pt;">
@@ -273,19 +283,19 @@
                 </span>
               </td>
               <td>
-                <textarea name="sha1Hashes" wrap="off" [(ngModel)]="collectionFormModel.sha1Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="sha1Hashes" wrap="off" [(ngModel)]="sha1Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
             <!--SHA256 HASHES-->
             <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td class="column1">
-                <span pTooltip="Searches for executables matching a SHA256 hash value" tooltipStyleClass="hashing256Tooltip"><b>SHA256 Hashing</b></span>
+                <span pTooltip="Searches for executables matching a SHA256 hash value." tooltipStyleClass="hashing256Tooltip"><b>SHA256 Hashing</b></span>
               </td>
               <td>
-                 <input [(ngModel)]="collectionFormModel.sha256Enabled" type="checkbox" name="sha256Enabled">
+                 <input [(ngModel)]="sha256Enabled" type="checkbox" name="sha256Enabled">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.sha256Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
+            <tr *ngIf="sha256Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td>
                 <b>SHA256 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
                 <span class="wrap" style="font-size: 8pt;">
@@ -296,19 +306,19 @@
                 </span>
               </td>
               <td>
-                <textarea name="sha256Hashes" wrap="off" [(ngModel)]="collectionFormModel.sha256Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="sha256Hashes" wrap="off" [(ngModel)]="sha256Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
             <!--MD5 HASHES-->
             <tr *ngIf="!showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td class="column1">
-                <span pTooltip="Searches for executables matching a MD5 hash value" tooltipStyleClass="hashingTooltip"><b>MD5 Hashing</b></span>
+                <span pTooltip="Searches for executables matching a MD5 hash value." tooltipStyleClass="hashingTooltip"><b>MD5 Hashing</b></span>
               </td>
               <td>
-                 <input [(ngModel)]="collectionFormModel.md5Enabled" type="checkbox" name="md5Enabled">
+                 <input [(ngModel)]="md5Enabled" type="checkbox" name="md5Enabled">
               </td>
             </tr>
-            <tr *ngIf="collectionFormModel.md5Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
+            <tr *ngIf="md5Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
               <td>
                 <b>MD5 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
                 <span class="wrap" style="font-size: 8pt;">
@@ -319,7 +329,7 @@
                 </span>
               </td>
               <td>
-                <textarea name="md5Hashes" wrap="off" [(ngModel)]="collectionFormModel.md5Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                <textarea name="md5Hashes" wrap="off" [(ngModel)]="md5Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
               </td>
             </tr>
           </table>
@@ -342,7 +352,7 @@
 
             <!--EXECUTE OR CANCEL BUTTONS-->
             <div style="margin-top: 5px; float: right;">
-              <button pButton type="submit" [disabled]="!apiServerFormValid() || !nameValid" label="Execute"></button>
+              <button pButton type="submit" [disabled]="!apiServerFormValid() || !nameValid || (selectedUseCase == 'custom' && !jsonValid) || (selectedUseCase != 'custom' && useCaseBinding == 'unbound' && !jsonValid)" label="Execute"></button>
               <button pButton type="button" (click)="cancel()" label="Cancel"></button>
             </div>
           </div>
@@ -350,6 +360,11 @@
         </div>
         </form>
         </fieldset>
+
+
+
+
+
 
 
         <!--ADD AN API SERVICE BOX-->
@@ -393,16 +408,6 @@
                     <!--SSL-->
                     <mat-checkbox labelPosition="after" [(ngModel)]="serviceFormModel.ssl" type="checkbox" name="ssl">SSL</mat-checkbox>
                   </div>
-
-                  <!--INVESTIGATION DEVICE ID-->
-<!--
-                  <div fxFlex="20%">
-                    <mat-form-field class="full-width" pTooltip="In NetWitness, every core service is assigned a numeric identifier, which is used to browse that specific service in Investigation.  You can find the ID for your device by browsing to Investigation in NetWitness, selecting this service, and viewing the URL.  The URL will look like https://hostname/investigation/<DEVICENUMBER>" showDelay="1000" hideDelay="1000" tooltipStyleClass="investigationTooltip">
-                      <input matInput [(ngModel)]="serviceFormModel.deviceNumber" type="number" name="deviceNumber" placeholder="Investigation ID" autocomplete="off" required>
-                      <mat-error *ngIf="!serviceFormModel.deviceNumber">Investigation ID is required</mat-error>
-                    </mat-form-field>
-                  </div>
--->
 
                 </div>
                 <!--SAVE SERVICE OR TEST OR CANCEL-->

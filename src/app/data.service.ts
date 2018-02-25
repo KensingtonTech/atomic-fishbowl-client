@@ -70,7 +70,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.contentReplaced.next( [] );
     } );
     this.collectionsSocket.on('update', (update) => {
-      log.debug('DataService: got update:', update);
+      // log.debug('DataService: got update:', update);
       if ('collectionUpdate' in update) {
         update = update.collectionUpdate;
         if ('session' in update) {
@@ -83,8 +83,14 @@ export class DataService { // Manages NwSession objects and also Image objects i
           this.searchPublished.next(update.search);
         }
       }
+      if ('error' in update) {
+        this.errorPublished.next(update.error);
+      }
       if ('queryResultsCount' in update) {
         this.queryResultsCountUpdated.next(update.queryResultsCount);
+      }
+      if ('workerProgress' in update) {
+        this.workerProgress.next(update);
       }
     });
     this.collectionsSocket.on('sessions', (sessions) => this.sessionsReplaced.next(sessions) );
@@ -112,6 +118,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public queryResultsCountUpdated: Subject<any> = new Subject<any>();
   public collectionDeleted: Subject<string> = new Subject<string>();
   public noCollections: Subject<void> = new Subject<void>();
+  public workerProgress: Subject<any> = new Subject<any>();
 
   public collectionsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
   public preferencesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
@@ -125,6 +132,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
 
 
+
   // Properties
   private apiUrl = '/api';
   private clientSessionId: number;
@@ -136,7 +144,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
 
-  /////////////////////SOCKET.IO EVENTS//////////////////
+  ///////////////////// SOCKET.IO EVENTS //////////////////
 
   // We could pipe the events straight to the observables but...
   // we keep this here for debugging purposes and any custom logic required
@@ -215,7 +223,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
 
-  /////////////////////NW SERVERS/////////////////////
+  ///////////////////// NW SERVERS /////////////////////
 
   testNwServer( server: any ): Promise<any> {
     return this.http
@@ -256,7 +264,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-    /////////////////////SA SERVERS/////////////////////
+    ///////////////////// SA SERVERS /////////////////////
 
     testSaServer( server: any ): Promise<any> {
       return this.http
@@ -295,7 +303,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                   });
     }
 
-  /////////////////////PREFERENCES/////////////////////
+  ///////////////////// PREFERENCES /////////////////////
 
   setPreferences(prefs: any): Promise<void> {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
@@ -307,7 +315,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
 
-  /////////////////////COLLECTIONS/////////////////////
+  ///////////////////// COLLECTIONS /////////////////////
 
   addCollection(collection: any):  Promise<any> {
     log.debug('DataService: addCollection():', collection.id);
@@ -510,7 +518,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
 
-  /////////////////////FEEDS/////////////////////
+  ///////////////////// FEEDS /////////////////////
 
   deleteFeed(id: string): Promise<any> {
     log.debug('DataService: deleteFeed():', id);
@@ -593,7 +601,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  /////////////////////USERS/////////////////////
+  ///////////////////// USERS /////////////////////
 
   deleteUser(id: string): Promise<void> {
     log.debug('DataService: deleteUser():', id);
@@ -632,7 +640,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  /////////////////////PING/////////////////////
+  ///////////////////// PING /////////////////////
 
   ping(): Promise<any> {
     // log.debug('DataService: ping()');

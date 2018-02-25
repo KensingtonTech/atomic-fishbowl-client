@@ -7,4 +7,5 @@ export interface UseCase {
   description: string;
   distillationTerms?: string[];
   regexTerms?: string[];
+  onlyContentFromArchives: boolean;
 }

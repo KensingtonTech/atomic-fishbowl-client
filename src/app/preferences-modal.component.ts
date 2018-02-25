@@ -58,6 +58,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
                                     // masonryColumnWidth: null,
                                     serviceTypes: { nw: false, sa: false },
                                     debugLogging: false,
+                                    tokenExpirationHours: null,
 
                                     // netwitness
                                     nw: {
@@ -69,7 +70,8 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
                                       contentTimeout: null,
                                       queryTimeout: null,
                                       queryDelayMinutes: null,
-                                      maxContentErrors: null
+                                      maxContentErrors: null,
+                                      sessionLimit: null
                                     },
 
                                     // solera
@@ -82,7 +84,8 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
                                       presetQuery: null,
                                       defaultQuerySelection: null,
                                       displayedKeys: null,
-                                      masonryKeys: null
+                                      masonryKeys: null,
+                                      sessionLimit: null
                                     }
                                   };
 
@@ -92,6 +95,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
   ];
   public selectedServiceTypes: string[] = [ null, null ]; // just netwitness by default
   public selectedTabIndex = 0;
+  public autoScrollSpeed = 0;
 
   // Subscriptions
   private preferencesChangedSubscription: Subscription;
@@ -113,6 +117,8 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (preferences: Preferences) => this.onPreferencesChanged(preferences) );
 
     this.masonryColumnWidth = Number(this.toolService.getPreference('masonryColumnWidth')) || 350;
+
+    this.autoScrollSpeed = Number(this.toolService.getPreference('autoScrollSpeed')) || 200;
 
   }
 
@@ -266,6 +272,9 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
     this.toolService.setPreference('masonryColumnWidth', this.masonryColumnWidth);
     this.toolService.masonryColumnWidthChanged.next(this.masonryColumnWidth);
+
+    this.toolService.setPreference('autoScrollSpeed', this.autoScrollSpeed);
+    this.toolService.masonryAutoscrollSpeedChanged.next(this.autoScrollSpeed);
 
     let prefs: Preferences = this.preferencesModel;
     prefs.nw.masonryKeys = this.setMasonryKeysValue(this.masonryNwKeysString);
