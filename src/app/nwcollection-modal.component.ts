@@ -133,7 +133,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   public timeBegin: Date = new Date();
   public timeEnd: Date = new Date();
 
-  public name = '';
+  public name: string = null;
   public type = this.defaultCollectionType;
   public lastHours = 1;
   public selectedUseCase = null;
@@ -238,6 +238,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   private newApiServer: NwServer = null;
 
   public onlyContentFromArchives = false;
+
 
 
   ngOnInit(): void {
@@ -489,7 +490,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   public cancel(): void {
     log.debug('NwCollectionModalComponent: cancel()');
     if (this.mode === 'editRolling' || this.mode === 'editFixed') {
-      this.name = '';
+      this.name = null;
     }
     this.modalService.close(this.id);
     if (this.reOpenTabsModal) {
@@ -721,7 +722,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
                       .then( () => {
                           this.toolService.executeAddCollection.next( newCollection );
                           this.closeModal();
+                          this.name = null;
                         });
+
     }
 
     if (this.mode === 'editRolling') {
@@ -732,10 +735,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
                       .then( () => {
                           this.toolService.executeEditCollection.next( newCollection );
                           this.closeModal();
+                          this.name = null;
                         });
     }
 
-    this.name = ''; // reset collection name
 
   }
 
@@ -974,6 +977,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     setTimeout( () => {
       this.hashFeedId = null;
       this.mode = 'add';
+      this.name = '';
       this.nameBoxRef.first.nativeElement.focus();
       this.selectedUseCase = this.useCaseOptions[0].value; // this sets it to 'custom'
       this.showUseCaseValues = false;

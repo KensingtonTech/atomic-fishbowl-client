@@ -19,8 +19,8 @@
                 <b>Name</b>
               </td>
               <td>
-                <label *ngIf="!nameValid && name.length != 0" for="nameBox" style="font-size: 10pt; color: red;">A collection already exists with this name</label>
-                <label *ngIf="name.length == 0" for="nameBox" style="font-size: 10pt; color: red;">The name field is required</label>
+                <label *ngIf="name != null && !nameValid && name.length != 0" for="nameBox" style="font-size: 10pt; color: red;">A collection with this name already exists</label>
+                <label *ngIf="name != null && name.length == 0" for="nameBox" style="font-size: 10pt; color: red;">The name field is required</label>
                 <input #nameBox id="nameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="name" style="width: 100%;" autocomplete="off" required>
               </td>
             </tr>

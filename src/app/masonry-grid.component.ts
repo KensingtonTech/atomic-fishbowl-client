@@ -496,13 +496,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.collectionId = collection.id;
     this.changeDetectionRef.detectChanges();
 
-    if (!this.selectedCollectionServiceType) {
-      if (collection.serviceType === 'nw') {
-        this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.nw.masonryKeys));
-      }
-      if (collection.serviceType === 'sa') {
-        this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
-      }
+    if (collection.serviceType === 'nw') {
+      this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.nw.masonryKeys));
+    }
+    if (collection.serviceType === 'sa') {
+      this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
     }
     setTimeout( () => this.selectedCollectionServiceType = collection.serviceType, 0); // 'nw' or 'sa'
 

@@ -132,7 +132,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   public timeBegin: Date = new Date();
   public timeEnd: Date = new Date();
 
-  public name = '';
+  public name: string = null;
   public type = this.defaultCollectionType;
   public lastHours = 1;
   public selectedUseCase = null;
@@ -748,6 +748,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
                       .then( () => {
                           this.toolService.executeAddCollection.next( newCollection );
                           this.closeModal();
+                          this.name = null; // reset collection name
                         });
     }
 
@@ -759,10 +760,10 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
                       .then( () => {
                           this.toolService.executeEditCollection.next( newCollection );
                           this.closeModal();
+                          this.name = null; // reset collection name
                         });
     }
 
-    this.name = ''; // reset collection name
 
   }
 
@@ -1003,6 +1004,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     setTimeout( () => {
       this.hashFeedId = null;
       this.mode = 'add';
+      this.name = '';
       this.nameBoxRef.first.nativeElement.focus();
       this.selectedUseCase = this.useCaseOptions[0].value; // this sets it to 'custom'
       this.showUseCaseValues = false;
