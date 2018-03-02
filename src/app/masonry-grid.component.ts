@@ -13,10 +13,11 @@ import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
-import * as math from 'mathjs';
+// import * as math from 'mathjs';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 declare var $: any;
+declare var math;
 
 /*interface VelocityOptions {
   duration: number;
@@ -41,7 +42,7 @@ declare global {
     <masonry-control-bar></masonry-control-bar>
 
     <!-- pause / resume buttons for monitoring collections -->
-    <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 15px; top: 100px; color: white; z-index: 100;">
+    <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 25px; top: 100px; color: white; z-index: 100;">
       <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
       <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
     </div>
@@ -51,7 +52,7 @@ declare global {
 
     <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
 
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [attr.contentType]="item.contentType" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
+        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [collectionId]="collectionId" [attr.contentType]="item.contentType" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
 
         </masonry-tile>
 
@@ -62,8 +63,8 @@ declare global {
 </div>
 
 <!-- modals -->
-<pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType"></pdf-viewer-modal>
-<session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType"></session-details-modal>
+<pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></pdf-viewer-modal>
+<session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></session-details-modal>
 `,
 
   styles: [`
@@ -123,7 +124,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public selectedCollectionType: string = null;
   public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
-  private collectionId: string = null;
+  public collectionId: string = null;
 
   // private pixelsPerSecond = 200;
   private pixelsPerSecond = Number(this.toolService.getPreference('autoScrollSpeed')) || 200; // default is 200 pixels per second
@@ -291,7 +292,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.caseSensitiveSearchChangedSubscription = this.toolService.caseSensitiveSearchChanged.subscribe( () => this.toggleCaseSensitiveSearch() );
 
-    this.searchTermsChangedSubscription = this.toolService.searchTermsChanged.subscribe( (event: any) => this.onSearchTermsChanged(event) );
+    this.searchTermsChangedSubscription = this.toolService.searchTermsChanged.subscribe( (event: any) => this.onSearchTermsTyped(event) );
 
     this.maskChangedSubscription = this.toolService.maskChanged.subscribe( (event: ContentMask) => this.onMaskChanged(event) );
 
@@ -439,7 +440,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  onSearchTermsChanged(event: any): void {
+  onSearchTermsTyped(event: any): void {
     if (this.autoScrollStarted) {
       this.stopAutoScroll();
     }
@@ -493,7 +494,12 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCollectionType = collection.type;
     this.pauseMonitoring = false;
     this.collectionState = collection.state;
-    this.collectionId = collection.id;
+    if (collection.type === 'monitoring') {
+      this.collectionId = collection.id + '_' + this.dataService.clientSessionId;
+    }
+    else {
+      this.collectionId = collection.id;
+    }
     this.changeDetectionRef.detectChanges();
 
     if (collection.serviceType === 'nw') {
@@ -781,7 +787,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   private stopAutoScroll(): void {
-    // this gets called from onSearchTermsChanged(), onMaskChanged(), onNoCollections(), onSelectedCollectionChanged()
+    // this gets called from onSearchTermsTyped(), onMaskChanged(), onNoCollections(), onSelectedCollectionChanged()
     log.debug('MasonryGridComponent: stopAutoScroll()');
     this.stopScrollerAnimation();
     this.toolService.scrollToBottomStopped.next();

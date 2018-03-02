@@ -9,7 +9,7 @@ import { Collection } from './collection';
 import { Preferences } from './preferences';
 import { DragulaService } from 'ng2-dragula';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'collections',

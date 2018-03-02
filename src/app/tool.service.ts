@@ -3,7 +3,7 @@ import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Collection } from './collection';
 import { Feed } from './feed';
-import * as log from 'loglevel';
+declare var log;
 
 @Injectable()
 

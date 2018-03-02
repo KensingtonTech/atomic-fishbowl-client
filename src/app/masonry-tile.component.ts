@@ -4,7 +4,7 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import { MasonryGridComponent } from './masonry-grid.component';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'masonry-tile',
@@ -52,9 +52,9 @@ import * as log from 'loglevel';
       </div>
     </div>
 
-    <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
+    <img *ngIf="content.contentType == 'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
     <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
     <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
@@ -212,6 +212,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
   @Input() private masonryKeys: any;
   @Input() public masonryColumnWidth: number;
   @Input() public serviceType: string; // 'nw' or 'sa'
+  @Input() public collectionId: string = null;
 
   public session;
   public displayTextArea = true;

@@ -4,7 +4,7 @@ import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Preferences } from './preferences';
-import * as log from 'loglevel';
+declare var log;
 
 @Component( {
   selector: 'classic-session-popup',

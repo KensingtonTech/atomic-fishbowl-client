@@ -1,7 +1,7 @@
 import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, NgZone } from '@angular/core';
 import { IsotopeDirective } from './isotope.directive';
 import * as imagesLoaded from 'imagesloaded';
-import * as log from 'loglevel';
+declare var log;
 
 interface MutationWindow extends Window {
   MutationObserver: any;

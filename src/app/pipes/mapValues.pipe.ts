@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import * as log from 'loglevel';
+declare var log;
 
 @Pipe({name: 'mapValues'})
 

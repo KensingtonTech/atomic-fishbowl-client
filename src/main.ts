@@ -3,8 +3,7 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
-// declare var log: any;
-import * as log from 'loglevel';
+declare var log;
 
 if (environment.production) {
   enableProdMode();

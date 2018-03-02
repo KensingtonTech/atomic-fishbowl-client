@@ -5,7 +5,7 @@ import { Subject } from 'rxjs/Subject';
 import { NwServer } from './nwserver';
 import { Subscription } from 'rxjs/Subscription';
 import { DataService } from './data.service';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'confirm-nwserver-delete-modal',

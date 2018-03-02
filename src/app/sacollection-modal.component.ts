@@ -15,11 +15,10 @@ import { Feed } from './feed';
 import { CollectionMeta } from './collection-meta';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
-import { Moment } from 'moment';
 import * as utils from './utils';
-import * as log from 'loglevel';
-import * as moment from 'moment';
+declare var moment;
 declare var JSEncrypt: any;
+declare var log;
 
 @Component({
   selector: 'sa-collection-modal',

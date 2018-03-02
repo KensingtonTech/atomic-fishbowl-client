@@ -3,8 +3,9 @@ import { ToolService } from './tool.service';
 import { Content } from './content';
 import { Subscription } from 'rxjs/Subscription';
 import { ClassicGridComponent } from './classic-grid.component';
-import * as log from 'loglevel';
-import * as math from 'mathjs';
+declare var log;
+// import * as math from 'mathjs';
+declare var math: any;
 
 @Component({
   selector: 'classic-tile',
@@ -13,10 +14,10 @@ import * as math from 'mathjs';
 <div class="thumbnail-container">
 
   <div [hidden]="showHighRes">
-    <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="content.thumbnail" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
-    <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="content.thumbnail" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
+    <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
+    <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
 
-    <img *ngIf="content.contentType == 'office'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="content.thumbnail" class="thumbnail" [ngClass]="content.contentSubType" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentSubType]="content.contentSubType" [attr.contentFile]="content.contentFile" [attr.proxyContentFile]="content.proxyContentFile">
+    <img *ngIf="content.contentType == 'office'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" class="thumbnail" [ngClass]="content.contentSubType" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentSubType]="content.contentSubType" [attr.contentFile]="content.contentFile" [attr.proxyContentFile]="content.proxyContentFile">
 
     <img *ngIf="content.contentType == 'encryptedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_unknown.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
@@ -27,10 +28,10 @@ import * as math from 'mathjs';
   </div>
 
   <div [hidden]="!showHighRes">
-    <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="content.contentFile" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
-    <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="content.pdfImage" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
+    <img *ngIf="content.contentType == 'image'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="'/collections/' + collectionId + '/' + content.contentFile" class="thumbnail" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
+    <img *ngIf="content.contentType == 'pdf'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="'/collections/' + collectionId + '/' + content.pdfImage" class="thumbnail pdf" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
 
-    <img *ngIf="content.contentType == 'office'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="content.pdfImage" class="thumbnail" [ngClass]="content.contentSubType" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentSubType]="content.contentSubType" [attr.contentFile]="content.contentFile">
+    <img *ngIf="content.contentType == 'office'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" [src]="'/collections/' + collectionId + '/' + content.pdfImage" class="thumbnail" [ngClass]="content.contentSubType" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentSubType]="content.contentSubType" [attr.contentFile]="content.contentFile">
 
     <img *ngIf="content.contentType == 'encryptedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
     <img *ngIf="content.contentType == 'unsupportedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_unknown.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
@@ -92,6 +93,7 @@ export class ClassicTileComponent implements OnInit, OnDestroy, OnChanges, After
   @Input() content: Content;
   @Input() sessionId: number;
   @Input() serviceType: string; // 'nw' or 'sa'
+  @Input() public collectionId: string = null;
   @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
   public session: any;
   public showHighRes = false;

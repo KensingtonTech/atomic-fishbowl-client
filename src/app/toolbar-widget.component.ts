@@ -10,7 +10,7 @@ import { ContentMask } from './contentmask';
 import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { Subscription } from 'rxjs/Subscription';
-import * as log from 'loglevel';
+declare var log;
 
 @Component( {
   selector: 'toolbar-widget',
@@ -50,12 +50,6 @@ import * as log from 'loglevel';
         <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeBegin | formatTime}}</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time2: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeEnd | formatTime}}</span>
-        <span class="label">Images:</span> <span class="value">{{contentCount?.images}}</span>
-        <span class="label">PDFs:</span> <span class="value">{{contentCount?.pdfs}}</span>
-        <span class="label">Office:</span> <span class="value">{{contentCount?.officeDocs}}</span>
-        <span class="label">Hash Matches:</span> <span class="value">{{contentCount?.hashes}}</span>
-        <span class="label">Dodgy Archives:</span> <span class="value">{{contentCount?.dodgyArchives}}</span>
-        <span class="label">Total:</span> <span class="value">{{contentCount?.total}}</span>
       </span>
     </div>
 
@@ -95,6 +89,17 @@ import * as log from 'loglevel';
   <span class="fa fa-times" (click)="toggleSearch()" style="color: white;"></span>
 </div>
 
+
+<!-- Totals Box -->
+<div *ngIf="selectedCollection" style="position: absolute; left: 0; top: 200px; width: auto; height: auto; padding: 5px; border-radius: 5px; z-index: 100; background-color: rgba(0,0,0,.8); font-size: 9pt; color: white;">
+  <div class="count" style="margin-top: 0;">Total: {{contentCount?.total}}</div>
+  <div class="count">Images: {{contentCount?.images}}</div>
+  <div class="count">PDFs: {{contentCount?.pdfs}}</div>
+  <div class="count">Office: {{contentCount?.officeDocs}}</div>
+  <div class="count">Hash: {{contentCount?.hashes}}</div>
+  <div class="count">Dodgy<br>Archives: {{contentCount?.dodgyArchives}}</div>
+</div>
+
 <!-- modals -->
 <tab-container-modal [id]="tabContainerModalId"></tab-container-modal>
 <splash-screen-modal></splash-screen-modal>
@@ -122,6 +127,11 @@ import * as log from 'loglevel';
 
     .hide {
       display: none;
+    }
+
+    .count {
+      margin-top: 15px;
+      text-align: right;
     }
 
     /*.collectionTooltip.ui-tooltip .ui-tooltip-text {
@@ -486,7 +496,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   }
 
   searchTermsUpdate(): void {
-    log.debug('ToolbarWidgetComponent: searchTermsUpdate()', this.searchTerms);
+    // log.debug('ToolbarWidgetComponent: searchTermsUpdate()', this.searchTerms);
     this.toolService.searchTermsChanged.next( { searchTerms: this.searchTerms } );
   }
 

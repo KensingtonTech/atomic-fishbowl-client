@@ -14,7 +14,7 @@ import { Search } from './search';
 import { Subscription } from 'rxjs/Subscription';
 import { Element } from '@angular/compiler';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 
 interface Point {
   x: number;
@@ -31,7 +31,7 @@ interface Point {
 
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
 
-      <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
+      <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
       </classic-tile>
 
     </div>
@@ -49,7 +49,7 @@ interface Point {
 </div>
 
 <!-- modals -->
-<pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType"></pdf-viewer-modal>
+<pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></pdf-viewer-modal>
 <classic-session-popup *ngIf="selectedCollectionServiceType" [session]="popUpSession" [enabled]="sessionWidgetEnabled" [serviceType]="selectedCollectionServiceType" #sessionWidget></classic-session-popup>
 `,
   styles: [`
@@ -432,7 +432,12 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.resetContentCount();
     this.selectedCollectionType = collection.type;
     this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
-    this.collectionId = collection.id;
+    if (collection.type === 'monitoring') {
+      this.collectionId = collection.id + '_' + this.dataService.clientSessionId;
+    }
+    else {
+      this.collectionId = collection.id;
+    }
     this.pauseMonitoring = false;
     this.changeDetectionRef.detectChanges();
   }

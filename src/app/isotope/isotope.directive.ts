@@ -1,7 +1,7 @@
 import { Directive, OnInit, OnChanges, Input, Output, ElementRef, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, Renderer2, ViewEncapsulation } from '@angular/core';
 import { IsotopeOptions } from './isotope-options';
 import { ToolService } from '../tool.service';
-import * as log from 'loglevel';
+declare var log;
 declare var $: any;
 declare var Isotope;
 
@@ -45,7 +45,8 @@ export class IsotopeDirective implements OnInit, OnChanges {
     // log.debug('IsotopeDirective: ngOnInit(): options:', this.options);
 
     // Initialize Isotope
-    this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, this.options) );
+    // this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, this.options) );
+    this.isotope = new Isotope(this.el.nativeElement, this.options);
 
     // Perform actions on layoutComplete event
     this.ngZone.runOutsideAngular( () => {
@@ -65,6 +66,7 @@ export class IsotopeDirective implements OnInit, OnChanges {
     // log.debug('IsotopeDirective: ngOnChanges()', e);
 
     if ('options' in values && this.isotope !== undefined ) {
+      log.debug('IsotopeDirective: ngOnChanges(): arranging');
        this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
     }
 

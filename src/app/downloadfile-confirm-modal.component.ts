@@ -4,7 +4,7 @@ import { ToolService } from './tool.service';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'downloadfile-confirm-modal',

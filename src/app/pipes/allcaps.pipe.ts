@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-declare var moment: any;
-import * as log from 'loglevel';
+declare var log;
 
 @Pipe({name: 'allCaps'})
 

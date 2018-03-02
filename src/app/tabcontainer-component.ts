@@ -3,7 +3,7 @@ import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'tab-container-modal',

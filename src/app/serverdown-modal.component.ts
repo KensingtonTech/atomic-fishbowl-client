@@ -1,5 +1,5 @@
 import { Component, OnInit, ElementRef, ViewChild, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'serverdown-modal',

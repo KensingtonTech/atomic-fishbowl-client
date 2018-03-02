@@ -5,7 +5,8 @@ import { ModalService } from './modal/modal.service';
 import { Subscription} from 'rxjs/Subscription';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToolService } from './tool.service';
-import * as log from 'loglevel';
+declare var log;
+
 
 @Component({
   selector: 'atomic-fishbowl-app',

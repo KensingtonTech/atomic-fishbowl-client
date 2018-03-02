@@ -1,7 +1,7 @@
 import { Component, ElementRef, Renderer2, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { AuthenticationService } from './authentication.service';
 import { User } from './user';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
     selector: 'login-form',

@@ -5,7 +5,7 @@ import { DataService } from './data.service';
 import { Subject } from 'rxjs/Subject';
 import { Feed } from './feed';
 import { Subscription } from 'rxjs/Subscription';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'collection-deleted-notify-modal',

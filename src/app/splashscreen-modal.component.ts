@@ -4,7 +4,7 @@ import { ModalService } from './modal/modal.service';
 import { buildProperties } from './build-properties';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'splash-screen-modal',

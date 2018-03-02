@@ -5,7 +5,7 @@ import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Feed } from './feed';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 
 interface FeedStatus {
   good: boolean;

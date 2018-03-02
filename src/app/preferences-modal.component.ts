@@ -6,8 +6,8 @@ import { defaultSaQueries } from './default-sa-queries';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { Preferences } from './preferences';
 import { Subscription } from 'rxjs/Subscription';
-import * as log from 'loglevel';
 import { ToolService } from './tool.service';
+declare var log;
 
 @Component({
   selector: 'preferences-modal',

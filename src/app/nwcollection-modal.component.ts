@@ -16,8 +16,8 @@ import { CollectionMeta } from './collection-meta';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
 import * as utils from './utils';
-import * as log from 'loglevel';
-import * as moment from 'moment';
+declare var moment;
+declare var log;
 declare var JSEncrypt: any;
 
 

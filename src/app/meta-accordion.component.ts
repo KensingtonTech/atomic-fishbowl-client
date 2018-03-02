@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef, Input, ViewEncapsulation } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'meta-accordion',

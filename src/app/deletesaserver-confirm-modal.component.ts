@@ -5,7 +5,7 @@ import { Subject } from 'rxjs/Subject';
 import { SaServer } from './saserver';
 import { Subscription } from 'rxjs/Subscription';
 import { DataService } from './data.service';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'confirm-saserver-delete-modal',

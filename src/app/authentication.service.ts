@@ -7,7 +7,7 @@ import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { User } from './user';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
-import * as log from 'loglevel';
+declare var log;
 
 @Injectable()
 

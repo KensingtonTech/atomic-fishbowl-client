@@ -7,7 +7,9 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Preferences } from './preferences';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
+
+(<any>window).PDFJS.workerSrc = '/resources/pdf.worker.min.js';
 
 @Component({
   selector: 'pdf-viewer-modal',
@@ -44,7 +46,7 @@ import * as log from 'loglevel';
 
       <div style="position: absolute; top: 40px; bottom: 10px; left: 0; right: 365px;"> <!--overflow-y: scroll; overflow-x: auto;-->
         <div style="position: relative; width: 100%; height: 100%; overflow-x: scroll; overflow-y: scroll;">
-          <pdf-viewer [rotation]="rotation" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)" [src]="pdfFile" [original-size]="false" [show-all]="true" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
+          <pdf-viewer [rotation]="rotation" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)" [src]="'/collections/' + collectionId + '/' + pdfFile" [original-size]="false" [show-all]="true" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
         </div>
       </div> <!--overflow: auto;-->
 
@@ -145,6 +147,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() public id: string;
   @Input() public serviceType: string; // 'nw' or 'sa'
+  @Input() public collectionId: string = null;
 
   public utils = utils;
   public showAll = false;

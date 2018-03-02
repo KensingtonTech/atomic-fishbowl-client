@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Rect } from './panzoom-rect';
 import { PanZoomModel } from './panzoom-model';
 import { PanZoomAPI } from './panzoom-api';
-import * as log from 'loglevel';
+declare var log;
 
 export class PanZoomConfig {
 

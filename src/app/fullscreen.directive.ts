@@ -1,6 +1,6 @@
 import { Directive, HostListener } from '@angular/core';
 import * as screenfull from 'screenfull';
-import * as log from 'loglevel';
+declare var log;
 
 
 @Directive({

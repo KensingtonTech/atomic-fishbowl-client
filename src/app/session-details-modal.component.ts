@@ -5,7 +5,7 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs/Subscription';
 import { Preferences } from './preferences';
 import * as utils from './utils';
-import * as log from 'loglevel';
+declare var log;
 
 @Component({
   selector: 'session-details-modal',
@@ -19,7 +19,7 @@ import * as log from 'loglevel';
 
       <div *ngIf="content" style="position: absolute; height: 100%; top: 0; left: 0; right: 350px;">
         <div style="position: relative;" class="imgContainer">
-          <img class="myImg" *ngIf="content.contentType == 'image'" [src]="content.contentFile" draggable="false">
+          <img class="myImg" *ngIf="content.contentType == 'image'" [src]="'/collections/' + collectionId + '/' + content.contentFile" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedZipEntry'"  src="/resources/zip_icon_locked.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'unsupportedZipEntry'"  src="/resources/zip_icon_unknown.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedRarEntry'"  src="/resources/rar_icon_locked.png" draggable="false">
@@ -206,6 +206,7 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
 
   @Input('id') public id: string;
   @Input() public serviceType: string; // 'nw' or 'sa'
+  @Input() public collectionId: string = null;
 
   public utils = utils;
   public showAll = false;

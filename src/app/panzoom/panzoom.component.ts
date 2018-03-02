@@ -4,10 +4,11 @@ import { Point } from './panzoom-point';
 import { PanZoomModel } from './panzoom-model';
 import { PanZoomAPI } from './panzoom-api';
 import { Rect } from './panzoom-rect';
-import { eval, min, pow, max, abs, chain, sqrt, log10 } from 'mathjs';
+// import { eval, min, pow, max, abs, chain, sqrt, log10 } from 'mathjs';
+// import * as math from 'mathjs';
+declare var math;
 declare var $: any;
-import * as math from 'mathjs';
-import * as log from 'loglevel';
+declare var log;
 
 interface ZoomAnimation {
   deltaZoomLevel;

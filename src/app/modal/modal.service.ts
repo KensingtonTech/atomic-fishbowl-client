@@ -1,4 +1,5 @@
 ﻿import { ModalComponent } from './modal.component';
+declare var log;
 
 export class ModalService {
 

@@ -11,7 +11,7 @@ import { ToolService } from './tool.service';
 import { UseCase } from './usecase';
 import { Feed } from './feed';
 import { Preferences } from './preferences';
-import * as log from 'loglevel';
+declare var log;
 import * as io from 'socket.io-client';
 
 @Injectable()
@@ -135,7 +135,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   // Properties
   private apiUrl = '/api';
-  private clientSessionId: number;
+  public clientSessionId: number;
 
   public init(): Promise<any> {
     // Run by authentication service at login or page load
