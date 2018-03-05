@@ -7,5 +7,6 @@ LABEL RUN="docker run --rm --name afb-nginx-run-tmp --privileged -v /:/host -e H
 LABEL STOP="docker run --rm --name afb-nginx-stop-tmp --privileged -v /:/host -e HOST=/host -e IMAGE=IMAGE -e NAME=afb-nginx IMAGE /bin/atomic-stop.sh"
 COPY atomic-*.sh /bin/
 COPY atomic-afb-nginx.service /usr/lib/systemd/system/afb-nginx.service
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx
 COPY dist/ /opt/kentech/afb-client/webroot/
+RUN rm -f /etc/nginx/conf.d/default.conf

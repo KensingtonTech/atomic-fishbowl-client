@@ -40,6 +40,20 @@ if [[ ! -f ${HOST}${CERTDIR}/ssl.key || ! -f ${HOST}${CERTDIR}/ssl.cer ]]; then
   chmod 600 ${HOST}${CERTDIR}/ssl.key ${HOST}${CERTDIR}/ssl.cer
 fi
 
+
+if [[ ! -d ${HOST}/etc/nginx ]]; then
+  # Copy /etc/nginx dir to host if it doesn't exist
+  echo "Creating /etc/nginx"
+  cp -r /etc/nginx ${HOST}/etc/nginx
+else
+  # Copy nginx.conf
+  echo "Installing /etc/nginx/nginx.conf.  This will overwrite any changes that you have made.  The old nginx.conf will be renamed to nginx.conf.bak"
+  if [[ -f ${HOST}/etc/nginx.conf ]]; then
+    mv -f ${HOST}/etc/nginx/nginx.conf cp ${HOST}/etc/nginx/nginx.conf.bak
+  fi
+  cp -f /etc/nginx/nginx.conf ${HOST}/etc/nginx
+fi
+
 # Create network 'afb-network' if not already there
 chroot $HOST /usr/bin/docker network ls  | awk '{print $2}' | grep -q ^afb-network$
 if [ $? -ne 0 ]; then
@@ -69,7 +83,7 @@ fi
 
 # Create container
 echo Creating container $NAME from image $IMAGE
-chroot $HOST /usr/bin/docker create --name $NAME --network afb-network --ip 172.31.255.244 --add-host afb-server:172.31.255.243 -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro,z -v /var/log/nginx:/var/log/nginx:rw,Z $IMAGE >/dev/null
+chroot $HOST /usr/bin/docker create --name $NAME --network afb-network --ip 172.31.255.244 --add-host afb-server:172.31.255.243 -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro,z -v /var/log/nginx:/var/log/nginx:rw,Z -v /etc/nginx:/etc/nginx:ro,z $IMAGE >/dev/null
 
 # Copy systemd unit file to host OS
 echo Installing systemd unit file

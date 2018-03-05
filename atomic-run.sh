@@ -54,6 +54,18 @@ if [ $? -eq 0 ]; then
     chmod 600 ${HOST}${CERTDIR}/ssl.key ${HOST}${CERTDIR}/ssl.cer
   fi
 
+  if [[ ! -d ${HOST}/etc/nginx ]]; then
+    # Copy /etc/nginx dir to host if it doesn't exist
+    echo "Creating /etc/nginx"
+    cp -r /etc/nginx ${HOST}/etc/nginx
+  else
+    # Copy nginx.conf
+    echo "Installing /etc/nginx/nginx.conf.  This will overwrite any changes that you have made.  The old nginx.conf will be renamed to nginx.conf.bak"
+    if [[ -f ${HOST}/etc/nginx.conf ]]; then
+      mv -f ${HOST}/etc/nginx/nginx.conf cp ${HOST}/etc/nginx/nginx.conf.bak
+    fi
+    cp -f /etc/nginx/nginx.conf ${HOST}/etc/nginx
+  fi
 
   if [ -f $HOST/etc/systemd/system/${NAME}.service ]; then
     # our systemd unit is installed so start with systemd
