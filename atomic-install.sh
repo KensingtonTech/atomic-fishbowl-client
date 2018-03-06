@@ -85,6 +85,7 @@ fi
 echo Creating container $NAME from image $IMAGE
 chroot $HOST /usr/bin/docker create --name $NAME --network afb-network --ip 172.31.255.244 --add-host afb-server:172.31.255.243 -p 443:443 -v /etc/kentech:/etc/kentech:ro -v /var/kentech:/var/kentech:ro,z -v /var/log/nginx:/var/log/nginx:rw,Z -v /etc/nginx:/etc/nginx:ro,z $IMAGE >/dev/null
 
+
 # Copy systemd unit file to host OS
 echo Installing systemd unit file
 echo "To control, use:  systemctl [ start | stop | status | enable | disable ] $NAME"
