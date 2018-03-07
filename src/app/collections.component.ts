@@ -95,7 +95,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
                 dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => !el.classList.contains('nodrag') });
               }
 
-  public collections: Collection[];
+  public collections: Collection[] = [];
   public origCollections = {};
   public displayedCollections: Collection[];
   private selectedCollection: Collection;
@@ -191,25 +191,29 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
   onCollectionsChanged(collections): void {
-      // triggered by update of collections
+    // triggered by update of collections
 
-      if (Object.keys(collections).length === 0) {
-        return;
-      }
-
-      this.origCollections = collections;
-      let tempCollections = [];
-
-      for (let c in collections) {
-        if (collections.hasOwnProperty(c)) {
-          let collection = collections[c];
-          // let option: SelectItem = { label: collection.name, value: collection.id };
-          tempCollections.push(collection);
-        }
-      }
-      this.collections = tempCollections;
-      log.debug('CollectionsComponent: onCollectionsChanged(): collections update', this.collections);
+    if (Object.keys(collections).length === 0) {
+      // return;
+      this.collections = [];
+      this.origCollections = {};
       this.filterChanged();
+      return;
+    }
+
+    this.origCollections = collections;
+    let tempCollections = [];
+
+    for (let c in collections) {
+      if (collections.hasOwnProperty(c)) {
+        let collection = collections[c];
+        // let option: SelectItem = { label: collection.name, value: collection.id };
+        tempCollections.push(collection);
+      }
+    }
+    this.collections = tempCollections;
+    log.debug('CollectionsComponent: onCollectionsChanged(): collections update', this.collections);
+    this.filterChanged();
   }
 
 

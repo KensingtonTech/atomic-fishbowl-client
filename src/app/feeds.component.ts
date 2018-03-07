@@ -142,6 +142,8 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
   onFeedsChanged(feeds) {
     if (Object.keys(feeds).length === 0) {
+      this.feeds = [];
+      this.filterChanged();
       return;
     }
     let tempFeeds: Feed[] = [];
