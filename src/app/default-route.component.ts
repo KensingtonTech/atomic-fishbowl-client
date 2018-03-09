@@ -25,7 +25,7 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
     // https://localhost/adhoc/abcd
     // https://localhost/adhoc?query=abcd
     // https://localhost?query=abcd&something=somethingelse
-    log.debug('DefaultRouteComponent: ngOnInit()')
+    log.debug('DefaultRouteComponent: ngOnInit()');
     this.routeParametersSubscription = this.route.queryParamMap.subscribe( params => this.onRouteParameters(params) );
     // log.debug('DefaultRouteComponent: ngOnInit(): params:', this.route.snapshot.queryParams);
   }
@@ -41,7 +41,7 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
       this.router.navigate([this.toolService.lastRoute]);
       return;
     }
-    
+
     let params = {};
 
     if (Object.keys(p.params).length !== 0) {

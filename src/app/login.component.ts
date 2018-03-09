@@ -29,7 +29,7 @@ declare var log;
       </mat-card-content>
 
       <mat-card-actions align="start">
-        <button mat-raised-button color="accent" (click)="login()" class="btn waves-effect waves-light" type="submit" [disabled]="!eulaAccepted" name="action">Login</button>&nbsp;&nbsp;<span>{{errorMsg}}</span>
+        <button mat-raised-button color="accent" (click)="login()" class="btn waves-effect waves-light" type="submit" [disabled]="loginSubmitted" name="action">Login</button>&nbsp;&nbsp;<span>{{errorMsg}}</span>
       </mat-card-actions>
 
     </form>
@@ -61,7 +61,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
               private renderer: Renderer2,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
-  public eulaAccepted = true; // Do something with this after we add the EULA
+  public loginSubmitted = false;
 
   ngOnInit(): void {
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
@@ -73,9 +73,11 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   public login(): void {
+    this.loginSubmitted = true;
     this.errorMsg = '';
     this.authService.login(this.user)
                     .then( (res: boolean) => {
+                      this.loginSubmitted = false;
                       if (!res) { this.errorMsg = 'Login failed'; }
                       if (res) { this.errorMsg = 'Login successful'; }
                     });

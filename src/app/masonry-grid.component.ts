@@ -239,6 +239,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     log.debug('MasonryGridComponent: ngOnInit()');
     this.toolService.lastRoute = 'masonryGrid';
+    this.toolService.setPreference('lastRoute', 'masonryGrid');
 
 
     // New startup code

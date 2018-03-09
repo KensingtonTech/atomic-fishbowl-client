@@ -15,7 +15,9 @@ declare var log;
   So sorry, but mobile devices aren't currently supported by Atomic Fishbowl.
 </div>
 
-<div *ngIf="serverReachable && !isMobile" style="position: relative; width: 100vw; height: 100vh;">
+<eula *ngIf="!eulaAccepted"></eula>
+
+<div *ngIf="serverReachable && !isMobile && eulaAccepted" style="position: relative; width: 100vw; height: 100vh;">
 
   <login-form *ngIf="!loggedIn && credentialsChecked"></login-form>
 
@@ -41,9 +43,11 @@ export class AppComponent implements OnInit, OnDestroy {
   public loggedIn = false;
   public serverReachable = false;
   private credentialsChecked = false;
-  private loggedInChangedSubscription: Subscription;
   public isMobile = false;
+  public eulaAccepted = false;
 
+  private loggedInChangedSubscription: Subscription;
+  private eulaAcceptedSubscription: Subscription;
 
   ngOnInit(): void {
 
@@ -86,6 +90,12 @@ export class AppComponent implements OnInit, OnDestroy {
                       });
     }, 10000);
 
+    if (this.toolService.getPreference('eulaAccepted') ) {
+      this.eulaAccepted = true;
+    }
+
+    this.eulaAcceptedSubscription = this.toolService.eulaAccepted.subscribe( () => this.eulaAccepted = true);
+
   }
 
 
@@ -96,6 +106,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.loggedInChangedSubscription.unsubscribe();
+    this.eulaAcceptedSubscription.unsubscribe();
   }
 
 }

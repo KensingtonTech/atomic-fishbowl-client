@@ -60,6 +60,7 @@ export class ToolService {
   public clientSessionId: Subject<any> = new Subject<any>();
   public onSplashScreenAtStartupClosed: Subject<void> = new Subject<void>();
   public showHighResSessions: Subject<any> = new Subject<any>();
+  public eulaAccepted: Subject<void> = new Subject<void>();
 
   // Open viewwers
   public openPDFViewer: Subject<any> = new Subject<any>();
@@ -111,6 +112,7 @@ export class ToolService {
 
   constructor() {
     this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );
+    this.lastRoute = this.getPreference('lastRoute');
   }
 
   setPreference(key, value): void {

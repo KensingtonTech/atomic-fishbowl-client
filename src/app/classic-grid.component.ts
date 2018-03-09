@@ -189,6 +189,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     log.debug('ClassicGridComponent: ngOnInit()');
     this.toolService.lastRoute = 'classicGrid';
+    this.toolService.setPreference('lastRoute', 'classicGrid');
 
 
     // New startup code
