@@ -94,7 +94,8 @@ export class ClassicTileComponent implements OnInit, OnDestroy, OnChanges, After
   @Input() sessionId: number;
   @Input() serviceType: string; // 'nw' or 'sa'
   @Input() public collectionId: string = null;
-  @Output() openPDFViewer: EventEmitter<any> = new EventEmitter<any>();
+  @Output() openPDFViewer: EventEmitter<void> = new EventEmitter<void>();
+  @Output() openSessionDetails: EventEmitter<void> = new EventEmitter<void>();
   public session: any;
   public showHighRes = false;
   private mouseDownData: any = {}; // prevent opening pdf modal if dragging the view
@@ -161,11 +162,18 @@ export class ClassicTileComponent implements OnInit, OnDestroy, OnChanges, After
     let pleft = this.mouseDownData.left;
     // prevent opening pdf modal if dragging the view
     if (math.abs(top - ptop) === 0 || math.abs(left - pleft) === 0) {
+
+      this.toolService.newSession.next( this.session );
+      this.toolService.newImage.next(this.content);
+
       if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
-        this.toolService.newImage.next(this.content);
-        this.toolService.newSession.next( this.session );
         this.openPDFViewer.emit();
       }
+      else {
+        this.openSessionDetails.emit();
+      }
+
+
     }
   }
 

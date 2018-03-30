@@ -62,9 +62,13 @@ export class ToolService {
   public showHighResSessions: Subject<any> = new Subject<any>();
   public eulaAccepted: Subject<void> = new Subject<void>();
 
-  // Open viewwers
+  // Open viewers
   public openPDFViewer: Subject<any> = new Subject<any>();
   public openSessionViewer: Subject<any> = new Subject<any>();
+  public nextSessionClicked: Subject<any> = new Subject<any>(); // tells the view component to send the next session to the pdf / session details modal
+  public previousSessionClicked: Subject<any> = new Subject<any>(); // tells the view component to send the previous session to the
+  public noNextSession: Subject<boolean> = new Subject<boolean>(); // tells the  pdf / session details modal that there is no next session to view, so disable its next session button
+  public noPreviousSession: Subject<boolean> = new Subject<boolean>(); // tells the  pdf / session details modal that there is no previous session to view, so disable its prebious session button
 
   // NW and SA Servers
   public nwServerToDelete: Subject<any> = new Subject<any>();

@@ -148,6 +148,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private scrollContainerHeight = 0;
   private viewportHeight = 0;
   private toolbarHeight = 0;
+  private selectedSessionId: number = null;
+  private selectedContentType: string = null;
+  private selectedContentId: string = null;
 
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
@@ -175,6 +178,10 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private refreshMasonryLayoutSubscription: Subscription;
   private masonryColumnWidthChangedSubscription: Subscription;
   private masonryAutoscrollSpeedChangedSubscription: Subscription;
+  private nextSessionClickedSubscription: Subscription;
+  private previousSessionClickedSubscription: Subscription;
+  private newSessionSubscription: Subscription;
+  private newImageSubscription: Subscription;
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
@@ -204,6 +211,10 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.refreshMasonryLayoutSubscription.unsubscribe();
     this.masonryColumnWidthChangedSubscription.unsubscribe();
     this.masonryAutoscrollSpeedChangedSubscription.unsubscribe();
+    this.nextSessionClickedSubscription.unsubscribe();
+    this.previousSessionClickedSubscription.unsubscribe();
+    this.newSessionSubscription.unsubscribe();
+    this.newImageSubscription.unsubscribe();
   }
 
 
@@ -333,6 +344,22 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.masonryAutoscrollSpeedChangedSubscription = this.toolService.masonryAutoscrollSpeedChanged.subscribe( (autoScrollSpeed: number) => this.onAutoscrollSpeedChanged(autoScrollSpeed) );
 
+    this.nextSessionClickedSubscription = this.toolService.nextSessionClicked.subscribe( () => this.onNextSessionClicked() );
+
+    this.previousSessionClickedSubscription = this.toolService.previousSessionClicked.subscribe( () => this.onPreviousSessionClicked() );
+
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any ) => {
+      log.debug('MasonryGridComponent: newSessionSubscription: Got new session', session);
+      this.selectedSessionId = session['id'];
+    });
+
+    this.newImageSubscription = this.toolService.newImage.subscribe( (content: Content) => {
+      log.debug('MasonryGridComponent: newImageSubscription: Got new image', content);
+      this.selectedContentType = content.contentType;
+      this.selectedContentId = content.id;
+      this.updateNextPreviousButtonStatus();
+    } );
+
   }
 
 
@@ -352,6 +379,183 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     let toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
     this.toolbarHeight = toolbar.offsetHeight;
     this.viewportHeight = window.innerHeight;
+  }
+
+
+
+  onNextSessionClicked(): void {
+    log.debug('MasonryGridComponent: onNextSessionClicked()');
+    // build a list of un-filtered tiles
+    let displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
+    log.debug('MasonryGridComponent: onNextSessionClicked(): displayedTileIds:', displayedTileIds);
+    // log.debug('content:', this.content);
+    let nextContentItem: Content = null;
+    let nextContentItemId = null;
+    let nextSessionId = null;
+    for (let i = 0; i < displayedTileIds.length; i++) {
+      if (displayedTileIds[i] === this.selectedContentId && i < displayedTileIds.length - 1 ) {
+        nextContentItemId = displayedTileIds[i + 1];
+        log.debug('MasonryGridComponent: onNextSessionClicked(): nextContentItemId:', nextContentItemId);
+        if (displayedTileIds.length - 1 === i + 1) {
+          // this is the last displayed item.  disable the next session button
+          log.debug('MasonryGridComponent: onNextSessionClicked(): noNextSession:', true);
+          this.toolService.noNextSession.next(true);
+        }
+        else {
+          log.debug('MasonryGridComponent: onNextSessionClicked(): noNextSession:', false);
+          this.toolService.noNextSession.next(false);
+        }
+        break;
+      }
+    }
+
+    for (let i = 0; i < this.content.length; i++) {
+      let contentItem = this.content[i];
+      if (contentItem.id === nextContentItemId) {
+        nextContentItem = contentItem;
+        nextSessionId = contentItem.session;
+        break;
+      }
+    }
+
+    log.debug('MasonryGridComponent: onNextSessionClicked(): nextContentItem:', nextContentItem);
+    log.debug('MasonryGridComponent: onNextSessionClicked(): nextSessionId:', nextSessionId);
+    log.debug('MasonryGridComponent: onNextSessionClicked(): selectedContentType:', this.selectedContentType);
+
+    if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && ( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('MasonryGridComponent: onNextSessionClicked(): got to 1');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+    }
+    else if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
+      // close the pdf modal and open the session-details modal
+      log.debug('MasonryGridComponent: onNextSessionClicked(): got to 2');
+      this.modalService.close('pdf-viewer');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+      this.modalService.open('sessionDetails');
+    }
+    else if ( !(this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('MasonryGridComponent: onNextSessionClicked(): got to 3');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+    }
+    else {
+      // close the session-details modal and open the pdf modal
+      log.debug('MasonryGridComponent: onNextSessionClicked(): got to 4');
+      this.modalService.close('sessionDetails');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+      this.modalService.open('pdf-viewer');
+    }
+
+  }
+
+
+
+  onPreviousSessionClicked(): void {
+    log.debug('MasonryGridComponent: onPreviousSessionClicked()');
+    // build a list of un-filtered tiles
+    let displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
+    log.debug('MasonryGridComponent: onPreviousSessionClicked(): displayedTileIds:', displayedTileIds);
+    // log.debug('content:', this.content);
+    let previousContentItem: Content = null;
+    let previousContentItemId = null;
+    let previousSessionId = null;
+    for (let i = 0; i < displayedTileIds.length; i++) {
+      if (displayedTileIds[i] === this.selectedContentId && i <= displayedTileIds.length - 1 ) {
+        log.debug('got to 0');
+        previousContentItemId = displayedTileIds[i - 1];
+        log.debug('MasonryGridComponent: onPreviousSessionClicked(): previousContentItemId:', previousContentItemId);
+        if (i === 0) {
+          // this is the first displayed item.  disable the previous session button
+          log.debug('MasonryGridComponent: onPreviousSessionClicked(): noNextSession:', true);
+          this.toolService.noNextSession.next(true);
+        }
+        else {
+          log.debug('MasonryGridComponent: onPreviousSessionClicked(): noNextSession:', false);
+          this.toolService.noNextSession.next(false);
+        }
+        break;
+      }
+    }
+
+    for (let i = 0; i < this.content.length; i++) {
+      let contentItem = this.content[i];
+      if (contentItem.id === previousContentItemId) {
+        previousContentItem = contentItem;
+        previousSessionId = contentItem.session;
+        break;
+      }
+    }
+
+    log.debug('MasonryGridComponent: onPreviousSessionClicked(): previousContentItem:', previousContentItem);
+    log.debug('MasonryGridComponent: onPreviousSessionClicked(): previousSessionId:', previousSessionId);
+
+    if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && ( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('MasonryGridComponent: onPreviousSessionClicked(): got to 1');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+    }
+    else if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
+      // close the pdf modal and open the session-details modal
+      log.debug('MasonryGridComponent: onPreviousSessionClicked(): got to 2');
+      this.modalService.close('pdf-viewer');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+      this.modalService.open('sessionDetails');
+    }
+    else if ( !(this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('MasonryGridComponent: onPreviousSessionClicked(): got to 3');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+    }
+    else {
+      // close the session-details modal and open the pdf modal
+      log.debug('MasonryGridComponent: onPreviousSessionClicked(): got to 4');
+      this.modalService.close('sessionDetails');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+      this.modalService.open('pdf-viewer');
+    }
+
+  }
+
+
+
+  updateNextPreviousButtonStatus(): void {
+    let displayedTileIds = $('masonry-tile:visible').map(function(){return $(this).attr('id'); } ).get();
+    for (let i = 0; i < displayedTileIds.length; i++) {
+
+      if (displayedTileIds[i] === this.selectedContentId) {
+
+        if (displayedTileIds.length - 1 === i) {
+          // this is the last displayed item.  disable the next item button
+          log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): noNextSession:', true);
+          this.toolService.noNextSession.next(true);
+        }
+        else {
+          log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): noNextSession:', false);
+          this.toolService.noNextSession.next(false);
+        }
+        if (i === 0) {
+          log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): noPreviousSession:', true);
+          // this is the first displayed item.  disable the item button
+          this.toolService.noPreviousSession.next(true);
+        }
+        else {
+          log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): noPreviousSession:', false);
+          // this is not the first displayed item.  enable the item button
+          this.toolService.noPreviousSession.next(false);
+        }
+        break;
+      }
+    }
+
   }
 
 
@@ -1038,10 +1242,12 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       for (let i = 0; i < this.content.length; i++) {
         // Purge content
         let content = this.content[i];
+        // log.debug('MasonryGridComponent: purgeSessions(): content:', content);
         if (content.session === sessionToPurge) {
           contentsToPurge.push(content);
         }
       }
+      // log.debug('MasonryGridComponent: purgeSessions(): contentsToPurge:', contentsToPurge);
       while (contentsToPurge.length !== 0) {
         let contentToPurge = contentsToPurge.shift();
         for (let i = 0; i < this.content.length; i++) {

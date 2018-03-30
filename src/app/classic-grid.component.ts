@@ -31,7 +31,7 @@ interface Point {
 
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
 
-      <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
+      <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" (openSessionDetails)="openSessionDetails()" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
       </classic-tile>
 
     </div>
@@ -50,6 +50,7 @@ interface Point {
 
 <!-- modals -->
 <pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></pdf-viewer-modal>
+<session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></session-details-modal>
 <classic-session-popup *ngIf="selectedCollectionServiceType" [session]="popUpSession" [enabled]="sessionWidgetEnabled" [serviceType]="selectedCollectionServiceType" #sessionWidget></classic-session-popup>
 `,
   styles: [`
@@ -114,6 +115,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   public tabContainerModalId = 'tab-container-modal';
   private urlParametersLoaded = false;
 
+  private selectedSessionId: number = null;
+  private selectedContentType: string = null;
+  private selectedContentId: string = null;
+
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
   private caseSensitiveSearchChangedSubscription: Subscription;
@@ -132,6 +137,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   private modelChangedSubscription: Subscription;
   private newApiSubscription: Subscription;
   private onSplashScreenAtStartupClosedSubscription: Subscription;
+  private nextSessionClickedSubscription: Subscription;
+  private previousSessionClickedSubscription: Subscription;
+  private newSessionSubscription: Subscription;
+  private newImageSubscription: Subscription;
 
 
 
@@ -154,6 +163,10 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.modelChangedSubscription.unsubscribe();
     this.newApiSubscription.unsubscribe();
     this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
+    this.nextSessionClickedSubscription.unsubscribe();
+    this.previousSessionClickedSubscription.unsubscribe();
+    this.newSessionSubscription.unsubscribe();
+    this.newImageSubscription.unsubscribe();
   }
 
 
@@ -280,9 +293,215 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
     this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) => this.onSessionsPurged(sessionsToPurge) );
 
+    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any ) => {
+      log.debug('ClassicGridComponent: newSessionSubscription: Got new session', session);
+      this.selectedSessionId = session['id'];
+    });
+
+    this.nextSessionClickedSubscription = this.toolService.nextSessionClicked.subscribe( () => this.onNextSessionClicked() );
+
+    this.previousSessionClickedSubscription = this.toolService.previousSessionClicked.subscribe( () => this.onPreviousSessionClicked() );
+
+    this.newImageSubscription = this.toolService.newImage.subscribe( (content: Content) => {
+      log.debug('ClassicGridComponent: newImageSubscription: Got new image', content);
+      this.selectedContentType = content.contentType;
+      this.selectedContentId = content.id;
+      this.updateNextPreviousButtonStatus();
+    } );
+
     if (this.toolService.loadCollectionOnRouteChange) {
       this.toolService.loadCollectionOnRouteChange = false;
       this.toolService.getCollectionDataAgain.next();
+    }
+
+  }
+
+
+
+  onNextSessionClicked(): void {
+    log.debug('ClassicGridComponent: onNextSessionClicked()');
+    // build a list of un-filtered tile id's
+    let displayedTileIds: string[] = [];
+    for (let i = 0; i < this.displayedContent.length; i++) {
+      let contentItem = this.displayedContent[i];
+      displayedTileIds.push(contentItem.id);
+    }
+    log.debug('ClassicGridComponent: onNextSessionClicked(): displayedTileIds:', displayedTileIds);
+    // log.debug('content:', this.content);
+    let nextContentItem: Content = null;
+    let nextContentItemId = null;
+    let nextSessionId = null;
+    for (let i = 0; i < displayedTileIds.length; i++) {
+      if (displayedTileIds[i] === this.selectedContentId && i < displayedTileIds.length - 1 ) {
+        nextContentItemId = displayedTileIds[i + 1];
+        log.debug('ClassicGridComponent: onNextSessionClicked(): nextContentItemId:', nextContentItemId);
+        if (displayedTileIds.length - 1 === i + 1) {
+          // this is the last displayed item.  disable the next session button
+          log.debug('ClassicGridComponent: onNextSessionClicked(): noNextSession:', true);
+          this.toolService.noNextSession.next(true);
+        }
+        else {
+          log.debug('ClassicGridComponent: onNextSessionClicked(): noNextSession:', false);
+          this.toolService.noNextSession.next(false);
+        }
+        break;
+      }
+    }
+
+    for (let i = 0; i < this.content.length; i++) {
+      let contentItem = this.content[i];
+      if (contentItem.id === nextContentItemId) {
+        nextContentItem = contentItem;
+        nextSessionId = contentItem.session;
+        break;
+      }
+    }
+
+    log.debug('ClassicGridComponent: onNextSessionClicked(): nextContentItem:', nextContentItem);
+    log.debug('ClassicGridComponent: onNextSessionClicked(): nextSessionId:', nextSessionId);
+    log.debug('ClassicGridComponent: onNextSessionClicked(): selectedContentType:', this.selectedContentType);
+
+    if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && ( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('ClassicGridComponent: onNextSessionClicked(): got to 1');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+    }
+    else if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
+      // close the pdf modal and open the session-details modal
+      log.debug('ClassicGridComponent: onNextSessionClicked(): got to 2');
+      this.modalService.close('pdf-viewer');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+      this.modalService.open('sessionDetails');
+    }
+    else if ( !(this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('ClassicGridComponent: onNextSessionClicked(): got to 3');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+    }
+    else {
+      // close the session-details modal and open the pdf modal
+      log.debug('ClassicGridComponent: onNextSessionClicked(): got to 4');
+      this.modalService.close('sessionDetails');
+      this.toolService.newSession.next(this.sessions[nextSessionId]);
+      this.toolService.newImage.next(nextContentItem);
+      this.modalService.open('pdf-viewer');
+    }
+
+  }
+
+
+
+  onPreviousSessionClicked(): void {
+    log.debug('ClassicGridComponent: onPreviousSessionClicked()');
+    // build a list of un-filtered tile id's
+    let displayedTileIds: string[] = [];
+    for (let i = 0; i < this.displayedContent.length; i++) {
+      let contentItem = this.displayedContent[i];
+      displayedTileIds.push(contentItem.id);
+    }
+    log.debug('ClassicGridComponent: onPreviousSessionClicked(): displayedTileIds:', displayedTileIds);
+    // log.debug('content:', this.content);
+    let previousContentItem: Content = null;
+    let previousContentItemId = null;
+    let previousSessionId = null;
+    for (let i = 0; i < displayedTileIds.length; i++) {
+      if (displayedTileIds[i] === this.selectedContentId && i <= displayedTileIds.length - 1 ) {
+        log.debug('got to 0');
+        previousContentItemId = displayedTileIds[i - 1];
+        log.debug('ClassicGridComponent: onPreviousSessionClicked(): previousContentItemId:', previousContentItemId);
+        if (i === 0) {
+          // this is the first displayed item.  disable the previous session button
+          log.debug('ClassicGridComponent: onPreviousSessionClicked(): noNextSession:', true);
+          this.toolService.noNextSession.next(true);
+        }
+        else {
+          log.debug('ClassicGridComponent: onPreviousSessionClicked(): noNextSession:', false);
+          this.toolService.noNextSession.next(false);
+        }
+        break;
+      }
+    }
+
+    for (let i = 0; i < this.content.length; i++) {
+      let contentItem = this.content[i];
+      if (contentItem.id === previousContentItemId) {
+        previousContentItem = contentItem;
+        previousSessionId = contentItem.session;
+        break;
+      }
+    }
+
+    log.debug('ClassicGridComponent: onPreviousSessionClicked(): previousContentItem:', previousContentItem);
+    log.debug('ClassicGridComponent: onPreviousSessionClicked(): previousSessionId:', previousSessionId);
+
+    if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && ( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 1');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+    }
+    else if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
+      // close the pdf modal and open the session-details modal
+      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 2');
+      this.modalService.close('pdf-viewer');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+      this.modalService.open('sessionDetails');
+    }
+    else if ( !(this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
+      // just display the next content item
+      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 3');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+    }
+    else {
+      // close the session-details modal and open the pdf modal
+      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 4');
+      this.modalService.close('sessionDetails');
+      this.toolService.newSession.next(this.sessions[previousSessionId]);
+      this.toolService.newImage.next(previousContentItem);
+      this.modalService.open('pdf-viewer');
+    }
+
+  }
+
+
+
+  updateNextPreviousButtonStatus(): void {
+    // build a list of un-filtered tile id's
+    let displayedTileIds: string[] = [];
+    for (let i = 0; i < this.displayedContent.length; i++) {
+      let contentItem = this.displayedContent[i];
+      displayedTileIds.push(contentItem.id);
+    }
+    for (let i = 0; i < displayedTileIds.length; i++) {
+
+      if (displayedTileIds[i] === this.selectedContentId) {
+
+        if (displayedTileIds.length - 1 === i) {
+          // this is the last displayed item.  disable the next item button
+          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noNextSession:', true);
+          this.toolService.noNextSession.next(true);
+        }
+        else {
+          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noNextSession:', false);
+          this.toolService.noNextSession.next(false);
+        }
+        if (i === 0) {
+          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noPreviousSession:', true);
+          // this is the first displayed item.  disable the item button
+          this.toolService.noPreviousSession.next(true);
+        }
+        else {
+          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noPreviousSession:', false);
+          // this is not the first displayed item.  enable the item button
+          this.toolService.noPreviousSession.next(false);
+        }
+        break;
+      }
     }
 
   }
@@ -517,6 +736,13 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
     */
     this.modalService.open('pdf-viewer');
+  }
+
+
+
+  openSessionDetails(): void {
+    log.debug('ClassicGridComponent: openSessionDetails()');
+    this.modalService.open('sessionDetails');
   }
 
 

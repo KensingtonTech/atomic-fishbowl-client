@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList, Renderer2 } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
@@ -7,17 +7,51 @@ import { Preferences } from './preferences';
 import * as utils from './utils';
 declare var log;
 
+export enum KEY_CODE {
+  RIGHT_ARROW = 39,
+  LEFT_ARROW = 37
+}
+
 @Component({
   selector: 'session-details-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   // encapsulation: ViewEncapsulation.None,
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelled()">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()">
   <div class="modal">
+
     <div class="modal-body" *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: rgba(128, 128, 128, .95); font-size: 10pt;">
 
+      <!-- Top Bar / Menu Bar -->
+      <div style="position: absolute; left: 0; right: 365px; top: 0; height: 30px;">
 
-      <div *ngIf="content" style="position: absolute; height: 100%; top: 0; left: 0; right: 350px;">
+        <!-- filename -->
+        <div style="position: absolute; top: 5px; left: 10px; width: 85%; white-space: nowrap; color: white;">
+          <span class="fa fa-lg" [class.fa-lock]="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable' || content.contentType == 'encryptedZipEntry'" [class.fa-file-image-o]="content.contentType == 'image'" [class.fa-hashtag]="content.contentType == 'hash'"></span>
+          <span style="vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
+        </div>
+
+        <div style="position: absolute; top: 5px; right: 15px; text-align: right;">
+
+          <div *ngIf="content.fromArchive || content.isArchive" style="display: inline-block; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 4px;">
+            <span *ngIf="content.isArchive" style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}&nbsp;</span>
+            <span *ngIf="content.fromArchive" style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.archiveFilename)}}&nbsp;</span>
+            <span *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType ==  'encryptedRarTable'" class="fa fa-lock fa-lg" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
+            <span class="fa fa-file-archive-o fa-lg" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
+            <span>{{content.archiveType | allCaps}}</span>
+          </div>
+
+          <!-- next / previous buttons -->
+          <span class="fa fa-arrow-circle-o-left fa-2x" style="vertical-align: bottom;" [class.disabled]="noPreviousSession" (click)="onPreviousSessionArrowClicked()" pTooltip="Previous session"></span>
+          <span class="fa fa-arrow-circle-o-right fa-2x" style="vertical-align: bottom;" [class.disabled]="noNextSession" (click)="onNextSessionArrowClicked()" pTooltip="Next session"></span>
+
+        </div>
+
+      </div>
+
+      <!--<div *ngIf="content" style="position: absolute; height: 100%; top: 0; left: 0; right: 350px;">-->
+      <div *ngIf="content" style="position: absolute; top: 40px; bottom: 10px; left: 0; right: 365px;">
+
         <div style="position: relative;" class="imgContainer">
           <img class="myImg" *ngIf="content.contentType == 'image'" [src]="'/collections/' + collectionId + '/' + content.contentFile" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'encryptedZipEntry'"  src="/resources/zip_icon_locked.png" draggable="false">
@@ -27,13 +61,6 @@ declare var log;
           <img class="myImg" *ngIf="content.contentType == 'hash' && content.hashType == 'md5'" src="/resources/md5_hash_icon.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'hash' && content.hashType == 'sha1'" src="/resources/sha1_hash_icon.png" draggable="false">
           <img class="myImg" *ngIf="content.contentType == 'hash' && content.hashType == 'sha256'" src="/resources/sha256_hash_icon.png" draggable="false">
-
-          <div *ngIf="content.fromArchive || content.isArchive" style="position: absolute; top: 5px; right: 15px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-            <span *ngIf="content.isArchive" style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
-            <span *ngIf="content.fromArchive" style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.archiveFilename)}}</span>
-            <span *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType ==  'encryptedRarTable'" class="fa fa-lock" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
-            <span class="fa fa-file-archive-o" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
-          </div>
 
           <div style="position: relative; text-align: center; color: white; max-width: 50%;">
 
@@ -144,7 +171,7 @@ declare var log;
           </div>
 
           <!-- cancel -->
-          <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
+          <div (click)="onCancelClicked()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
 
           <!-- show/hide eyeball-->
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
@@ -194,6 +221,18 @@ declare var log;
   .expanded {
     background-color: rgb(186, 48, 141);;
   }
+
+  .disabled {
+    color: white;
+  }
+
+  .fa-lock, .fa-hashtag {
+    color: red;
+  }
+
+  .fa-file-image-o {
+    color: yellow;
+  }
   `]
 })
 
@@ -202,7 +241,8 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
   constructor(private dataService: DataService,
               private modalService: ModalService,
               private toolService: ToolService,
-              private changeDetectionRef: ChangeDetectorRef ) {}
+              private changeDetectionRef: ChangeDetectorRef,
+              private renderer: Renderer2 ) {}
 
   @Input('id') public id: string;
   @Input() public serviceType: string; // 'nw' or 'sa'
@@ -219,13 +259,29 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
   private preferences: Preferences;
   private deviceNumber: number;
   private displayedKeys: string[] =  [];
+  public noNextSession = false;
+  public noPreviousSession = false;
+  private removeKeyupFunc: any;
 
   // Subscriptions
   private deviceNumberSubscription: Subscription;
   private preferencesChangedSubscription: Subscription;
   private newSessionSubscription: Subscription;
   private newImageSubscription: Subscription;
+  private noNextSessionSubscription: Subscription;
+  private noPreviousSessionSubscription: Subscription;
 
+  onKeyEvent(event: KeyboardEvent): void {
+    event.stopPropagation();
+    log.debug('SessionDetailsModalComponent: keyEvent(): isOpen:', this.isOpen);
+    if (event.keyCode === KEY_CODE.RIGHT_ARROW) {
+      this.onNextSessionArrowClicked();
+    }
+
+    if (event.keyCode === KEY_CODE.LEFT_ARROW) {
+      this.onPreviousSessionArrowClicked();
+    }
+  }
 
 
   ngOnInit(): void {
@@ -240,6 +296,9 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
     this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any ) => this.onNewSession(session) );
 
     this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => this.onNewImage(content) );
+
+    this.noNextSessionSubscription = this.toolService.noNextSession.subscribe( (TorF) => this.noNextSession = TorF);
+    this.noPreviousSessionSubscription = this.toolService.noPreviousSession.subscribe( (TorF) => this.noPreviousSession = TorF);
   }
 
 
@@ -249,6 +308,8 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
     this.deviceNumberSubscription.unsubscribe();
     this.newSessionSubscription.unsubscribe();
     this.newImageSubscription.unsubscribe();
+    this.noNextSessionSubscription.unsubscribe();
+    this.noPreviousSessionSubscription.unsubscribe();
   }
 
 
@@ -278,6 +339,8 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
   onNewSession(session): void {
     log.debug('SessionDetailsModalComponent: onNewSession: session:', session);
     this.session = session;
+    this.sessionId = this.session['id'];
+    this.meta = this.session['meta'];
   }
 
 
@@ -285,7 +348,6 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
   onNewImage(content): void {
     log.debug('SessionDetailsModalComponent: onNewImage: content:', content);
     this.content = content;
-    this.sessionId = this.content.session;
     this.changeDetectionRef.markForCheck();
   }
 
@@ -310,17 +372,26 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
 
 
   onOpen(): void {
+    log.debug('SessionDetailsModalComponent: onOpen()');
     this.isOpen = true;
-    this.meta = this.session['meta'];
-    this.sessionId = this.session['id'];
+    this.removeKeyupFunc = this.renderer.listen('window', 'keyup', (event) => this.onKeyEvent(event));
   }
 
 
 
-  cancelled(): void {
-    log.debug('SessionDetailsModalComponent: cancelled()');
-    this.modalService.close(this.id);
+  onCancelClicked(): void {
+    log.debug('SessionDetailsModalComponent: onCancelClicked()');
     this.isOpen = false;
+    this.removeKeyupFunc();
+    this.modalService.close(this.id);
+  }
+
+
+
+  onClosed(): void {
+    log.debug('SessionDetailsModalComponent: onClosed()');
+    this.isOpen = false;
+    this.removeKeyupFunc();
   }
 
 
@@ -345,6 +416,26 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
     // log.debug('SessionDetailsModalComponent: saUrlGetter(): struct:', struct);
 
     return this.preferences.sa.url + '/deepsee/index#' + encoded;
+  }
+
+
+
+  onNextSessionArrowClicked(): void {
+    if (this.noNextSession) {
+      return;
+    }
+    log.debug('SessionDetailsModalComponent: onNextSessionArrowClicked()');
+    this.toolService.nextSessionClicked.next();
+  }
+
+
+
+  onPreviousSessionArrowClicked(): void {
+    if (this.noPreviousSession) {
+      return;
+    }
+    log.debug('SessionDetailsModalComponent: onPreviousSessionArrowClicked()');
+    this.toolService.previousSessionClicked.next();
   }
 
 }

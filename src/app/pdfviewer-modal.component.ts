@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, OnChanges, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, Input, ViewChild, ElementRef, Renderer2 } from '@angular/core';
 import { DataService } from './data.service';
 import { NwSession } from './nwsession';
 import { Content } from './content';
@@ -11,23 +11,34 @@ declare var log;
 
 (<any>window).PDFJS.workerSrc = '/resources/pdf.worker.min.js';
 
+export enum KEY_CODE {
+  RIGHT_ARROW = 39,
+  LEFT_ARROW = 37
+}
+
 @Component({
   selector: 'pdf-viewer-modal',
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelled()">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()">
   <div class="modal">
     <div class="modal-body" *ngIf="isOpen && serviceType" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
 
+      <!-- Top Bar / Menu Bar -->
       <div style="position: absolute; left: 0; right: 365px; top: 0; height: 30px;">
 
-        <div style="position: absolute; top: 0; bottom: 0; left: 10px; width: 85%; white-space: nowrap;">
+        <!-- filename and download link (disabled) -->
+        <div style="position: absolute; top: 5px; left: 10px; width: 85%; white-space: nowrap;">
+          <span class="fa fa-lg" [class.fa-file-pdf-o]="content.contentType == 'pdf'" [class.fa-file-excel-o]="content.contentType == 'office' && content.contentSubType == 'excel'" [class.fa-file-word-o]="content.contentType == 'office' && content.contentSubType == 'word'" [class.fa-file-powerpoint-o]="content.contentType == 'office' && content.contentSubType == 'powerpoint'"></span>
           <!--<a (click)="downloadLinkClicked(content.contentFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750"></a>-->
           <!--<a style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750" href="{{content.contentFile}}"></a>-->
           <span style="vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
           <!--<span *ngIf="content.contentType == 'office'" style="vertical-align: middle;">{{utils.pathToFilename(content.proxyContentFile)}}</span>-->
         </div>
 
-        <div class="noselect" style="position: absolute; top: 0; bottom: 0; right: 40px;">
+        <!-- zoom, rotation, next / previous controls -->
+        <div class="noselect" style="position: absolute; top: 5px; right: 15px; text-align: right;">
+
+          <!-- zoom level -->
           <span style="line-height: 2em; display: inline-block; vertical-align: middle;">
             <b>Zoom</b>
           </span>
@@ -37,9 +48,16 @@ declare var log;
             </select>
             &nbsp;&nbsp;
           </span>
+
+          <!-- rotate button -->
           <span style="line-height: 2em; display: inline-block; vertical-align: middle;">
-            <i (click)="rotate()" class="fa fa-repeat fa-lg"></i>&nbsp;&nbsp;{{numPages}} pages
+            <i (click)="rotate()" class="fa fa-repeat fa-lg"></i>&nbsp;&nbsp;{{numPages}} pages&nbsp;&nbsp;
           </span>
+
+          <!-- next / previous buttons -->
+          <span class="fa fa-arrow-circle-o-left fa-2x" style="vertical-align: bottom;" [class.disabled]="noPreviousSession" (click)="onPreviousSessionArrowClicked()" pTooltip="Previous session"></span>
+          <span class="fa fa-arrow-circle-o-right fa-2x" style="vertical-align: bottom;" [class.disabled]="noNextSession" (click)="onNextSessionArrowClicked()" pTooltip="Next session"></span>
+
         </div>
 
       </div>
@@ -50,9 +68,10 @@ declare var log;
         </div>
       </div> <!--overflow: auto;-->
 
-      <div *ngIf="content.fromArchive" style="position: absolute; top: 25px; right: 400px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+      <div *ngIf="content.fromArchive" style="position: absolute; top: 30px; right: 380px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 4px; text-align: right;">
         <span style="display: inline-block; vertical-align: middle;">{{utils.pathToFilename(content.archiveFilename)}}&nbsp;</span>
-        <span class="fa fa-file-archive-o" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
+        <span class="fa fa-file-archive-o fa-lg" style="display: inline-block; vertical-align: middle;">&nbsp;</span>
+        <span>{{content.archiveType | allCaps}}</span>
       </div>
 
       <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 350px; padding: 5px; background-color: rgba(0, 0, 0, .5);">
@@ -94,7 +113,7 @@ declare var log;
           </div>
 
           <!-- cancel -->
-          <div (click)="cancelled()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
+          <div (click)="onCancelClicked()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
 
           <!-- show/hide eyeball-->
           <div (click)="showAllClick()" style="position: absolute; top: 2px; right: 60px; color: white;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
@@ -131,7 +150,27 @@ declare var log;
   }
 
   .expanded {
-    background-color: rgb(186, 48, 141);;
+    background-color: rgb(186, 48, 141);
+  }
+
+  .disabled {
+    color: grey;
+  }
+
+  .fa-file-pdf-o {
+    color: red;
+  }
+
+  .fa-file-excel-o {
+    color: rgb(32,114,71);
+  }
+
+  .fa-file-word-o {
+    color: rgb(42,86,153);
+  }
+
+  .fa-file-powerpoint-o {
+    color: rgb(211,71,38);
   }
 
   `]
@@ -143,7 +182,8 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
-              private toolService: ToolService ) {}
+              private toolService: ToolService,
+              private renderer: Renderer2 ) {}
 
   @Input() public id: string;
   @Input() public serviceType: string; // 'nw' or 'sa'
@@ -176,6 +216,9 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
                         {text: '200%', value: 2}
                       ];
   private displayedKeys: string[] =  [];
+  public noNextSession = false;
+  public noPreviousSession = false;
+  private removeKeyupFunc: any;
 
   // Subscriptions
   private preferencesChangedSubscription: Subscription;
@@ -183,6 +226,22 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
   private newSessionSubscription: Subscription;
   private newImageSubscription: Subscription;
   private confirmDownloadFileSubscription: Subscription;
+  private noNextSessionSubscription: Subscription;
+  private noPreviousSessionSubscription: Subscription;
+
+  onKeyEvent(event: KeyboardEvent): void {
+    event.stopPropagation();
+    log.debug('PdfViewerModalComponent: keyEvent(): isOpen:', this.isOpen);
+    if (this.isOpen) {
+      if (event.keyCode === KEY_CODE.RIGHT_ARROW) {
+        this.onNextSessionArrowClicked();
+      }
+
+      if (event.keyCode === KEY_CODE.LEFT_ARROW) {
+        this.onPreviousSessionArrowClicked();
+      }
+    }
+  }
 
 
 
@@ -196,12 +255,13 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
     this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any ) => {
       log.debug('PdfViewerModalComponent: newSessionSubscription: Got new session', session);
       this.session = session;
+      this.meta = this.session['meta'];
+      this.sessionId = this.session['id'];
     });
 
     this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => {
       log.debug('PdfViewerModalComponent: newImageSubscription: Got new content:', content);
       this.content = content;
-      // this.sessionId = this.content.session;
       let pdfFile = this.content.contentFile;
       if ('proxyContentFile' in this.content) {
         pdfFile = this.content.proxyContentFile;
@@ -212,6 +272,9 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
     this.confirmDownloadFileSubscription = this.toolService.confirmDownloadFile.subscribe( (f: string) => this.downloadConfirmed(f) );
 
     this.pdfZoom = Number(this.toolService.getPreference('pdfZoomlevel'));
+
+    this.noNextSessionSubscription = this.toolService.noNextSession.subscribe( (TorF) => this.noNextSession = TorF);
+    this.noPreviousSessionSubscription = this.toolService.noPreviousSession.subscribe( (TorF) => this.noPreviousSession = TorF);
 
   }
 
@@ -224,6 +287,8 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
     this.newSessionSubscription.unsubscribe();
     this.newImageSubscription.unsubscribe();
     this.confirmDownloadFileSubscription.unsubscribe();
+    this.noNextSessionSubscription.unsubscribe();
+    this.noPreviousSessionSubscription.unsubscribe();
   }
 
 
@@ -256,10 +321,29 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
 
   onOpen(): void {
-    log.debug('PdfViewerModalComponent onOpen(): displayedKeys', this.displayedKeys);
+    log.debug('PdfViewerModalComponent: onOpen()');
+    // log.debug('PdfViewerModalComponent onOpen(): displayedKeys', this.displayedKeys);
     this.isOpen = true;
-    this.meta = this.session['meta'];
-    this.sessionId = this.session['id'];
+    this.removeKeyupFunc = this.renderer.listen('window', 'keyup', (event) => this.onKeyEvent(event));
+    // this.meta = this.session['meta'];
+    // this.sessionId = this.session['id'];
+  }
+
+
+
+  onCancelClicked(): void {
+    log.debug('PdfViewerModalComponent: onCancelClicked()');
+    this.isOpen = false;
+    this.removeKeyupFunc();
+    this.modalService.close(this.id);
+  }
+
+
+
+  onClosed(): void {
+    log.debug('PdfViewerModalComponent: onClosed()');
+    this.isOpen = false;
+    this.removeKeyupFunc();
   }
 
 
@@ -278,13 +362,6 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
   showAllClick(): void {
     this.showAll = !this.showAll;
-  }
-
-
-
-  cancelled(): void {
-    this.modalService.close(this.id);
-    this.isOpen = false;
   }
 
 
@@ -362,6 +439,26 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
   onZoomLevelChange(event): void {
     log.debug('PdfViewerModalComponent: onZoomLevelChange(): event', event);
     this.toolService.setPreference('pdfZoomlevel', this.pdfZoom);
+  }
+
+
+
+  onNextSessionArrowClicked(): void {
+    if (this.noNextSession) {
+      return;
+    }
+    log.debug('PdfViewerModalComponent: onNextSessionArrowClicked()');
+    this.toolService.nextSessionClicked.next();
+  }
+
+
+
+  onPreviousSessionArrowClicked(): void {
+    if (this.noPreviousSession) {
+      return;
+    }
+    log.debug('PdfViewerModalComponent: onPreviousSessionArrowClicked()');
+    this.toolService.previousSessionClicked.next();
   }
 
 
