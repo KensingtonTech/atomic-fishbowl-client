@@ -94,9 +94,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
   public popUpSession: any;
 
   private pdfFile: string;
-  private imagesHidden = false;
-  private pdfsHidden = false;
-  private officeHidden = false;
   private caseSensitiveSearch = false;
   private showOnlyImages: any = [];
   private lastSearchTerm = '';
@@ -567,8 +564,17 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       else if (newContent[i].contentType === 'pdf' ) {
         this.contentCount.pdfs++;
       }
-      else if (newContent[i].contentType === 'office' ) {
+      /*else if (newContent[i].contentType === 'office' ) {
         this.contentCount.officeDocs++;
+      }*/
+      else if (newContent[i].contentType === 'office' && newContent[i].contentSubType === 'word') {
+        this.contentCount.word++;
+      }
+      else if (newContent[i].contentType === 'office' && newContent[i].contentSubType === 'excel') {
+        this.contentCount.excel++;
+      }
+      else if (newContent[i].contentType === 'office' && newContent[i].contentSubType === 'powerpoint') {
+        this.contentCount.powerpoint++;
       }
       else if (newContent[i].contentType === 'hash' ) {
         this.contentCount.hashes++;
@@ -751,7 +757,8 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.lastMask = e;
     log.debug('ClassicGridComponent: maskChanged():', e);
 
-    if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
+    // if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
+    if (e.showImage && e.showPdf && e.showWord && e.showExcel && e.showPowerpoint && e.showHash && e.showDodgy) {
       // this.displayedContent = this.content.sort(this.sortContent);
       this.displayedContent = this.content;
       return;
@@ -766,8 +773,17 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     if (e.showPdf) {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('pdf'));
     }
-    if (e.showOffice) {
+    /*if (e.showOffice) {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('office'));
+    }*/
+    if (e.showWord) {
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('word'));
+    }
+    if (e.showExcel) {
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('excel'));
+    }
+    if (e.showPowerpoint) {
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('powerpoint'));
     }
     if (e.showHash) {
       tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('hash'));
@@ -980,8 +996,17 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       if (this.content[i].contentType === 'pdf') {
         this.contentCount.pdfs++;
       }
-      if (this.content[i].contentType === 'office') {
+      /*if (this.content[i].contentType === 'office') {
         this.contentCount.officeDocs++;
+      }*/
+      if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'word') {
+        this.contentCount.word++;
+      }
+      if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'excel') {
+        this.contentCount.excel++;
+      }
+      if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'powerpoint') {
+        this.contentCount.powerpoint++;
       }
       if (this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
         this.contentCount.dodgyArchives++;
@@ -997,7 +1022,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     let temp: Content[] = [];
     for (let i = 0; i < this.content.length; i++) {
       let item = this.content[i];
-      if (item.contentType === type) {
+      if (item.contentType === type || ('contentSubType' in item && item.contentSubType === type) ) {
         temp.push(item);
       }
     }

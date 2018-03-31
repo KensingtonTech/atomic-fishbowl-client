@@ -55,16 +55,31 @@ declare var log;
 
     <!--Mask & Search Buttons-->
     <div class="noselect" style="position: absolute; right: 160px; top: 2px;">
-      <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="imageMaskClick()" class="fa fa-file-image-o fa-2x" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-      <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
-      <span *ngIf="contentCount.officeDocs != 0 && (contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showOffice" [class.hide]="showSearch" (click)="officeMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Office content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <!-- image mask-->
+      <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="imageMaskClick()" class="fa fa-file-image-o fa-2x" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
-      <span *ngIf="contentCount.dodgyArchives != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
-      <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.officeDocs != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <!-- pdf mask -->
+      <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+      <!-- office mask -->
+      <!--<span *ngIf="contentCount.officeDocs != 0 && (contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showOffice" [class.hide]="showSearch" (click)="officeMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Office content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>-->
+
+      <!-- word mask -->
+      <span *ngIf="contentCount.word != 0 && (contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showWord" [class.hide]="showSearch" (click)="wordMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Word content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <!-- excel mask -->
+      <span *ngIf="contentCount.excel != 0 && (contentCount.word != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showExcel" [class.hide]="showSearch" (click)="excelMaskClick()" class="fa fa-file-excel-o fa-2x" pTooltip="Mask for Excel content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <!-- powerpoint mask -->
+      <span *ngIf="contentCount.powerpoint != 0 && (contentCount.word != 0 || contentCount.excel != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPowerpoint" [class.hide]="showSearch" (click)="powerpointMaskClick()" class="fa fa-file-powerpoint-o fa-2x" pTooltip="Mask for PowerPoint content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+      <!-- dodgy archive mask -->
+      <span *ngIf="contentCount.dodgyArchives != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+      <!-- hash mask -->
+      <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
       <!--Search Button-->
-      <span *ngIf="contentCount.pdfs != 0 || contentCount.officeDocs != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
+      <span *ngIf="contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
     </div>
   </div>
 
@@ -94,8 +109,10 @@ declare var log;
 <div *ngIf="selectedCollection" style="position: absolute; left: 0; top: 200px; width: auto; height: auto; padding: 5px; border-radius: 5px; z-index: 100; background-color: rgba(0,0,0,.8); font-size: 9pt; color: white;">
   <div class="count" style="margin-top: 0;">Total: {{contentCount?.total}}</div>
   <div class="count">Images: {{contentCount?.images}}</div>
-  <div class="count">PDFs: {{contentCount?.pdfs}}</div>
-  <div class="count">Office: {{contentCount?.officeDocs}}</div>
+  <div class="count">PDF: {{contentCount?.pdfs}}</div>
+  <div class="count">Word: {{contentCount?.word}}</div>
+  <div class="count">Excel: {{contentCount?.excel}}</div>
+  <div class="count">Powerpoint: {{contentCount?.powerpoint}}</div>
   <div class="count">Hash: {{contentCount?.hashes}}</div>
   <div class="count">Dodgy<br>Archives: {{contentCount?.dodgyArchives}}</div>
 </div>
@@ -163,9 +180,13 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private searchTerms: string;
   private contentCount = new ContentCount;
   private showImages = true;
-  private maskState: ContentMask = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
+  // private maskState: ContentMask = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
+  private maskState: ContentMask = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true };
   private showPdfs = true;
-  private showOffice = true;
+  // private showOffice = true;
+  private showWord = true;
+  private showExcel = true;
+  private showPowerpoint = true;
   private showHashes = true;
   private showDodgyArchives = true;
   private oldSearchTerms: string;
@@ -387,9 +408,21 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.toolService.maskChanged.next(this.maskState);
   }
 
-  officeMaskClick(): void {
-    this.showOffice = !this.showOffice;
-    this.maskState.showOffice = !this.maskState.showOffice;
+  wordMaskClick(): void {
+    this.showWord = !this.showWord;
+    this.maskState.showWord = !this.maskState.showWord;
+    this.toolService.maskChanged.next(this.maskState);
+  }
+
+  excelMaskClick(): void {
+    this.showExcel = !this.showExcel;
+    this.maskState.showExcel = !this.maskState.showExcel;
+    this.toolService.maskChanged.next(this.maskState);
+  }
+
+  powerpointMaskClick(): void {
+    this.showPowerpoint = !this.showPowerpoint;
+    this.maskState.showPowerpoint = !this.maskState.showPowerpoint;
     this.toolService.maskChanged.next(this.maskState);
   }
 
@@ -452,16 +485,20 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onSelectedCollectionChanged(): collection:', collection );
 
     if (this.showSearch) {
-      this.toggleSearch();
+      setTimeout( () => this.toggleSearch() );
     }
 
     // Reset content masks
     this.showImages = true;
     this.showPdfs = true;
-    this.showOffice = true;
+    // this.showOffice = true;
+    this.showWord = true;
+    this.showExcel = true;
+    this.showPowerpoint = true;
     this.showHashes = true;
     this.showDodgyArchives = true;
-    this.maskState = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
+    // this.maskState = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
+    this.maskState = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true };
     this.toolService.maskChanged.next(this.maskState);
 
     if (collection.type === 'fixed') {

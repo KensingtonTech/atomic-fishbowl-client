@@ -52,7 +52,7 @@ declare global {
 
     <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
 
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [collectionId]="collectionId" [attr.contentType]="item.contentType" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
+        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
 
         </masonry-tile>
 
@@ -100,7 +100,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public content: Content[] = [];
   public sessions: any = {};
   public sessionsDefined = false;
-  private contentCount = new ContentCount; // { images: number, pdfs: number, officeDocs: number, dodgyArchives: number, hashes: number, total: number }
+  private contentCount = new ContentCount; // { images: number, pdfs: number, word: number, excel: number, powerpoint: number, dodgyArchives: number, hashes: number, total: number }
 
   private caseSensitiveSearch = false;
   private lastSearchTerm = '';
@@ -801,8 +801,17 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       else if (newContent[i].contentType === 'pdf' ) {
         this.contentCount.pdfs++;
       }
-      else if (newContent[i].contentType === 'office' ) {
+      /*else if (newContent[i].contentType === 'office' ) {
         this.contentCount.officeDocs++;
+      }*/
+      else if (newContent[i].contentType === 'office' && newContent[i].contentSubType === 'word' ) {
+        this.contentCount.word++;
+      }
+      else if (newContent[i].contentType === 'office' && newContent[i].contentSubType === 'excel' ) {
+        this.contentCount.excel++;
+      }
+      else if (newContent[i].contentType === 'office' && newContent[i].contentSubType === 'powerpoint' ) {
+        this.contentCount.powerpoint++;
       }
       else if (newContent[i].contentType === 'hash' ) {
         this.contentCount.hashes++;
@@ -1099,7 +1108,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastMask = e;
     log.debug('MasonryGridComponent: maskChanged():', e);
 
-    if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
+    // if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
+    if (e.showImage && e.showPdf && e.showWord && e.showExcel && e.showPowerpoint && e.showHash && e.showDodgy) {
       this.filter = '*';
       return;
     }
@@ -1112,9 +1122,21 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (e.showPdf) {
       tempFilter.push('[contentType="pdf"]');
     }
-    if (e.showOffice) {
+
+    /*if (e.showOffice) {
       tempFilter.push('[contentType="office"]');
+    }*/
+    if (e.showWord) {
+      tempFilter.push('[contentSubType="word"]');
     }
+    if (e.showExcel) {
+      tempFilter.push('[contentSubType="excel"]');
+    }
+    if (e.showPowerpoint) {
+      tempFilter.push('[contentSubType="powerpoint"]');
+    }
+
+
     if (e.showHash) {
       tempFilter.push('[contentType="hash"]');
     }
@@ -1220,8 +1242,17 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.content[i].contentType === 'pdf') {
         this.contentCount.pdfs++;
       }
-      if (this.content[i].contentType === 'office') {
+      /*if (this.content[i].contentType === 'office') {
         this.contentCount.officeDocs++;
+      }*/
+      if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'word') {
+        this.contentCount.word++;
+      }
+      if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'excel') {
+        this.contentCount.excel++;
+      }
+      if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'powerpoint') {
+        this.contentCount.powerpoint++;
       }
       if (this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
         this.contentCount.dodgyArchives++;
