@@ -271,7 +271,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
     this.confirmDownloadFileSubscription = this.toolService.confirmDownloadFile.subscribe( (f: string) => this.downloadConfirmed(f) );
 
-    this.pdfZoom = Number(this.toolService.getPreference('pdfZoomlevel'));
+    this.pdfZoom = Number(this.toolService.getPreference('pdfZoomlevel')) || .5;
 
     this.noNextSessionSubscription = this.toolService.noNextSession.subscribe( (TorF) => this.noNextSession = TorF);
     this.noPreviousSessionSubscription = this.toolService.noPreviousSession.subscribe( (TorF) => this.noPreviousSession = TorF);

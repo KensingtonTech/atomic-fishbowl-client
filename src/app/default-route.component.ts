@@ -37,24 +37,29 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
   private onRouteParameters(p: any): void {
     log.debug('DefaultRouteComponent: onRouteParameters(): params:', p);
 
-    if (this.toolService.lastRoute) {
-      this.router.navigate([this.toolService.lastRoute]);
-      return;
-    }
-
     let params = {};
 
     if (Object.keys(p.params).length !== 0) {
       params = p.params;
     }
 
-    let view = this.toolService.getPreference('defaultView');
+
+
+    /*let view = this.toolService.getPreference('defaultView');
     if (view) {
+      log.debug('DefaultRouteComponent: onRouteParameters(): routing to defaultView preference ' + view + ' with query params:', params);
       this.router.navigate([view], { queryParams: params, queryParamsHandling: 'merge' } );
+    }*/
+
+    if (this.toolService.lastRoute) {
+      log.debug('DefaultRouteComponent: routing to lastRoute ' + this.toolService.lastRoute + ' with query params:', params);
+      this.router.navigate([this.toolService.lastRoute], { queryParams: params, queryParamsHandling: 'merge' });
+      return;
     }
 
     else {
       // default route
+      log.debug('DefaultRouteComponent: onRouteParameters(): routing to default route ' + this.defaultView + ' with query params:', params);
       this.router.navigate([this.defaultView], { queryParams: params, queryParamsHandling: 'merge' } );
     }
 

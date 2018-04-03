@@ -485,7 +485,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onSelectedCollectionChanged(): collection:', collection );
 
     if (this.showSearch) {
-      setTimeout( () => this.toggleSearch() );
+      setTimeout( () => this.toggleSearch() ); // we do this to avoid an ExpressionChangedAfterItHasBeenCheckedError problem in template
     }
 
     // Reset content masks
