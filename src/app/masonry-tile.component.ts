@@ -64,7 +64,7 @@ declare var log;
 
   </div>
 
-  <div class="textArea" *ngIf="session && masonryKeys && displayTextArea" style="position: relative;">
+  <div class="textArea selectable" *ngIf="session && masonryKeys && displayTextArea" style="position: relative;">
 
     <div *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
       <b>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</b>
@@ -91,7 +91,7 @@ declare var log;
       <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
     </div>
 
-    <table class="selectable" style="width: 100%;">
+    <table style="width: 100%;">
       <tr *ngFor="let key of masonryKeys">
         <td *ngIf="session.meta[key.key]" class="column1">{{key.friendly}}</td>
         <td *ngIf="session.meta[key.key]" class="value">{{session.meta[key.key]}}</td>
