@@ -120,13 +120,13 @@ declare var log;
         <td class="column1">Encrypted File:</td>
         <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
-      <tr *ngIf="content.isArchive">
-        <td class="column1">Archive File:</td>
-        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-      </tr>
       <tr *ngIf="content.fromArchive">
         <td class="column1">Archive Filename:</td>
         <td class="value">{{utils.pathToFilename(content.archiveFilename)}}</td>
+      </tr>
+      <tr *ngIf="content.isArchive">
+        <td class="column1">Archive File:</td>
+        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.textDistillationEnabled && content.textTermsMatched?.length > 0">
         <td class="column1">Matched Text:</td>
