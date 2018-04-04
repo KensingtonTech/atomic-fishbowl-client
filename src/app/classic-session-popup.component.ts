@@ -12,7 +12,8 @@ declare var log;
   template: `
 <div [@faderAnimation]="enabledTrigger" style="position: absolute; right: 0; top: 30px; bottom: 0; width: 350px; background-color: rgba(0,0,0,.8); padding-left: 5px; color: white; font-size: 12px;">
   <div style="display: flex; flex-direction: column; position: relative; width: 100%; height: 100%;" *ngIf="sessionId && meta">
-    <h3 style="margin-top: 10px; margin-bottom: 5px;">Session {{sessionId}} Details</h3>
+    <h3 *ngIf="serviceType == 'nw'" style="margin-top: 10px; margin-bottom: 5px;">Session {{sessionId}} Details</h3>
+    <h3 *ngIf="serviceType == 'sa'" style="margin-top: 10px; margin-bottom: 5px;">Flow {{sessionId}} Details</h3>
 
     <div style="flex-grow: 1; overflow: auto;">
 
@@ -108,6 +109,7 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   @Input() public enabled: boolean;
   @Input() public serviceType: string; // 'nw' or 'sa'
   @Input() public session: any;
+  private lastServiceType: string = null;  // 'nw' or 'sa'
   public sessionId;
   public meta: any;
 
@@ -170,10 +172,19 @@ export class ClassicSessionPopupComponent implements OnInit, OnDestroy, OnChange
   ngOnChanges(values: any): void {
     log.debug('ClassicSessionPopupComponent ngOnChanges(): values', values);
 
-    /*if ( 'serviceType' in values && values.serviceType.currentValue && this.preferences) {
+    /*if ( 'serviceType' in values && values.serviceType.currentValue && this.preferences && values.serviceType.currentValue !== this.lastServiceType) {
       let serviceType = values.serviceType.currentValue;
       this.displayedKeys = this.preferences[serviceType].displayedKeys;
+      this.lastServiceType = serviceType;
     }*/
+
+    if ( 'serviceType' in values
+        && this.preferences
+        && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
+        || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
+      this.displayedKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
+      // log.debug('ClassicSessionPopupComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
+    }
 
     if ('session' in values && values.session.currentValue) {
       this.meta = values.session.currentValue['meta'];

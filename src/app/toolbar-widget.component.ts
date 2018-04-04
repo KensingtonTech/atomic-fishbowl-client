@@ -107,7 +107,7 @@ declare var log;
 
 <!-- Totals Box -->
 <div *ngIf="selectedCollection" style="position: absolute; left: 0; top: 200px; width: auto; height: auto; padding: 5px; border-radius: 5px; z-index: 100; background-color: rgba(0,0,0,.8); font-size: 9pt; color: white;">
-  <div class="count" style="margin-top: 0;">Total: {{contentCount?.total}}</div>
+  <div class="count" style="margin-top: 0; font-weight: bold;">Total: {{contentCount?.total}}</div>
   <div class="count">Images: {{contentCount?.images}}</div>
   <div class="count">PDF: {{contentCount?.pdfs}}</div>
   <div class="count">Word: {{contentCount?.word}}</div>

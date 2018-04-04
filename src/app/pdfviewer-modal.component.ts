@@ -307,14 +307,15 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(values: any) {
     log.debug('PdfViewerModalComponent ngOnChanges(): values', values);
 
-    /*if ( 'serviceType' in values && this.preferences
+    if ( 'serviceType' in values
+        && this.preferences
         && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
         || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
 
       this.displayedKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
-      log.debug('PdfViewerModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
+      // log.debug('PdfViewerModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
 
-    }*/
+    }
 
   }
 

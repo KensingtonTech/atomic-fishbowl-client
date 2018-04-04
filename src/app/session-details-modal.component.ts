@@ -317,12 +317,13 @@ export class SessionDetailsModalComponent implements OnInit, OnDestroy, OnChange
   ngOnChanges(values: any) {
     log.debug('SessionDetailsModalComponent ngOnChanges(): values', values);
 
-    /*if ( 'serviceType' in values
+    if ( 'serviceType' in values
+        && this.preferences
         && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
         || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
       this.displayedKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
-      log.debug('SessionDetailsModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
-    }*/
+      // log.debug('SessionDetailsModalComponent ngOnChanges(): displayedKeys:', this.displayedKeys);
+    }
 
   }
 
