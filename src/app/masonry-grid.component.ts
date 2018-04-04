@@ -52,7 +52,7 @@ declare global {
 
     <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
 
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
+        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [attr.fromArchive]="item.fromArchive" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
 
         </masonry-tile>
 
@@ -819,6 +819,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       else if ( this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType) ) {
         this.contentCount.dodgyArchives++;
       }
+      if (newContent[i].fromArchive && !this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType)) {
+        this.contentCount.fromArchives++;
+      }
     }
     this.contentCount.total = this.content.length;
     this.toolService.contentCount.next( this.contentCount );
@@ -1108,24 +1111,23 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastMask = e;
     log.debug('MasonryGridComponent: maskChanged():', e);
 
-    // if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
-    if (e.showImage && e.showPdf && e.showWord && e.showExcel && e.showPowerpoint && e.showHash && e.showDodgy) {
+    if (e.showImage && e.showPdf && e.showWord && e.showExcel && e.showPowerpoint && e.showHash && e.showDodgy && !e.showFromArchivesOnly) {
       this.filter = '*';
       return;
     }
 
     let tempFilter = [];
+    let fromArchivesOnly = false;
 
+    if (e.showFromArchivesOnly) {
+      fromArchivesOnly = true;
+    }
     if (e.showImage) {
       tempFilter.push('[contentType="image"]');
     }
     if (e.showPdf) {
       tempFilter.push('[contentType="pdf"]');
     }
-
-    /*if (e.showOffice) {
-      tempFilter.push('[contentType="office"]');
-    }*/
     if (e.showWord) {
       tempFilter.push('[contentSubType="word"]');
     }
@@ -1135,16 +1137,17 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (e.showPowerpoint) {
       tempFilter.push('[contentSubType="powerpoint"]');
     }
-
-
     if (e.showHash) {
       tempFilter.push('[contentType="hash"]');
     }
-    if (e.showDodgy) {
+    if (e.showDodgy && !fromArchivesOnly) {
       tempFilter.push('[contentType="unsupportedZipEntry"],[contentType="encryptedZipEntry"],[contentType="encryptedRarEntry"],[contentType="encryptedRarTable"]');
     }
-    if (tempFilter.length > 0) {
+    if (tempFilter.length > 0 && !fromArchivesOnly) {
       this.filter = tempFilter.join(',');
+    }
+    else if (tempFilter.length > 0 && fromArchivesOnly) {
+      this.filter = tempFilter.join('[fromArchive="true"],');
     }
     else {
       this.filter = '.none';
@@ -1242,9 +1245,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.content[i].contentType === 'pdf') {
         this.contentCount.pdfs++;
       }
-      /*if (this.content[i].contentType === 'office') {
-        this.contentCount.officeDocs++;
-      }*/
       if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'word') {
         this.contentCount.word++;
       }
@@ -1256,6 +1256,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       if (this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
         this.contentCount.dodgyArchives++;
+      }
+      if (this.content[i].fromArchive && !this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
+        this.contentCount.fromArchives++;
       }
     }
     this.contentCount.total = this.content.length;

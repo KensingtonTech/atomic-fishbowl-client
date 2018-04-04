@@ -582,6 +582,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       else if ( this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType) ) {
           this.contentCount.dodgyArchives++;
       }
+      if (newContent[i].fromArchive && !this.dodgyArchivesIncludedTypes.includes(newContent[i].contentType)) {
+        this.contentCount.fromArchives++;
+      }
     }
     this.contentCount.total = this.content.length;
     this.toolService.contentCount.next( this.contentCount );
@@ -757,43 +760,41 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.lastMask = e;
     log.debug('ClassicGridComponent: maskChanged():', e);
 
-    // if (e.showImage && e.showPdf && e.showOffice && e.showHash && e.showDodgy) {
-    if (e.showImage && e.showPdf && e.showWord && e.showExcel && e.showPowerpoint && e.showHash && e.showDodgy) {
+    if (e.showImage && e.showPdf && e.showWord && e.showExcel && e.showPowerpoint && e.showHash && e.showDodgy && !e.showFromArchivesOnly) {
       // this.displayedContent = this.content.sort(this.sortContent);
       this.displayedContent = this.content;
       return;
     }
 
     let tempDisplayedContent: Content[] = [];
+    let fromArchivesOnly = false;
 
+    if (e.showFromArchivesOnly) {
+      fromArchivesOnly = true;
+    }
     if (e.showImage) {
-      // tempFilter.push('[contentType="image"]');
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('image'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('image', fromArchivesOnly));
     }
     if (e.showPdf) {
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('pdf'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('pdf', fromArchivesOnly));
     }
-    /*if (e.showOffice) {
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('office'));
-    }*/
     if (e.showWord) {
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('word'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('word', fromArchivesOnly));
     }
     if (e.showExcel) {
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('excel'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('excel', fromArchivesOnly));
     }
     if (e.showPowerpoint) {
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('powerpoint'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('powerpoint', fromArchivesOnly));
     }
     if (e.showHash) {
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('hash'));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('hash', fromArchivesOnly));
     }
-    if (e.showDodgy) {
-      // tempFilter.push('[contentType="unsupportedZipEntry"],[contentType="encryptedZipEntry"],[contentType="encryptedRarEntry"],[contentType="encryptedRarTable"]');
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('unsupportedZipEntry'));
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedZipEntry'));
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedRarEntry'));
-      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedRarTable'));
+    if (e.showDodgy && !fromArchivesOnly) {
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('unsupportedZipEntry', false));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedZipEntry', false));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedRarEntry', false));
+      tempDisplayedContent = tempDisplayedContent.concat(this.getContentByType('encryptedRarTable', false));
     }
     if (tempDisplayedContent.length > 0) {
       // this.displayedContent = tempDisplayedContent.sort(this.sortContent);
@@ -996,9 +997,6 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       if (this.content[i].contentType === 'pdf') {
         this.contentCount.pdfs++;
       }
-      /*if (this.content[i].contentType === 'office') {
-        this.contentCount.officeDocs++;
-      }*/
       if (this.content[i].contentType === 'office' && this.content[i].contentSubType === 'word') {
         this.contentCount.word++;
       }
@@ -1011,6 +1009,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       if (this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
         this.contentCount.dodgyArchives++;
       }
+      if (this.content[i].fromArchive && !this.dodgyArchivesIncludedTypes.includes(this.content[i].contentType)) {
+        this.contentCount.fromArchives++;
+      }
     }
     this.contentCount.total = this.content.length;
     this.toolService.contentCount.next( this.contentCount );
@@ -1018,11 +1019,14 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
 
 
-  private getContentByType(type: string): Content[] {
+  private getContentByType(type: string, fromArchiveOnly: boolean): Content[] {
     let temp: Content[] = [];
     for (let i = 0; i < this.content.length; i++) {
       let item = this.content[i];
-      if (item.contentType === type || ('contentSubType' in item && item.contentSubType === type) ) {
+      if (!fromArchiveOnly && ( item.contentType === type || ('contentSubType' in item && item.contentSubType === type) ) ) {
+        temp.push(item);
+      }
+      else if (fromArchiveOnly && item.fromArchive && ( item.contentType === type || ('contentSubType' in item && item.contentSubType === type) ) ) {
         temp.push(item);
       }
     }

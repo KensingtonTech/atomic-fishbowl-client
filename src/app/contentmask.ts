@@ -7,4 +7,5 @@ export class ContentMask {
   showImage = true;
   showDodgy = true;
   showHash = true;
+  showFromArchivesOnly = false;
 }

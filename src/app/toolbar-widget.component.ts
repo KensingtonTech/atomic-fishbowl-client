@@ -62,21 +62,23 @@ declare var log;
       <!-- pdf mask -->
       <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
-      <!-- office mask -->
-      <!--<span *ngIf="contentCount.officeDocs != 0 && (contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showOffice" [class.hide]="showSearch" (click)="officeMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Office content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>-->
-
       <!-- word mask -->
       <span *ngIf="contentCount.word != 0 && (contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showWord" [class.hide]="showSearch" (click)="wordMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Word content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
       <!-- excel mask -->
       <span *ngIf="contentCount.excel != 0 && (contentCount.word != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showExcel" [class.hide]="showSearch" (click)="excelMaskClick()" class="fa fa-file-excel-o fa-2x" pTooltip="Mask for Excel content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
       <!-- powerpoint mask -->
       <span *ngIf="contentCount.powerpoint != 0 && (contentCount.word != 0 || contentCount.excel != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPowerpoint" [class.hide]="showSearch" (click)="powerpointMaskClick()" class="fa fa-file-powerpoint-o fa-2x" pTooltip="Mask for PowerPoint content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
       <!-- dodgy archive mask -->
-      <span *ngIf="contentCount.dodgyArchives != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-lock fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <span *ngIf="contentCount.dodgyArchives != 0 && !showFromArchivesOnly && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-lock fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
 
       <!-- hash mask -->
       <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+      <!-- only from archives mask -->
+      <span *ngIf="contentCount.fromArchives != 0" [class.fa-deselect]="!showFromArchivesOnly" [class.hide]="showSearch" (click)="fromArchivesOnlyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Only show content extracted from archives" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
       <!--Search Button-->
       <span *ngIf="contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
@@ -115,6 +117,7 @@ declare var log;
   <div class="count">Powerpoint: {{contentCount?.powerpoint}}</div>
   <div class="count">Hash: {{contentCount?.hashes}}</div>
   <div class="count">Dodgy<br>Archives: {{contentCount?.dodgyArchives}}</div>
+  <div class="count">Extracted From<br>Archives: {{contentCount?.fromArchives}}</div>
 </div>
 
 <!-- modals -->
@@ -180,15 +183,14 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private searchTerms: string;
   private contentCount = new ContentCount;
   private showImages = true;
-  // private maskState: ContentMask = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
-  private maskState: ContentMask = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true };
+  private maskState: ContentMask = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true, showFromArchivesOnly: false };
   private showPdfs = true;
-  // private showOffice = true;
   private showWord = true;
   private showExcel = true;
   private showPowerpoint = true;
   private showHashes = true;
   private showDodgyArchives = true;
+  private showFromArchivesOnly = false;
   private oldSearchTerms: string;
   private caseSensitive = false;
   public queryingIcon = false;
@@ -438,6 +440,12 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.toolService.maskChanged.next(this.maskState);
   }
 
+  fromArchivesOnlyMaskClick(): void {
+    this.showFromArchivesOnly = !this.showFromArchivesOnly;
+    this.maskState.showFromArchivesOnly = !this.maskState.showFromArchivesOnly;
+    this.toolService.maskChanged.next(this.maskState);
+  }
+
   iconDecider(state: string): void {
     this.queryingIcon = false;
     this.spinnerIcon = false;
@@ -497,8 +505,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.showPowerpoint = true;
     this.showHashes = true;
     this.showDodgyArchives = true;
-    // this.maskState = { showPdf: true, showOffice: true, showImage: true, showHash: true, showDodgy: true };
-    this.maskState = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true };
+    this.maskState = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true, showFromArchivesOnly: false };
     this.toolService.maskChanged.next(this.maskState);
 
     if (collection.type === 'fixed') {
