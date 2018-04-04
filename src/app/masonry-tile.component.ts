@@ -116,16 +116,16 @@ declare var log;
         <td class="column1">Office Filename:</td>
         <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
-      <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
-        <td class="column1">Encrypted File:</td>
+      <tr *ngIf="content.isArchive">
+        <td class="column1">Archive File:</td>
         <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.fromArchive">
         <td class="column1">Archive Filename:</td>
         <td class="value">{{utils.pathToFilename(content.archiveFilename)}}</td>
       </tr>
-      <tr *ngIf="content.isArchive">
-        <td class="column1">Archive File:</td>
+      <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
+        <td class="column1">Encrypted File:</td>
         <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.textDistillationEnabled && content.textTermsMatched?.length > 0">
