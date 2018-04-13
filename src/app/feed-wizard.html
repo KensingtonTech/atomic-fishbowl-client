@@ -195,8 +195,9 @@
               &nbsp;&nbsp;&nbsp;
               <div style="display: inline-block;">
                 <div style="text-align: left;">
-                  <div *ngFor="let columnId of availableColumnIDs" style="margin-bottom: 3px;">
-                    <button pButton pDraggable="columnIdentifier" type="button" icon="fa fa-fw fa-check" [label]="columnId.name" (onDragStart)="onDragStart($event,columnId)" (onDragEnd)="onDragEnd($event,columnId)"></button>
+                  <div *ngFor="let columnId of availableColumnIDs" class="dragButton" style="margin-bottom: 3px;" pDraggable="columnIdentifier" (onDragStart)="onDragStart($event, columnId)" (onDragEnd)="onDragEnd($event,columnId)">
+                    <!--<button pButton pDraggable="columnIdentifier" type="button" icon="fa fa-fw fa-check" [label]="columnId.name" (onDragStart)="onDragStart($event,columnId)" (onDragEnd)="onDragEnd($event,columnId)"></button>-->
+                    <button pButton type="button" icon="fa fa-fw fa-check" [label]="columnId.name"></button>
                   </div>
                 </div>
               </div>

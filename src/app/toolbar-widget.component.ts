@@ -78,7 +78,7 @@ declare var log;
       <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
       <!-- only from archives mask -->
-      <span *ngIf="contentCount.fromArchives != 0" [class.fa-deselect]="!showFromArchivesOnly" [class.hide]="showSearch" (click)="fromArchivesOnlyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Only show content extracted from archives" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+      <span *ngIf="contentCount.fromArchives != 0 && contentCount.fromArchives != contentCount.total" [class.fa-deselect]="!showFromArchivesOnly" [class.hide]="showSearch" (click)="fromArchivesOnlyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Only show content extracted from archives" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
 
       <!--Search Button-->
       <span *ngIf="contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>

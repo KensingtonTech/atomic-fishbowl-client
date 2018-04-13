@@ -399,6 +399,17 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public pageOneToPageTwoSubmit(form) {
     this.page = 2;
+    // scrolling hack for Firefox
+    /*setTimeout( () => {
+      let dragButtons = document.getElementsByClassName('dragButton');
+      log.debug(dragButtons);
+      for (let i = 0; i < dragButtons.length; i++) {
+        let draggableElement = dragButtons[i];
+        draggableElement.addEventListener('dragstart', function(e: any){
+          e.dataTransfer.setData('text', 'foo');
+        });
+      }
+    }, 250);*/
   }
 
 
@@ -498,27 +509,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.authChanged = true;
     this.urlVerified = false;
     this.urlTested = false;
-  }
-
-
-
-  public uploadHandlerOld(event): void {
-    log.debug('FeedWizardComponent: uploadHandler(): event:', event);
-    let file = event['files'][0];
-    let slice = file.slice(0, 1024, 'UTF-8'); // get a new blob from the first 1024 bytes of the supplied CSV
-    let reader = new FileReader();
-    let loadHandler = (res) => {
-      log.debug('FeedWizardComponent: uploadHandler(): res:', res);
-      log.debug('FeedWizardComponent: uploadHandler(): res.target:', res.target);
-      log.debug('FeedWizardComponent: uploadHandler(): res.target.result:', res.target.result);
-      reader.removeEventListener('onload', loadHandler);
-      this.rawCSV = res.target.result;
-      if (this.rawCSV) {
-        this.parseCSV(this.rawCSV);
-      }
-    };
-    reader.onload = loadHandler;
-    reader.readAsText(slice, 'UTF-8');
   }
 
 
@@ -641,7 +631,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   public onDragStart(event, columnId: ColumnId): void {
-    log.debug('FeedWizardComponent: onDragStart(): event:', event);
+  // public onDragBegin(columnId: ColumnId): void {
+    // log.debug('FeedWizardComponent: onDragStart(): event:', event);
     log.debug('FeedWizardComponent: onDragStart(): columnId:', columnId);
     this.draggingColumnID = columnId;
   }
@@ -649,7 +640,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   public onDragEnd(event, columnId: ColumnId): void {
-    log.debug('FeedWizardComponent: onDragEnd(): event:', event);
+  // public onDragFinish(columnId: ColumnId): void {
+    // log.debug('FeedWizardComponent: onDragEnd(): event:', event);
     log.debug('FeedWizardComponent: onDragEnd(): columnId:', columnId);
     this.draggingColumnID = null;
   }

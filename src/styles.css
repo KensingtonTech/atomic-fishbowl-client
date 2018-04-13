@@ -6,9 +6,9 @@
 /*@import '@angular/material/prebuilt-themes/deeppurple-amber.css';*/
 /*@import '@angular/material/prebuilt-themes/purple-green.css';*/
 /*@import 'primeng/resources/themes/omega/theme.css';*/
+@import 'dragula/dist/dragula.css';
 @import 'primeng/resources/themes/omega/theme.css';
 @import 'primeng/resources/primeng.min.css';
-@import 'dragula/dist/dragula.css';
 
 /*APP STYLES (taken from app.less)
 ----------------------------------------------------------------------------------*/
