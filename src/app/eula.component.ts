@@ -11,9 +11,9 @@ declare var log;
 
   <div style="text-align: left;">
 
-<p>1. Preamble: Please read this End­User License Agreement ("Agreement") carefully before using Atomic Fishbowl ("Software").  By using the Software, you are agreeing to be bound by the terms and conditions of this Agreement.  If you do not agree to the terms of this Agreement, do not use the Software.  This Agreement sets the terms, rights, restrictions and obligations on using Atomic Fishbowl ("Software") created and owned by Licensor, as detailed herein.</p>
+<p>1. Preamble: Please read this End­ User License Agreement ("Agreement") carefully before using Atomic Fishbowl ("Software").  By using the Software, you are agreeing to be bound by the terms and conditions of this Agreement.  If you do not agree to the terms of this Agreement, do not use the Software.  This Agreement sets the terms, rights, restrictions and obligations on using Atomic Fishbowl ("Software") created and owned by Licensor, as detailed herein.</p>
 
-<p>2. License Grant: Kensington Technology Associates, Limited ("Licensor"), a Colorado Limited Liability Company, hereby grants RSA Security LLC ("Licensee"), a Business Entity, a Personal, Non-assignable & non-transferable, Temporary, Commercial, Royalty free, Without the rights to create derivative works, Non-exclusive license, all with accordance with the terms set forth and other legal restrictions set forth in 3rd party software used while running Software.<br>
+<p>2. License Grant: Kensington Technology Associates, Limited ("Licensor"), a Colorado Limited Liability Company, hereby grants You ("Licensee") a Personal, Non-assignable & non-transferable, Temporary, Commercial, Royalty free, Without the rights to create derivative works, Non-exclusive license, all with accordance with the terms set forth and other legal restrictions set forth in 3rd party software used while running Software.<br>
 &nbsp;&nbsp;2.1 Limited: Licensee may use Software for the purpose of:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;2.1.1 Running Software on Licensee’s Server[s];<br>
 &nbsp;&nbsp;&nbsp;&nbsp;2.1.2 Publishing Software’s output to Licensee;<br>
@@ -31,7 +31,7 @@ declare var log;
 &nbsp;&nbsp;&nbsp;&nbsp;4.1.3 Licensee was in breach of any of this license's terms and conditions and such breach was not cured, immediately upon notification; or<br>
 &nbsp;&nbsp;&nbsp;&nbsp;4.1.4 Licensee in breach of any of the terms of clause 2 to this license; or<br>
 &nbsp;&nbsp;&nbsp;&nbsp;4.1.5 Licensee otherwise entered into any arrangement which caused Licensor to be unable to enforce his rights under this License.<br>
-&nbsp;&nbsp;4.2 This license expires on the 1st of December, 2017 at 12:01am Eastern Standard Time. This license shall be considered to be terminated at this date and time, and all rights, privileges, and entitlements assigned by this license shall be null and void.</p>
+&nbsp;&nbsp;4.2 This license expires 90 days from the date of installation, at 12:01am Eastern Standard Time. This license shall be considered to be terminated at this date and time, and all rights, privileges, and entitlements assigned by this license shall be null and void.</p>
 
 <p>5. Payment: In consideration of the temporary License granted under clause 2, Licensee may not pay Licensor a fee.</p>
 
@@ -51,7 +51,7 @@ declare var log;
 &nbsp;&nbsp;9.2 No-Warranty: The Software is provided without any warranty; Licensor hereby disclaims any warranty that The Software shall be error free, without defects or code which may cause damage to Licensee’s computers or to Licensee, and that Software shall be functional. Licensee shall be solely liable to any damage, defect or loss incurred as a result of operating software and undertake the risks contained in running The Software on License’s Server[s] and Website[s].<br>
 &nbsp;&nbsp;9.3 Prior Inspection: Licensee hereby states that he inspected The Software thoroughly and found it satisfactory and adequate to his needs, that it does not interfere with his regular operation and that it does meet the standards and scope of his computer systems and architecture. Licensee found that The Software interacts with his development, website and server environment and that it does not infringe any of End User License Agreement of any software Licensee may use in performing his services. Licensee hereby waives any claims regarding The Software's incompatibility, performance, results and features, and warrants that he inspected the The Software.</p>
 
-<p>10. No Refunds: Licensee warrants that he inspected The Software according to clause 7(c) and that it is adequate to his needs. Accordingly, as The Software is intangible goods, Licensee shall not be, ever, entitled to any refund, rebate, compensation or restitution for any reason whatsoever, even if The Software contains material flaws.</p>
+<p>10. No Refunds: Licensee warrants that he inspected The Software according to clause 9.3 and that it is adequate to his needs. Accordingly, as The Software is intangible goods, Licensee shall not be, ever, entitled to any refund, rebate, compensation or restitution for any reason whatsoever, even if The Software contains material flaws.</p>
 
 <p>11. Indemnification: Licensee hereby warrants to hold Licensor harmless and indemnify Licensor for any lawsuit brought against it in regards to Licensee’s use of The Software in means that violate, breach or otherwise circumvent this license, Licensor's intellectual property rights or Licensor's title in The Software. Licensor shall promptly notify Licensee in case of such legal action and request Licensee’s consent prior to any settlement in relation to such lawsuit or claim.</p>
 
