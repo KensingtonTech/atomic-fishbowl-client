@@ -4,8 +4,6 @@ import { Point } from './panzoom-point';
 import { PanZoomModel } from './panzoom-model';
 import { PanZoomAPI } from './panzoom-api';
 import { Rect } from './panzoom-rect';
-// import { eval, min, pow, max, abs, chain, sqrt, log10 } from 'mathjs';
-// import * as math from 'mathjs';
 declare var math;
 declare var $: any;
 declare var log;
@@ -84,9 +82,12 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   private isMobile = false;
   private scale: number;
   private zoomingToFit = false;
+  private lastClickPoint: Point;
 
   private maxScale: number; // the highest scale that we will allow in free zoom mode (calculated)
   private minScale: number; // the smallest scale that we will allow in free zoom mode (calculated)
+
+
 
   ngOnInit(): void {
     log.debug('PanZoomComponent: ngOnInit(): initializing PanZoomComponent');
@@ -122,8 +123,8 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
       model: this.model,
       config: this.config,
       changeZoomLevel: this.changeZoomLevel.bind(this),
-      zoomIn: this.zoomIn.bind(this),
-      zoomOut: this.zoomOut.bind(this),
+      zoomIn: this.zoomInToLastClickPoint.bind(this),
+      zoomOut: this.zoomOutFromLastClickPoint.bind(this),
       zoomToFit: this.zoomToFit.bind(this),
       getViewPosition: this.getViewPosition.bind(this),
       getModelPosition: this.getModelPosition.bind(this)
@@ -143,6 +144,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
   }
+
 
 
   ngAfterViewInit(): void {
@@ -195,6 +197,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   ngOnDestroy(): void {
     log.debug('PanZoomComponent: ngOnDestroy()');
     if (this.touchStartRemoveFunc) {
@@ -226,7 +229,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   ////////////////////////////////////////////////////////////////////////////////
 
   public onMouseWheel(e: any): void {
-    // log.debug('OnMouseWheel() e:', e);
+    // log.debug('PanZoomComponent: OnMouseWheel() e:', e);
     setTimeout( () => { // make the operation async so we can improve speed of change detection
 
       let event = e.event;
@@ -250,10 +253,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
           y: math.eval(`${event.originalEvent.pageY} - ${this.frameElement.offset().top}`)
         };
 
-        /*this.previousPosition = {
-          x: event.originalEvent.pageX,
-          y: event.originalEvent.pageY
-        };*/
+        this.lastClickPoint = clickPoint;
 
         // log.debug("clickPoint:", clickPoint);
 
@@ -276,20 +276,21 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   public onDblClick(event: any) {
-    // log.debug('onDblClick()');
+    // log.debug('PanZoomComponent: onDblClick()');
     if (this.config.zoomOnDoubleClick) {
       let clickPoint: Point = {
         x: math.eval(`${event.pageX} - ${this.frameElement.offset().left}`),
         y: math.eval(`${event.pageY} - ${this.frameElement.offset().top}`)
       };
+      this.lastClickPoint = clickPoint;
       this.zoomIn(clickPoint);
     }
-    // this.viewChangedEmitter.emit();
   }
 
 
+
   public onMousedown(event: any) {
-    // log.debug('onMousedown()', event);
+    // log.debug('PanZoomComponent: onMousedown()', event);
 
     if (event.button === 0 || event.type === 'touchstart') {
       if (this.config.panOnClickDrag) {
@@ -316,9 +317,11 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private onMouseMove(event: any) {
+    // log.debug(`PanZoomComponent: onMouseMove()`);
     // Called when moving the mouse with the left button down
-    // log.debug(`onMouseMove()`);
+
     // event.preventDefault();
     event.stopPropagation();
 
@@ -382,8 +385,10 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private onMouseUp() {
-    // log.debug('onMouseup()');
+    // log.debug('PanZoomComponent: onMouseup()');
+
     let now = (new Date).getTime();
     let timeSinceLastMouseEvent = (now - this.lastMouseEventTime) / 1000;
 
@@ -414,8 +419,9 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private onTouchStart(event: any) {
-    // log.debug('onTouchStart()', event);
+    // log.debug('PanZoomComponent: onTouchStart()', event);
     // event.preventDefault();
 
     if (event.touches.length === 1) {
@@ -439,8 +445,9 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private onTouchMove(event: any) {
-    // log.debug('onTouchMove()');
+    // log.debug('PanZoomComponent: onTouchMove()');
     // event.preventDefault();
 
     if (event.touches.length === 1) {
@@ -475,6 +482,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
         x: math.eval(`${centerX} - ${this.frameElement.offset().left}`),
         y: math.eval(`${centerY} - ${this.frameElement.offset().top}`)
       };
+      this.lastClickPoint = clickPoint;
 
       this.changeZoomLevel( math.eval(`${this.base.zoomLevel} + ${delta} * 0.0001`), clickPoint);
 
@@ -486,27 +494,23 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private onTouchEnd(event: any) {
-    // log.debug('onTouchEnd()');
+    // log.debug('PanZoomComponent: onTouchEnd()');
     this.onMouseUp();
   }
 
 
 
   private onMouseleave() {
-    // log.debug('onMouseleave()');
+    // log.debug('PanZoomComponent: onMouseleave()');
     this.onMouseUp(); // same behaviour
   }
 
 
 
-
-
-
-
-
   private pan(delta: Point): void {
-    // log.debug('pan()');
+    // log.debug('PanZoomComponent: pan()');
     delta.x = delta.x || 0;
     delta.y = delta.y || 0;
     this.base.pan.x += delta.x;
@@ -516,9 +520,10 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private animationTick = (timestamp: any) => {
+    // log.debug('PanZoomComponent: PanZoomComponent: tick()');
     // this.renderer.setStyle(this.zoomElement, 'will-change', 'auto');
-    // log.debug('PanZoomComponent: tick()');
     let deltaTime = math.chain(timestamp)
                         .subtract(this.lastTick)
                         .divide(1000)
@@ -625,8 +630,9 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private syncModelToDOM() {
-    // log.debug('syncModelToDOM()');
+    // log.debug('PanZoomComponent: syncModelToDOM()');
 
     if (!this.zoomAnimation) {
       // Just panning.  No zoom
@@ -731,8 +737,9 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private getModelPosition(viewPosition: any) {
-    // log.debug('getModelPosition()');
+    // log.debug('PanZoomComponent: getModelPosition()');
     // p = (1/s)(p' - t)
     let pmark = viewPosition;
     let s = this.getCssScale(this.base.zoomLevel);
@@ -745,10 +752,11 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private zoomToFit(rectangle: Rect) {
+    // log.debug('PanZoomComponent: zoomToFit(): rectangle', rectangle);
     // presumably, when a user clicks a zoom to fit button
     // example rectangle: { "x": 0, "y": 100, "width": 100, "height": 100 }
-    // log.debug('zoomToFit(): rectangle', rectangle);
     this.base = this.calcZoomToFit(rectangle);
     if (this.config.freeMouseWheel) {
       this.scale = this.getCssScale(this.base.zoomLevel);
@@ -759,14 +767,16 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private length(vector2d: any) {
-    // log.debug('length()');
+    // log.debug('PanZoomComponent: length()');
     return math.sqrt(vector2d.x * vector2d.x + vector2d.y * vector2d.y);
   }
 
 
+
   private getCenterPoint(): Point {
-    // log.debug('getCenterPoint()');
+    // log.debug('PanZoomComponent: getCenterPoint()');
     let center = {
       // x: this.frameElement.width() / 2,
       x: this.frameElementRef.nativeElement.offsetWidth / 2,
@@ -777,8 +787,9 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private getViewPosition(modelPosition: Point) {
-    // log.debug('getViewPosition()');
+    // log.debug('PanZoomComponent: getViewPosition()');
     //  p' = p * s + t
     let p = modelPosition;
     let s = this.getCssScale(this.base.zoomLevel);
@@ -797,20 +808,23 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
+
   private getCssScale(zoomLevel: any): number {
-    // log.debug('getCssScale()');
+    // log.debug('PanZoomComponent: getCssScale()');
     return <number>math.pow(this.config.scalePerZoomLevel, zoomLevel - this.config.neutralZoomLevel);
   }
 
 
+
   private getZoomLevel(cssScale: any) {
-    // log.debug('getZoomLevel()');
+    // log.debug('PanZoomComponent: getZoomLevel()');
     return math.log10(cssScale) / math.log10(this.config.scalePerZoomLevel) + this.config.neutralZoomLevel;
   }
 
 
+
   private calcZoomToFit(rect: Rect): PanZoomModel {
-    // log.debug('calcZoomToFit()');
+    // log.debug('cPanZoomComponent: alcZoomToFit()');
     // let (W, H) denote the size of the viewport
     // let (w, h) denote the size of the rectangle to zoom to
     // then we must CSS scale by the min of W/w and H/h in order to just fit the rectangle
@@ -840,63 +854,10 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
 
-  private freeZoomOld(clickPoint: Point, wheelDelta: number): void {
-    // log.debug('freeZoom(): this.base:', this.base);
-    // log.debug(`baseBeforeZoom: x: ${this.base.pan.x} y: ${this.base.pan.y} zoomlevel: ${this.base.zoomLevel}` );
-
-    // wheelDelta = math.max(-1, math.min(1, wheelDelta)); // cap the delta to [-1,1] for cross browser consistency
-
-    // determine the point on where the slide is zoomed in
-    /*let zoomTarget: Point = {
-      x: ( clickPoint.x - this.base.pan.x ) / this.scale,
-      y: ( clickPoint.y - this.base.pan.y ) / this.scale,
-    };*/
-    let zoomTarget: Point = {
-      x: math.eval( ` ( ${clickPoint.x} - ${this.base.pan.x} ) / ${this.scale}` ),
-      y: math.eval( ` ( ${clickPoint.y} - ${this.base.pan.y} ) / ${this.scale}` ),
-    };
-
-    // this.scale += wheelDelta * this.factor * this.scale;
-    this.scale = math.chain(wheelDelta)
-                      .multiply(this.config.freeMouseWheelFactor)
-                      .multiply(this.scale)
-                      .add(this.scale)
-                      .done();
-
-    this.scale = math.max(this.minScale, math.min( this.maxScale, this.scale ));
-
-    // calculate x and y based on zoom
-    // this.base.pan.x = -zoomTarget.x * this.scale + clickPoint.x;
-    this.base.pan.x = math.chain(-zoomTarget.x)
-                          .multiply(this.scale)
-                          .add(clickPoint.x)
-                          .done();
-
-    // this.base.pan.y = -zoomTarget.y * this.scale + clickPoint.y;
-    this.base.pan.y = math.chain(-zoomTarget.y)
-                          .multiply(this.scale)
-                          .add(clickPoint.y)
-                          .done();
-
-    // Apply Scale
-    let scaleString = 'scale3d(' + this.scale + ', ' + this.scale + ', ' + this.scale + ')';
-    this.zoomElement.style.webkitTransformOrigin = '0 0';
-    this.zoomElement.style.webkitTransform = scaleString;
-
-    // Apply Pan
-    let translate3d = 'translate3d(' + this.base.pan.x + 'px, ' + this.base.pan.y + 'px, 0)';
-    // this.panElement.style.webkitTransformOrigin = '0 0';
-    this.panElement.style.webkitTransform = translate3d;
-
-    this.base.zoomLevel = this.getZoomLevel(this.scale);
-    this.config.modelChanged.next(this.base);
-    // log.debug(`baseAfterZoom: x: ${this.base.pan.x} y: ${this.base.pan.y} zoomlevel: ${this.base.zoomLevel}` );
-  }
-
 
   private freeZoom(clickPoint: Point, wheelDelta: number): void {
-    // log.debug('freeZoom(): this.base:', this.base);
-    // log.debug(`baseBeforeZoom: x: ${this.base.pan.x} y: ${this.base.pan.y} zoomlevel: ${this.base.zoomLevel}` );
+    // log.debug('PanZoomComponent: freeZoom(): this.base:', this.base);
+    // log.debug(`PanZoomComponent: freeZoom(): baseBeforeZoom: x: ${this.base.pan.x} y: ${this.base.pan.y} zoomlevel: ${this.base.zoomLevel}` );
 
     // wheelDelta = math.max(-1, math.min(1, wheelDelta)); // cap the delta to [-1,1] for cross browser consistency
 
@@ -942,12 +903,13 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     this.base.pan = t1;
     this.base.zoomLevel = this.getZoomLevel(this.scale);
     this.config.modelChanged.next(this.base);
-    // log.debug(`baseAfterZoom: x: ${this.base.pan.x} y: ${this.base.pan.y} zoomlevel: ${this.base.zoomLevel}` );
+    // log.debug(`PanZoomComponent: freeZoom(): baseAfterZoom: x: ${this.base.pan.x} y: ${this.base.pan.y} zoomlevel: ${this.base.zoomLevel}` );
   }
 
 
+
   private zoomIn(clickPoint: Point) {
-    // log.debug('zoomIn(): clickPoint:', clickPoint);
+    // log.debug('PanZoomComponent: zoomIn(): clickPoint:', clickPoint);
     this.lastTick = performance.now();
     this.changeZoomLevel( this.base.zoomLevel + this.config.zoomButtonIncrement, clickPoint );
     this.zone.runOutsideAngular( () => this.animationId = this.animationFrame(this.animationTick) );
@@ -956,8 +918,22 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+
+
+  private zoomInToLastClickPoint() {
+    // log.debug('PanZoomComponent: zoomInToLastClickPoint(): lastClickPoint', this.lastClickPoint);
+    this.lastTick = performance.now();
+    this.changeZoomLevel( this.base.zoomLevel + this.config.zoomButtonIncrement, this.lastClickPoint );
+    this.zone.runOutsideAngular( () => this.animationId = this.animationFrame(this.animationTick) );
+    if (this.config.freeMouseWheel) {
+      this.scale = this.getCssScale(this.base.zoomLevel);
+    }
+  }
+
+
+
   private zoomOut(clickPoint: Point) {
-    // log.debug('zoomOut()');
+    // log.debug('PanZoomComponent: zoomOut()');
     this.lastTick = performance.now();
     this.changeZoomLevel( this.base.zoomLevel - this.config.zoomButtonIncrement, clickPoint );
     this.zone.runOutsideAngular( () => this.animationId = this.animationFrame(this.animationTick) );
@@ -966,8 +942,22 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+
+
+  private zoomOutFromLastClickPoint() {
+    // log.debug('PanZoomComponent: zoomOutFromLastClickPoint()');
+    this.lastTick = performance.now();
+    this.changeZoomLevel( this.base.zoomLevel - this.config.zoomButtonIncrement, this.lastClickPoint );
+    this.zone.runOutsideAngular( () => this.animationId = this.animationFrame(this.animationTick) );
+    if (this.config.freeMouseWheel) {
+      this.scale = this.getCssScale(this.base.zoomLevel);
+    }
+  }
+
+
+
   private changeZoomLevel(newZoomLevel: number, clickPoint: Point) {
-    // log.debug('changeZoomLevel()');
+    // log.debug('PanZoomComponent: changeZoomLevel()');
 
     if (this.zoomAnimation) {
       // cancel any existing zoom animation (if they pressed a zoom button - this shouldn't ever happen on mousewheel)
