@@ -38,7 +38,7 @@ declare global {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <div style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px; background-color: black;">
-  <div style="position: absolute; left: 0; width: 100px; height: 100%;">
+  <div class="masonryViewport" style="position: absolute; left: 0; width: 100px; height: 100%;">
     <masonry-control-bar></masonry-control-bar>
 
     <!-- pause / resume buttons for monitoring collections -->
@@ -380,7 +380,9 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.scrollContainer = document.getElementsByClassName('scrollContainer')[0];
     let toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
     this.toolbarHeight = toolbar.offsetHeight;
-    this.viewportHeight = window.innerHeight;
+    // this.viewportHeight = window.innerHeight;
+    this.viewportHeight = document.getElementsByClassName('masonryViewport')[0].clientHeight;
+
   }
 
 
@@ -572,7 +574,10 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onWindowResize = (event) => {
     log.debug('MasonryGridComponent: onWindowResize(): event:', event);
-    this.viewportHeight = window.innerHeight;
+    // this.viewportHeight = window.innerHeight;
+    this.viewportHeight = document.getElementsByClassName('masonryViewport')[0].clientHeight;
+    // log.debug('MasonryGridComponent: onWindowResize(): viewportHeight:', this.viewportHeight);
+
   }
 
 
@@ -729,6 +734,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.isotopeDirectiveRef) { this.isotopeDirectiveRef.destroyMe(); }
       this.destroyView = true;
       this.changeDetectionRef.detectChanges();
+      this.scrollContainerHeight = 0;
       if (this.autoScrollStarted) { this.restartAutoScroll(); }
       this.search = [];
       this.sessions = {};
@@ -927,52 +933,22 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // this.scrollContainer.addEventListener('scroll', (event) => log.debug('event:', event ));
     // this.scrollContainer.onscroll = (event) => console.log('event:', event);
 
-    log.debug('MasonryGridComponent: startScrollerAnimation(): Starting scroller');
+    log.debug('MasonryGridComponent: startScrollerAnimation(): animation isn\'t running');
 
     // Add a new animation to the animation queue
+
+    let duration = this.scrollDuration();
+    if (duration === 0) {
+      return;
+    }
+
+    log.debug('MasonryGridComponent: startScrollerAnimation(): Starting scroller');
 
     this.autoScrollAnimationRunning = true;
 
     this.zone.runOutsideAngular( () => $('.scrollTarget').velocity( 'scroll',
       {
-        duration: this.scrollDuration(),
-        container: $('.scrollContainer'),
-        easing: 'linear',
-        complete: () => this.onAutoScrollAnimationComplete()
-      })
-    );
-
-  }
-
-
-
-  onAutoScrollAnimationComplete(): void {
-    // This callback runs when the animation is complete
-    log.debug('MasonryGridComponent: onAutoScrollAnimationComplete()');
-
-    if (!this.autoScrollStarted) {
-      return;
-    }
-
-    let offset = Math.round(this.scrollContainerHeight); // how far the scrollTarget is from the top of the container
-
-    let scrollTop = this.scrollContainer.scrollTop; // how far the scrollbars are from the top of the container.  this triggers a reflow.  we need a better way to get this.
-
-    let distance = math.eval(`${offset} - ${scrollTop}`); // how far the container needs to scroll in order to hit the scrolltarget
-
-    if (this.viewportHeight - distance - this.toolbarHeight === 0) {
-      // the scrollbar has reached the end
-      this.toolService.scrollToBottomStopped.next();
-      this.autoScrollStarted = false;
-      this.autoScrollAnimationRunning = false;
-      return;
-    }
-
-    let scrollDuration = math.eval( `( ${distance} / ${this.pixelsPerSecond} ) * 1000`);
-
-    this.zone.runOutsideAngular( () => $('.scrollTarget').velocity( 'scroll',
-      {
-        duration: scrollDuration,
+        duration: duration,
         container: $('.scrollContainer'),
         easing: 'linear',
         complete: () => this.onAutoScrollAnimationComplete()
@@ -998,9 +974,47 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // let expr: expression = `( ${distance} / ${this.pixelsPerSecond} ) * 1000`;
     let scrollDuration = math.eval( `( ${distance} / ${this.pixelsPerSecond} ) * 1000`);
     // let scrollDuration = eval( `( ${distance} / ${this.pixelsPerSecond} ) * 1000`);
-    // log.debug('MasonryGridComponent: scrollDuration(): scrollDuration:', scrollDuration);
 
+
+    // log.debug('MasonryGridComponent: scrollDuration(): scrollDuration:', scrollDuration);
     return scrollDuration;
+  }
+
+
+
+  onAutoScrollAnimationComplete(): void {
+    // This callback runs when the animation is complete
+    log.debug('MasonryGridComponent: onAutoScrollAnimationComplete()');
+
+    if (!this.autoScrollStarted) {
+      return;
+    }
+
+    let offset = Math.round(this.scrollContainerHeight); // offset is how far the scrollTarget is from the top of the container
+
+    let scrollTop = this.scrollContainer.scrollTop; // scrollTop is how far the scrollbars are from the top of the container.  this triggers a reflow.  we need a better way to get this.
+
+    let distance = math.eval(`${offset} - ${scrollTop}`); // distance is how far the container needs to scroll in order to hit the scrolltarget
+
+    if (this.viewportHeight - distance - this.toolbarHeight === 0) {
+      // the scrollbar has reached the end
+      this.toolService.scrollToBottomStopped.next();
+      this.autoScrollStarted = false;
+      this.autoScrollAnimationRunning = false;
+      return;
+    }
+
+    let scrollDuration = math.eval( `( ${distance} / ${this.pixelsPerSecond} ) * 1000`);
+
+    this.zone.runOutsideAngular( () => $('.scrollTarget').velocity( 'scroll',
+      {
+        duration: scrollDuration,
+        container: $('.scrollContainer'),
+        easing: 'linear',
+        complete: () => this.onAutoScrollAnimationComplete()
+      })
+    );
+
   }
 
 
@@ -1021,43 +1035,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // this gets called from onCollectionStateChanged() and onAutoscrollSpeedChanged()
     log.debug('MasonryGridComponent: restartAutoScroll()');
     this.stopScrollerAnimation();
-    // this.lastWindowHeight = $('isotope').height();
     this.startScrollerAnimation();
   }
 
 
 
-
-  /*startScrollerAnimationOld(): void {
-    log.debug('MasonryGridComponent: startScrollerAnimation(): Starting scroller');
-
-    // Add a new animation to the animation queue
-
-    this.zone.runOutsideAngular( () => $('.scrollTarget').velocity( 'scroll',
-      {
-        duration: this.scrollDuration(),
-        container: $('.scrollContainer'),
-        easing: 'linear',
-        complete: () => this.onAutoScrollAnimationComplete()
-      })
-    );
-
-    if ( $('.scrollTarget').queue().length > 1) {
-      // If there's already an animation running, stop it to allow the next animation in the queue to run
-      log.debug('MasonryGridComponent: startScrollerAnimation(): stopping existing animation');
-      $('.scrollTarget').velocity('stop');
-    }
-  }*/
-
-
-
-  /*onAutoScrollAnimationCompleteOld(): void {
-    // This callback runs when the animation is complete
-    // log.debug('MasonryGridComponent: startScrollerAnimation(): Animation complete');
-    if (this.selectedCollectionType === 'fixed' && this.collectionState === 'complete') {
-      this.stopAutoScroll();
-    }
-  }*/
 
 
 
