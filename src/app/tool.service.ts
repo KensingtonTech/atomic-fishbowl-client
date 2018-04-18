@@ -115,7 +115,13 @@ export class ToolService {
 
 
   constructor() {
-    this.showMasonryTextArea.subscribe( (show) => this.showMasonryTextAreaState = show );
+    this.showMasonryTextAreaState = this.getPreference('showMeta') === 'false' ? false : true;
+
+    this.showMasonryTextArea.subscribe( (show) => {
+      this.showMasonryTextAreaState = show;
+      this.setPreference('showMeta', show);
+     });
+
     this.lastRoute = this.getPreference('lastRoute');
   }
 
