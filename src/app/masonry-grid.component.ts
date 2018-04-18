@@ -218,7 +218,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   parseQueryParams(params: any): void {
-    if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) ) ) {
+    if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) || ( 'adUser' in params && 'side' in params) ) ) {
 
       if (params['op'] !== 'adhoc') {
         return;
@@ -229,6 +229,10 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if ('ip' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
+        return;
+      }
+
+      if ('adUser' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
         return;
       }
 

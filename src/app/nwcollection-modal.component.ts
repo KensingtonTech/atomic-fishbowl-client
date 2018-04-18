@@ -627,6 +627,12 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
         if ('ip' in this.adhocParams && this.adhocParams['side'] === 'dst') {
           query = query + ' && ip.dst = ' + this.adhocParams['ip'];
         }
+        if ('adUser' in this.adhocParams && this.adhocParams['side'] === 'src') {
+          query = query + ' && ad.username.src = ' + '\'' + this.adhocParams['adUser'] + '\'';
+        }
+        if ('adUser' in this.adhocParams && this.adhocParams['side'] === 'dst') {
+          query = query + ' && ad.username.dst = ' + '\'' + this.adhocParams['adUser'] + '\'';
+        }
         log.debug('NwCollectionModalComponent: onCollectionSubmit(): query:', query);
         newCollection.query = query;
       }
@@ -1016,6 +1022,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       else if ('ip' in params) {
         this.name = 'Adhoc investigation for ' + params['side'] + ' IP ' + params['ip'] + ' at ' + now;
       }
+      else if ('adUser' in params) {
+        this.name = 'Adhoc investigation for ' + params['side'] + ' AD User ' + params['adUser'] + ' at ' + now;
+      }
+
       this.onNameChanged(this.name);
       this.nameBoxRef.first.nativeElement.focus();
 

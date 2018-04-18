@@ -1,0 +1,30 @@
+{
+    "displayName": "Atomic Fishbowl AD Destination User Lookup",
+    "cssClasses": [
+        "user.src",
+        "user-src",
+        "user.dst",
+        "user-dst",
+        "username",
+        "ad.username.src",
+        "ad-username-src",
+        "ad.username.dst",
+        "ad-username-dst"
+    ],
+    "description": "",
+    "type": "UAP.common.contextmenu.actions.URLContextAction",
+    "version": "1",
+    "modules": [
+        "investigation"
+    ],
+    "local": "false",
+    "groupName": "externalLookupGroup",
+    "urlFormat": "https://localhost?op=adhoc&service=nw&adUser={0}&side=dst",
+    "disabled": "",
+    "id": "atomicFishbowlADUsernameDstAction",
+    "moduleClasses": [
+        "UAP.investigation.navigate.view.NavigationPanel",
+        "UAP.investigation.events.view.EventGrid"
+    ],
+    "openInNewTab": "true"
+}
