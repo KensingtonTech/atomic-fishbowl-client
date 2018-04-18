@@ -48,13 +48,11 @@ declare global {
     </div>
   </div>
 
-  <div #canvas tabindex="-1" class="scrollContainer noselect" style="position: absolute; left: 100px; right: 0; top: 0; bottom: 0; overflow-y: scroll; outline: 0px solid transparent;">
+  <div #canvas tabindex="-1" class="scrollContainer noselect" style="position: absolute; left: 110px; right: 0; top: 0; bottom: 0; overflow-y: scroll; outline: 0px solid transparent;">
 
     <div isotope *ngIf="!destroyView && content && sessionsDefined && masonryKeys" #isotope tabindex="-1" class="grid" [options]="isotopeOptions" [filter]="filter" style="width: 100%; height: 100%;">
 
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [attr.fromArchive]="item.fromArchive" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id">
-
-        </masonry-tile>
+        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [ngStyle]="{'width.px': masonryColumnWidth}" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [attr.fromArchive]="item.fromArchive" [content]="item" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id"></masonry-tile>
 
     </div>
 
