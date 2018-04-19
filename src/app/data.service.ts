@@ -151,6 +151,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   onPreferencesUpdate(preferences: Preferences) {
     log.debug('DataService: onPreferencesUpdate(): preferences:', preferences);
+    // this.preferencesChanged.next(JSON.parse(JSON.stringify(preferences)));
     this.preferencesChanged.next(preferences);
   }
 
@@ -307,7 +308,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   setPreferences(prefs: any): Promise<void> {
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
-    this.preferencesChanged.next(prefs);
     return this.http.post(this.apiUrl + '/preferences', prefs, { headers } )
                     .toPromise()
                     .then(response => {} )

@@ -601,23 +601,41 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onPreferencesChanged(prefs: Preferences): void {
 
+    log.debug('MasonryGridComponent: onPreferencesChanged()');
+
+    let callLayout = false;
+
     if (this.selectedCollectionServiceType) {
+      // we need to trigger a layout when we change masonry meta keys in preferences
+
       if (this.selectedCollectionServiceType === 'nw') {
+
+        if ( this.isotopeDirectiveRef && JSON.stringify(prefs.nw.masonryKeys) !== JSON.stringify(this.preferences.nw.masonryKeys) ) {
+          log.debug('MasonryGridComponent: onPreferencesChanged(): NW Masonry keys have changed.  Calling Isotope layout');
+          callLayout = true;
+        }
+
         this.masonryKeys = JSON.parse(JSON.stringify(prefs.nw.masonryKeys));
       }
+
       if (this.selectedCollectionServiceType === 'sa') {
+
+        if ( this.isotopeDirectiveRef && JSON.stringify(prefs.sa.masonryKeys) !== JSON.stringify(this.preferences.sa.masonryKeys) ) {
+          log.debug('MasonryGridComponent: onPreferencesChanged(): SA Masonry keys have changed.  Calling Isotope layout');
+          callLayout = true;
+        }
+
         this.masonryKeys = JSON.parse(JSON.stringify(prefs.sa.masonryKeys));
       }
+
     }
     this.changeDetectionRef.detectChanges(); // we need this to be before layout()
 
-    // we need to trigger a layout when we change masonry meta keys in preferences
-    if ( this.isotopeDirectiveRef && JSON.stringify(prefs.nw.masonryKeys) !== JSON.stringify(this.preferences.nw.masonryKeys) ) {
-      log.debug('MasonryGridComponent: onPreferencesChanged(): Masonry keys have changed.  Calling Isotope layout');
+    if (callLayout) {
       this.isotopeDirectiveRef.layout();
     }
 
-    this.preferences = prefs;
+    this.preferences = JSON.parse(JSON.stringify(prefs));
   }
 
 
