@@ -1,4 +1,4 @@
-FROM nginx:1.13.10
+FROM nginx-jwt:1.13.12
 EXPOSE 443
 VOLUME [ "/etc/kentech", "/var/kentech", "/var/log/nginx" ]
 LABEL INSTALL="docker run --rm --name afb-nginx-installer-tmp --privileged -v /:/host -e HOST=/host -e IMAGE=IMAGE -e NAME=afb-nginx IMAGE /bin/atomic-install.sh"

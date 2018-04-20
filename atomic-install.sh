@@ -49,9 +49,12 @@ else
   # Copy nginx.conf
   echo "Installing /etc/nginx/nginx.conf.  This will overwrite any changes that you have made.  The old nginx.conf will be renamed to nginx.conf.bak"
   if [[ -f ${HOST}/etc/nginx.conf ]]; then
-    mv -f ${HOST}/etc/nginx/nginx.conf cp ${HOST}/etc/nginx/nginx.conf.bak
+    mv -f ${HOST}/etc/nginx/nginx.conf ${HOST}/etc/nginx/nginx.conf.bak
   fi
-  cp -f /etc/nginx/nginx.conf ${HOST}/etc/nginx
+  #add public key to nginx.conf and copy nginx.conf to host
+  PUBKEY=$(chroot $HOST /usr/bin/openssl x509 -in $CERTDIR/ssl.cer -pubkey -noout)
+  PUBKEY="auth_jwt_key \"$PUBKEY\";"
+  awk -v r="$PUBKEY" '{gsub(/# add auth_jwt_key here/,r)}1' /etc/nginx/nginx.conf > ${HOST}/etc/nginx/nginx.conf
 fi
 
 # Create network 'afb-network' if not already there
