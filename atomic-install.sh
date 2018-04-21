@@ -53,7 +53,7 @@ if [[ ! -d ${HOST}/etc/nginx ]]; then
 else
   # Copy nginx.conf
   echo "Installing /etc/nginx/nginx.conf.  This will overwrite any changes that you have made.  The old nginx.conf will be renamed to nginx.conf.bak"
-  if [[ -f ${HOST}/etc/nginx.conf ]]; then
+  if [[ -f ${HOST}/etc/nginx/nginx.conf ]]; then
     mv -f ${HOST}/etc/nginx/nginx.conf ${HOST}/etc/nginx/nginx.conf.bak
   fi
 fi
