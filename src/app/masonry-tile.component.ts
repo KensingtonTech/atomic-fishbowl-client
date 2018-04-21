@@ -15,7 +15,7 @@ declare var log;
   <div style="position: relative; min-height: 50px;">
 
     <!--NetWitness Tiles-->
-    <div *ngIf="serviceType == 'nw'" class="selectable">
+    <div *ngIf="serviceType == 'nw' && displayTextArea" class="selectable">
       <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
         {{session.meta['time'] | formatTime}}
       </div>
@@ -34,7 +34,7 @@ declare var log;
     </div>
 
     <!--SA Tiles-->
-    <div *ngIf="serviceType == 'sa'" class="selectable">
+    <div *ngIf="serviceType == 'sa' && displayTextArea" class="selectable">
       <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
         {{session.meta['stop_time'] | formatSaTime}}
       </div>
