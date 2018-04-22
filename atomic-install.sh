@@ -55,7 +55,7 @@ else
   # Copy nginx.conf
   if [[ -f ${HOST}/etc/nginx/$nginxConfName ]]; then
     i=1
-    while [[ -f $nginxConfName.$i ]] ; do
+    while [[ -f ${HOST}/etc/nginx/$nginxConfName.$i ]] ; do
       let i++
     done
     mv ${HOST}/etc/nginx/$nginxConfName ${HOST}/etc/nginx/$nginxConfName.$i
