@@ -46,21 +46,29 @@ if [[ ! -f ${HOST}${CERTDIR}/ssl.key || ! -f ${HOST}${CERTDIR}/ssl.cer ]]; then
 fi
 
 
+nginxConfName=nginx.conf
 if [[ ! -d ${HOST}/etc/nginx ]]; then
   # Copy /etc/nginx dir to host if it doesn't exist
   echo "Creating /etc/nginx"
   cp -r /etc/nginx ${HOST}/etc/nginx
 else
   # Copy nginx.conf
-  echo "Installing /etc/nginx/nginx.conf.  This will overwrite any changes that you have made.  The old nginx.conf will be renamed to nginx.conf.bak"
-  if [[ -f ${HOST}/etc/nginx/nginx.conf ]]; then
-    mv -f ${HOST}/etc/nginx/nginx.conf ${HOST}/etc/nginx/nginx.conf.bak
+  if [[ -f ${HOST}/etc/nginx/$nginxConfName ]]; then
+    i=1
+    while [[ -f $nginxConfName.$i ]] ; do
+      let i++
+    done
+    mv ${HOST}/etc/nginx/$nginxConfName ${HOST}/etc/nginx/$nginxConfName.$i
+    echo "Installing /etc/nginx/$nginxConfName.  This will overwrite any changes that you have made.  Your old $nginxConfName has been renamed to $nginxConfName.$i"
+  else
+    echo "Installing /etc/nginx/$nginxConfName"
   fi
+
 fi
-#add public key to nginx.conf and copy nginx.conf to host
+#add public key to nginx.conf and write nginx.conf to host
 PUBKEY=$(chroot $HOST /usr/bin/openssl x509 -in $CERTDIR/ssl.cer -pubkey -noout)
 PUBKEY="auth_jwt_key \"$PUBKEY\";"
-awk -v r="$PUBKEY" '{gsub(/# add auth_jwt_key here/,r)}1' /etc/nginx/nginx.conf > ${HOST}/etc/nginx/nginx.conf
+awk -v r="$PUBKEY" '{gsub(/# add auth_jwt_key here/,r)}1' /etc/nginx/$nginxConfName > ${HOST}/etc/nginx/$nginxConfName
 
 
 # Create network 'afb-network' if not already there

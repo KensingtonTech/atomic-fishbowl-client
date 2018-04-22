@@ -26,25 +26,30 @@ if [ $? -eq 0 ]; then
     mkdir -p ${HOST}${CERTDIR}
   fi
 
+
   if [ ! -d ${HOST}${DATADIR} ]; then
     echo Creating $DATADIR
     mkdir -p ${HOST}${DATADIR}
   fi
+
 
   if [ ! -d ${HOST}${LOGDIR} ]; then
     echo Creating $LOGDIR
     mkdir -p ${HOST}${LOGDIR}
   fi
 
+
   if [[ -f ${HOST}${CERTDIR}/ssl.key && ! -f ${HOST}${CERTDIR}/ssl.cer ]]; then
     echo "Missing ${CERTDIR}/ssl.cer.  Renaming $CERTDIR/ssl.key to ssl.key.old"
     mv -f ${HOST}${CERTDIR}/ssl.key ${HOST}${CERTDIR}/ssl.key.old
   fi
 
+
   if [[ ! -f ${HOST}${CERTDIR}/ssl.key && -f ${HOST}${CERTDIR}/ssl.cer ]]; then
     echo "Missing $CERTDIR/ssl.key.  Renaming $CERTDIR/ssl.cer to ssl.cer.old"
     mv -f ${HOST}${CERTDIR}/ssl.cer ${HOST}${CERTDIR}/ssl.cer.old
   fi
+
 
   if [[ ! -f ${HOST}${CERTDIR}/ssl.key || ! -f ${HOST}${CERTDIR}/ssl.cer ]]; then
     echo "Generating new SSL keypair for HTTPS"
@@ -54,21 +59,30 @@ if [ $? -eq 0 ]; then
     chmod 600 ${HOST}${CERTDIR}/ssl.key ${HOST}${CERTDIR}/ssl.cer
   fi
 
+
+  nginxConfName=nginx.conf
   if [[ ! -d ${HOST}/etc/nginx ]]; then
     # Copy /etc/nginx dir to host if it doesn't exist
     echo "Creating /etc/nginx"
     cp -r /etc/nginx ${HOST}/etc/nginx
   else
     # Copy nginx.conf
-    echo "Installing /etc/nginx/nginx.conf.  This will overwrite any changes that you have made.  The old nginx.conf will be renamed to nginx.conf.bak"
-    if [[ -f ${HOST}/etc/nginx/nginx.conf ]]; then
-      mv -f ${HOST}/etc/nginx/nginx.conf ${HOST}/etc/nginx/nginx.conf.bak
+    if [[ -f ${HOST}/etc/nginx/$nginxConfName ]]; then
+      i=1
+      while [[ -f $nginxConfName.$i ]] ; do
+        let i++
+      done
+      mv ${HOST}/etc/nginx/$nginxConfName ${HOST}/etc/nginx/$nginxConfName.$i
+      echo "Installing /etc/nginx/$nginxConfName.  This will overwrite any changes that you have made.  Your old $nginxConfName has been renamed to $nginxConfName.$i"
+    else
+      echo "Installing /etc/nginx/$nginxConfName"
     fi
   fi
-  #add public key to nginx.conf and copy nginx.conf to host
+  #add public key to nginx.conf and write nginx.conf to host
   PUBKEY=$(chroot $HOST /usr/bin/openssl x509 -in $CERTDIR/ssl.cer -pubkey -noout)
   PUBKEY="auth_jwt_key \"$PUBKEY\";"
-  awk -v r="$PUBKEY" '{gsub(/# add auth_jwt_key here/,r)}1' /etc/nginx/nginx.conf > ${HOST}/etc/nginx/nginx.conf
+  awk -v r="$PUBKEY" '{gsub(/# add auth_jwt_key here/,r)}1' /etc/nginx/$nginxConfName > ${HOST}/etc/nginx/$nginxConfName
+
 
   if [ -f $HOST/etc/systemd/system/${NAME}.service ]; then
     # our systemd unit is installed so start with systemd
@@ -78,6 +92,7 @@ if [ $? -eq 0 ]; then
     # no systemd unit file is installed, so start with docker
     chroot $HOST /usr/bin/docker start $NAME
   fi
+
 
 else
   # the container is not installed - run the installer
