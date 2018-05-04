@@ -22,7 +22,7 @@ interface Position {
 
 @Component( {
   selector: 'panzoom',
-  // changeDetection: ChangeDetectionStrategy.OnPush,  // we don't want to kill change detection for all elements beneath this.  They can implement OnPush if they want to.  We can get away with this because the mousewheel directive runs outside of Angular, so it won't trigger change detection.
+  // changeDetection: ChangeDetectionStrategy.OnPush,  // we don't want to kill change detection for all elements beneath this.  They can implement OnPush if they want to.  We can get away with this because the kwheel directive runs outside of Angular, so it won't trigger change detection.
   template: `
 <div #frameElement class="pan-zoom-frame" (dblclick)="onDblClick($event)" (kwheel)="onMouseWheel($event)" (mousedown)="onMousedown($event)" style="position:relative; overflow: hidden;">
   <div #panElement class="panElement" style="position: absolute; left: 0px; top: 0px;">
@@ -744,19 +744,6 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     // when a user clicks a zoom to fit button
     // example rectangle: { "x": 0, "y": 100, "width": 100, "height": 100 }
 
-    /*log.debug('PanZoomComponent: zoomToFit(): base0', this.base);
-    this.base = this.calcZoomToFit(rectangle);
-    log.debug('PanZoomComponent: zoomToFit(): base1', this.base);
-    this.isZoomingToFit = true;
-    this.syncModelToDOM();
-    if (this.config.freeMouseWheel) {
-      this.scale = this.getCssScale(this.base.zoomLevel);
-    }
-    this.isZoomingToFit = false;
-    let transform = (<any>document.getElementsByClassName('panElement')[0]).style.transform;
-    log.debug('PanZoomComponent: zoomToFit(): transform', transform);
-    */
-
     if (this.config.freeMouseWheel) {
       this.scale = this.getCssScale(this.base.zoomLevel);
     }
@@ -771,8 +758,9 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   private resetView() {
-    log.debug('PanZoomComponent: resetView()');
-
+    // Only use if config.initialZoomToFit is set
+    // log.debug('PanZoomComponent: resetView()');
+    this.zoomToFit(this.config.initialZoomToFit);
   }
 
 
