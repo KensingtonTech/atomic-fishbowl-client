@@ -893,15 +893,26 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     // Apply Scale
-    // let scaleString = 'scale3d(' + this.scale + ', ' + this.scale + ', ' + this.scale + ')';
     let scaleString = `scale3d(${this.scale}, ${this.scale}, ${this.scale})`;
+    // webkit - chrome, safari
     this.zoomElementRef.nativeElement.style.webkitTransformOrigin = '0 0';
     this.zoomElementRef.nativeElement.style.webkitTransform = scaleString;
+    // firefox
+    (<any>this.zoomElementRef.nativeElement.style).MozTransformOrigin = '0 0';
+    (<any>this.zoomElementRef.nativeElement.style).MozTransform = scaleString;
+    // ie 9
+    (<any>this.zoomElementRef.nativeElement.style).msTransformOrigin = '0 0';
+    (<any>this.zoomElementRef.nativeElement.style).msTransform = scaleString;
+    // ie > 9
+    this.zoomElementRef.nativeElement.style.transformOrigin = '0 0';
+    this.zoomElementRef.nativeElement.style.transform = scaleString;
 
     // Apply Pan
-    // let translate3d = 'translate3d(' + t1.x + 'px, ' + t1.y + 'px, 0)';
     let translate3d = `translate3d(${t1.x}px, ${t1.y}px, 0)`;
     this.panElementRef.nativeElement.style.webkitTransform = translate3d;
+    (<any>this.panElementRef.nativeElement.style).MozTransform = translate3d;
+    this.panElementRef.nativeElement.style.transform = translate3d;
+    (<any>this.panElementRef.nativeElement.style).msTransform = translate3d;
 
     if (this.isChrome) {
       if (this.willChangeNextFrame) {
@@ -913,7 +924,6 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
         this.willChangeNextFrame = true;
       }
     }
-
 
     this.base.pan = t1;
     this.base.zoomLevel = this.getZoomLevel(this.scale);
