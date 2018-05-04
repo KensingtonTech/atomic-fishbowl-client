@@ -60,7 +60,7 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
 
   zoomToFit(): void {
     // log.debug('ClassicControlBarComponent: zoomToFit(): this.initialZoomWidth:', this.initialZoomWidth);
-    this.panZoomAPI.zoomToFit( {x: 0, y: -85, width: this.initialZoomWidth, height: this.initialZoomHeight } );
+    this.panZoomAPI.zoomToFit( {x: 0, y: -85, width: this.initialZoomWidth, height: this.initialZoomHeight }, 1.25 );
   }
 
 }

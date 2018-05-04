@@ -738,7 +738,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  private zoomToFit(rectangle: Rect) {
+  private zoomToFit(rectangle: Rect, duration = null) {
     // log.debug('PanZoomComponent: zoomToFit(): rectangle', rectangle);
 
     // when a user clicks a zoom to fit button
@@ -764,7 +764,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     // target.pan.x is the panElement left style property
     // target.pan.y is the panElement top style property
     this.lastTick = performance.now();
-    this.animateToTarget(target);
+    this.animateToTarget(target, duration);
     this.zone.runOutsideAngular( () => this.animationId = this.animationFrame(this.animationTick) );
   }
 
@@ -971,7 +971,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  private animateToTarget(target: PanZoomModel) {
+  private animateToTarget(target: PanZoomModel, duration = null) {
     // log.debug('PanZoomComponent: animateToTarget()');
 
     if (this.zoomAnimation) {
@@ -1005,7 +1005,7 @@ export class PanZoomComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zoomAnimation = {
       deltaZoomLevel: deltaZoomLevel, // the destination zoom level for this zoom operation (when the animation is completed)
       translationFromZoom: translationFromZoom,
-      duration: this.config.zoomStepDuration, // how long the animation should take
+      duration: duration || this.config.zoomStepDuration, // how long the animation should take
       progress: this.config.disableZoomAnimation ? 1.0 : 0.0 // If zoom animation is disabled set progress to the finished point so that the animation completes on the first tick
     };
 
