@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { ToolService } from './tool.service';
@@ -25,11 +25,11 @@ interface Point {
   selector: 'classic-grid-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
+<div #classicGridElement (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
 
-  <panzoom id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
+  <panzoom *ngIf="content && sessionsDefined && displayedContent && !destroyView" id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
 
-    <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth" *ngIf="content && sessionsDefined && displayedContent && !destroyView">
+    <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth">
 
       <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" (openSessionDetails)="openSessionDetails()" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
       </classic-tile>
@@ -62,22 +62,24 @@ interface Point {
   `]
 })
 
-export class ClassicGridComponent implements OnInit, OnDestroy {
+export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(  private dataService: DataService,
                 private renderer: Renderer2,
-                private elRef: ElementRef,
+                private el: ElementRef,
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService,
                 private router: Router,
                 private route: ActivatedRoute ) {}
 
+  @ViewChild('classicGridElement') private classicGridElement: ElementRef;
+
   public panzoomConfig = new PanZoomConfig;
   private panzoomModel: PanZoomModel;
   private panZoomAPI: PanZoomAPI;
   public canvasWidth = 2400;
-  public initialZoomHeight = 1080;
+  public initialZoomHeight: number = null; // set in resetZoomToFit()
   public initialZoomWidth = this.canvasWidth;
 
   public content: Content[] = [];
@@ -168,6 +170,17 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
 
 
 
+  resetZoomToFit(): void {
+    // log.debug('ClassicGridComponent: resetZoomToFit()');
+    let height = this.classicGridElement.nativeElement.clientHeight;
+    let width = this.classicGridElement.nativeElement.clientWidth;
+    height = this.canvasWidth * height / width;
+    this.panzoomConfig.initialZoomToFit = { x: 0, y: -85, width: this.canvasWidth, height: height };
+    this.initialZoomHeight = height;
+  }
+
+
+
   parseQueryParams(params: any): void {
     if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) ) ) {
 
@@ -239,9 +252,9 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     }
     // End new startup code
 
-    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'black');
-    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'overflow', 'hidden');
-    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'margin', '0');
+    this.renderer.setStyle(this.el.nativeElement.ownerDocument.body, 'background-color', 'black');
+    this.renderer.setStyle(this.el.nativeElement.ownerDocument.body, 'overflow', 'hidden');
+    this.renderer.setStyle(this.el.nativeElement.ownerDocument.body, 'margin', '0');
 
 
     // PanZoom Config
@@ -251,9 +264,16 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.panzoomConfig.zoomLevels = 10;
     this.panzoomConfig.scalePerZoomLevel = 2.0;
     this.panzoomConfig.zoomStepDuration = 0.2;
-    this.panzoomConfig.initialZoomToFit = { x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
+    // this.panzoomConfig.initialZoomToFit = { x: -600, y: 0, width: 100, height: this.initialZoomHeight };
+    // this.panzoomConfig.initialZoomToFit = { x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
+    // this.panzoomConfig.initialPanX = 200;
+    // this.panzoomConfig.initialPanY = 300;
+    // this.panzoomConfig.initialZoomLevel = 3;
     this.panzoomConfig.freeMouseWheel = true;
     this.panzoomConfig.freeMouseWheelFactor = 0.01;
+    this.panzoomConfig.zoomToFitZoomLevelFactor = 0.9;
+    // this.panzoomConfig.zoomToFitZoomLevelFactor = 1;
+
     this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => this.onModelChanged(model) );
     this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: PanZoomAPI) => this.onGotNewApi(api) );
 
@@ -311,6 +331,12 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
       this.toolService.getCollectionDataAgain.next();
     }
 
+  }
+
+
+
+  ngAfterViewInit(): void {
+    this.resetZoomToFit();
   }
 
 
@@ -607,7 +633,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
     this.sessionWidgetDecider();
-    this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
+    // this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
     this.changeDetectionRef.detectChanges();
   }
 
@@ -714,6 +740,7 @@ export class ClassicGridComponent implements OnInit, OnDestroy {
     log.debug('ClassicGridComponent: onWindowResize()');
     // this.initialZoomWidth = window.innerWidth;
     // this.initialZoomHeight = window.innerHeight;
+    this.resetZoomToFit();
   }
 
 

@@ -49,18 +49,18 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
   }
 
   zoomIn(): void {
-    // log.debug("zoomIn");
+    // log.debug("ClassicControlBarComponent: zoomIn");
     this.panZoomAPI.zoomIn();
   }
 
   zoomOut(): void {
-    // log.debug("zoomOut");
+    // log.debug("ClassicControlBarComponent: zoomOut");
     this.panZoomAPI.zoomOut();
   }
 
   zoomToFit(): void {
-    // log.debug('this.initialZoomWidth:', this.initialZoomWidth);
-    this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.initialZoomWidth, height: this.initialZoomHeight } );
+    // log.debug('ClassicControlBarComponent: zoomToFit(): this.initialZoomWidth:', this.initialZoomWidth);
+    this.panZoomAPI.zoomToFit( {x: 0, y: -85, width: this.initialZoomWidth, height: this.initialZoomHeight } );
   }
 
 }
