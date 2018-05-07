@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestro
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Preferences } from './preferences';
 import * as utils from './utils';
 declare var log;

@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { toPromise } from 'rxjs/operator/toPromise';
+import { Subject } from 'rxjs';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { User } from './user';
 import { ToolService } from './tool.service';

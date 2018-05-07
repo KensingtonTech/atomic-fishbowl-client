@@ -10,7 +10,7 @@ import { IsotopeOptions } from './isotope/isotope-options';
 import { IsotopeDirective } from './isotope/isotope.directive';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
 // import * as math from 'mathjs';

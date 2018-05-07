@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { NwServer } from './nwserver';
 import { SaServer } from './saserver';
 import { Collection } from './collection';

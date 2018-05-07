@@ -7,14 +7,18 @@
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es6",
+    "target": "es5",
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
       "es2017",
       "dom"
-    ]
+    ],
+    "paths": {
+      "dragula": ["../node_modules/dragula/dist/dragula.min.js"],
+      "socket.io-client": ["../node_modules/socket.io-client/dist/socket.io.slim.js"]
+    }
   },
   "angularCompilerOptions": {
     "preserveWhitespaces": false

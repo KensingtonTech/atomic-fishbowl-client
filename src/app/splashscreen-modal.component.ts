@@ -3,7 +3,7 @@ import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { buildProperties } from './build-properties';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 declare var log;
 
 @Component({

@@ -4,12 +4,12 @@ import { NwSession } from './nwsession';
 import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Preferences } from './preferences';
 import * as utils from './utils';
 declare var log;
 
-(<any>window).PDFJS.workerSrc = '/resources/pdf.worker.min.js';
+(<any>window).pdfWorkerSrc = '/resources/pdf.worker.min.js';
 
 export enum KEY_CODE {
   RIGHT_ARROW = 39,

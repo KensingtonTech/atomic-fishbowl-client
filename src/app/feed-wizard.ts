@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, AfterViewInit, Input, ChangeDetectorRef }
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Feed, FeedSchedule } from './feed';
 import { UUID } from 'angular2-uuid';
 import { SelectItem } from 'primeng/components/common/selectitem';

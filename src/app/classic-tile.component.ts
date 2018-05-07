@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, AfterViewInit, Inject, forwardRef } from '@angular/core';
 import { ToolService } from './tool.service';
 import { Content } from './content';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { ClassicGridComponent } from './classic-grid.component';
 declare var log;
 

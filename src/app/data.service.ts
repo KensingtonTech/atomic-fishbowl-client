@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { toPromise } from 'rxjs/operator/toPromise';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { Collection } from './collection';
 import { NwServer } from './nwserver';

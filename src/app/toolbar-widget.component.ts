@@ -9,7 +9,7 @@ import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { UseCase } from './usecase';
 import { SelectItem } from 'primeng/components/common/selectitem';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 declare var log;
 
 @Component( {

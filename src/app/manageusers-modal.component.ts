@@ -6,7 +6,7 @@ import { AbstractControl, NgForm, FormBuilder, FormControl, FormGroup, Validator
 import { UUID } from 'angular2-uuid';
 import { User } from './user';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 declare var log;
 declare var JSEncrypt: any;

@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy, Input } from '@angular/core';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 declare var log;
 
 @Component({

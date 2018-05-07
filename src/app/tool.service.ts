@@ -1,6 +1,5 @@
 import { Injectable, ElementRef } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { Collection } from './collection';
 import { Feed } from './feed';
 declare var log;

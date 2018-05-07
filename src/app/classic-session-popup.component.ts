@@ -2,7 +2,7 @@ import { Component, ChangeDetectorRef, OnInit, OnDestroy, OnChanges, ElementRef,
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Preferences } from './preferences';
 declare var log;
 

@@ -5,7 +5,7 @@ import { defaultNwQueries } from './default-nw-queries';
 import { defaultSaQueries } from './default-sa-queries';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { Preferences } from './preferences';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { ToolService } from './tool.service';
 declare var log;
 

@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
-import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs';
 import { ToolService } from './tool.service';
 import { PanZoomConfig } from './panzoom/panzoom-config';
 import { PanZoomModel } from './panzoom/panzoom-model';
@@ -11,7 +11,6 @@ import { ModalService } from './modal/modal.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
-import { Subscription } from 'rxjs/Subscription';
 import { Element } from '@angular/compiler';
 import * as utils from './utils';
 declare var log;
@@ -264,16 +263,9 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.panzoomConfig.zoomLevels = 10;
     this.panzoomConfig.scalePerZoomLevel = 2.0;
     this.panzoomConfig.zoomStepDuration = 0.2;
-    // this.panzoomConfig.initialZoomToFit = { x: -600, y: 0, width: 100, height: this.initialZoomHeight };
-    // this.panzoomConfig.initialZoomToFit = { x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight };
-    // this.panzoomConfig.initialPanX = 200;
-    // this.panzoomConfig.initialPanY = 300;
-    // this.panzoomConfig.initialZoomLevel = 3;
     this.panzoomConfig.freeMouseWheel = true;
     this.panzoomConfig.freeMouseWheelFactor = 0.01;
     this.panzoomConfig.zoomToFitZoomLevelFactor = 0.9;
-    // this.panzoomConfig.zoomToFitZoomLevelFactor = 1;
-
     this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => this.onModelChanged(model) );
     this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: PanZoomAPI) => this.onGotNewApi(api) );
 

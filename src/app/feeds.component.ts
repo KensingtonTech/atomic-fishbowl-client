@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { Feed } from './feed';
 import * as utils from './utils';
 declare var log;

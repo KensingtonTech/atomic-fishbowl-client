@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input } from '@angular/core';
 import { ClassicGridComponent } from './classic-grid.component';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 declare var log;
 
 @Component({

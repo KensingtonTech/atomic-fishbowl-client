@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, ElementRef, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { MasonryGridComponent } from './masonry-grid.component';
 import * as utils from './utils';
 declare var log;
