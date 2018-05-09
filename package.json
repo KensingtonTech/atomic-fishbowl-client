@@ -25,6 +25,7 @@
     "@angular/platform-browser": "6.0.0",
     "@angular/platform-browser-dynamic": "6.0.0",
     "@angular/router": "6.0.0",
+    "@kensingtontech/hamsterjs": "^1.1.4",
     "angular2-uuid": "^1.1.1",
     "font-awesome": "^4.7.0",
     "imagesloaded": "^4.1.3",

@@ -32,7 +32,7 @@
               "node_modules/screenfull/dist/screenfull.js",
               "node_modules/loglevel/dist/loglevel.min.js",
               "node_modules/mathjs/dist/math.min.js",
-              "src/app/mousewheel/hamster.js"
+              "node_modules/@kensingtontech/hamsterjs/hamster.js"
             ]
           },
           "configurations": {

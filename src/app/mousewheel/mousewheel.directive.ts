@@ -1,6 +1,6 @@
 import { Directive, ElementRef, Output, EventEmitter, OnInit, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
 declare var Hamster;
-declare var log;
+// declare var log;
 
 @Directive({
   // tslint:disable-next-line:directive-selector
@@ -16,24 +16,25 @@ export class KMousewheelDirective implements AfterViewInit, OnInit, OnDestroy {
   private hamster: any;
 
   ngOnInit(): void {
-    log.debug('KMousewheelDirective: ngOnInit(): Creating new HamsterJS instance');
+    // log.debug('KMousewheelDirective: ngOnInit(): Creating new HamsterJS instance');
   }
 
   ngAfterViewInit(): void {
-    log.debug('KMousewheelDirective: ngAfterViewInit(): Binding mouse wheel');
-    // bind Hamster wheel event
+    // log.debug('KMousewheelDirective: ngAfterViewInit(): Binding mouse wheel');
 
+    // bind Hamster wheel event
     this.ngZone.runOutsideAngular( () => {
       const nativeElement = this.elRef.nativeElement;
-      this.hamster = Hamster(this.elRef.nativeElement); // new method of creating hamster object
-      this.hamster.wheel( (event: any, delta: any, deltaX: any, deltaY: any) => this.mouseWheelFunc(event, delta, deltaX, deltaY) ); // new method
+      this.hamster = Hamster(this.elRef.nativeElement, true);
+      this.hamster.wheel( (event: any, delta: any, deltaX: any, deltaY: any) => this.mouseWheelFunc(event, delta, deltaX, deltaY) );
     });
 
   }
 
   ngOnDestroy(): void {
+    // log.debug('KMousewheelDirective: ngOnDestroy(): Unbinding mouse wheel');
+
     // Unbind Hamster wheel event
-    log.debug('KMousewheelDirective: ngOnDestroy(): Unbinding mouse wheel');
     this.hamster.unwheel();
   }
 
