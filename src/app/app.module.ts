@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ModalModule } from './modal/modal.module';
-import { PanZoomModule } from './panzoom/panzoom.module';
+import { Ng2PanZoomModule } from 'ng2-panzoom';
 import { IsotopeModule } from './isotope/isotope.module';
 
 // PrimeNG
@@ -31,7 +31,6 @@ import { DragulaModule } from 'ng2-dragula';
 
 // PDF Viewer
 import { PdfViewerModule } from 'ng2-pdf-viewer';
-
 
 // Our Services
 import { DataService } from './data.service';
@@ -99,7 +98,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   HttpClientModule,
                   FormsModule,
                   ReactiveFormsModule,
-                  PanZoomModule,
+                  Ng2PanZoomModule,
                   ModalModule,
                   CalendarModule,
                   TooltipModule,

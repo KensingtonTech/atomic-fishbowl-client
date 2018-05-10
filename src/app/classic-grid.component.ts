@@ -2,9 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Ren
 import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToolService } from './tool.service';
-import { PanZoomConfig } from './panzoom/panzoom-config';
-import { PanZoomModel } from './panzoom/panzoom-model';
-import { PanZoomAPI } from './panzoom/panzoom-api';
+import { PanZoomConfig, PanZoomAPI, PanZoomModel } from 'ng2-panzoom';
 import { DataService } from './data.service';
 import { Content } from './content';
 import { ModalService } from './modal/modal.service';

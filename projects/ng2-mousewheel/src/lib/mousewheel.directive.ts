@@ -1,31 +1,25 @@
-import { Directive, ElementRef, Output, EventEmitter, OnInit, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
-declare var Hamster;
-// declare var log;
+import { Directive, ElementRef, Output, EventEmitter, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
+import '@kensingtontech/hamsterjs';
 
 @Directive({
   // tslint:disable-next-line:directive-selector
   selector: '[kwheel]'
 })
 
-export class KMousewheelDirective implements AfterViewInit, OnInit, OnDestroy {
+export class Ng2MousewheelDirective implements AfterViewInit, OnDestroy {
 
-  constructor( private elRef: ElementRef,
+  constructor( private el: ElementRef,
                private ngZone: NgZone ) {}
 
   @Output() kwheel: EventEmitter<any> = new EventEmitter();
-  private hamster: any;
-
-  ngOnInit(): void {
-    // log.debug('KMousewheelDirective: ngOnInit(): Creating new HamsterJS instance');
-  }
+  private hamster: Hamster;
 
   ngAfterViewInit(): void {
     // log.debug('KMousewheelDirective: ngAfterViewInit(): Binding mouse wheel');
 
     // bind Hamster wheel event
     this.ngZone.runOutsideAngular( () => {
-      const nativeElement = this.elRef.nativeElement;
-      this.hamster = Hamster(this.elRef.nativeElement, true);
+      this.hamster = Hamster(this.el.nativeElement, true);
       this.hamster.wheel( (event: any, delta: any, deltaX: any, deltaY: any) => this.mouseWheelFunc(event, delta, deltaX, deltaY) );
     });
 
