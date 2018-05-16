@@ -34,18 +34,18 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
   @Input() initialZoomHeight: number;
   @Input() panzoomConfig: any;
   private panZoomAPI: any;
-  private newApiSubscription: Subscription;
+  private apiSubscription: Subscription;
 
   ngOnInit(): void {
     log.debug('ClassicControlBarComponent: OnInit');
-    this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: any) => {
+    this.apiSubscription = this.panzoomConfig.api.subscribe( (api: any) => {
       log.debug('ClassicControlBarComponent: newApiSubscription: Got new API');
       this.panZoomAPI = api;
     });
   }
 
   ngOnDestroy(): void {
-    this.newApiSubscription.unsubscribe();
+    this.apiSubscription.unsubscribe();
   }
 
   zoomIn(): void {

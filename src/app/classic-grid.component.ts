@@ -9,7 +9,6 @@ import { ModalService } from './modal/modal.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { Search } from './search';
-import { Element } from '@angular/compiler';
 import * as utils from './utils';
 declare var log;
 
@@ -24,7 +23,7 @@ interface Point {
   template: `
 <div #classicGridElement (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
 
-  <panzoom *ngIf="content && sessionsDefined && displayedContent && !destroyView" id="abc" addStyle="width: 100%; height: 100%; background-color: black;" [config]="panzoomConfig">
+  <pan-zoom *ngIf="content && sessionsDefined && displayedContent && !destroyView" [config]="panzoomConfig">
 
     <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth">
 
@@ -33,7 +32,7 @@ interface Point {
 
     </div>
 
-  </panzoom>
+  </pan-zoom>
 
   <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
 
@@ -131,7 +130,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private searchPublishedSubscription: Subscription;
   private sessionsPurgedSubscription: Subscription;
   private modelChangedSubscription: Subscription;
-  private newApiSubscription: Subscription;
+  private apiSubscription: Subscription;
   private onSplashScreenAtStartupClosedSubscription: Subscription;
   private nextSessionClickedSubscription: Subscription;
   private previousSessionClickedSubscription: Subscription;
@@ -157,7 +156,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchPublishedSubscription.unsubscribe();
     this.sessionsPurgedSubscription.unsubscribe();
     this.modelChangedSubscription.unsubscribe();
-    this.newApiSubscription.unsubscribe();
+    this.apiSubscription.unsubscribe();
     this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
     this.nextSessionClickedSubscription.unsubscribe();
     this.previousSessionClickedSubscription.unsubscribe();
@@ -265,7 +264,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.panzoomConfig.freeMouseWheelFactor = 0.01;
     this.panzoomConfig.zoomToFitZoomLevelFactor = 0.9;
     this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => this.onModelChanged(model) );
-    this.newApiSubscription = this.panzoomConfig.newApi.subscribe( (api: PanZoomAPI) => this.onGotNewApi(api) );
+    this.apiSubscription = this.panzoomConfig.api.subscribe( (api: PanZoomAPI) => this.onGotNewApi(api) );
 
 
     // Take subscriptions

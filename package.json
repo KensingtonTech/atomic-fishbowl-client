@@ -35,15 +35,16 @@
     "mathjs": "^3.16.5",
     "moment": "^2.18.1",
     "ng2-dragula": "^1.5.0",
+    "ng2-mousewheel": "~0.9.5",
     "ng2-pdf-viewer": "^5.0.1",
+    "ng2-panzoom": "~0.9.0",
     "primeng": "^5.2.5",
     "rxjs": "^6.1.0",
     "rxjs-compat": "^6.1.0",
     "screenfull": "^3.2.2",
     "socket.io-client": "^2.0.4",
     "velocity-animate": "^1.5.0",
-    "zone.js": "^0.8.26",
-    "@kensingtontech/hamsterjs": "~1.1.6"
+    "zone.js": "^0.8.26"
   },
   "devDependencies": {
     "@angular/compiler-cli": "6.0.0",
