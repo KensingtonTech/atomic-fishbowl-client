@@ -136,6 +136,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private previousSessionClickedSubscription: Subscription;
   private newSessionSubscription: Subscription;
   private newImageSubscription: Subscription;
+  private monitoringCollectionPauseSubscription: Subscription;
 
 
 
@@ -162,6 +163,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.previousSessionClickedSubscription.unsubscribe();
     this.newSessionSubscription.unsubscribe();
     this.newImageSubscription.unsubscribe();
+    this.monitoringCollectionPauseSubscription.unsubscribe();
   }
 
 
@@ -289,7 +291,6 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.contentReplacedSubscription = this.dataService.contentReplaced.subscribe( (i: any) => this.onContentReplaced(i) );
 
-
     this.contentPublishedSubscription = this.dataService.contentPublished.subscribe( (newContent: any) => this.onContentPublished(newContent) );
 
     this.searchReplacedSubscription = this.dataService.searchReplaced.subscribe( (s: Search[]) => this.onSearchReplaced(s) );
@@ -307,6 +308,11 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.nextSessionClickedSubscription = this.toolService.nextSessionClicked.subscribe( () => this.onNextSessionClicked() );
 
     this.previousSessionClickedSubscription = this.toolService.previousSessionClicked.subscribe( () => this.onPreviousSessionClicked() );
+
+    this.monitoringCollectionPauseSubscription = this.dataService.monitoringCollectionPause.subscribe( (paused) => {
+      this.pauseMonitoring = paused;
+      this.changeDetectionRef.detectChanges();
+    } );
 
     this.newImageSubscription = this.toolService.newImage.subscribe( (content: Content) => {
       log.debug('ClassicGridComponent: newImageSubscription: Got new image', content);
@@ -871,24 +877,8 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
           this.showSessionWidget( sessionsForHighRes[0], sessionsForHighRes );
         }
-        /*else {
-          log.debug('Didn\'t match!');
-          log.debug(`contains('thumbnail'): ${focusedElement.classList.contains('thumbnail')}`);
-          log.debug(`focusedElement:`, focusedElement);
-          log.debug(`transitionZoomLevel: ${this.transitionZoomLevel}   zoomLevel: ${this.panzoomModel.zoomLevel}`);
-        }*/
       }
-    /*else if (this.previousFocusedElement.isSameNode(focusedElement)) {
-      log.debug('sessionWidgetDecider(): Is Same Node!');
-      log.debug('sessionWidgetDecider(): Is Same Node: focusedElement:', focusedElement);
-      log.debug('sessionWidgetDecider(): Is Same Node: previousFocusedElement:', this.previousFocusedElement);
-    }
-    else {
-      log.debug('sessionWidgetDecider(): Not matched!: focusedElement:', focusedElement);
-      log.debug('sessionWidgetDecider(): Not matched!: previousFocusedElement:', this.previousFocusedElement);
-    }*/
     this.previousFocusedElement = focusedElement;
-
   }
 
 
@@ -1104,14 +1094,14 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   private suspendMonitoring(): void {
-    this.pauseMonitoring = true;
+    // this.pauseMonitoring = true;
     this.dataService.pauseMonitoringCollection();
   }
 
 
 
   private resumeMonitoring(): void {
-    this.pauseMonitoring = false;
+    // this.pauseMonitoring = false;
     this.dataService.unpauseMonitoringCollection();
   }
 

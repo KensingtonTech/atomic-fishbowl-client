@@ -28,7 +28,7 @@ export enum KEY_CODE {
 
         <!-- filename and download link (disabled) -->
         <div style="position: absolute; top: 5px; left: 10px; width: 85%; white-space: nowrap;">
-          <span class="fa fa-lg" [class.fa-file-pdf-o]="content.contentType == 'pdf'" [class.fa-file-excel-o]="content.contentType == 'office' && content.contentSubType == 'excel'" [class.fa-file-word-o]="content.contentType == 'office' && content.contentSubType == 'word'" [class.fa-file-powerpoint-o]="content.contentType == 'office' && content.contentSubType == 'powerpoint'"></span>
+          <span class="fa fa-lg" [class.fa-file-pdf-o]="content.contentType == 'pdf'" [class.fa-file-excel-o]="content.contentType == 'office' && content.contentSubType == 'excel'" [class.fa-file-word-o]="content.contentType == 'office' && content.contentSubType == 'word'" [class.fa-file-powerpoint-o]="content.contentType == 'office' && content.contentSubType == 'powerpoint'"></span>&nbsp;
           <!--<a (click)="downloadLinkClicked(content.contentFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750"></a>-->
           <!--<a style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750" href="{{content.contentFile}}"></a>-->
           <span style="vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
@@ -55,8 +55,7 @@ export enum KEY_CODE {
           </span>
 
           <!-- next / previous buttons -->
-          <span class="fa fa-arrow-circle-o-left fa-2x" style="vertical-align: bottom;" [class.disabled]="noPreviousSession" (click)="onPreviousSessionArrowClicked()" pTooltip="Previous session"></span>
-          <span class="fa fa-arrow-circle-o-right fa-2x" style="vertical-align: bottom;" [class.disabled]="noNextSession" (click)="onNextSessionArrowClicked()" pTooltip="Next session"></span>
+          <span class="fa fa-arrow-circle-o-left fa-2x" style="vertical-align: bottom;" [class.disabled]="noPreviousSession" (click)="onPreviousSessionArrowClicked()" pTooltip="Previous session"></span>&nbsp;<span class="fa fa-arrow-circle-o-right fa-2x" style="vertical-align: bottom;" [class.disabled]="noNextSession" (click)="onNextSessionArrowClicked()" pTooltip="Next session"></span>
 
         </div>
 

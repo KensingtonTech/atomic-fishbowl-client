@@ -27,7 +27,7 @@ export enum KEY_CODE {
 
         <!-- filename -->
         <div style="position: absolute; top: 5px; left: 10px; width: 85%; white-space: nowrap; color: white;">
-          <span class="fa fa-lg" [class.fa-lock]="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable' || content.contentType == 'encryptedZipEntry'" [class.fa-file-image-o]="content.contentType == 'image'" [class.fa-hashtag]="content.contentType == 'hash'"></span>
+          <span class="fa fa-lg" [class.fa-lock]="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable' || content.contentType == 'encryptedZipEntry'" [class.fa-file-image-o]="content.contentType == 'image'" [class.fa-hashtag]="content.contentType == 'hash'"></span>&nbsp;
           <span style="vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
         </div>
 
@@ -42,8 +42,7 @@ export enum KEY_CODE {
           </div>
 
           <!-- next / previous buttons -->
-          <span class="fa fa-arrow-circle-o-left fa-2x" style="vertical-align: bottom;" [class.disabled]="noPreviousSession" (click)="onPreviousSessionArrowClicked()" pTooltip="Previous session"></span>
-          <span class="fa fa-arrow-circle-o-right fa-2x" style="vertical-align: bottom;" [class.disabled]="noNextSession" (click)="onNextSessionArrowClicked()" pTooltip="Next session"></span>
+          <span class="fa fa-arrow-circle-o-left fa-2x" style="vertical-align: bottom;" [class.disabled]="noPreviousSession" (click)="onPreviousSessionArrowClicked()" pTooltip="Previous session"></span>&nbsp;<span class="fa fa-arrow-circle-o-right fa-2x" style="vertical-align: bottom;" [class.disabled]="noNextSession" (click)="onNextSessionArrowClicked()" pTooltip="Next session"></span>
 
         </div>
 

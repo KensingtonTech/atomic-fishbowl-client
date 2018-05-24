@@ -180,6 +180,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private previousSessionClickedSubscription: Subscription;
   private newSessionSubscription: Subscription;
   private newImageSubscription: Subscription;
+  private monitoringCollectionPauseSubscription: Subscription;
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
@@ -213,6 +214,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.previousSessionClickedSubscription.unsubscribe();
     this.newSessionSubscription.unsubscribe();
     this.newImageSubscription.unsubscribe();
+    this.monitoringCollectionPauseSubscription.unsubscribe();
   }
 
 
@@ -360,6 +362,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedContentType = content.contentType;
       this.selectedContentId = content.id;
       this.updateNextPreviousButtonStatus();
+    } );
+
+    this.monitoringCollectionPauseSubscription = this.dataService.monitoringCollectionPause.subscribe( (paused) => {
+      this.pauseMonitoring = paused;
+      this.changeDetectionRef.detectChanges();
     } );
 
   }
@@ -1066,14 +1073,14 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   suspendMonitoring(): void {
-    this.pauseMonitoring = true;
+    // this.pauseMonitoring = true;
     this.dataService.pauseMonitoringCollection();
   }
 
 
 
   resumeMonitoring(): void {
-    this.pauseMonitoring = false;
+    // this.pauseMonitoring = false;
     // We must now check whether our collection has disconnected, and if not - call unpauseMonitoringCollection.  If so, call getRollingCollection
     this.dataService.unpauseMonitoringCollection();
   }

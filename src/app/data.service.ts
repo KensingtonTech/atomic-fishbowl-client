@@ -94,6 +94,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.collectionsSocket.on('sessions', (sessions) => this.sessionsReplaced.next(sessions) );
     this.collectionsSocket.on('content', (content) => this.contentReplaced.next(content) );
     this.collectionsSocket.on('searches', (searches) => this.searchReplaced.next(searches) );
+    this.collectionsSocket.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
 
   }
 
@@ -117,6 +118,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public collectionDeleted: Subject<string> = new Subject<string>();
   public noCollections: Subject<void> = new Subject<void>();
   public workerProgress: Subject<any> = new Subject<any>();
+  public monitoringCollectionPause: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   public collectionsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
   public preferencesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
