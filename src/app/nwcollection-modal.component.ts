@@ -172,7 +172,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   private queryListObj = {};
   public queryListOptions: SelectItem[] = [];
 
-  public selectedQuery: any = this.queryList[2];
+  public selectedQuery = this.queryList[2].text;
   private preferences: any;
   private timeframes: any = ['Last 5 Minutes', 'Last 10 Minutes', 'Last 15 Minutes', 'Last 30 Minutes', 'Last Hour', 'Last 3 Hours', 'Last 6 Hours', 'Last 12 Hours', 'Last 24 Hours', 'Last 48 Hours', 'Last 5 Days (120 Hours)', 'Today', 'Yesterday', 'This Week', 'Last Week', 'Custom'];
   private selectedTimeframe = 'Last Hour';
@@ -1034,9 +1034,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.showUseCaseValues = false;
       this.displayUseCaseDescription = false;
 
+      // Query
+      this.selectedQuery = this.queryList[0].text; // select all types
+      this.onQuerySelected();
+
 
       // Content types
       this.selectedContentTypes = [ 'pdfs', 'officedocs', 'images', 'dodgyarchives' ];
+      this.onSelectedTypesChanged();
 
       // Timeframe
       this.selectedTimeframe = 'Last 24 Hours';
