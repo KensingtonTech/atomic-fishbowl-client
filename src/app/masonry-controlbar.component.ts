@@ -38,7 +38,7 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   private scrollToBottomStoppedSubscription: Subscription;
   public showMeta = true;
   // private scrollToBottomRunningSubscription: Subscription;
-  private routerDropdownOpen = false;
+  public routerDropdownOpen = false;
 
   ngOnInit(): void {
     log.debug('MasonryControlBarComponent: OnInit');

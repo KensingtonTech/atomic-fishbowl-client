@@ -35,7 +35,7 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
   @Input() panzoomConfig: any;
   private panZoomAPI: PanZoomAPI;
   private apiSubscription: Subscription;
-  private routerDropdownOpen = false;
+  public routerDropdownOpen = false;
 
   ngOnInit(): void {
     log.debug('ClassicControlBarComponent: OnInit');
