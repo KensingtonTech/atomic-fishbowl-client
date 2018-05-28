@@ -1,7 +1,14 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementRef, ViewChild, Input, Output, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToolService } from './tool.service';
 declare var log;
+
+interface RouterOption {
+  name: string;
+  link: string;
+  class: string;
+  tooltip: string;
+}
 
 @Component({
   selector: 'router-dropdown',
@@ -10,9 +17,9 @@ declare var log;
   <div *ngIf="!selectionExpanded">
     <i (click)="expandRouterOptions()" class="{{selectedRoute.class}}"></i><br>
   </div>
-  <div *ngIf="selectionExpanded">
-    <div *ngFor="let option of routerOptions" style="margin-bottom: 2px;">
-      <i (click)="routeSelected(option)" class="{{option.class}}" pTooltip="{{option.tooltip}}" tooltipPosition="right"></i>
+  <div *ngIf="selectionExpanded" style="width: 100px;">
+    <div *ngFor="let option of routerOptions" style="margin-bottom: 2px;" (click)="routeSelected(option)">
+      <i class="{{option.class}}" [class.deselect]="selectedRoute.name == option.name"></i>&nbsp;<span style="color: white; vertical-align: 50%;">{{option.tooltip}}</span>
     </div>
   </div>
 </div>
@@ -24,6 +31,10 @@ declare var log;
       border-radius: 10px;
       padding: 3px;
     }
+
+    .deselect {
+      color: grey;
+    }
   `],
 })
 
@@ -34,16 +45,37 @@ export class RouterDropdownComponent implements OnInit {
               private changeDetectorRef: ChangeDetectorRef,
               private el: ElementRef ) {}
 
-  private routerOptions: any =  [
-                                  { name: 'masonryGrid', link: '/masonryGrid', class: 'icon fa fa-th-large fa-2x fa-fw', tooltip: 'Masonry Grid' },
-                                  { name: 'classicGrid', link: '/classicGrid', class: 'icon fa fa-th fa-2x fa-fw', tooltip: 'Classic Grid' }
+  private routerOptions: RouterOption[] =  [
+                                  { name: 'masonryGrid', link: '/masonryGrid', class: 'icon fa fa-th-large fa-2x fa-fw', tooltip: 'Masonry' },
+                                  { name: 'classicGrid', link: '/classicGrid', class: 'icon fa fa-th fa-2x fa-fw', tooltip: 'Classic' }
                                 ];
-  public selectedRoute: any;
+  public selectedRoute: RouterOption;
   private selectionExpanded = false;
+  @Output() isOpen = new EventEmitter<boolean>();
+
+
 
   ngOnInit(): void {
     this.selectedRoute  = this.getSelectedRoute();
+    this.orderRouterOptions();
   }
+
+
+
+  orderRouterOptions(): void {
+    // this will place the currently selected route last in the selection
+    let optionToSplice: RouterOption = null;
+    for (let i = 0; i < this.routerOptions.length; i++) {
+      let option = this.routerOptions[i];
+      if (option.name === this.selectedRoute.name) {
+        optionToSplice = this.routerOptions[i];
+        this.routerOptions.splice(i, 1);
+        this.routerOptions.push(optionToSplice);
+      }
+    }
+  }
+
+
 
   getSelectedRoute(): any {
     let route = this.router.url;
@@ -54,20 +86,30 @@ export class RouterDropdownComponent implements OnInit {
     }
   }
 
+
+
   collapseRouterOptions(): void {
     // log.debug('collapseRouterOptions()');
     // document.removeEventListener('click', () => this.collapseRouterOptions() );
+    if (this.selectionExpanded) {
+      this.isOpen.emit(false);
+    }
     this.selectionExpanded = false;
   }
 
+
+
   expandRouterOptions(): void {
     // log.debug("expandRouterOptions()");
-    setTimeout( () => {
+    // setTimeout( () => {
       this.selectionExpanded = true;
+      // this.changeDetectorRef.markForCheck();
+      this.isOpen.emit(true);
       // this.changeDetectorRef.detectChanges();
-      this.changeDetectorRef.markForCheck();
-    }, 10);
+    // }, 0);
   }
+
+
 
   routeSelected(e: any): void {
     // log.debug("routeSelected()", e);
@@ -83,5 +125,7 @@ export class RouterDropdownComponent implements OnInit {
       this.collapseRouterOptions();
     }
   }
+
+
 
 }

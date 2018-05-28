@@ -10,7 +10,6 @@ export class ClickOutsideDirective {
 
     @Output() public clickOutside = new EventEmitter();
 
-
     @HostListener('document:click', ['$event']) public onClick(event: any) {
       let targetElement = event.target;
         const clickedInside = this.el.nativeElement.contains(targetElement);
@@ -18,4 +17,5 @@ export class ClickOutsideDirective {
             this.clickOutside.emit(null);
         }
     }
+
 }

@@ -13,7 +13,6 @@ import { Search } from './search';
 import { Subscription } from 'rxjs';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
-// import * as math from 'mathjs';
 import * as utils from './utils';
 declare var log;
 declare var $: any;
