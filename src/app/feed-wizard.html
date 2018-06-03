@@ -45,7 +45,7 @@
               <div class="cell left-column">URL</div>
               <div class="cell">
                 <input type="text" pInputText name="url" size="100" (ngModelChange)="onUrlChange()" [(ngModel)]="url" autocomplete="off" required/>
-                <button pButton type="button" (click)="verifyUrl()" label="Verify" [disabled]="!validateUrlInput() || (!editing && urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication == 'enabled' && authChanged && !(urlUser && urlPassword))"></button>
+                <p-button type="button" (click)="verifyUrl()" label="Verify" [disabled]="!validateUrlInput() || (!editing && urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication == 'enabled' && authChanged && !(urlUser && urlPassword))"></p-button>
                 <span *ngIf="urlVerified && urlVerifyClicked" class="fa fa-thumbs-up"> Success</span>
                 <span *ngIf="!urlVerified && urlTested" class="fa fa-thumbs-down"> Failure<span *ngIf="testError">: {{testError}}</span></span>
               </div>
@@ -88,13 +88,7 @@
           <!-- next / cancel buttons -->
           <div style="position: absolute; bottom: 10px; right: 10px;">
             
-            <button pButton type="button" (click)="onCancel()" label="Cancel"></button>
-
-            <button *ngIf="type == 'manual'" pButton type="submit" label="Next" [disabled]="!highLevelDetailsForm.valid || lines.length == 0 || !nameValid"></button>
-            
-            <button *ngIf="type == 'scheduled' && !editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified || !nameValid"></button>
-            
-            <button *ngIf="type == 'scheduled' && editing" pButton type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValid"></button>
+            <p-button type="button" (click)="onCancel()" label="Cancel"></p-button>&nbsp;<p-button *ngIf="type == 'manual'" type="submit" label="Next" [disabled]="!highLevelDetailsForm.valid || lines.length == 0 || !nameValid"></p-button><p-button *ngIf="type == 'scheduled' && !editing" type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified || !nameValid"></p-button><p-button *ngIf="type == 'scheduled' && editing" type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValid"></p-button>
           </div>
           
         </form>
@@ -154,7 +148,7 @@
                       <div pDroppable="columnIdentifier" (onDrop)="onDrop($event, i)">
                         <span>Column {{column}}</span>
                         <span *ngIf="columnDropPort && columnDropPort[i]?.enabled">
-                          <button pButton icon="fa fa-fw fa-close" iconPos="right" [label]="columnDropPort[i].columnId.name" (click)="onDeselectColumnId(i)" style="vertical-align: top;"></button>
+                          &nbsp;<p-button icon="fa fa-fw fa-close" iconPos="right" [label]="columnDropPort[i].columnId.name" (click)="onDeselectColumnId(i)" style="vertical-align: top;"></p-button>
                         </span>
                       </div>
                     </div>
@@ -196,8 +190,7 @@
               <div style="display: inline-block;">
                 <div style="text-align: left;">
                   <div *ngFor="let columnId of availableColumnIDs" class="dragButton" style="margin-bottom: 3px;" pDraggable="columnIdentifier" (onDragStart)="onDragStart($event, columnId)" (onDragEnd)="onDragEnd($event,columnId)">
-                    <!--<button pButton pDraggable="columnIdentifier" type="button" icon="fa fa-fw fa-check" [label]="columnId.name" (onDragStart)="onDragStart($event,columnId)" (onDragEnd)="onDragEnd($event,columnId)"></button>-->
-                    <button pButton type="button" icon="fa fa-fw fa-check" [label]="columnId.name"></button>
+                    <p-button type="button" icon="fa fa-fw fa-check" [label]="columnId.name"></p-button>
                   </div>
                 </div>
               </div>
@@ -208,8 +201,7 @@
 
           <!-- next / previous buttons -->
           <div style="position: absolute; bottom: 10px; right: 10px;">
-            <button pButton type="button" (click)="pageTwoToPageOneSubmit()" label="Previous"></button>
-            <button pButton type="submit" label="Next" [disabled]="!feedDetailsForm.valid || !feedDetailsFormValid()"></button>
+            <p-button type="button" (click)="pageTwoToPageOneSubmit()" label="Previous"></p-button>&nbsp;<p-button type="submit" label="Next" [disabled]="!feedDetailsForm.valid || !feedDetailsFormValid()"></p-button>
           </div>
 
         </form>
@@ -298,10 +290,9 @@
             The server returned an error when submitting the feed: {{error}}
           </div>
         
-          <!-- next / previous buttons -->
+          <!-- previous / submit buttons -->
           <div style="position: absolute; bottom: 10px; right: 10px;">
-            <button pButton type="button" (click)="pageThreeToPageTwoSubmit()" label="Previous"></button>
-            <button pButton type="submit" label="Finish"></button>
+            <p-button type="button" (click)="pageThreeToPageTwoSubmit()" label="Previous"></p-button>&nbsp;<p-button type="submit" label="Finish"></p-button>
           </div>
 
         </form>

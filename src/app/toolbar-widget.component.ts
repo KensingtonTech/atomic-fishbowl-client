@@ -99,11 +99,9 @@ declare var log;
   </div>
 </div>
 
-<!--Search Box Dropdown-->
+<!--Search Bar Dropdown-->
 <div class="noselect" (keydown.escape)="toggleSearch()" *ngIf="showSearch" style="position: absolute; right: 60px; top: 30px; padding: 5px; background-color: rgba(146,151,160,.85); width: 315px; z-index: 100;">
-  <input #searchBox type="text" name="searchTerms" [(ngModel)]="searchTerms" (ngModelChange)="searchTermsUpdate()" style="width: 85%;">
-  <span [class.fa-deselect]="caseSensitive" class="fa fa-text-height" (click)="toggleCaseSensitivity()" style="color: white;"></span>
-  <span class="fa fa-times" (click)="toggleSearch()" style="color: white;"></span>
+  <input #searchBox type="text" name="searchTerms" [(ngModel)]="searchTerms" (ngModelChange)="searchTermsUpdate()" style="width: 85%;">&nbsp;<span [class.fa-deselect]="caseSensitive" class="fa fa-text-height" (click)="toggleCaseSensitivity()" style="color: white;"></span>&nbsp;<span class="fa fa-times" (click)="toggleSearch()" style="color: white;"></span>
 </div>
 
 

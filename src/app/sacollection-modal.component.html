@@ -161,8 +161,7 @@
                   <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont" required [disabled]="showUseCaseValues || formDisabled"></p-selectButton>
                 </div>
                 <div *ngIf="!showUseCaseValues" style="margin-top: 3px;">
-                  <button type="button" (click)="onAllTypesSelected()" pButton label="All" [disabled]="showUseCaseValues || formDisabled"></button>
-                  <button type="button" (click)="onClearTypesSelected()" pButton label="None" [disabled]="showUseCaseValues || formDisabled"></button>
+                  <p-button type="button" (click)="onAllTypesSelected()" label="All" [disabled]="showUseCaseValues || formDisabled"></p-button>&nbsp;<p-button type="button" (click)="onClearTypesSelected()" label="None" [disabled]="showUseCaseValues || formDisabled"></p-button>
                   &nbsp;&nbsp;<p-checkbox name="onlyContentFromArchives" label="Only content from archives" binary="true" [(ngModel)]="onlyContentFromArchives" pTooltip="If ticked, this option will cause content that is directly returned by the query to be ignored, excepting Dodgy Archives.  Only content contained within ZIP and RAR archives will be processed.  This is needed to exclude Office documents which are not within archives from the results, which get detected as ZIP archives by the upstream service."></p-checkbox>
                 </div>
                 <div *ngIf="showUseCaseValues" style="margin-top: 3px;">
@@ -344,7 +343,7 @@
                 <span (click)="displayServiceAddBox()" [class.fa-deselect]="formDisabled" class="fa fa-plus fa-1">&nbsp;&nbsp;</span>
                 <span (click)="deleteApiServer()" [class.fa-deselect]="formDisabled" class="fa fa-minus fa-1">&nbsp;&nbsp;</span>
                 <span *ngIf="selectedApiServer" [class.fa-deselect]="formDisabled" (click)="editApiServer()" class="fa fa-pencil fa-1"></span>
-                <span *ngIf="selectedApiServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button [disabled]="formDisabled || testInProgress" pButton type="button" (click)="testApiServer()" label="Test"> </button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
+                <span *ngIf="selectedApiServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<p-button [disabled]="formDisabled || testInProgress" type="button" (click)="testApiServer()" label="Test"> </p-button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
               </div>
 
               <!--NetWitness Server List-->
@@ -352,8 +351,7 @@
 
             <!--EXECUTE OR CANCEL BUTTONS-->
             <div style="margin-top: 5px; float: right;">
-              <button pButton type="submit" [disabled]="!apiServerFormValid() || !nameValid || (selectedUseCase == 'custom' && !jsonValid) || (selectedUseCase != 'custom' && useCaseBinding == 'unbound' && !jsonValid)" label="Execute"></button>
-              <button pButton type="button" (click)="cancel()" label="Cancel"></button>
+              <p-button type="submit" [disabled]="!apiServerFormValid() || !nameValid || (selectedUseCase == 'custom' && !jsonValid) || (selectedUseCase != 'custom' && useCaseBinding == 'unbound' && !jsonValid)" label="Execute"></p-button>&nbsp;<p-button type="button" (click)="cancel()" label="Cancel"></p-button>
             </div>
           </div>
           

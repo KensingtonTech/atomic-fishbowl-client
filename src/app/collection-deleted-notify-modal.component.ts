@@ -20,7 +20,7 @@ declare var log;
         </div>
 
         <div style="float: right; margin-top: 15px;">
-          <button pButton type="button" (click)="closeModal()" label="OK"></button>
+          <p-button type="button" (click)="closeModal()" label="OK"></p-button>
         </div>
 
       </div>

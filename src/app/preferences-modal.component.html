@@ -297,8 +297,7 @@
 
 
       <div style="margin-top: 5px; float: right;">
-        <button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="submit">OK</button>
-        <button type="button" (click)="cancel()">Cancel</button>
+        <p-button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="submit" label="OK"></p-button>&nbsp;<p-button type="button" (click)="cancel()" label="Cancel"></p-button>
       </div>
       </form>
     </div>

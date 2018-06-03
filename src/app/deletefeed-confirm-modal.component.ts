@@ -24,8 +24,7 @@ declare var log;
         </div>
 
         <div style="float: right; margin-top: 15px;">
-          <button pButton type="button" (click)="onConfirmDelete()" label="Confirm"></button>
-          <button pButton type="button" (click)="cancelDelete()" label="Cancel"></button>
+          <p-button type="button" (click)="onConfirmDelete()" label="Confirm"></p-button>&nbsp;<p-button type="button" (click)="cancelDelete()" label="Cancel"></p-button>
         </div>
 
       </div>
