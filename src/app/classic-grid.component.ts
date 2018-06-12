@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToolService } from './tool.service';
@@ -11,6 +11,7 @@ import { ContentMask } from './contentmask';
 import { Search } from './search';
 import * as utils from './utils';
 declare var log;
+declare var imagesLoaded;
 
 interface Point {
   x: number;
@@ -25,9 +26,9 @@ interface Point {
 
   <pan-zoom *ngIf="content && sessionsDefined && displayedContent && !destroyView" [config]="panzoomConfig">
 
-    <div class="bg noselect items" style="position: relative;" [style.width.px]="canvasWidth">
+    <div class="bg noselect gridItems" #gridItems style="position: relative;" [style.width.px]="canvasWidth">
 
-      <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" (openSessionDetails)="openSessionDetails()" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType">
+      <classic-tile *ngFor="let item of displayedContent" (openPDFViewer)="openPdfViewer()" (openSessionDetails)="openSessionDetails()" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType" [loadHighRes]="loadAllHighResImages">
       </classic-tile>
 
     </div>
@@ -67,9 +68,11 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
                 private changeDetectionRef: ChangeDetectorRef,
                 private toolService: ToolService,
                 private router: Router,
-                private route: ActivatedRoute ) {}
+                private route: ActivatedRoute,
+                private zone: NgZone ) {}
 
   @ViewChild('classicGridElement') private classicGridElement: ElementRef;
+  @ViewChild('gridItems') public gridItems: ElementRef;
 
   public panzoomConfig = new PanZoomConfig;
   private panzoomModel: PanZoomModel;
@@ -113,6 +116,11 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private selectedSessionId: number = null;
   private selectedContentType: string = null;
   private selectedContentId: string = null;
+
+  private center: Point = null;
+
+  public loadAllHighResImages = false;
+  public lowResImagesLoadedCount = 0;
 
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
@@ -332,6 +340,10 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.resetZoomToFit();
+    this.center = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2
+    };
   }
 
 
@@ -613,6 +625,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
     this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
     this.changeDetectionRef.detectChanges();
+    this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, () => this.onImagesLoaded() ) );
     this.sessionWidgetDecider();
   }
 
@@ -630,6 +643,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sessionWidgetDecider();
     // this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
     this.changeDetectionRef.detectChanges();
+    this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, () => this.onImagesLoaded() ) );
   }
 
 
@@ -662,6 +676,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.sessions = {};
       this.content = [];
       this.displayedContent = [];
+      this.loadAllHighResImages = false;
       this.resetContentCount();
       this.destroyView = false;
       this.changeDetectionRef.detectChanges();
@@ -679,6 +694,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.search = [];
     this.sessions = {};
     this.content = [];
+    this.loadAllHighResImages = false;
     this.resetContentCount();
     this.selectedCollectionType = collection.type;
     this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
@@ -703,6 +719,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sessions = {};
     this.content = [];
     this.resetContentCount();
+    this.loadAllHighResImages = false;
     this.selectedCollectionType = null;
     this.collectionId = null;
     this.selectedCollectionServiceType = null;
@@ -735,6 +752,10 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     log.debug('ClassicGridComponent: onWindowResize()');
     // this.initialZoomWidth = window.innerWidth;
     // this.initialZoomHeight = window.innerHeight;
+    this.center = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2
+    };
     this.resetZoomToFit();
   }
 
@@ -830,7 +851,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   private sessionWidgetDecider(): void {
-    // log.debug('ClassicGridComponent: sessionWidgetDecider():', this.panzoomModel.zoomLevel);
+    // log.debug('ClassicGridComponent: sessionWidgetDecider()');
     if (!(this.panzoomModel)) {
       return;
     }
@@ -838,16 +859,12 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // log.debug(this.panzoomModel.zoomLevel);
 
     if (this.panzoomModel.zoomLevel < this.transitionZoomLevel) {
+      this.toolService.showHighResSessions.next(null);
       this.hideSessionWidget();
       return;
     }
 
-    let center: Point = {
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2
-    };
-
-    let focusedElement = document.elementFromPoint(center.x, center.y);
+    let focusedElement = document.elementFromPoint(this.center.x, this.center.y);
 
     if (!focusedElement.classList.contains('thumbnail')) {
       this.hideSessionWidget();
@@ -858,7 +875,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
       ( this.previousFocusedElement.isSameNode(focusedElement) && !this.sessionWidgetEnabled && focusedElement.nodeName === 'IMG' ) ||
       ( this.previousFocusedElement && !this.previousFocusedElement.isSameNode(focusedElement) && focusedElement.nodeName === 'IMG' && focusedElement.hasAttribute('contentfile') ) ) {
 
-        let focusedTile = focusedElement.parentNode.parentNode.parentElement;
+        let focusedTile = focusedElement.parentNode.parentElement;
 
         if ( focusedTile.nodeName === 'CLASSIC-TILE' ) {
 
@@ -885,22 +902,18 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private showSessionWidget(sessionId: number, sessionsForHighRes: number[] ): void {
     // log.debug('ClassicGridComponent: showSessionWidget()', i);
-    // if (!this.sessionWidgetEnabled) {
-      this.hoveredContentSession = sessionId;
-      this.popUpSession = this.sessions[sessionId];
+    this.hoveredContentSession = sessionId;
+    this.popUpSession = this.sessions[sessionId];
 
-      let sessionsForHighResTemp = {};
-      for (let i = 0; i < sessionsForHighRes.length; i++) {
-        let id = sessionsForHighRes[i];
-        sessionsForHighResTemp[id] = true;
-      }
-      // this.highResSessions = sessionsForHighRes;
-      // this.highResSessions = sessionsForHighResTemp;
-      this.toolService.showHighResSessions.next(sessionsForHighResTemp);
+    let sessionsForHighResTemp = {};
+    for (let i = 0; i < sessionsForHighRes.length; i++) {
+      let id = sessionsForHighRes[i];
+      sessionsForHighResTemp[id] = true;
+    }
+    this.toolService.showHighResSessions.next(sessionsForHighResTemp);
 
-      this.sessionWidgetEnabled = true;
-      this.changeDetectionRef.detectChanges();
-    // }
+    this.sessionWidgetEnabled = true;
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -1103,6 +1116,14 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private resumeMonitoring(): void {
     // this.pauseMonitoring = false;
     this.dataService.unpauseMonitoringCollection();
+  }
+
+
+
+  onImagesLoaded(): void {
+    log.debug('ClassicGridComponent: onImagesLoaded()');
+    this.loadAllHighResImages = true;
+    this.changeDetectionRef.detectChanges();
   }
 
 }

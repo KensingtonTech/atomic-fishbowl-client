@@ -14,82 +14,97 @@ declare var log;
 
   <div style="position: relative; min-height: 50px;">
 
-    <!--NetWitness Tiles-->
-    <div *ngIf="serviceType == 'nw' && displayTextArea" class="selectable">
-      <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        {{session.meta['time'] | formatTime}}
-      </div>
-      <div style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        {{session.id}}
-      </div>
-      <div style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
-      </div>
-      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
-        <i *ngIf="content.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'office'" [class.fa-file-word-o]="content.contentSubType == 'word'" [class.fa-file-excel-o]="content.contentSubType == 'excel'" [class.fa-file-powerpoint-o]="content.contentSubType == 'powerpoint'" class="fa fa-2x"></i>
-      </div>
-    </div>
+    <ng-container *ngIf="displayTextArea">
 
-    <!--SA Tiles-->
-    <div *ngIf="serviceType == 'sa' && displayTextArea" class="selectable">
-      <div style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        {{session.meta['stop_time'] | formatSaTime}}
-      </div>
-      <div style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        {{session.id}}
-      </div>
-      <div style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
-      </div>
-      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
-        <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'unsupportedZipEntry' || content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
-        <i *ngIf="content.contentType == 'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
-        <i *ngIf="content.contentType == 'office'" [class.fa-file-word-o]="content.contentSubType == 'word'" [class.fa-file-excel-o]="content.contentSubType == 'excel'" [class.fa-file-powerpoint-o]="content.contentSubType == 'powerpoint'" class="fa fa-2x"></i>
-      </div>
-    </div>
+      <!--NetWitness Tile Overlay-->
+      <ng-container *ngIf="serviceType == 'nw'" >
+        <div class="selectable" style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+          {{session.meta['time'] | formatTime}}
+        </div>
+        <div class="selectable" style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+          {{session.id}}
+        </div>
+        <div class="selectable" style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+          {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
+        </div>
+      </ng-container>
 
-    <img *ngIf="content.contentType == 'image'" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'pdf'" class="separator pdf" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
-    <img *ngIf="content.contentType == 'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
-    <img *ngIf="content.contentType == 'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
-    <img *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
-    <img *ngIf="content.contentType == 'hash' && content.hashType == 'md5'" class="separator" (click)="onClick($event)" src="/resources/md5_hash_icon.png" draggable="false">
-    <img *ngIf="content.contentType == 'hash' && content.hashType == 'sha1'" class="separator" (click)="onClick($event)" src="/resources/sha1_hash_icon.png" draggable="false">
-    <img *ngIf="content.contentType == 'hash' && content.hashType == 'sha256'" class="separator" (click)="onClick($event)" src="/resources/sha256_hash_icon.png" draggable="false">
+      <!--SA Tile Overlay-->
+      <ng-container *ngIf="serviceType == 'sa'">
+        <div class="selectable" style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+          {{session.meta['stop_time'] | formatSaTime}}
+        </div>
+        <div class="selectable" style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+          {{session.id}}
+        </div>
+        <div class="selectable" style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+          {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
+        </div>
+      </ng-container>
+
+      <!-- file type icon overlay -->
+      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" class="selectable" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
+        <ng-container [ngSwitch]="content.contentType">
+          <i *ngSwitchCase="'encryptedZipEntry'" class="fa fa-lock fa-2x"></i>
+          <i *ngSwitchCase="'unsupportedZipEntry'" class="fa fa-lock fa-2x"></i>
+          <i *ngSwitchCase="'encryptedRarEntry'" class="fa fa-lock fa-2x"></i>
+          <i *ngSwitchCase="'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
+          <i *ngSwitchCase="'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
+          <i *ngSwitchCase="'office'" [class.fa-file-word-o]="content.contentSubType == 'word'" [class.fa-file-excel-o]="content.contentSubType == 'excel'" [class.fa-file-powerpoint-o]="content.contentSubType == 'powerpoint'" class="fa fa-2x"></i>
+        </ng-container>
+      </div>
+    </ng-container>
+
+    <!-- the images itself -->
+    <ng-container [ngSwitch]="content.contentType">
+      <img *ngSwitchCase="'image'" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
+      <img *ngSwitchCase="'pdf'" class="separator pdf" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
+      <img *ngSwitchCase="'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
+      <img *ngSwitchCase="'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
+      <img *ngSwitchCase="'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
+      <img *ngSwitchCase="'encryptedRarEntry'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
+      <img *ngSwitchCase="'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
+      <ng-container *ngSwitchCase="'hash'">
+        <ng-container [ngSwitch]="content.hashType">
+          <img *ngSwitchCase="'md5'" class="separator" (click)="onClick($event)" src="/resources/md5_hash_icon.png" draggable="false">
+          <img *ngSwitchCase="'sha1'" class="separator" (click)="onClick($event)" src="/resources/sha1_hash_icon.png" draggable="false">
+          <img *ngSwitchCase="'sha256'" class="separator" (click)="onClick($event)" src="/resources/sha256_hash_icon.png" draggable="false">
+        </ng-container>
+      </ng-container>
+    </ng-container>
 
   </div>
 
+  <!-- text area -->
   <div class="textArea selectable" *ngIf="session && masonryKeys && displayTextArea" style="position: relative;">
 
-    <div *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
-      <b>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</b>
-    </div>
-    <div *ngIf="content.contentType == 'unsupportedZipEntry'">
-      <b>Unsupported ZIP format</b>
-    </div>
-    <div *ngIf="content.contentType == 'encryptedRarTable'">
-      <b>RAR archive has an encrypted table</b>
-    </div>
-    <div *ngIf="content.contentType == 'hash'">
-      <b>Found executable matching {{utils.toCaps(content.hashType)}} hash value</b>
-    </div>
-    <div *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-      <b>Found PDF document containing text term</b>
-    </div>
-    <div *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-      <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document containing text term</b>
-    </div>
-    <div *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-      <b>Found PDF document matching Regex term</b>
-    </div>
-    <div *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-      <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
-    </div>
+    <ul *ngIf="content.contentType != 'image'" style="list-style-type: none; padding: 0;">
+      <li *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
+        <b>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</b>
+      </li>
+      <li *ngIf="content.contentType == 'unsupportedZipEntry'">
+        <b>Unsupported ZIP format</b>
+      </li>
+      <li *ngIf="content.contentType == 'encryptedRarTable'">
+        <b>RAR archive has an encrypted table</b>
+      </li>
+      <li *ngIf="content.contentType == 'hash'">
+        <b>Found executable matching {{utils.toCaps(content.hashType)}} hash value</b>
+      </li>
+      <li *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
+        <b>Found PDF document containing text term</b>
+      </li>
+      <li *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
+        <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document containing text term</b>
+      </li>
+      <li *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
+        <b>Found PDF document matching Regex term</b>
+      </li>
+      <li *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
+        <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
+      </li>
+    </ul>
 
     <table style="width: 100%;">
       <tr *ngFor="let key of masonryKeys">
