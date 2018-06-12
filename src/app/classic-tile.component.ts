@@ -9,7 +9,7 @@ declare var log;
   selector: 'classic-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div *ngIf="content" class="thumbnail-container" [id]="content.id + 'image'">
+<div *ngIf="content" class="thumbnail-container">
 
   <ng-container [ngSwitch]="content.contentType">
 
@@ -21,7 +21,8 @@ declare var log;
     <!-- archives -->
     <img *ngSwitchCase="'encryptedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
     <img *ngSwitchCase="'unsupportedZipEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/zip_icon_unknown.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
-    <img *ngSwitchCase="'encryptedRarEntry' || content.contentType == 'encryptedRarTable'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/rar_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false"
+    <img *ngSwitchCase="'encryptedRarEntry'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/rar_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
+    <img *ngSwitchCase="'encryptedRarTable'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" class="thumbnail" src="/resources/rar_icon_locked.png" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile" draggable="false">
 
     <!-- hashes -->
     <ng-container *ngSwitchCase="'hash'">
