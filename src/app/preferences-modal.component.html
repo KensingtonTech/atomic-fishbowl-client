@@ -5,7 +5,7 @@
       <form #preferencesForm="ngForm" (ngSubmit)="onSubmitPreferences()" novalidate>
       
       <!--Service Type Selector-->
-      <table style="width: 100%">
+      <table *ngIf="showServiceTypeSelector" style="width: 100%">
           <tr>
             <td>
               <b>Enabled Service Types</b>
@@ -80,7 +80,7 @@
           </table>
         </p-tabPanel>
       
-        <p-tabPanel header="RSA NetWitness">
+        <p-tabPanel *ngIf="preferencesModel.serviceTypes.nw" header="RSA NetWitness">
 
           <!--NetWitness Preferences-->
           <p *ngIf="!preferencesModel.serviceTypes.nw">
@@ -189,7 +189,7 @@
 
 
         <!-- Solera Preferences -->
-        <p-tabPanel header="Symantec SA">
+        <p-tabPanel *ngIf="preferencesModel.serviceTypes.sa" header="Symantec SA">
           
           <p *ngIf="!preferencesModel.serviceTypes.sa">
             Security Analytics functionality is disabled.

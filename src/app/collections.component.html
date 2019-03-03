@@ -1,7 +1,8 @@
 <!-- Toolbar -->
 <p-toolbar class="collectionsToolbar">
     <div *ngIf="preferences" class="ui-toolbar-group-right">
-      <ng-container *ngIf="preferences.serviceTypes.nw"><p-button type="button" (click)="onAddNwCollectionClick()" label="New NW Collection"></p-button>&nbsp;</ng-container>
+      <!-- <ng-container *ngIf="preferences.serviceTypes.nw"><p-button type="button" (click)="onAddNwCollectionClick()" label="New NW Collection"></p-button>&nbsp;</ng-container> -->
+      <ng-container *ngIf="preferences.serviceTypes.nw"><p-button type="button" (click)="onAddNwCollectionClick()" label="New Collection"></p-button>&nbsp;</ng-container>
       <p-button *ngIf="preferences.serviceTypes.sa" type="button" (click)="onAddSaCollectionClick()" label="New SA Collection"></p-button>
       <div class="ui-inputgroup">
         <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
@@ -50,7 +51,8 @@
         </div>
 
         <!-- Collection Type -->
-        <div class="cell"><span *ngIf="collection.serviceType == 'nw'">NW</span><span *ngIf="collection.serviceType == 'sa'">SA</span> {{utils.capitalizeFirstLetter(collection.type)}}</div>
+        <!-- <div class="cell"><span *ngIf="collection.serviceType == 'nw'">NW</span><span *ngIf="collection.serviceType == 'sa'">SA</span> {{utils.capitalizeFirstLetter(collection.type)}}</div> -->
+        <div class="cell">{{utils.capitalizeFirstLetter(collection.type)}}</div>
 
         <!-- Collection State -->
         <div class="cell">{{utils.capitalizeFirstLetter(collection.state)}}</div>

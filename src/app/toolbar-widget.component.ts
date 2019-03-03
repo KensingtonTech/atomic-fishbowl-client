@@ -45,7 +45,8 @@ declare var log;
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Fixed</span>
         <span *ngIf="selectedCollection.type == 'rolling'" class="label">Rolling</span>
         <span *ngIf="selectedCollection.type == 'monitoring'" class="label">Monitoring</span>
-        <span class="label"> {{selectedCollection.serviceType | allCaps}} Collection&nbsp;&nbsp;</span>
+        <!-- <span class="label"> {{selectedCollection.serviceType | allCaps}} Collection&nbsp;&nbsp;</span> -->
+        <span class="label"> Collection&nbsp;&nbsp;</span>
 
         <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeBegin | formatTime}}</span>
@@ -317,7 +318,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
       useCaseFriendlyName = useCase.friendlyName;
       if (this.selectedCollection.serviceType === 'nw') {
         query = useCase.nwquery;
-        tt = tt + 'Service Type: NetWitness\n';
+        // tt = tt + 'Service Type: NetWitness\n';
       }
       else {
         query = useCase.saquery;
@@ -344,7 +345,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     else {
       // custom collection
       if (this.selectedCollection.serviceType === 'nw') {
-        tt = tt + 'Service Type: NetWitness\n';
+        // tt = tt + 'Service Type: NetWitness\n';
       }
       else {
         tt = tt + 'Service Type: Symantec SA\n';

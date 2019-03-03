@@ -97,6 +97,8 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
   public selectedTabIndex = 0;
   public autoScrollSpeed = 0;
 
+  public showServiceTypeSelector = false;
+
   // Subscriptions
   private preferencesChangedSubscription: Subscription;
 
