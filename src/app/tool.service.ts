@@ -37,7 +37,6 @@ export class ToolService {
   public scrollToBottomStopped: Subject<any> = new Subject<any>(); // this notifies that scrolling has finished in the view
 
   // Masonry
-  public layoutComplete: Subject<any> = new Subject<any>();
   public showMasonryTextArea: Subject<boolean> = new Subject<boolean>();
   public showMasonryTextAreaState = true;
   public refreshMasonryLayout: Subject<void> = new Subject<void>();

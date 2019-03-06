@@ -1,5 +1,5 @@
-import { Directive, OnInit, OnChanges, Input, Output, ElementRef, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, Renderer2, ViewEncapsulation } from '@angular/core';
-import { IsotopeOptions } from './isotope-options';
+import { Directive, OnInit, OnChanges, Input, Output, ElementRef, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, Renderer2 } from '@angular/core';
+import { IsotopeOption } from './isotope-option';
 import { ToolService } from '../tool.service';
 declare var log;
 declare var $: any;
@@ -18,11 +18,11 @@ export class IsotopeDirective implements OnInit, OnChanges {
                 private renderer: Renderer2 ) {}
 
 
-  @Input() public options: IsotopeOptions;
+  @Input() public options: IsotopeOption;
   @Input() public filter = '*';
-  public isotope: any;
+  public isotope: any = null;
   private isDestroyed = false;
-  private removeTimer: any;
+  private removeTimer: any = null;
 
 
 
@@ -57,7 +57,7 @@ export class IsotopeDirective implements OnInit, OnChanges {
 
 
   private onLayoutComplete = () => {
-    this.toolService.layoutComplete.next(this.isotope.modes.masonry.maxY); // send the height of the container
+    this.options.layoutComplete.next(this.isotope.modes.masonry.maxY); // send the height of the container
   }
 
 
@@ -65,12 +65,12 @@ export class IsotopeDirective implements OnInit, OnChanges {
   ngOnChanges(values: any): void {
     // log.debug('IsotopeDirective: ngOnChanges()', e);
 
-    if ('options' in values && this.isotope !== undefined ) {
-      log.debug('IsotopeDirective: ngOnChanges(): arranging');
+    if ('options' in values && this.isotope !== null ) {
+      log.debug('IsotopeDirective: ngOnChanges(): got new options.  arranging');
        this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
     }
 
-    else if ('filter' in values && this.isotope !== undefined) {
+    else if ('filter' in values && this.isotope !== null) {
       log.debug('IsotopeDirective: ngOnChanges(): this.filter:', this.filter);
       this.ngZone.runOutsideAngular( () => this.isotope.arrange( { filter: this.filter } ) );
     }
