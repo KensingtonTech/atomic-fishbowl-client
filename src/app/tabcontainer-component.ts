@@ -1,9 +1,8 @@
 import { Component, OnInit, OnDestroy, OnChanges, Input, ViewChild, ElementRef } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
-import { Subscription } from 'rxjs';
-import * as utils from './utils';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'tab-container-modal',
@@ -12,13 +11,13 @@ declare var log;
   <div class="modal">
     <div class="modal-body" style="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; background-color: white; font-size: 10pt;"> <!--max-height: 1024px;-->
 
-      <div (click)="closeModal()" style="position: absolute; top: 16px; right: 16px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
+      <div (click)="closeModal()" style="position: absolute; top: 10px; right: 16px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
 
       <p-tabView [activeIndex]="selectedTabIndex" (onChange)="onTabChange($event)">
-        <p-tabPanel header="Collections">
+        <p-tabPanel header="Collections" headerStyleClass="noselect nooutline">
           <collections></collections>
         </p-tabPanel>
-        <p-tabPanel header="Hash Feeds">
+        <p-tabPanel header="Hash Feeds" headerStyleClass="noselect nooutline">
           <feeds></feeds>
         </p-tabPanel>
       </p-tabView>
@@ -44,7 +43,7 @@ export class TabContainerComponent implements OnInit, OnDestroy {
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  @Input('id') id: string;
+  @Input() id: string;
 
   public selectedTabIndex = 0;
 

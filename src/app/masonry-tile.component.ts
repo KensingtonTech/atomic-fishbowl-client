@@ -4,13 +4,14 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { MasonryGridComponent } from './masonry-grid.component';
 import * as utils from './utils';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div *ngIf="masonryColumnWidth && session" [ngStyle]="{'width.px': masonryColumnWidth}" style="background-color: white; border-radius: 5px; font-size: 9pt; font-weight: lighter;">
+<div *ngIf="masonryColumnWidth && session" [ngStyle]="{'width.px': masonryColumnWidth}" class="brickOuterDiv">
 
   <div style="position: relative; min-height: 50px;">
 
@@ -211,6 +212,14 @@ declare var log;
       border: solid 3px rgb(211,71,38);
     }
 
+    .brickOuterDiv {
+      background-color: white;
+      border-radius: 5px;
+      font-size: 9pt;
+      font-weight: lighter;
+      margin: 10px;
+    }
+
   `]
 })
 
@@ -276,6 +285,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
 
   ngOnChanges(values): void {
+    // log.debug('MasonryTileComponent: ngOnChanges(): values:', values);
     this.changeDetectionRef.reattach();
     setTimeout( () => this.changeDetectionRef.detach(), 0);
   }

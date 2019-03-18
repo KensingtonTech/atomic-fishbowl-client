@@ -7,8 +7,8 @@ import { Feed, FeedSchedule } from './feed';
 import { UUID } from 'angular2-uuid';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import * as utils from './utils';
-declare var log;
-declare var JSEncrypt: any;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 interface ColumnId {
   'id': string;
@@ -142,8 +142,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   public feed: Feed; // the feed we're working on
   public page = 1;
   public utils = utils;
-  private encryptor: any = new JSEncrypt();
-  private pubKey: string;
 
   public name = '';
 
@@ -217,7 +215,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   private editFeedNextSubscription: Subscription;
   private reOpenTabsModalSubscription: Subscription;
   private feedsChangedSubscription: Subscription;
-  private publicKeyChangedSubscription: Subscription;
 
 
   ngOnInit(): void {
@@ -231,8 +228,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
      } );
 
     this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( TorF => this.reOpenTabsModal = TorF );
-
-    this.publicKeyChangedSubscription = this.dataService.publicKeyChanged.subscribe( key => this.onPublicKeyChanged(key) );
 
     this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: any) => {
       let temp = {};
@@ -252,6 +247,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     log.debug('FeedWizardComponent: ngAfterViewInit()');
     // setTimeout( () => this.type = 'manual', 250);
+    this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
 
@@ -262,31 +258,19 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.editFeedNextSubscription.unsubscribe();
     this.reOpenTabsModalSubscription.unsubscribe();
     this.feedsChangedSubscription.unsubscribe();
-    this.publicKeyChangedSubscription.unsubscribe();
-  }
-
-
-
-  onPublicKeyChanged(key: string) {
-    if (!key) {
-      return;
-    }
-    this.encryptor.log = true;
-    this.pubKey = key;
-    this.encryptor.setPublicKey(this.pubKey);
   }
 
 
 
   public onNameChanged(name): void {
     // log.debug('NwCollectionModalComponent: onNameChanged()');
-
     if (!(name in this.feedNames) || this.editing)  {
       this.nameValid = true;
     }
     else {
       this.nameValid = false;
     }
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -391,9 +375,11 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
             }
             this.rawCSV = res.rawCSV;
             this.parseCSV(this.rawCSV);
+            this.changeDetectionRef.markForCheck();
           })
           .catch( (err) => {
             log.error('FeedWizardComponent: onOpen(): caught error getting filehead:', err);
+            this.changeDetectionRef.markForCheck();
           });
     }
   }
@@ -407,41 +393,35 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.modalService.open('tab-container-modal');
     }
     this.reOpenTabsModal = false; // re-sets the value to default
+    this.changeDetectionRef.markForCheck();
   }
 
 
 
   public pageOneToPageTwoSubmit(form) {
     this.page = 2;
-    // scrolling hack for Firefox
-    /*setTimeout( () => {
-      let dragButtons = document.getElementsByClassName('dragButton');
-      log.debug(dragButtons);
-      for (let i = 0; i < dragButtons.length; i++) {
-        let draggableElement = dragButtons[i];
-        draggableElement.addEventListener('dragstart', function(e: any){
-          e.dataTransfer.setData('text', 'foo');
-        });
-      }
-    }, 250);*/
+    this.changeDetectionRef.markForCheck();
   }
 
 
 
   public pageTwoToPageThreeSubmit(form) {
     this.page = 3;
+    this.changeDetectionRef.markForCheck();
   }
 
 
 
   public pageTwoToPageOneSubmit() {
     this.page = 1;
+    this.changeDetectionRef.markForCheck();
   }
 
 
 
   public pageThreeToPageTwoSubmit() {
     this.page = 2;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -462,6 +442,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.urlVerified = false;
       this.urlTested = false;
       this.urlChanged = true;
+      this.changeDetectionRef.markForCheck();
     }
   }
 
@@ -477,12 +458,13 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     else if (this.urlAuthentication === 'enabled') {
       host.authentication = true;
       host['username'] = this.urlUser;
-      host['password'] = this.encryptor.encrypt(this.urlPassword);
+      host['password'] = this.dataService.encryptor.encrypt(this.urlPassword);
     }
 
     this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
     this.columnDropPort = {};
     this.columnNumArr = [];
+    this.changeDetectionRef.markForCheck();
 
     this.dataService.testFeedUrl(host)
         .then( (res: any) => {
@@ -503,6 +485,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
               this.testError = res.error;
             }
           }
+          this.changeDetectionRef.markForCheck();
         })
         .catch( (res) => {
           log.debug('FeedWizardComponent: verifyUrl(): error:', res);
@@ -512,6 +495,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
           if ('error' in res) {
             this.testError = res.error;
           }
+          this.changeDetectionRef.markForCheck();
         });
 
   }
@@ -523,6 +507,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.authChanged = true;
     this.urlVerified = false;
     this.urlTested = false;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -590,6 +575,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     };
 
     readFunc();
+    this.changeDetectionRef.markForCheck();
 
   }
 
@@ -624,6 +610,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
         this.columnDropPort[i] = { enabled: false };
       }
     }
+    this.changeDetectionRef.markForCheck();
 
   }
 
@@ -640,6 +627,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.columnDropPort = {};
       this.availableColumnIDs = [];
     }
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -649,6 +637,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     // log.debug('FeedWizardComponent: onDragStart(): event:', event);
     log.debug('FeedWizardComponent: onDragStart(): columnId:', columnId);
     this.draggingColumnID = columnId;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -658,6 +647,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     // log.debug('FeedWizardComponent: onDragEnd(): event:', event);
     log.debug('FeedWizardComponent: onDragEnd(): columnId:', columnId);
     this.draggingColumnID = null;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -682,6 +672,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
     }
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -690,6 +681,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     log.debug('FeedWizardComponent: onDeselectColumnId(): index:', index);
     this.columnDropPort[index].enabled = false;
     this.availableColumnIDs.push(this.columnDropPort[index].columnId);
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -740,146 +732,82 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     log.debug('FeedWizardComponent: finalSubmit()');
 
     if (this.type === 'manual' && !this.editing) {
-      // adding a new manual feed
-      let feed: Feed = {
-        id: UUID.UUID(),
-        name: this.name,
-        type: this.type,
-        delimiter: this.delimiter,
-        headerRow: this.hasHeader,
-        valueColumn: this.getColumnNumber('value'),
-        typeColumn: this.getColumnNumber('type'),
-        friendlyNameColumn: this.getColumnNumber('friendly'),
-        filename: this.filename || null
-      };
-      this.dataService.addFeedManual(feed, this.file)
-          .then( () => {
-            this.onCancel();
-          })
-          .catch( (err) => {
-            log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
-            this.error = err.error;
-          });
+      // submitting a new manual feed
+      this.submitNewManualFeed();
     }
 
-      if (this.type === 'manual' && this.editing) {
-        // adding a new manual feed
-        let feed: Feed = {
-          id: this.editingId,
-          name: this.name,
-          type: this.type,
-          delimiter: this.delimiter,
-          headerRow: this.hasHeader,
-          valueColumn: this.getColumnNumber('value'),
-          typeColumn: this.getColumnNumber('type'),
-          friendlyNameColumn: this.getColumnNumber('friendly'),
-          filename: this.filename || null
-        };
-        if (this.fileChanged) {
-          // we uploaded a new file after editing
-          this.dataService.editFeedWithFile(feed, this.file)
-              .then( () => {
-                this.onCancel();
-              })
-              .catch( (err) => {
-                log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
-                this.error = err.error;
-              });
-        }
-        else {
-          // we didn't upload a new file
-          this.dataService.editFeedWithoutFile(feed)
-          .then( () => {
-            this.onCancel();
-          })
-          .catch( (err) => {
-            log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
-            this.error = err.error;
-          });
-        }
-
-      }
+    else if (this.type === 'manual' && this.editing) {
+      // submitting an edited manual feed
+      this.submitEditedManualFeed();
+    }
 
     else if (this.type === 'scheduled' && !this.editing) {
-      // adding a new scheduled feed
-      let feed: Feed = {
-        id: UUID.UUID(),
-        name: this.name,
-        type: this.type,
-        delimiter: this.delimiter,
-        headerRow: this.hasHeader,
-        valueColumn: this.getColumnNumber('value'),
-        typeColumn: this.getColumnNumber('type'),
-        friendlyNameColumn: this.getColumnNumber('friendly'),
-        version: 1,
-        url: this.url,
-        authentication: false,
-        schedule: { type: this.selectedSchedule, value: null }
-      };
+      // submitting a new scheduled feed
+      this.submitNewScheduledFeed();
+    }
 
-      if (this.urlAuthentication === 'enabled') {
-        feed.authentication = true;
-        feed.username = this.urlUser;
-        feed.password = this.encryptor.encrypt(this.urlPassword);
-      }
+    else if (this.type === 'scheduled' && this.editing) {
+      // submitting an edited scheduled feed
+      this.submitEditedScheduledFeed();
+    }
+  }
 
-      if (this.selectedSchedule === 'hours') {
-        feed.schedule.value = this.selectedScheduleHours;
-      }
-      else if (this.selectedSchedule === 'minutes') {
-        feed.schedule.value = this.selectedScheduleMinutes;
-      }
-      else if (this.selectedSchedule === 'day') {
-        feed.schedule.value = this.selectedScheduleDays;
-      }
 
-      this.dataService.addFeedScheduled(feed)
+
+  submitNewManualFeed() {
+    // submitting a new manual feed
+    let feed: Feed = {
+      id: UUID.UUID(),
+      name: this.name,
+      type: this.type,
+      delimiter: this.delimiter,
+      headerRow: this.hasHeader,
+      valueColumn: this.getColumnNumber('value'),
+      typeColumn: this.getColumnNumber('type'),
+      friendlyNameColumn: this.getColumnNumber('friendly'),
+      filename: this.filename || null
+    };
+    this.dataService.addFeedManual(feed, this.file)
       .then( () => {
         this.onCancel();
       })
       .catch( (err) => {
         log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
         this.error = err.error;
-      });
+        this.changeDetectionRef.markForCheck();
+      }
+    );
+  }
+
+
+
+  submitEditedManualFeed() {
+    // submitting an edited manual feed
+    let feed: Feed = {
+      id: this.editingId,
+      name: this.name,
+      type: this.type,
+      delimiter: this.delimiter,
+      headerRow: this.hasHeader,
+      valueColumn: this.getColumnNumber('value'),
+      typeColumn: this.getColumnNumber('type'),
+      friendlyNameColumn: this.getColumnNumber('friendly'),
+      filename: this.filename || null
+    };
+    if (this.fileChanged) {
+      // we uploaded a new file after editing
+      this.dataService.editFeedWithFile(feed, this.file)
+          .then( () => {
+            this.onCancel();
+          })
+          .catch( (err) => {
+            log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
+            this.error = err.error;
+            this.changeDetectionRef.markForCheck();
+          });
     }
-
-    else if (this.type === 'scheduled' && this.editing) {
-      // adding a new scheduled feed
-      let feed: Feed = {
-        id: this.editingId,
-        name: this.name,
-        type: this.type,
-        delimiter: this.delimiter,
-        headerRow: this.hasHeader,
-        valueColumn: this.getColumnNumber('value'),
-        typeColumn: this.getColumnNumber('type'),
-        friendlyNameColumn: this.getColumnNumber('friendly'),
-        url: this.url,
-        authentication: false,
-        schedule: { type: this.selectedSchedule, value: null }
-      };
-
-      if (this.urlAuthentication === 'enabled' && this.authChanged) {
-        feed.authentication = true;
-        feed.username = this.urlUser;
-        feed.password = this.encryptor.encrypt(this.urlPassword);
-        feed.authChanged = true;
-      }
-      else if (this.urlAuthentication === 'enabled' && !this.authChanged) {
-        feed.authentication = true;
-        feed.authChanged = false;
-      }
-
-      if (this.selectedSchedule === 'hours') {
-        feed.schedule.value = this.selectedScheduleHours;
-      }
-      else if (this.selectedSchedule === 'minutes') {
-        feed.schedule.value = this.selectedScheduleMinutes;
-      }
-      else if (this.selectedSchedule === 'day') {
-        feed.schedule.value = this.selectedScheduleDays;
-      }
-
+    else {
+      // we didn't upload a new file
       this.dataService.editFeedWithoutFile(feed)
       .then( () => {
         this.onCancel();
@@ -887,9 +815,109 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       .catch( (err) => {
         log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
         this.error = err.error;
+        this.changeDetectionRef.markForCheck();
       });
     }
-
   }
+
+
+
+  submitNewScheduledFeed() {
+    // submitting a new scheduled feed
+    let feed: Feed = {
+      id: UUID.UUID(),
+      name: this.name,
+      type: this.type,
+      delimiter: this.delimiter,
+      headerRow: this.hasHeader,
+      valueColumn: this.getColumnNumber('value'),
+      typeColumn: this.getColumnNumber('type'),
+      friendlyNameColumn: this.getColumnNumber('friendly'),
+      version: 1,
+      url: this.url,
+      authentication: false,
+      schedule: { type: this.selectedSchedule, value: null }
+    };
+
+    if (this.urlAuthentication === 'enabled') {
+      feed.authentication = true;
+      feed.username = this.urlUser;
+      feed.password = this.dataService.encryptor.encrypt(this.urlPassword);
+    }
+
+    if (this.selectedSchedule === 'hours') {
+      feed.schedule.value = this.selectedScheduleHours;
+    }
+    else if (this.selectedSchedule === 'minutes') {
+      feed.schedule.value = this.selectedScheduleMinutes;
+    }
+    else if (this.selectedSchedule === 'day') {
+      feed.schedule.value = this.selectedScheduleDays;
+    }
+
+    this.dataService.addFeedScheduled(feed)
+    .then( () => {
+      this.onCancel();
+    })
+    .catch( (err) => {
+      log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
+      this.error = err.error;
+      this.changeDetectionRef.markForCheck();
+    });
+  }
+
+
+
+  submitEditedScheduledFeed() {
+    // submitting an edited scheduled feed
+    let feed: Feed = {
+      id: this.editingId,
+      name: this.name,
+      type: this.type,
+      delimiter: this.delimiter,
+      headerRow: this.hasHeader,
+      valueColumn: this.getColumnNumber('value'),
+      typeColumn: this.getColumnNumber('type'),
+      friendlyNameColumn: this.getColumnNumber('friendly'),
+      url: this.url,
+      authentication: false,
+      schedule: { type: this.selectedSchedule, value: null }
+    };
+
+    if (this.urlAuthentication === 'enabled' && this.authChanged) {
+      feed.authentication = true;
+      feed.username = this.urlUser;
+      feed.password = this.dataService.encryptor.encrypt(this.urlPassword);
+      feed.authChanged = true;
+    }
+    else if (this.urlAuthentication === 'enabled' && !this.authChanged) {
+      feed.authentication = true;
+      feed.authChanged = false;
+    }
+
+    if (this.selectedSchedule === 'hours') {
+      feed.schedule.value = this.selectedScheduleHours;
+    }
+    else if (this.selectedSchedule === 'minutes') {
+      feed.schedule.value = this.selectedScheduleMinutes;
+    }
+    else if (this.selectedSchedule === 'day') {
+      feed.schedule.value = this.selectedScheduleDays;
+    }
+
+    this.dataService.editFeedWithoutFile(feed)
+    .then( () => {
+      this.onCancel();
+    })
+    .catch( (err) => {
+      log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
+      this.error = err.error;
+      this.changeDetectionRef.markForCheck();
+    });
+  }
+
+
+
+
 
 }

@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Pipe({name: 'fromEpoch'})
 

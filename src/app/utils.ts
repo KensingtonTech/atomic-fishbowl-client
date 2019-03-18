@@ -1,5 +1,6 @@
+import { Logger } from 'loglevel';
+declare var log: Logger;
 declare var moment;
-declare var log;
 
 export function convertTimeSelection(selectedTimeframe): any {
   // returns an object { timeBegin: epochTime, timeEnd: epochTime } from a string ('Last 5 Minutes', etc)

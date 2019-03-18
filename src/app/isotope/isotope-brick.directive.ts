@@ -1,14 +1,8 @@
 import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, NgZone } from '@angular/core';
 import { IsotopeDirective } from './isotope.directive';
-import * as imagesLoaded from 'imagesloaded';
-declare var log;
-
-interface MutationWindow extends Window {
-  MutationObserver: any;
-  WebKitMutationObserver: any;
-}
-
-declare var window: MutationWindow;
+import 'imagesloaded';
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Directive({
   // tslint:disable-next-line:directive-selector
@@ -26,8 +20,8 @@ export class IsotopeBrickDirective implements OnDestroy, AfterViewInit {
   // tslint:disable-next-line:no-input-rename
   @Input('observeBrickMutations') private enableObserver = false;
 
-  private observer: MutationObserver;
-  private imgsLoaded: any;
+  private observer: MutationObserver = null;
+  private imgsLoaded: ImagesLoaded.ImagesLoaded = null;
   private loadComplete = false;
 
 
@@ -66,16 +60,14 @@ export class IsotopeBrickDirective implements OnDestroy, AfterViewInit {
 
 
 
-  /** When HTML in brick changes dynamically, observe that and change layout */
   private watchForHtmlChanges(): void {
-
-    MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+    /** When HTML in brick changes dynamically, observe that and change layout */
 
     if (MutationObserver) {
       /** Watch for any changes to subtree */
       let self = this;
       this.observer = new MutationObserver(function(mutations, observerFromElement) {
-        log.debug('IsotopeBrickDirective: watchForHtmlChanges: MutationObserver: calling layout()');
+        log.debug('IsotopeBrickDirective: watchForHtmlChanges(): MutationObserver: calling layout()');
         self.parent.layout();
       });
 
@@ -85,6 +77,9 @@ export class IsotopeBrickDirective implements OnDestroy, AfterViewInit {
         subtree: true,
         childList: true
       });
+    }
+    else {
+      log.error('IsotopeBrickDirective: watchForHtmlChanges(): This browser is too old to use the MutationObserver API');
     }
   }
 

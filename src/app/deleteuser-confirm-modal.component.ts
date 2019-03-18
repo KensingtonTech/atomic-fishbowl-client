@@ -3,7 +3,8 @@ import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { Subject, Subscription } from 'rxjs';
 import { User } from './user';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'confirm-user-delete-modal',

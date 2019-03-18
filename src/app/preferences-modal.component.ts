@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { DataService } from './data.service';
 import { ModalService } from './modal/modal.service';
 import { defaultNwQueries } from './default-nw-queries';
@@ -7,7 +7,8 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { Preferences } from './preferences';
 import { Subscription } from 'rxjs';
 import { ToolService } from './tool.service';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'preferences-modal',
@@ -25,7 +26,8 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private modalService: ModalService,
-              private toolService: ToolService) {}
+              private toolService: ToolService,
+              private changeDetectionRef: ChangeDetectorRef) {}
 
   public id = 'preferences-modal';
 
@@ -118,9 +120,11 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (preferences: Preferences) => this.onPreferencesChanged(preferences) );
 
-    this.masonryColumnWidth = Number(this.toolService.getPreference('masonryColumnWidth')) || 350;
+    this.masonryColumnWidth = this.toolService.getPreference('masonryColumnWidth') || 350;
 
-    this.autoScrollSpeed = Number(this.toolService.getPreference('autoScrollSpeed')) || 200;
+    this.autoScrollSpeed = this.toolService.getPreference('autoScrollSpeed') || 200;
+
+    this.changeDetectionRef.markForCheck();
 
   }
 
@@ -264,6 +268,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     if (preferences.serviceTypes.sa) {
       this.selectedServiceTypes[1] = 'sa';
     }
+    this.changeDetectionRef.markForCheck();
     // log.debug(this.preferencesModel);
   }
 
@@ -305,6 +310,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     }
     this.preferencesModel.serviceTypes.nw = nw;
     this.preferencesModel.serviceTypes.sa = sa;
+    this.changeDetectionRef.markForCheck();
   }
 
 }

@@ -1,11 +1,12 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
 import { Feed } from './feed';
 import * as utils from './utils';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 interface FeedStatus {
   good: boolean;
@@ -36,6 +37,7 @@ interface FeedStatus {
       display: table-cell;
       font-weight: bold;
       font-size: 14pt;
+      height: 35px;
     }
     .row-group {
       display: table-row-group;
@@ -71,16 +73,7 @@ interface FeedStatus {
     .modal-body {
       background-color: rgba(255,255,255,1);
     }
-    .ui-inputgroup {
-      display: inline-block;
-    }
 
-    .feedToolbar {
-      position: absolute;
-      top: -30px;
-      right: 50px;
-      width: auto;
-    }
   `]
 })
 
@@ -88,7 +81,8 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
               private toolService: ToolService,
-              private modalService: ModalService ) {}
+              private modalService: ModalService,
+              private changeDetectionRef: ChangeDetectorRef ) {}
 
   public feeds: Feed[];
   public displayedFeeds: Feed[];
@@ -136,6 +130,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
       return;
     }
     this.feedStatus = feedStatus;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -154,6 +149,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
     }
     this.feeds = tempFeeds;
     this.filterChanged();
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -209,6 +205,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
       }
       this.displayedFeeds = tempFeeds;
     }
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -216,6 +213,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
   public clearFilter(): void {
     this.filterText = '';
     this.filterChanged();
+    this.changeDetectionRef.markForCheck();
   }
 
 

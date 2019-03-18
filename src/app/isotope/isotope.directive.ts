@@ -1,8 +1,10 @@
-import { Directive, OnInit, OnChanges, Input, Output, ElementRef, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, Renderer2 } from '@angular/core';
-import { IsotopeOption } from './isotope-option';
-import { ToolService } from '../tool.service';
-declare var log;
+import { Directive, OnInit, OnChanges, Input, ElementRef, NgZone, Renderer2, OnDestroy } from '@angular/core';
+import { IsotopeConfig } from './isotope-config';
+import { IsotopeAPI } from './isotope-api';
+import { Logger } from 'loglevel';
+declare var log: Logger;
 declare var $: any;
+// import * as Isotope from 'isotope-layout'; // we're not using typescript / webpack loading as doing so breaks layout on prod.  We instead use a <script> tag in index.html to load it from resources
 declare var Isotope;
 
 @Directive({
@@ -10,16 +12,16 @@ declare var Isotope;
   selector: '[isotope], isotope'
 })
 
-export class IsotopeDirective implements OnInit, OnChanges {
+export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
   constructor(  public el: ElementRef,
-                private toolService: ToolService,
                 private ngZone: NgZone,
                 private renderer: Renderer2 ) {}
 
 
-  @Input() public options: IsotopeOption;
+  @Input() public config: IsotopeConfig;
   @Input() public filter = '*';
+  private api: IsotopeAPI;
   public isotope: any = null;
   private isDestroyed = false;
   private removeTimer: any = null;
@@ -37,27 +39,43 @@ export class IsotopeDirective implements OnInit, OnChanges {
       };
     });
 
-    // Create isotope options object
+    // create public API
+    this.api = {
+      layout: this.layout.bind(this),
+      destroyMe: this.destroyMe.bind(this)
+    };
+    this.config.api.next(this.api);
+
+    // Create isotope isotopeConfig object
     // Set default itemSelector
-    if (!this.options.itemSelector) {
-      this.options.itemSelector = '[isotope-brick], isotope-brick';
+    if (!this.config.itemSelector) {
+      this.config.itemSelector = '[isotope-brick], isotope-brick';
     }
-    // log.debug('IsotopeDirective: ngOnInit(): options:', this.options);
+    // log.debug('IsotopeDirective: ngOnInit(): config:', this.config);
 
     // Initialize Isotope
-    // this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, this.options) );
-    this.isotope = new Isotope(this.el.nativeElement, this.options);
+    // this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, <Isotope.IsotopeOptions><unknown>this.config) );
+    this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, this.config) );
+    // this.isotope = new Isotope(this.el.nativeElement, this.config);
 
     // Perform actions on layoutComplete event
     this.ngZone.runOutsideAngular( () => {
       this.isotope.on( 'layoutComplete', this.onLayoutComplete );
     });
+
+    this.config.initialized.next(true);
+  }
+
+
+
+  ngOnDestroy() {
+    this.config.initialized.next(false);
   }
 
 
 
   private onLayoutComplete = () => {
-    this.options.layoutComplete.next(this.isotope.modes.masonry.maxY); // send the height of the container
+    this.config.layoutComplete.next(this.isotope.modes.masonry.maxY); // send the height of the container
   }
 
 
@@ -65,12 +83,12 @@ export class IsotopeDirective implements OnInit, OnChanges {
   ngOnChanges(values: any): void {
     // log.debug('IsotopeDirective: ngOnChanges()', e);
 
-    if ('options' in values && this.isotope !== null ) {
-      log.debug('IsotopeDirective: ngOnChanges(): got new options.  arranging');
-       this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
+    if ('config' in values && this.isotope) {
+      log.debug('IsotopeDirective: ngOnChanges(): got new config.  arranging');
+       this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.config ) );
     }
 
-    else if ('filter' in values && this.isotope !== null) {
+    else if ('filter' in values && this.isotope) {
       log.debug('IsotopeDirective: ngOnChanges(): this.filter:', this.filter);
       this.ngZone.runOutsideAngular( () => this.isotope.arrange( { filter: this.filter } ) );
     }
@@ -81,7 +99,7 @@ export class IsotopeDirective implements OnInit, OnChanges {
 
   public destroyMe(): void {
     // this is used because onDestroy() is called after the bricks get removed.  We want to enhance performance by not allowing all the isotope remove operations to take place, and instead just destroy Isotope altogether.
-    log.debug('IsotopeDirective: destroyMe():  Manually destroying isotope');
+    log.debug('IsotopeDirective: destroyMe():  Killing Isotope');
     if (this.isotope) {
       this.ngZone.runOutsideAngular( () => { this.isotope.off( 'layoutComplete', this.onLayoutComplete ); } );
       this.isotope = null;
@@ -94,7 +112,7 @@ export class IsotopeDirective implements OnInit, OnChanges {
   public layout() {
     log.debug('IsotopeDirective: layout()');
 
-    if (this.isotope === undefined) {
+    if (!this.isotope) {
       return;
     }
 
@@ -102,8 +120,8 @@ export class IsotopeDirective implements OnInit, OnChanges {
       this.ngZone.runOutsideAngular( () => this.isotope.arrange( {filter: this.filter} ) );
     }
 
-    else if (this.options) {
-      this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.options ) );
+    else if (this.config) {
+      this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.config ) );
     }
 
     else {

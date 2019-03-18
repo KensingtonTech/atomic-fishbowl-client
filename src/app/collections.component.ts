@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
@@ -9,38 +9,50 @@ import { Collection } from './collection';
 import { Preferences } from './preferences';
 import { DragulaService } from 'ng2-dragula';
 import * as utils from './utils';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'collections',
   templateUrl: './collections.component.html',
   styles: [`
+
     .table {
       display: table;
       border-collapse: separate;
       border-spacing: 2px;
     }
+
     .header {
       display: table-header-group;
+      padding-bottom: 10px;
     }
+
     .row {
       display: table-row;
     }
+
     .cell {
       display: table-cell;
       padding: 2px;
       border-bottom: 1px solid black;
     }
+
     .header-cell {
       display: table-cell;
       font-weight: bold;
       font-size: 14pt;
+      height: 35px;
     }
+
     .row-group {
       display: table-row-group;
       border: 1px solid black;
+      overflow: auto;
     }
+
     .row-group > .row:nth-child(even) {background: #CCC;}
+
     .row-group > .row:nth-child(odd) {background: #FFF;}
 
     .grabbable {
@@ -49,36 +61,34 @@ declare var log;
       cursor: -moz-grab;
       cursor: -webkit-grab;
     }
+
     /* (Optional) Apply a "closed-hand" cursor during drag operation. */
     .grabbable:active {
       cursor: grabbing;
       cursor: -moz-grabbing;
       cursor: -webkit-grabbing;
     }
+
     .center {
       text-align: center;
     }
+
     .link {
       cursor: pointer;
     }
+
     .link:hover {
       font-weight: bold;
     }
+
     .no-nw-server:hover {
       color: red;
     }
+
     .modal-body {
       background-color: rgba(255,255,255,1);
     }
-    .ui-inputgroup {
-      display: inline-block;
-    }
-    .collectionsToolbar {
-      position: absolute;
-      top: -30px;
-      right: 50px;
-      width: auto;
-    }
+
   `]
 })
 
@@ -87,6 +97,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   constructor(private dataService: DataService,
               private toolService: ToolService,
               private modalService: ModalService,
+              private changeDetectionRef: ChangeDetectorRef,
               private dragulaService: DragulaService ) {
                 let bag: any = dragulaService.find('first-bag');
                 if (bag !== undefined) {
@@ -98,7 +109,6 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public collections: Collection[] = [];
   public origCollections = {};
   public displayedCollections: Collection[];
-  private selectedCollection: Collection;
   public nwServers: any = {};
   public saServers: any = {};
   private utils = utils;
@@ -177,6 +187,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       return;
     }
     this.nwServers = apiServers;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -186,6 +197,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       return;
     }
     this.saServers = apiServers;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -214,6 +226,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.collections = tempCollections;
     log.debug('CollectionsComponent: onCollectionsChanged(): collections update', this.collections);
     this.filterChanged();
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -327,7 +340,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     log.debug('CollectionsComponent: onDeleteConfirmed(): Received onDeleteConfirmed event');
     // there are two paths - deleting the currently selected collection, or deleting the collection which isn't selected
 
-    if (this.selectedCollection && collectionId === this.selectedCollection.id) {
+    if (this.toolService.selectedCollection && collectionId === this.toolService.selectedCollection.id) {
       // we've deleted the currently selected collection
       this.dataService.leaveCollection();
       this.dataService.noCollections.next();
@@ -352,13 +365,13 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
   onCollectionExecuted(collection: Collection): void {
     // only runs when we click a collection, add a new collection, or edit an existing collection
-    if (!this.editing && this.selectedCollection && this.selectedCollection.id === collection.id) {
+    if (!this.editing && this.toolService.selectedCollection && this.toolService.selectedCollection.id === collection.id) {
       this.modalService.close(this.tabContainerModalId);
       return;
     }
     log.debug('CollectionsComponent: onCollectionExecuted():', collection.id, collection);
     this.editing = false; // just resets this value for the next run
-    this.selectedCollection = collection;
+    this.toolService.selectedCollection = collection;
     this.connectToCollection(collection);
     this.modalService.close(this.tabContainerModalId);
 
@@ -369,13 +382,13 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   onGetCollectionDataAgain(): void {
     // triggered by router component when we switch between views
     log.debug('CollectionsComponent: onGetCollectionDataAgain()');
-    if (!this.selectedCollection || (this.selectedCollection && !( this.selectedCollection.id in this.origCollections) ) ) {
+    if (!this.toolService.selectedCollection || (this.toolService.selectedCollection && !( this.toolService.selectedCollection.id in this.origCollections) ) ) {
       // selectedCollection should only ever be undefined if we close the window on first load without ever selecting a collection...
       // we need the second clause in case we delete a collection and switch views.  It will try to reload the deleted collection...
       // resulting in a server crash
       return;
     }
-    this.connectToCollection(this.selectedCollection);
+    this.connectToCollection(this.toolService.selectedCollection);
   }
 
 
@@ -452,6 +465,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public clearFilter(): void {
     this.filterText = '';
     this.filterChanged();
+    this.changeDetectionRef.markForCheck();
   }
 
 }

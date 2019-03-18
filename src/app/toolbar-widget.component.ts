@@ -1,29 +1,31 @@
-import { Component, OnInit, OnDestroy, ViewChildren, Input, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
 import { Collection } from './collection';
-import { NwServer } from './nwserver';
 import { ModalService } from './modal/modal.service';
-import { AuthenticationService } from './authentication.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { UseCase } from './usecase';
-import { SelectItem } from 'primeng/components/common/selectitem';
 import { Subscription } from 'rxjs';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component( {
   selector: 'toolbar-widget',
   template: `
-<div style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;" class="afb-toolbar">
+<div class="afb-toolbar" style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
 
-  <div *ngIf="selectedCollection">
+  <ng-container *ngIf="selectedCollection">
     <div style="position: absolute; top: 6px; width: 100%">
       <span class="noselect">
+        &nbsp;&nbsp;&nbsp;
         <span class="label" style="font-style: underline;" (click)="onCollectionsClick()"><u>{{selectedCollection.name}}</u></span>
 
+        &nbsp;
+        <!--<span class="fa fa-ellipsis-v fa-lg fa-fw"></span>-->
+
         <!--Info Tooltip Icon-->
-        <span class="collectionTooltip" *ngIf="selectedCollection" [pTooltip]="buildTooltip()" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" escape="true" class="fa fa-info-circle fa-lg fa-fw"></span>
+        <span class="collectionTooltip" *ngIf="selectedCollection" [pTooltip]="infoTooltipText" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" class="fa fa-info-circle fa-lg fa-fw"></span>
 
         <!-- Edit Icon -->
         <span *ngIf="selectedCollection.type != 'fixed'" pTooltip="Edit collection" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
@@ -42,16 +44,14 @@ declare var log;
 
       <!--Statistics Text-->
       <span>
-        <span *ngIf="selectedCollection.type == 'fixed'" class="label">Fixed</span>
-        <span *ngIf="selectedCollection.type == 'rolling'" class="label">Rolling</span>
-        <span *ngIf="selectedCollection.type == 'monitoring'" class="label">Monitoring</span>
-        <!-- <span class="label"> {{selectedCollection.serviceType | allCaps}} Collection&nbsp;&nbsp;</span> -->
-        <span class="label"> Collection&nbsp;&nbsp;</span>
+        <span class="label"> {{selectedCollection.type | capFirstLetter}} Collection&nbsp;&nbsp;</span>
 
+        <!-- Collection Time -->
         <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeBegin | formatTime}}</span>
         <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time2: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeEnd | formatTime}}</span>
       </span>
+
     </div>
 
     <!--Mask & Search Buttons-->
@@ -84,7 +84,7 @@ declare var log;
       <!--Search Button-->
       <span *ngIf="contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
     </div>
-  </div>
+  </ng-container>
 
   <!--Choose a Collection-->
   <div *ngIf="!selectedCollection" (click)="onCollectionsClick()" style="position: absolute; top: 7px; left: 10px;" class="noselect">
@@ -118,13 +118,6 @@ declare var log;
   <div class="count">Dodgy<br>Archives: {{contentCount?.dodgyArchives}}</div>
   <div class="count">Extracted From<br>Archives: {{contentCount?.fromArchives}}</div>
 </div>
-
-<!-- modals -->
-<tab-container-modal [id]="tabContainerModalId"></tab-container-modal>
-<splash-screen-modal></splash-screen-modal>
-<preferences-modal></preferences-modal>
-<manage-users-modal></manage-users-modal>
-<collection-deleted-notify-modal></collection-deleted-notify-modal>
 `,
 
   styles: [`
@@ -168,7 +161,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   constructor (private dataService: DataService,
                private modalService: ModalService,
                private toolService: ToolService,
-               private authService: AuthenticationService ) {}
+               private changeDetectionRef: ChangeDetectorRef ) {}
 
   @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
 
@@ -201,6 +194,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private useCasesObj = {};
   public workerProgress: number = null;
   public workerLabel: string = null;
+  public infoTooltipText = '';
 
 
   // Subscriptions
@@ -255,6 +249,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   onQueryResultsCountUpdated(count: number): void {
     log.debug('ToolbarWidgetComponent: onQueryResultsCountUpdated(): count:', count);
     this.queryResultsCount = count;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -263,6 +258,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onCollectionStateChanged(): state:', state);
     this.iconDecider(state);
     this.selectedCollection.state = state;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -271,6 +267,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onWorkerProgress(): progress:', progress);
     this.workerProgress = progress.workerProgress;
     this.workerLabel = progress.label;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -282,7 +279,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     // the grid view invokes onGetCollectionDataAgain() of CollectionsComponent, which is a child of this component.
     // This causes the stupid error as things are happening out-of-order for the change detection system
     // It isn't worth reworking the code to fix properly
-    setTimeout( () => this.contentCount = count, 0);
+    this.contentCount = count;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -294,6 +292,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     }
     this.useCases = useCases.useCases;
     this.useCasesObj = useCases.useCasesObj;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -308,10 +307,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     let distillationTerms = '';
     let regexDistillationTerms = '';
 
-    if (this.selectedCollection.bound === true && this.useCases.length === 0) {
-      return '';
+    if (this.selectedCollection.bound && this.useCases.length === 0) {
+      this.infoTooltipText = 'This collection was created with a bound use case but doesn\'t have any cases defined';
+      return;
     }
-    else if (this.selectedCollection.bound === true) {
+    else if (this.selectedCollection.bound) {
       // OOTB use case
       let useCaseName = this.selectedCollection.usecase;
       let useCase = this.useCasesObj[useCaseName];
@@ -393,56 +393,64 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     tt = tt + distillationTerms;
     tt = tt + regexDistillationEnabled;
     tt = tt + regexDistillationTerms;
-    // log.debug('tt:',tt);
-    return tt;
+    log.debug('tt:', tt);
+    this.infoTooltipText = tt;
   }
 
   imageMaskClick(): void {
     this.showImages = !this.showImages;
     this.maskState.showImage = !this.maskState.showImage;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   pdfMaskClick(): void {
     this.showPdfs = !this.showPdfs;
     this.maskState.showPdf = !this.maskState.showPdf;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   wordMaskClick(): void {
     this.showWord = !this.showWord;
     this.maskState.showWord = !this.maskState.showWord;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   excelMaskClick(): void {
     this.showExcel = !this.showExcel;
     this.maskState.showExcel = !this.maskState.showExcel;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   powerpointMaskClick(): void {
     this.showPowerpoint = !this.showPowerpoint;
     this.maskState.showPowerpoint = !this.maskState.showPowerpoint;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   hashMaskClick(): void {
     this.showHashes = !this.showHashes;
     this.maskState.showHash = !this.maskState.showHash;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   dodgyMaskClick(): void {
     this.showDodgyArchives = !this.showDodgyArchives;
     this.maskState.showDodgy = !this.maskState.showDodgy;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   fromArchivesOnlyMaskClick(): void {
     this.showFromArchivesOnly = !this.showFromArchivesOnly;
     this.maskState.showFromArchivesOnly = !this.maskState.showFromArchivesOnly;
     this.toolService.maskChanged.next(this.maskState);
+    this.changeDetectionRef.markForCheck();
   }
 
   iconDecider(state: string): void {
@@ -460,6 +468,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     else if (state === 'error') {
       this.errorIcon = true;
     }
+    this.changeDetectionRef.markForCheck();
   }
 
   preferencesButtonClick(): void {
@@ -507,9 +516,13 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.maskState = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true, showFromArchivesOnly: false };
     this.toolService.maskChanged.next(this.maskState);
 
+    this.buildTooltip();
+
     if (collection.type === 'fixed') {
       this.iconDecider(collection.state);
     }
+    this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.detectChanges();
   }
 
   onEscape(event: KeyboardEvent ) {
@@ -517,6 +530,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     if (event.key === 'Escape' && this.showSearch) {
       this.toggleSearch();
     }
+    this.changeDetectionRef.markForCheck();
   }
 
   toggleSearch(): void {
@@ -533,6 +547,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
         this.searchTerms = this.oldSearchTerms;
         this.searchTermsUpdate();
       }
+      this.changeDetectionRef.markForCheck();
 
       setTimeout( () => this.searchBoxRef.first.nativeElement.focus(), 50); // we use a setTimeout because of a weird timing issue caused by *ngIf.  Without it, .first is undefined
     }
@@ -551,7 +566,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
   logoutButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: logoutButtonClick()");
-    // this.authService.logout();
     this.toolService.logout.next();
   }
 
@@ -559,6 +573,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.selectedCollection = null;
     this.selectedCollectionId = null;
     this.contentCount = new ContentCount;
+    this.changeDetectionRef.markForCheck();
   }
 
   onCollectionsClick(): void {

@@ -9,19 +9,19 @@ import { Ng2PanZoomModule } from 'ng2-panzoom';
 import { IsotopeModule } from './isotope/isotope.module';
 
 // PrimeNG
-import { CalendarModule } from 'primeng/components/calendar/calendar';
-import { TooltipModule } from 'primeng/components/tooltip/tooltip';
-import { ButtonModule } from 'primeng/components/button/button';
-import { RadioButtonModule } from 'primeng/components/radiobutton/radiobutton';
-import { SelectButtonModule } from 'primeng/components/selectbutton/selectbutton';
-import { DropdownModule } from 'primeng/components/dropdown/dropdown';
-import { ListboxModule } from 'primeng/components/listbox/listbox';
-import { InputTextModule } from 'primeng/components/inputtext/inputtext';
-import { FileUploadModule } from 'primeng/components/fileupload/fileupload';
-import { CheckboxModule } from 'primeng/components/checkbox/checkbox';
-import { DragDropModule } from 'primeng/components/dragdrop/dragdrop';
-import { TabViewModule } from 'primeng/components/tabview/tabview';
-import { ToolbarModule } from 'primeng/components/toolbar/toolbar';
+import { CalendarModule } from 'primeng/calendar';
+import { TooltipModule } from 'primeng/tooltip';
+import { ButtonModule } from 'primeng/button';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { DropdownModule } from 'primeng/dropdown';
+import { ListboxModule } from 'primeng/listbox';
+import { InputTextModule } from 'primeng/inputtext';
+import { FileUploadModule } from 'primeng/fileupload';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DragDropModule } from 'primeng/dragdrop';
+import { TabViewModule } from 'primeng/tabview';
+import { ToolbarModule } from 'primeng/toolbar';
 
 // Angular Material
 import { MatCardModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule } from '@angular/material';
@@ -36,6 +36,7 @@ import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
+import { ModalService } from './modal/modal.service';
 
 // Our Pipes
 import { FromEpochPipe } from './pipes/from-epoch.pipe';
@@ -43,6 +44,7 @@ import { FormatTimePipe } from './pipes/format-time.pipe';
 import { FormatSaTimePipe } from './pipes/format-satime.pipe';
 import { MapValuesPipe } from './pipes/mapValues.pipe';
 import { AllCapsPipe } from './pipes/allcaps.pipe';
+import { CapFirstLetterPipe } from './pipes/cap-firstletter.pipe';
 
 // Our Directives
 import { ToggleFullscreenDirective } from './fullscreen.directive';
@@ -59,13 +61,13 @@ import { PreferencesModalComponent } from './preferences-modal.component';
 import { ManageUsersModalComponent } from './manageusers-modal.component';
 import { ClassicGridComponent } from './classic-grid.component';
 import { MasonryGridComponent } from './masonry-grid.component';
-import { ClassicControlBarComponent } from './classic-controlbar.component';
-import { MasonryControlBarComponent } from './masonry-controlbar.component';
+import { ClassicControlBarComponent } from './controlbar-classic.component';
+import { MasonryControlBarComponent } from './controlbar-masonry.component';
 import { ClassicSessionPopupComponent } from './classic-session-popup.component';
 import { PdfViewerModalComponent } from './pdfviewer-modal.component';
 import { ClassicTileComponent } from './classic-tile.component';
 import { MetaAccordionComponent } from './meta-accordion.component';
-import { RouterDropdownComponent } from './router-dropdown.component';
+import { RouterDropdownComponent } from './controlbar-router-dropdown.component';
 import { MasonryTileComponent } from './masonry-tile.component';
 import { SessionDetailsModalComponent } from './session-details-modal.component';
 import { DeleteUserConfirmModalComponent } from './deleteuser-confirm-modal.component';
@@ -149,6 +151,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   FormatSaTimePipe,
                   MapValuesPipe,
                   AllCapsPipe,
+                  CapFirstLetterPipe,
                   NwCollectionModalComponent,
                   DeleteCollectionConfirmModalComponent,
                   ClassicControlBarComponent,
@@ -182,7 +185,8 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                 ],
   providers:    [ DataService,
                   AuthenticationService,
-                  ToolService
+                  ToolService,
+                  ModalService
                 ],
   bootstrap:    [ AppComponent ]
 

@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
 import { ToolService } from './tool.service';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'eula',
@@ -64,9 +65,15 @@ declare var log;
   styles: [``]
 })
 
-export class EulaComponent {
+export class EulaComponent implements OnInit {
 
-  constructor(private toolService: ToolService) {}
+  constructor(private toolService: ToolService,
+              private renderer: Renderer2,
+              private elRef: ElementRef ) {}
+
+  ngOnInit() {
+    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
+  }
 
   onAccept(): void {
     this.toolService.setPreference('eulaAccepted', true);

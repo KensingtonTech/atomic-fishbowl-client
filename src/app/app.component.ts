@@ -3,31 +3,39 @@ import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription} from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
 import { ToolService } from './tool.service';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 
 @Component({
   selector: 'atomic-fishbowl-app',
   template: `
 <div *ngIf="isMobile">
-  So sorry, but mobile devices aren't currently supported by Atomic Fishbowl.
+  So sorry, but mobile devices aren't supported by Atomic Fishbowl.
 </div>
 
-<eula *ngIf="!eulaAccepted"></eula>
+<ng-container *ngIf="!isMobile">
 
-<div *ngIf="serverReachable && !isMobile && eulaAccepted" style="position: relative; width: 100vw; height: 100vh;">
+  <eula *ngIf="!eulaAccepted"></eula>
 
-  <login-form *ngIf="!loggedIn && credentialsChecked"></login-form>
+  <ng-container *ngIf="eulaAccepted">
 
-  <toolbar-widget *ngIf="loggedIn"></toolbar-widget>
-  <router-outlet *ngIf="loggedIn"></router-outlet>
-  <img *ngIf="loggedIn" class="noselect" src="/resources/logo.png" style="position: absolute; left:10px; bottom: 15px;">
+    <div *ngIf="serverReachable" style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden;">
 
-</div>
+      <login-form *ngIf="!loggedIn && credentialsChecked"></login-form>
 
-<serverdown-modal id="serverDownModal"></serverdown-modal>
+      <ng-container *ngIf="loggedIn">
+        <router-outlet></router-outlet>
+        <img class="noselect" src="/resources/logo.png" style="position: absolute; left:10px; bottom: 15px;">
+      </ng-container>
+
+    </div>
+
+    <serverdown-modal id="serverDownModal"></serverdown-modal>
+  </ng-container>
+
+</ng-container>
 `
 })
 
@@ -36,18 +44,20 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(private authService: AuthenticationService,
               private dataService: DataService,
               private modalService: ModalService,
-              private toolService: ToolService,
-              private route: ActivatedRoute,
-              private router: Router ) {}
+              private toolService: ToolService) { }
 
   public loggedIn = false;
   public serverReachable = false;
-  private credentialsChecked = false;
+  public credentialsChecked = false;
   public isMobile = false;
   public eulaAccepted = false;
+  private pingInterval: any;
 
+  // Subscriptions
   private loggedInChangedSubscription: Subscription;
   private eulaAcceptedSubscription: Subscription;
+
+
 
   ngOnInit(): void {
 
@@ -56,46 +66,79 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loggedInChangedSubscription = this.authService.loggedInChanged.subscribe( (loggedIn: boolean) => {
-      this.loggedIn = loggedIn;
-    });
+    this.loggedInChangedSubscription = this.authService.loggedInChanged.subscribe( loggedIn => this.onLoginChanged(loggedIn) );
 
-    // run initial ping to see if server is reachable
-    this.dataService.ping()
-                      .then( () => {
-                        this.serverReachable = true;
-                      })
-                      .then( () => this.authService.checkCredentials() )
-                      .then ( () => {
-                        this.credentialsChecked = true;
-                      } )
-                      .catch( () => {
-                        this.serverReachable = false;
-                        this.modalService.open('serverDownModal');
-                      });
-
-    // schedule a ping every 10 seconds and display error modal if it becomes unreachable
-    setInterval( () => {
-      this.dataService.ping()
-                      .then( () => {
-                        this.modalService.close('serverDownModal');
-                        this.serverReachable = true;
-                        if (!this.credentialsChecked) {
-                          this.authService.checkCredentials();
-                        }
-                      })
-                      .catch( () => {
-                        this.serverReachable = false;
-                        this.modalService.open('serverDownModal');
-                      });
-    }, 10000);
-
-    if (this.toolService.getPreference('eulaAccepted') ) {
-      this.eulaAccepted = true;
+    if (this.toolService.getPreference('eulaAccepted') !== null ) {
+      this.eulaAccepted = this.toolService.getPreference('eulaAccepted');
+    }
+    if (this.eulaAccepted) {
+      this.startPing();
     }
 
-    this.eulaAcceptedSubscription = this.toolService.eulaAccepted.subscribe( () => this.eulaAccepted = true);
+    this.eulaAcceptedSubscription = this.toolService.eulaAccepted.subscribe( () => {
+      this.eulaAccepted = true;
+      this.startPing();
+    } );
 
+  }
+
+
+
+  onLoginChanged(loggedIn: boolean) {
+    log.debug('AppComponent: onLoginChanged(): loggedIn:', loggedIn);
+    this.loggedIn = loggedIn;
+    if (!loggedIn) {
+      setTimeout( () => {
+        // wrapped in setTimeout to allow components to be destroyed before invalidating their inputs
+        this.dataService.stop();
+        this.toolService.stop();
+      }, 0);
+    }
+    else {
+      this.dataService.start();
+    }
+  }
+
+
+
+  startPing() {
+    log.debug('AppComponent: startPing()');
+    // run initial ping to see if server is reachable
+    this.dataService.ping()
+    .then( () => {
+      this.serverReachable = true;
+    })
+    .then( () => this.authService.checkCredentials() )
+    .then( () => {
+      this.credentialsChecked = true;
+    } )
+    .catch( () => {
+      this.serverReachable = false;
+      this.modalService.open('serverDownModal');
+    });
+
+    // schedule a ping every 10 seconds and display error modal if it becomes unreachable
+    this.pingInterval = setInterval( () => {
+      this.dataService.ping()
+      .then( () => {
+        this.modalService.close('serverDownModal');
+        this.serverReachable = true;
+        if (!this.credentialsChecked) {
+          this.authService.checkCredentials();
+        }
+      })
+      .catch( () => {
+        this.serverReachable = false;
+        this.modalService.open('serverDownModal');
+      });
+      }, 10000);
+  }
+
+
+
+  public ngOnDestroy(): void {
+    this.loggedInChangedSubscription.unsubscribe();
+    this.eulaAcceptedSubscription.unsubscribe();
   }
 
 
@@ -104,9 +147,6 @@ export class AppComponent implements OnInit, OnDestroy {
     return (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1);
   }
 
-  public ngOnDestroy(): void {
-    this.loggedInChangedSubscription.unsubscribe();
-    this.eulaAcceptedSubscription.unsubscribe();
-  }
+
 
 }

@@ -1,25 +1,24 @@
 <!-- Toolbar -->
-<p-toolbar class="collectionsToolbar">
-    <div *ngIf="preferences" class="ui-toolbar-group-right">
-      <!-- <ng-container *ngIf="preferences.serviceTypes.nw"><p-button type="button" (click)="onAddNwCollectionClick()" label="New NW Collection"></p-button>&nbsp;</ng-container> -->
-      <ng-container *ngIf="preferences.serviceTypes.nw"><p-button type="button" (click)="onAddNwCollectionClick()" label="New Collection"></p-button>&nbsp;</ng-container>
-      <p-button *ngIf="preferences.serviceTypes.sa" type="button" (click)="onAddSaCollectionClick()" label="New SA Collection"></p-button>
-      <div class="ui-inputgroup">
-        <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
-        <input name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
-        <button pButton type="button" icon="fa-close" class="ui-button-danger" (click)="clearFilter()"></button>
-      </div>
+<p-toolbar *ngIf="preferences" styleClass="collectionsToolbar">
+  <p-button *ngIf="preferences.serviceTypes.nw" type="button" (click)="onAddNwCollectionClick()" label="New Collection"></p-button>
+  <p-button *ngIf="preferences.serviceTypes.sa" type="button" (click)="onAddSaCollectionClick()" label="New Collection"></p-button>
+  &nbsp;&nbsp;
+  <div class="ui-toolbar-group-right">
+    <div class="ui-inputgroup">
+      <span class="ui-inputgroup-addon"><i class="pi pi-search"></i></span>
+      <input pInputText name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
+      <button pButton type="button" icon="pi pi-times" class="ui-button-danger" (click)="clearFilter()"></button>
     </div>
-  </p-toolbar>
-
+  </div>
+</p-toolbar>
 
 <div *ngIf="collections && collections.length == 0"><p>No collections are defined</p></div>
 
 <!--collections container-->
-<div *ngIf="displayedCollections && displayedCollections.length > 0 && preferences" style="position: relative; top: 25px; width: 100%; margin-bottom: 25px; height: 100%; overflow: auto;">
+<div *ngIf="displayedCollections && displayedCollections.length > 0 && preferences" style="position: relative; width: 100%; margin-bottom: 25px; height: 100%; overflow: auto;">
   <div class="table tabTable" style="width: 100%; margin: auto;">
 
-    <div class="header">
+    <div class="header noselect">
       <div class="row">
         <div class="header-cell">Collection Name</div>
         <div class="header-cell">Type</div>
@@ -89,7 +88,4 @@
   </div>
 </div>
 
-
-<nw-collection-modal [id]="nwCollectionModalId"></nw-collection-modal>
-<sa-collection-modal [id]="saCollectionModalId"></sa-collection-modal>
 <delete-collection-confirm-modal></delete-collection-confirm-modal>

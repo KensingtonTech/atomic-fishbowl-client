@@ -2,9 +2,10 @@ import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
-import { Subject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Feed } from './feed';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'confirm-feed-delete-modal',
@@ -63,7 +64,7 @@ export class DeleteFeedConfirmModalComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private dataService: DataService  ) {}
 
-  @Input('id') public id: string;
+  @Input() public id: string;
   public feed: Feed;
   private deleteFeedNextSubscription: Subscription;
   public error = '';

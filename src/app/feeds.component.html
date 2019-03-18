@@ -1,11 +1,12 @@
 <!-- New toolbar, for after we tab-ify-->
-<p-toolbar class="feedToolbar">
+<p-toolbar styleClass="feedToolbar">
+  <p-button type="button" (click)="onAddFeedClick()" label="New Feed"></p-button>
+  &nbsp;&nbsp;
   <div class="ui-toolbar-group-right">
-    <p-button type="button" (click)="onAddFeedClick()" label="New Feed"></p-button>
     <div class="ui-inputgroup">
-      <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
-      <input name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
-      <button pButton type="button" icon="fa-close" class="ui-button-danger" (click)="clearFilter()"></button>
+      <span class="ui-inputgroup-addon"><i class="pi pi-search"></i></span>
+      <input pInputText name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
+      <button pButton type="button" icon="pi pi-times" class="ui-button-danger" (click)="clearFilter()"></button>
     </div>
   </div>
 </p-toolbar>
@@ -13,10 +14,10 @@
 <div *ngIf="feeds && feeds.length == 0"><p>No feeds are defined</p></div>
 
 <!--feed container-->
-<div *ngIf="feeds && feeds.length > 0" style="position: relative; top: 25px; width: 100%; overflow: auto;">
+<div *ngIf="feeds && feeds.length > 0" style="position: relative; width: 100%; overflow: auto;">
   <div class="table tabTable" style="width: 100%; margin: auto;">
 
-    <div class="header">
+    <div class="header noselect">
       <div class="row">
         <div class="header-cell">Feed Name</div>
         <div class="header-cell">Type</div>

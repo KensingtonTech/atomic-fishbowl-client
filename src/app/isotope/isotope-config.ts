@@ -1,18 +1,30 @@
-import { Subject } from 'rxjs';
-import { t } from '@angular/core/src/render3';
+import { Subject, BehaviorSubject } from 'rxjs';
+import { IsotopeAPI } from './isotope-api';
 /**
- * IsotopeOptions
+ * IsotopeOption
  */
-export class IsotopeOption {
+
+export interface MasonryOption {
+  columnWidth?: number | string;
+  gutter?: number;
+  horizontalOrder?: boolean;
+  fitWidth?: boolean;
+}
+
+
+
+export interface PackeryOption {
+  gutter: number;
+}
+
+
+
+export class IsotopeConfig {
 
   layoutMode = 'masonry';
   itemSelector: string;
-  masonry: {
-    columnWidth: number | string,
-    gutter: number,
-    horizontalOrder: boolean,
-    fitWidth: boolean
-  };
+  masonry: MasonryOption;
+  packery: PackeryOption;
   percentPosition: boolean;
   stamp: string;
   originLeft = true;
@@ -22,6 +34,11 @@ export class IsotopeOption {
   resize: boolean;
   initLayout = true;
   layoutComplete: Subject<any> = new Subject<any>();
+  initialized: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  api: BehaviorSubject<IsotopeAPI> = new BehaviorSubject<IsotopeAPI>({
+    layout: null,
+    destroyMe: null
+  });
 
   constructor( options: any = null ) {
 
@@ -36,6 +53,9 @@ export class IsotopeOption {
     }
     if ('masonry' in options) {
       this.masonry = options.masonry;
+    }
+    if ('packery' in options) {
+      this.packery = options.packery;
     }
     if ('percentPosition' in options) {
       this.percentPosition = options.percentPosition;
@@ -64,12 +84,17 @@ export class IsotopeOption {
 
   }
 
-  public copy(): IsotopeOption {
-    let newOption = new IsotopeOption();
+  public copy(): IsotopeConfig {
+    let newOption = new IsotopeConfig();
     if (this.itemSelector) {
       newOption.itemSelector = this.itemSelector;
     }
-    newOption.masonry = this.masonry;
+    if (this.masonry) {
+      newOption.masonry = this.masonry;
+    }
+    if (this.packery) {
+      newOption.packery = this.packery;
+    }
     if (this.percentPosition !== null) {
       newOption.percentPosition = this.percentPosition;
     }
@@ -96,6 +121,8 @@ export class IsotopeOption {
     }
     newOption.layoutMode = this.layoutMode;
     newOption.layoutComplete = this.layoutComplete;
+    newOption.initialized = this.initialized;
+    newOption.api = this.api;
     return newOption;
   }
 

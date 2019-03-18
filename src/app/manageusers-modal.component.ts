@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, Input, Output, EventEmitter, ViewChild, ViewChildren, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
@@ -8,8 +8,8 @@ import { User } from './user';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
-declare var log;
-declare var JSEncrypt: any;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 function passwordMatcher(c: AbstractControl) {
   return c.get('password').value === c.get('passwordConfirm').value ? null : {'nomatch': true};
@@ -83,7 +83,6 @@ export class EditUserPasswordMatcher implements ErrorStateMatcher {
 
 @Component({
   selector: 'manage-users-modal',
-    // encapsulation: ViewEncapsulation.None,
   templateUrl: './manageusers-modal.component.html',
   styles: [`
 
@@ -130,15 +129,16 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
               private modalService: ModalService,
               private toolService: ToolService,
               private authService: AuthenticationService,
+              private changeDetectionRef: ChangeDetectorRef,
               public fb: FormBuilder ) {}
 
-  public id = 'accounts-modal';
   @ViewChildren('userInAdd') userInAddRef: QueryList<any>; // used to focus input on element
   @ViewChildren('userInEdit') userInEditRef: QueryList<any>; // used to focus input on element
-  private enabledTrigger: string;
+
+  public id = 'accounts-modal';
   public usersFormDisabled = false;
   public errorDefined = false;
-  private errorMessage: string;
+  public errorMessage: string;
   private editingUser: User;
   public users: User[];
   public minPasswordLength = 8;
@@ -147,20 +147,15 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public displayUserEditForm = false;
   public addUserForm: FormGroup;
   public editUserForm: FormGroup;
-  private pubKey: string;
-  private encryptor: any = new JSEncrypt();
   public editUserPasswordMatcher = new EditUserPasswordMatcher();
   public addUserPasswordMatcher = new AddUserPasswordMatcher();
 
   // Subscriptions
   private confirmUserDeleteSubscription: Subscription;
-  private publicKeyChangedSubscription: Subscription;
   private usersUpdatedSubscription: Subscription;
 
   ngOnInit(): void {
     log.debug('ManageUsersModalComponent: ngOnInit');
-
-    this.publicKeyChangedSubscription = this.dataService.publicKeyChanged.subscribe( key => this.onPublicKeyChanged(key) );
 
     this.addUserForm = this.fb.group({
       username: ['', Validators.compose( [ Validators.required, spaceValidator, Validators.minLength(this.minUsernameLength), userExists.bind(this)]) ],
@@ -188,24 +183,15 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     this.confirmUserDeleteSubscription = this.toolService.confirmUserDelete.subscribe( (id: string) => { this.deleteUserConfirmed(id); } );
 
     this.usersUpdatedSubscription = this.dataService.usersChanged.subscribe( users => this.onUsersUpdated(users) );
+
+    this.changeDetectionRef.markForCheck();
   }
 
   public ngOnDestroy() {
     this.confirmUserDeleteSubscription.unsubscribe();
-    this.publicKeyChangedSubscription.unsubscribe();
     this.usersUpdatedSubscription.unsubscribe();
   }
 
-
-
-  onPublicKeyChanged(key: string) {
-    if (!key) {
-      return;
-    }
-    this.encryptor.log = true;
-    this.pubKey = key;
-    this.encryptor.setPublicKey(this.pubKey);
-  }
 
 
 /////////////////////////////////////////////////////////////////
@@ -217,13 +203,14 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     this.errorDefined = false;
     this.displayUserAddForm = true;
     this.usersFormDisabled = true;
+    this.changeDetectionRef.markForCheck();
     setTimeout( () => { this.userInAddRef.first.nativeElement.focus(); }, 10);
   }
 
   addUserSubmit(): void {
     log.debug('ManageUsersModalComponent: addUserSubmit: this.addUserForm:', this.addUserForm);
     this.hideUserAddBox();
-    let encPassword = this.encryptor.encrypt(this.addUserForm.value.passwords.password);
+    let encPassword = this.dataService.encryptor.encrypt(this.addUserForm.value.passwords.password);
     const newUser = {
       username: this.addUserForm.value.username,
       fullname: this.addUserForm.value.fullname,
@@ -244,11 +231,13 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       enabled: true
     });
     this.dataService.addUser(newUser);
+    this.changeDetectionRef.markForCheck();
   }
 
   hideUserAddBox(): void {
     this.displayUserAddForm = false;
     this.usersFormDisabled = false;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -277,6 +266,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
       this.displayUserEditForm = true;
       this.usersFormDisabled = true;
+      this.changeDetectionRef.markForCheck();
 
       setTimeout( () => { this.userInEditRef.first.nativeElement.focus(); }, 10);
     }
@@ -293,7 +283,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     // if ('passwordConfirm' in form.value && form.value.passwordConfirm !== '') { updatedUser.password = form.value.password; }
     if ( form.controls.passwords.dirty && form.value.passwords.password.length !== 0 ) {
       // updatedUser.password = form.value.passwords.password;
-      let encPassword = this.encryptor.encrypt(form.value.passwords.password);
+      let encPassword = this.dataService.encryptor.encrypt(form.value.passwords.password);
       updatedUser.password = encPassword;
     }
     // log.debug('updatedUser:', updatedUser);
@@ -313,6 +303,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       enabled: true
     });
     this.usersFormDisabled = false;
+    this.changeDetectionRef.markForCheck();
   }
 
   public disableEditUserSubmitButton(): boolean {
@@ -344,12 +335,15 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       return;
     }
     this.users = users;
+    this.changeDetectionRef.markForCheck();
   }
 
   findUser(id: string): User {
     for (let x = 0; x < this.users.length; x++) {
-      const u = this.users[x];
-      if (u.id === id) { return u; }
+      const user = this.users[x];
+      if (user.id === id) {
+        return user;
+      }
     }
   }
 
@@ -377,6 +371,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   onOpen(): void {
     log.debug('ManageUsersModalComponent: onOpen()');
     this.errorDefined = false;
+    this.changeDetectionRef.markForCheck();
   }
 
 

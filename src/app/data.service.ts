@@ -1,52 +1,101 @@
 import { Injectable } from '@angular/core';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Subject, BehaviorSubject, Subscription } from 'rxjs';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { Collection } from './collection';
 import { NwServer } from './nwserver';
 import { SaServer } from './saserver';
-import { AuthenticationService } from './authentication.service';
 import { ToolService } from './tool.service';
-import { UseCase } from './usecase';
 import { Feed } from './feed';
 import { Preferences } from './preferences';
-declare var log;
 import * as io from 'socket.io-client';
+import { Logger } from 'loglevel';
+declare var JSEncrypt: any;
+declare var log: Logger;
 
 @Injectable()
 
 export class DataService { // Manages NwSession objects and also Image objects in grid and the image's association with Session objects.  Adds more objects as they're added
 
   constructor(private http: HttpClient, private toolService: ToolService ) {
-
-    // log.debug('DataService: constructor()');
-
+    log.debug('DataService: constructor()');
     this.toolService.clientSessionId.subscribe( (clientSessionId: number) => {
       log.debug(`DataService: clientSessionIdSubscription(): got clientSessionId: ${clientSessionId}`);
       this.clientSessionId = clientSessionId;
     });
+  }
+
+
+
+  private serverSocket: any;
+  private collectionsSocket: any;
+
+  // Observables
+  public contentPublished: Subject<any> = new Subject<any>();
+  public sessionPublished: Subject<any> = new Subject<any>();
+  public selectedCollectionChanged: Subject<any> = new Subject<any>();
+  public collectionStateChanged: Subject<any> = new Subject<any>();
+  public sessionsReplaced: Subject<any> = new Subject<any>();
+  public contentReplaced: Subject<any> = new Subject<any>();
+  public searchReplaced: Subject<any> = new Subject<any>();
+  public searchPublished: Subject<any> = new Subject<any>();
+  public errorPublished: Subject<any> = new Subject<any>();
+  public sessionsPurged: Subject<any> = new Subject<any>();
+  public queryResultsCountUpdated: Subject<any> = new Subject<any>();
+  public collectionDeleted: Subject<string> = new Subject<string>();
+  public noCollections: Subject<void> = new Subject<void>();
+  public workerProgress: Subject<any> = new Subject<any>();
+  public monitoringCollectionPause: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
+  public collectionsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public preferencesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public nwServersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public saServersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public feedsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public feedStatusChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public usersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public serverVersionChanged: BehaviorSubject<string> = new BehaviorSubject<string>(null);
+  public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+
+  // Subscriptions
+
+  // Properties
+  private apiUrl = '/api';
+  public clientSessionId: number;
+  public encryptor: any;
+  private pubKey: string;
+  private running = false;
+
+
+
+  public start() {
+    log.debug('DataService: start()');
+
+    this.encryptor = new JSEncrypt();
+
+    this.serverSocket = io();
+    this.collectionsSocket = io('/collections');
 
     // Subscribe to socket events
-    this.socket.on('disconnect', reason => {
-      // log.debug('Server disconnected socket with reason:', reason);
+    this.serverSocket.on('disconnect', reason => {
+      // log.debug('Server disconnected serverSocket with reason:', reason);
       if (reason === 'io server disconnect') {
         // the server disconnected us forcefully.  maybe due to logout or token timeout
         // start trying to reconnect
         // this will repeat until successful
-        this.socket.open();
+        this.serverSocket.open();
       }
     } );
-    this.socket.on('connect', socket => log.debug('Socket.io connected to server' ));
-    this.socket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
-    this.socket.on('collections', collections => this.onCollectionsUpdate(collections) );
-    this.socket.on('serverVersion', version => this.onServerVersionUpdate(version) );
-    this.socket.on('publicKey', key => this.onPublicKeyUpdate(key) );
-    this.socket.on('nwservers', apiServers => this.onNwServersUpdate(apiServers) );
-    this.socket.on('saservers', apiServers => this.onSaServersUpdate(apiServers) );
-    this.socket.on('feeds', feeds => this.onFeedsUpdate(feeds) );
-    this.socket.on('feedStatus', feedStatus => this.onFeedStatusUpdate(feedStatus) );
-    this.socket.on('users', users => this.onUsersUpdate(users) );
-    this.socket.on('useCases', useCases => this.onUseCasesUpdate(useCases) );
-    this.socket.on('logout', () => this.toolService.logout.next() ); // TODO: triggered by the socket when our validity expires
+    this.serverSocket.on('connect', socket => log.debug('Socket.io connected to server' ));
+    this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
+    this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
+    this.serverSocket.on('serverVersion', version => this.onServerVersionUpdate(version) );
+    this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
+    this.serverSocket.on('nwservers', apiServers => this.onNwServersUpdate(apiServers) );
+    this.serverSocket.on('saservers', apiServers => this.onSaServersUpdate(apiServers) );
+    this.serverSocket.on('feeds', feeds => this.onFeedsUpdate(feeds) );
+    this.serverSocket.on('feedStatus', feedStatus => this.onFeedStatusUpdate(feedStatus) );
+    this.serverSocket.on('users', users => this.onUsersUpdate(users) );
+    this.serverSocket.on('useCases', useCases => this.onUseCasesUpdate(useCases) );
+    this.serverSocket.on('logout', () => this.toolService.logout.next() ); // TODO: triggered by the socket when our validity expires
 
 
     // Subscribe to collection socket events
@@ -95,47 +144,68 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.collectionsSocket.on('content', (content) => this.contentReplaced.next(content) );
     this.collectionsSocket.on('searches', (searches) => this.searchReplaced.next(searches) );
     this.collectionsSocket.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
+    this.running = true;
 
   }
 
 
 
-  private socket = io();
-  private collectionsSocket = io('/collections');
+  public stop() {
+    if (!this.running) {
+      return;
+    }
+    log.debug('DataService: stop()');
+    // clear application state to prevent prying
+    this.running = false;
+    this.encryptor = null;
+    this.pubKey = null;
+    this.monitoringCollectionPause.next(false);
+    this.collectionsChanged.next({});
+    this.preferencesChanged.next({});
+    this.nwServersChanged.next({});
+    this.saServersChanged.next({});
+    this.feedsChanged.next({});
+    this.feedStatusChanged.next({});
+    this.usersChanged.next({});
+    this.serverVersionChanged.next(null);
+    this.useCasesChanged.next({useCases: [], useCasesObj: {} });
 
-  // Observables
-  public contentPublished: Subject<any> = new Subject<any>();
-  public sessionPublished: Subject<any> = new Subject<any>();
-  public selectedCollectionChanged: Subject<any> = new Subject<any>();
-  public collectionStateChanged: Subject<any> = new Subject<any>();
-  public sessionsReplaced: Subject<any> = new Subject<any>();
-  public contentReplaced: Subject<any> = new Subject<any>();
-  public searchReplaced: Subject<any> = new Subject<any>();
-  public searchPublished: Subject<any> = new Subject<any>();
-  public errorPublished: Subject<any> = new Subject<any>();
-  public sessionsPurged: Subject<any> = new Subject<any>();
-  public queryResultsCountUpdated: Subject<any> = new Subject<any>();
-  public collectionDeleted: Subject<string> = new Subject<string>();
-  public noCollections: Subject<void> = new Subject<void>();
-  public workerProgress: Subject<any> = new Subject<any>();
-  public monitoringCollectionPause: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    // We must disconnect sockets when a user logs out
+    this.serverSocket.off('disconnect');
+    this.serverSocket.off('connect');
+    this.serverSocket.off('preferences');
+    this.serverSocket.off('collections');
+    this.serverSocket.off('serverVersion');
+    this.serverSocket.off('publicKey');
+    this.serverSocket.off('nwservers');
+    this.serverSocket.off('saservers');
+    this.serverSocket.off('feeds');
+    this.serverSocket.off('feedStatus');
+    this.serverSocket.off('users');
+    this.serverSocket.off('useCases');
+    this.serverSocket.off('logout');
 
-  public collectionsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public preferencesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public nwServersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public saServersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public feedsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public feedStatusChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public usersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public serverVersionChanged: BehaviorSubject<string> = new BehaviorSubject<string>(null);
-  public publicKeyChanged: BehaviorSubject<string> = new BehaviorSubject<string>(null);
-  public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+    // Turn off collection socket events
+    this.collectionsSocket.off('connect');
+    this.collectionsSocket.off('disconnect');
+    this.collectionsSocket.off('state');
+    this.collectionsSocket.off('purge');
+    this.collectionsSocket.off('deleted');
+    this.collectionsSocket.off('clear');
+    this.collectionsSocket.off('update');
+    this.collectionsSocket.off('sessions');
+    this.collectionsSocket.off('content');
+    this.collectionsSocket.off('searches');
+    this.collectionsSocket.off('paused');
+
+    this.serverSocket.close();
+    this.collectionsSocket.close();
+
+    this.serverSocket = null;
+    this.collectionsSocket = null;
+  }
 
 
-
-  // Properties
-  private apiUrl = '/api';
-  public clientSessionId: number;
 
   public init(): Promise<any> {
     // Run by authentication service at login or page load
@@ -167,13 +237,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
   onServerVersionUpdate(version: string) {
     log.debug('DataService: onServerVersionUpdate(): version:', version);
     this.serverVersionChanged.next(version);
-  }
-
-
-
-  onPublicKeyUpdate(key: string) {
-    log.debug('DataService: onPublicKeyUpdate(): key:', key);
-    this.publicKeyChanged.next(key);
   }
 
 
@@ -660,6 +723,18 @@ export class DataService { // Manages NwSession objects and also Image objects i
       log.error('ERROR: ', error);
       return Promise.reject(error.message || error);
     }
+  }
+
+
+
+  onPublicKeyChanged(key: string) {
+    log.debug('DataService: onPublicKeyChanged()');
+    if (!key) {
+      return;
+    }
+    this.encryptor.log = true;
+    this.pubKey = key;
+    this.encryptor.setPublicKey(this.pubKey);
   }
 
 }

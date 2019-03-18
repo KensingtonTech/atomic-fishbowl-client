@@ -3,10 +3,10 @@
     <div class="modal-body" style="width: 500px; max-height: 90%; overflow: auto; top: 5%;">
       <div>
         <h3 style="margin-top:0px; margin-bottom: 10px;">
-          <ng-template [ngIf]="mode == 'add'">Create a NetWitness Collection</ng-template>
-          <ng-template [ngIf]="mode == 'editRolling'">Edit a NetWitness Collection</ng-template>
-          <ng-template [ngIf]="mode == 'editFixed'">Reprocess a NetWitness Collection</ng-template>
-          <ng-template [ngIf]="mode == 'adhoc'">Create an Ad Hoc NetWitness Collection</ng-template>
+          <ng-container *ngIf="mode == 'add'">Create a NetWitness Collection</ng-container>
+          <ng-container *ngIf="mode == 'editRolling'">Edit a NetWitness Collection</ng-container>
+          <ng-container *ngIf="mode == 'editFixed'">Reprocess a NetWitness Collection</ng-container>
+          <ng-container *ngIf="mode == 'adhoc'">Create an Ad Hoc NetWitness Collection</ng-container>
         </h3>
         <fieldset [disabled]="formDisabled" style="border: none; margin: 0; padding: 0;">
         <form #addCollectionForm="ngForm" (ngSubmit)="onCollectionSubmit(addCollectionForm)" novalidate>
@@ -94,7 +94,7 @@
               </td>
               <td>
                 <div style="display: block;">
-                  <p-dropdown [disabled]="formDisabled" name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
+                  <p-dropdown [disabled]="formDisabled" name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" required [style]="{'width':'100%'}" styleClass="noselect" panelStyleClass="noselect" ></p-dropdown>
                 </div>
                 <div *ngIf="displayUseCaseDescription" class="description-text" style="margin-top: 5px;">
                   {{useCaseDescription}}
@@ -126,7 +126,7 @@
               <td>
                 <!--QUERY DROPDOWN-->
                 <div *ngIf="!showUseCaseValues">
-                  <p-dropdown [disabled]="formDisabled" [options]="queryListOptions" [(ngModel)]="selectedQuery" (onChange)="onQuerySelected()" [ngModelOptions]="{standalone: true}" autoWidth="false" [style]="{'width':'100%'}"></p-dropdown> <!--we don't give this dropdown a name because the actual collection query value comes from queryInputText-->
+                  <p-dropdown [disabled]="formDisabled" [options]="queryListOptions" [(ngModel)]="selectedQuery" (onChange)="onQuerySelected()" [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" styleClass="noselect" panelStyleClass="noselect"></p-dropdown> <!--we don't give this dropdown a name because the actual collection query value comes from queryInputText-->
                 </div>
                 <!--QUERY TEXT INPUT BOX-->
                 <div>
@@ -147,7 +147,7 @@
               </td>
               <td>
                 <div>
-                  <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont" required [disabled]="showUseCaseValues || formDisabled"></p-selectButton>
+                  <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont noselect" required [disabled]="showUseCaseValues || formDisabled"></p-selectButton>
                 </div>
                 <div *ngIf="!showUseCaseValues" style="margin-top: 3px;">
                   <p-button type="button" (click)="onAllTypesSelected()" label="All" [disabled]="showUseCaseValues || formDisabled"></p-button>&nbsp;<p-button type="button" (click)="onClearTypesSelected()" label="None" [disabled]="showUseCaseValues || formDisabled"></p-button>
@@ -321,6 +321,7 @@
               </td>
             </tr>
           </table>
+
           <!--SELECT A NETWITNESS SERVICE BOX-->
           <div *ngIf="apiServers" style="position: relative; margin-top: 15px; height: auto; overflow: visible;">
             <h4 style="margin-top: 0px; margin-bottom: 5px;">Select a NetWitness Service</h4>
@@ -336,7 +337,7 @@
               </div>
 
               <!--NetWitness Server List-->
-              <p-listbox *ngIf="apiServers" [disabled]="formDisabled" [(ngModel)]="selectedApiServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" [options]="apiServersOptions"></p-listbox>
+              <p-listbox *ngIf="apiServers" [disabled]="formDisabled" [(ngModel)]="selectedApiServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" styleClass="noselect" [options]="apiServersOptions"></p-listbox>
 
             
               <!--EXECUTE OR CANCEL BUTTONS-->

@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
-import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ToolService } from './tool.service';
 import { PanZoomConfig, PanZoomAPI, PanZoomModel } from 'ng2-panzoom';
@@ -8,9 +8,11 @@ import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
+import { Preferences } from './preferences';
 import { Search } from './search';
 import * as utils from './utils';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 declare var imagesLoaded;
 
 interface Point {
@@ -22,7 +24,8 @@ interface Point {
   selector: 'classic-grid-view',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div #classicGridElement (window:resize)="onWindowResize()" style="position:absolute; left: 0; right: 0; bottom: 0; top: 30px;">
+<toolbar-widget></toolbar-widget>
+<div #classicGridElement (window:resize)="onWindowResize()" style="position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden;" [style.top.px]="toolbarHeight">
 
   <pan-zoom *ngIf="content && sessionsDefined && displayedContent && !destroyView" [config]="panzoomConfig">
 
@@ -35,7 +38,7 @@ interface Point {
 
   </pan-zoom>
 
-  <classic-control-bar *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></classic-control-bar>
+  <control-bar-classic *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></control-bar-classic>
 
   <!-- pause / resume buttons for monitoring collections -->
   <div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 210px; top: 10px; color: white; z-index: 100;">
@@ -46,8 +49,17 @@ interface Point {
 </div>
 
 <!-- modals -->
+<tab-container-modal [id]="tabContainerModalId"></tab-container-modal>
+<splash-screen-modal></splash-screen-modal>
+<preferences-modal></preferences-modal>
+<manage-users-modal></manage-users-modal>
+<collection-deleted-notify-modal></collection-deleted-notify-modal>
 <pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></pdf-viewer-modal>
 <session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></session-details-modal>
+<ng-container *ngIf="preferences && preferences.serviceTypes">
+  <nw-collection-modal *ngIf="preferences.serviceTypes.nw" [id]="nwCollectionModalId"></nw-collection-modal>
+  <sa-collection-modal *ngIf="preferences.serviceTypes.sa" [id]="saCollectionModalId"></sa-collection-modal>
+</ng-container>
 <classic-session-popup *ngIf="selectedCollectionServiceType" [session]="popUpSession" [enabled]="sessionWidgetEnabled" [serviceType]="selectedCollectionServiceType" #sessionWidget></classic-session-popup>
 `,
   styles: [`
@@ -74,10 +86,17 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('classicGridElement') private classicGridElement: ElementRef;
   @ViewChild('gridItems') public gridItems: ElementRef;
 
-  public panzoomConfig = new PanZoomConfig;
+  public panzoomConfig = new PanZoomConfig({
+    zoomLevels: 10,
+    scalePerZoomLevel: 2.0,
+    zoomStepDuration: 0.2,
+    freeMouseWheelFactor: 0.01,
+    zoomToFitZoomLevelFactor: 0.9
+  });
   private panzoomModel: PanZoomModel;
   private panZoomAPI: PanZoomAPI;
   public canvasWidth = 2400;
+  public toolbarHeight = 0;
   public initialZoomHeight: number = null; // set in resetZoomToFit()
   public initialZoomWidth = this.canvasWidth;
 
@@ -111,16 +130,21 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private previousFocusedElement: Node;
 
   public tabContainerModalId = 'tab-container-modal';
-  private urlParametersLoaded = false;
+  public nwCollectionModalId = 'nw-collection-modal';
+  public saCollectionModalId = 'sa-collection-modal';
 
+  private urlParametersLoaded = false;
   private selectedSessionId: number = null;
   private selectedContentType: string = null;
   private selectedContentId: string = null;
 
+  public preferences: Preferences;
+
   private center: Point = null;
 
   public loadAllHighResImages = false;
-  public lowResImagesLoadedCount = 0;
+
+  private queryParams: any;
 
   // Subscription holders
   private searchBarOpenSubscription: Subscription;
@@ -145,6 +169,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private newSessionSubscription: Subscription;
   private newImageSubscription: Subscription;
   private monitoringCollectionPauseSubscription: Subscription;
+  private preferencesChangedSubscription: Subscription;
 
 
 
@@ -172,6 +197,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.newSessionSubscription.unsubscribe();
     this.newImageSubscription.unsubscribe();
     this.monitoringCollectionPauseSubscription.unsubscribe();
+    this.preferencesChangedSubscription.unsubscribe();
   }
 
 
@@ -230,14 +256,11 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // log.debug('splashLoaded:', this.toolService.splashLoaded);
 
-    let queryParams = this.route.snapshot.queryParams || null;
-    if ( !this.toolService.splashLoaded && ( (!queryParams  && !this.toolService.urlParametersLoaded) || ( !this.toolService.urlParametersLoaded && queryParams && Object.keys(queryParams).length === 0 ) ) ) {
-      // only load the splash screen if we don't have ad hoc query parameters
-      setTimeout( () => this.modalService.open('splashScreenModal'), 250);
-    }
-    if (Object.keys(queryParams).length !== 0) {
+    this.queryParams = this.route.snapshot.queryParams || null;
+
+    if (Object.keys(this.queryParams).length !== 0) {
       // enter this block when first navigating to this page with custom url parameters
-      this.parseQueryParams(queryParams);
+      this.parseQueryParams(this.queryParams);
       // the above function will store any query parameters in toolService.
       // we then must re-navigate to this page to clear the url bar query parameters
       log.debug('ClassicGridComponent: redirecting to .');
@@ -262,17 +285,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderer.setStyle(this.el.nativeElement.ownerDocument.body, 'overflow', 'hidden');
     this.renderer.setStyle(this.el.nativeElement.ownerDocument.body, 'margin', '0');
 
-
-    // PanZoom Config
-    this.panzoomConfig.invertMouseWheel = true;
-    this.panzoomConfig.useHardwareAcceleration = true;
-    this.panzoomConfig.chromeUseTransform = true;
-    this.panzoomConfig.zoomLevels = 10;
-    this.panzoomConfig.scalePerZoomLevel = 2.0;
-    this.panzoomConfig.zoomStepDuration = 0.2;
-    this.panzoomConfig.freeMouseWheel = true;
-    this.panzoomConfig.freeMouseWheelFactor = 0.01;
-    this.panzoomConfig.zoomToFitZoomLevelFactor = 0.9;
+    // pan-zoom
     this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => this.onModelChanged(model) );
     this.apiSubscription = this.panzoomConfig.api.subscribe( (api: PanZoomAPI) => this.onGotNewApi(api) );
 
@@ -329,21 +342,48 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.updateNextPreviousButtonStatus();
     } );
 
-    if (this.toolService.loadCollectionOnRouteChange) {
-      this.toolService.loadCollectionOnRouteChange = false;
-      this.toolService.getCollectionDataAgain.next();
-    }
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
 
   }
 
 
 
   ngAfterViewInit(): void {
+    let toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
+    this.toolbarHeight = toolbar.offsetHeight;
     this.resetZoomToFit();
+    if (this.toolService.loadCollectionOnRouteChange) {
+      log.debug('ClassicGridComponent: ngAfterViewInit(): getting collection data again on toolService.loadCollectionOnRouteChange');
+      this.toolService.loadCollectionOnRouteChange = false;
+      this.toolService.getCollectionDataAgain.next();
+    }
+    this.changeDetectionRef.detectChanges();
     this.center = {
       x: window.innerWidth / 2,
       y: window.innerHeight / 2
     };
+    if ( !this.toolService.splashLoaded && (
+      (!this.queryParams  && !this.toolService.urlParametersLoaded)
+      || ( !this.toolService.urlParametersLoaded && this.queryParams && Object.keys(this.queryParams).length === 0 ) ) ) {
+        // only load the splash screen if we don't have ad hoc query parameters
+        log.debug('ClassicGridComponent: ngAfterViewInit(): loading the splash screen');
+        // setTimeout( () => this.modalService.open('splashScreenModal'), 250);
+        this.modalService.open('splashScreenModal');
+    }
+    else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
+      // open the tab container on subsequent logout/login combos, if a collection wasn't previously selected
+      this.modalService.open(this.tabContainerModalId);
+    }
+    else {
+      log.debug('ClassicGridComponent: ngAfterViewInit(): not loading the splash screen');
+    }
+  }
+
+
+
+  onPreferencesChanged(prefs: Preferences): void {
+    log.debug('ClassicGridComponent: onPreferencesChanged()');
+    this.preferences = JSON.parse(JSON.stringify(prefs));
   }
 
 

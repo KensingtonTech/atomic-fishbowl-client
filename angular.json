@@ -21,6 +21,12 @@
               "src/resources"
             ],
             "styles": [
+              "src/font-awesome.css",
+              "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+              "node_modules/primeicons/primeicons.css",
+              "node_modules/primeng/resources/themes/nova-light/theme.css",
+              "node_modules/primeng/resources/primeng.min.css",
+              "node_modules/dragula/dist/dragula.css",
               "src/styles.css"
             ],
             "scripts": [
@@ -31,8 +37,7 @@
               "node_modules/moment/min/moment.min.js",
               "node_modules/screenfull/dist/screenfull.js",
               "node_modules/loglevel/dist/loglevel.min.js",
-              "node_modules/mathjs/dist/math.min.js",
-              "node_modules/@kensingtontech/hamsterjs/hamster.js"
+              "node_modules/mathjs/dist/math.min.js"
             ]
           },
           "configurations": {
@@ -89,10 +94,12 @@
               "node_modules/moment/min/moment.min.js",
               "node_modules/screenfull/dist/screenfull.js",
               "node_modules/loglevel/dist/loglevel.min.js",
-              "node_modules/mathjs/dist/math.min.js",
-              "src/app/mousewheel/hamster.js"
+              "node_modules/mathjs/dist/math.min.js"
             ],
             "styles": [
+              "node_modules/primeicons/primeicons.css",
+              "node_modules/primeng/resources/themes/omega/theme.css",
+              "node_modules/primeng/resources/primeng.min.css",
               "src/styles.css"
             ],
             "assets": [

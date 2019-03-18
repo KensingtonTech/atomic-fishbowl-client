@@ -7,7 +7,8 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { Preferences } from './preferences';
 import * as utils from './utils';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 (<any>window).pdfWorkerSrc = '/resources/pdf.worker.min.js';
 
@@ -61,9 +62,10 @@ export enum KEY_CODE {
 
       </div>
 
-      <div style="position: absolute; top: 40px; bottom: 10px; left: 0; right: 365px;"> <!--overflow-y: scroll; overflow-x: auto;-->
+      <!-- pdf viewer -->
+      <div *ngIf="isOpen" style="position: absolute; top: 40px; bottom: 10px; left: 0; right: 365px;"> <!--overflow-y: scroll; overflow-x: auto;-->
         <div style="position: relative; width: 100%; height: 100%; overflow-x: scroll; overflow-y: scroll;">
-          <pdf-viewer [rotation]="rotation" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)" [src]="'/collections/' + collectionId + '/' + pdfFile" [original-size]="false" [show-all]="true" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
+          <pdf-viewer [rotation]="rotation" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)" [src]="'/collections/' + collectionId + '/' + pdfFile" [original-size]="false" [show-all]="true" (error)="onPdfViewerError($event)" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
         </div>
       </div> <!--overflow: auto;-->
 
@@ -270,7 +272,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
 
     this.confirmDownloadFileSubscription = this.toolService.confirmDownloadFile.subscribe( (f: string) => this.downloadConfirmed(f) );
 
-    this.pdfZoom = Number(this.toolService.getPreference('pdfZoomlevel')) || .5;
+    this.pdfZoom = this.toolService.getPreference('pdfZoomlevel') || .5;
 
     this.noNextSessionSubscription = this.toolService.noNextSession.subscribe( (TorF) => this.noNextSession = TorF);
     this.noPreviousSessionSubscription = this.toolService.noPreviousSession.subscribe( (TorF) => this.noPreviousSession = TorF);
@@ -459,6 +461,12 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy, OnChanges {
     }
     log.debug('PdfViewerModalComponent: onPreviousSessionArrowClicked()');
     this.toolService.previousSessionClicked.next();
+  }
+
+
+
+  onPdfViewerError(error): void {
+    log.error('PdfViewerModalComponent: onPdfViewerError(): pdf viewer threw error:', error);
   }
 
 

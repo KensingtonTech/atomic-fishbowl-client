@@ -1,8 +1,9 @@
-import { Injectable, ElementRef } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { Collection } from './collection';
 import { Feed } from './feed';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Injectable()
 
@@ -10,6 +11,7 @@ export class ToolService {
 
   // properties
   public splashLoaded = false;
+  public firstLoad = true;
   public loadCollectionOnRouteChange = false; // this may be set before switching routes to instruct the new view to load a particular collcetion
   public queryParams: any = null;
   public urlParametersLoaded = false;
@@ -23,12 +25,11 @@ export class ToolService {
   public searchBarOpen: Subject<any> = new Subject<any>();
   public maskChanged: Subject<any> = new Subject<any>();
 
-  // Statistiocs
+  // Statistics
   public contentCount: Subject<any> = new Subject<any>();
 
   // Device Number
   public deviceNumber: BehaviorSubject<any> = new BehaviorSubject<any>(0);
-
 
   // Scrolling
   public scrollToBottom: Subject<any> = new Subject<any>();
@@ -77,6 +78,7 @@ export class ToolService {
 
   // collections //
   public getCollectionDataAgain: Subject<any> = new Subject<any>();
+  public selectedCollection: Collection;
   public deleteCollectionNext: Subject<Collection> = new Subject<Collection>();
   public deleteCollectionConfirmed: Subject<string> = new Subject<string>();
   public executeCollectionOnEdit: Subject<boolean> = new Subject<boolean>();
@@ -113,22 +115,51 @@ export class ToolService {
 
 
   constructor() {
-    this.showMasonryTextAreaState = this.getPreference('showMeta') === 'false' ? false : true;
+    log.debug('ToolService: constructor()');
+    this.showMasonryTextAreaState = this.getPreference('showMeta');
 
     this.showMasonryTextArea.subscribe( (show) => {
       this.showMasonryTextAreaState = show;
       this.setPreference('showMeta', show);
-     });
+    });
 
     this.lastRoute = this.getPreference('lastRoute');
   }
+
+
+
+  stop() {
+    log.debug('ToolService: stop()');
+    this.selectedCollection = null;
+    this.deviceNumber.next(0);
+    this.addNwAdhocCollectionNext.next({});
+    this.addSaAdhocCollectionNext.next({});
+  }
+
+
 
   setPreference(key, value): void {
     localStorage.setItem(key, value);
   }
 
+
+
   getPreference(key): any {
-    return localStorage.getItem(key);
+    let item: any = localStorage.getItem(key);
+    let numberRegex = /^\d+$/;
+
+    if ( numberRegex.test(item) ) {
+      item = Number(item);
+    }
+
+    if (item === 'true') {
+      item = true;
+    }
+    if (item === 'false') {
+      item = false;
+    }
+
+    return item;
   }
 
 }

@@ -18,7 +18,7 @@
 
       <p-tabView [activeIndex]="selectedTabIndex">
 
-          <p-tabPanel header="User">
+          <p-tabPanel header="User" headerStyleClass="noselect nooutline">
               <table style="width: 100%">
     
                 <tr>
@@ -26,7 +26,7 @@
                     <b>Masonry Column Width</b>
                   </td>
                   <td>
-                    <input type="number" name="masonryColumnWidth" [(ngModel)]="masonryColumnWidth" style="width: 40px;" required> pixels
+                    <input pInputText type="number" name="masonryColumnWidth" [(ngModel)]="masonryColumnWidth" min="100" max="9999" required> pixels
                   </td>
                 </tr>
                 <tr>
@@ -34,14 +34,14 @@
                     <b>Masonry Autoscroll Speed</b>
                   </td>
                   <td>
-                    <input type="number" name="autoScrollSpeed" [(ngModel)]="autoScrollSpeed" style="width: 40px;" required> pixels per second
+                    <input pInputText type="number" name="autoScrollSpeed" [(ngModel)]="autoScrollSpeed" min="100" max="999" required> pixels per second
                   </td>
                 </tr>
     
               </table>
             </p-tabPanel>
 
-        <p-tabPanel header="Global">
+        <p-tabPanel header="Global" headerStyleClass="noselect nooutline">
           <table style="width: 100%">
 
             <tr>
@@ -49,7 +49,7 @@
                 <b>Default Content Limit</b>
               </td>
               <td>
-                <input type="number" name="defaultContentLimit" [(ngModel)]="preferencesModel.defaultContentLimit" style="width: 40px;" required>
+                <input pInputText type="number" name="defaultContentLimit" [(ngModel)]="preferencesModel.defaultContentLimit" min="1" max="99999" required>
               </td>
             </tr>
             <tr>
@@ -57,7 +57,7 @@
                 <b>Default Min. Dimensions</b>
               </td>
               <td>
-                <input type="number" name="minX" [(ngModel)]="preferencesModel.minX" style="width: 40px;" required> width x &nbsp;<input type="number" name="minY" [(ngModel)]="preferencesModel.minY" style="width: 40px;" required> height
+                <input pInputText type="number" name="minX" [(ngModel)]="preferencesModel.minX" min="0" max="9999" required> px width x &nbsp;<input type="number" name="minY" [(ngModel)]="preferencesModel.minY" min="0" max="9999" required> px height
               </td>
             </tr>
             <tr>
@@ -65,7 +65,7 @@
                 <b>Default Rolling Hours</b>
               </td>
               <td>
-                <input type="number" name="defaultRollingHours" [(ngModel)]="preferencesModel.defaultRollingHours" style="width: 40px;" required>
+                <input pInputText type="number" name="defaultRollingHours" [(ngModel)]="preferencesModel.defaultRollingHours" min="1" max="999" required>
               </td>
             </tr>
             <tr>
@@ -73,14 +73,14 @@
                 <b>Login Token Expiration</b>
               </td>
               <td>
-                <input type="number" min="1" max="8760" name="tokenExpirationHours" [(ngModel)]="preferencesModel.tokenExpirationHours" style="width: 40px;" required pTooltip="This setting will only impact new logins.  Existing logged-in sessions will not be logged out until their token expires.  Be careful with this.  If you set it too high, newly logged-in clients will not have to login again until their token expires."> hours
+                <input pInputText type="number" min="1" max="8760" name="tokenExpirationHours" [(ngModel)]="preferencesModel.tokenExpirationHours" style="width: 40px;" required pTooltip="This setting will only impact new logins.  Existing logged-in sessions will not be logged out until their token expires.  Be careful with this.  If you set it too high, newly logged-in clients will not have to login again until their token expires."> hours
               </td>
             </tr>
 
           </table>
         </p-tabPanel>
       
-        <p-tabPanel *ngIf="preferencesModel.serviceTypes.nw" header="RSA NetWitness">
+        <p-tabPanel *ngIf="preferencesModel.serviceTypes.nw" header="RSA NetWitness" headerStyleClass="noselect nooutline">
 
           <!--NetWitness Preferences-->
           <p *ngIf="!preferencesModel.serviceTypes.nw">
@@ -101,7 +101,7 @@
                     <b>Default Query Selection</b>
                   </td>
                   <td>
-                    <p-dropdown name="nwDefaultQuerySelection" [options]="defaultNwQueriesOptions" [(ngModel)]="preferencesModel.nw.defaultQuerySelection" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
+                    <p-dropdown name="nwDefaultQuerySelection" [options]="defaultNwQueriesOptions" [(ngModel)]="preferencesModel.nw.defaultQuerySelection" required [style]="{'width':'100%'}"></p-dropdown>
                   </td>
                 </tr>
                 <tr>
@@ -189,7 +189,7 @@
 
 
         <!-- Solera Preferences -->
-        <p-tabPanel *ngIf="preferencesModel.serviceTypes.sa" header="Symantec SA">
+        <p-tabPanel *ngIf="preferencesModel.serviceTypes.sa" header="Symantec SA" headerStyleClass="noselect nooutline">
           
           <p *ngIf="!preferencesModel.serviceTypes.sa">
             Security Analytics functionality is disabled.
@@ -210,7 +210,7 @@
                   <b>Default Query Selection</b>
                 </td>
                 <td>
-                  <p-dropdown name="saDefaultQuerySelection" [options]="defaultSaQueriesOptions" [(ngModel)]="preferencesModel.sa.defaultQuerySelection" autoWidth="false" required [style]="{'width':'100%'}"></p-dropdown>
+                  <p-dropdown name="saDefaultQuerySelection" [options]="defaultSaQueriesOptions" [(ngModel)]="preferencesModel.sa.defaultQuerySelection" required [style]="{'width':'100%'}"></p-dropdown>
                 </td>
               </tr>
               <tr>

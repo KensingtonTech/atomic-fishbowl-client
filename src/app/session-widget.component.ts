@@ -2,7 +2,8 @@ import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, ViewChild,
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 // We will use this in a future release
 

@@ -4,7 +4,8 @@ import { ToolService } from './tool.service';
 import { Subject, Subscription } from 'rxjs';
 import { SaServer } from './saserver';
 import { DataService } from './data.service';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
   selector: 'confirm-saserver-delete-modal',

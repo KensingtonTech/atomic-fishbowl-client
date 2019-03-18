@@ -2,39 +2,40 @@
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
-declare var $: any;
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Component({
-  moduleId: module.id.toString(),
   selector: 'modal',
-  template:  `<div [@faderAnimation]="enabledTrigger">
+
+  template:  `<div [@faderAnimation]="enabledTrigger" (@faderAnimation.done)="onAnimationDone($event)">
                 <ng-content></ng-content>
               </div>`,
+
   animations: [
     trigger('faderAnimation', [
       state('disabled', style({ opacity: 0 })),
       state('enabled',  style({ opacity: 1 })),
-      transition('* => *', animate('.25s')),
+      transition('* => *', animate('.25s'))
     ])
   ],
 })
 
 export class ModalComponent implements OnInit, OnDestroy {
 
+  constructor(  private modalService: ModalService,
+    private el: ElementRef,
+    private changeDetectionRef: ChangeDetectorRef) { }
+
   @Input() id: string;
-  @Input() private escapeEnabled = true; // pass escapeEnabled="false" to <modal> to disable escape
+  @Input() closeOnClickOutside = false;
+  @Input() escapeEnabled = true; // pass escapeEnabled="false" to <modal> to disable escape
   @Output() cancelled: EventEmitter<void> = new EventEmitter<void>();
   @Output() opened: EventEmitter<void> = new EventEmitter<void>();
   @Output() closed: EventEmitter<void> = new EventEmitter<void>();
-  private element: JQuery; // wrap jquery around our el.nativeElement
+
   public enabledTrigger = 'disabled';
 
-  constructor(  private modalService: ModalService,
-                private el: ElementRef,
-                private changeDetectionRef: ChangeDetectorRef) {
-                                                                  this.element = $(el.nativeElement);
-                                                                }
 
   @HostListener('window:keydown', ['$event']) onEscape(event: KeyboardEvent ) {
     // log.debug("keyup event:", event);
@@ -48,8 +49,6 @@ export class ModalComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
-    let modal = this;
-
     // ensure id attribute exists
     if (!this.id) {
         log.error('ModalComponent: ngOnInit(): Modal must have an id');
@@ -57,18 +56,8 @@ export class ModalComponent implements OnInit, OnDestroy {
     }
 
     // move element to bottom of page (just before </body>) so it can be displayed above everything else
-    this.element.appendTo('body');
-
-/*
-    // I hate this
-    // close modal on background click
-    this.element.on('click', function (e: any) {
-        var target = $(e.target);
-        if (!target.closest('.modal-body').length) {
-            modal.close();
-        }
-    });
-*/
+    this.el.nativeElement.classList.add('modal');
+    document.body.appendChild(this.el.nativeElement);
 
     // add self (this modal instance) to the modal service so it's accessible from controllers
     this.modalService.add(this);
@@ -77,35 +66,61 @@ export class ModalComponent implements OnInit, OnDestroy {
 
 
 
-  // remove self from modal service when directive is destroyed
   ngOnDestroy(): void {
+    // remove self from modal service when directive is destroyed
     this.modalService.remove(this.id);
-    this.element.remove();
+    if (this.closeOnClickOutside) {
+      this.el.nativeElement.removeEventListener('click', this.onClickOutside);
+    }
+    document.body.removeChild(this.el.nativeElement);
   }
 
 
 
-  // open modal
+  onClickOutside = (event) => {
+    let target = $(event.target);
+    if (!target.closest('.modal-body').length) {
+        this.close();
+    }
+  }
+
+
+
   open(): void {
-    this.element.show();
-    $('body').addClass('modal-open');
+    // open modal
+    this.opened.emit();
+    this.el.nativeElement.style['display'] = 'block';
+    document.body.classList.add('modal-open');
+    if (this.closeOnClickOutside) {
+      // close modal on background click
+      this.el.nativeElement.addEventListener('click', this.onClickOutside);
+    }
     this.enabledTrigger = 'enabled';
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
-    this.opened.emit();
   }
 
 
 
-  // close modal
   close(): void {
-    this.enabledTrigger = 'disabled';
+    // close modal
     this.closed.emit();
-    // this.changeDetectionRef.markForCheck();
-    // setTimeout( () => {
-      this.element.hide();
-      $('body').removeClass('modal-open');
-    // }, 250);
+    document.body.classList.remove('modal-open');
+    this.enabledTrigger = 'disabled';
+    if (this.closeOnClickOutside) {
+      this.el.nativeElement.removeEventListener('click', this.onClickOutside);
+    }
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  onAnimationDone(event) {
+    // log.debug('ModalComponent: onAnimationDone(): event:', event);
+    if (event.toState === 'disabled') {
+      this.el.nativeElement.style['display'] = 'none';
+    }
   }
 
 }

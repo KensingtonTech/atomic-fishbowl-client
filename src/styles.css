@@ -1,19 +1,68 @@
 /*Material Theme*/
-@import './font-awesome.css';
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+/*@import './font-awesome.css';*/
+/*@import 'font-awesome/css/font-awesome.min.css';*/
+/*@import '@angular/material/prebuilt-themes/indigo-pink.css';*/
 /*@import '@angular/material/prebuilt-themes/pink-bluegrey.css';*/
 /*@import '@angular/material/prebuilt-themes/indigo-pink.css';*/
 /*@import '@angular/material/prebuilt-themes/deeppurple-amber.css';*/
 /*@import '@angular/material/prebuilt-themes/purple-green.css';*/
 /*@import 'primeng/resources/themes/omega/theme.css';*/
-@import 'dragula/dist/dragula.css';
+/*@import 'dragula/dist/dragula.css';*/
+/*
+@import 'primeicons/primeicons.css';
 @import 'primeng/resources/themes/omega/theme.css';
 @import 'primeng/resources/primeng.min.css';
+*/
 
 /*APP STYLES (taken from app.less)
 ----------------------------------------------------------------------------------*/
+
 body {
-  font-family: 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;
+  background-color: black;
+}
+
+/* undo PrimeNG's global change */
+* {
+  -moz-box-sizing: initial;
+  -webkit-box-sizing: initial;
+  box-sizing: initial;
+}
+
+/* re-apply only for PrimeNG elements */
+[class^="ui-"] {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* override primeng selectButton color */
+body .ui-selectbutton .ui-button.ui-state-default:not(.ui-state-active),
+body .ui-togglebutton.ui-button.ui-state-default:not(.ui-state-active),
+body .ui-selectbutton .ui-button:not(.ui-state-disabled):not(.ui-state-active).ui-state-focus {
+  background-color: rgb(255, 255, 255);
+}
+
+/* override primeng selectButton color */
+body .ui-selectbutton .ui-button:not(.ui-state-disabled):not(.ui-state-active):hover {
+  background-color: rgb(238, 238, 238);
+}
+
+/*body .ui-selectbutton .ui-button.ui-state-active {
+  color: rgb(0, 0, 0);
+}*/
+
+/* get rid of outline effect on p-listbox */
+body .ui-listbox .ui-listbox-list .ui-listbox-item {
+  outline: none;
+}
+
+body .ui-dropdown-label {
+  font-size: 11px;
+}
+
+body {
+  font-family: 'Lucida Grande','Lucida Sans Unicode','Arial', 'Helvetica', 'sans-serif';
+  background-color: 'black';
 }
 
 .noselect {
@@ -32,6 +81,10 @@ body {
   -moz-user-select: text; /* Firefox */
   -ms-user-select: text; /* Internet Explorer/Edge */
   user-select: text; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+.nooutline {
+  outline: none;
 }
 
 
@@ -142,13 +195,13 @@ body .modal-open {
   transform: translateY(-50%);
 }
 
-.ui-widget {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
-  font-size: 11px !important;
+body .ui-widget {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 11px;
 }
 
-.ui-dropdown::before,
-.ui-dropdown::after {
+body .ui-dropdown::before,
+body .ui-dropdown::after {
   display: none !important;
 }
 
@@ -218,3 +271,22 @@ body .modal-open {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 16px;
 }
+
+.collectionsToolbar {
+  position: absolute;
+  top: -46px;
+  right: 50px;
+  width: auto;
+}
+
+.feedToolbar {
+  position: absolute;
+  top: -46px;
+  right: 50px;
+  width: auto;
+}
+
+/*.ui-tabview-panels {
+  height: 100% !important;
+  position: relative !important;
+}*/

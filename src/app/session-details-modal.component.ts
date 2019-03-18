@@ -5,7 +5,8 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { Preferences } from './preferences';
 import * as utils from './utils';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 export enum KEY_CODE {
   RIGHT_ARROW = 39,

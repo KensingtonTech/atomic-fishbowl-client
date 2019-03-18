@@ -1,22 +1,21 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { User } from './user';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
-declare var log;
+import { Logger } from 'loglevel';
+declare var log: Logger;
 
 @Injectable()
 
 export class AuthenticationService {
 
   constructor(  private dataService: DataService,
-                private router: Router,
                 private http: HttpClient,
                 private toolService: ToolService ) {
+                  log.debug('AuthenticationService: constructor()');
                   this.toolService.logout.subscribe( () => {
-                    // log.debug('got to 4');
                     this.logout();
                   } );
                 }
@@ -34,13 +33,11 @@ export class AuthenticationService {
     this.http.get(this.apiUrl + '/logout' )
                     .toPromise()
                     .then( () => {
-                      // log.debug('got to 2');
                       this.loggedInUser = null;
                       this.loggedInChanged.next(false);
                     } )
                     .catch( (err) => {
                       if (err.status !== 401) {
-                        // log.debug('got to 3');
                         log.error('AuthenticationService: logout(): ERROR during logout:', err);
                       }
                     });
@@ -63,7 +60,6 @@ export class AuthenticationService {
                     })
                     .then( () => {
                       this.loggedInChanged.next(true);
-                      // this.router.navigate(['/']);
                       return true;
                     })
                     .catch( (e: any) => {
