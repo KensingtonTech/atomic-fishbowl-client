@@ -246,7 +246,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     log.debug('FeedWizardComponent: ngAfterViewInit()');
-    // setTimeout( () => this.type = 'manual', 250);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }

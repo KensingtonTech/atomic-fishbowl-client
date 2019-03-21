@@ -146,7 +146,7 @@ export class ToolService {
 
   getPreference(key): any {
     let item: any = localStorage.getItem(key);
-    let numberRegex = /^\d+$/;
+    let numberRegex = /^[\d\.]+$/;
 
     if ( numberRegex.test(item) ) {
       item = Number(item);

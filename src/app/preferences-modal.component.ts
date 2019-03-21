@@ -99,8 +99,6 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
   public selectedTabIndex = 0;
   public autoScrollSpeed = 0;
 
-  public showServiceTypeSelector = false;
-
   // Subscriptions
   private preferencesChangedSubscription: Subscription;
 
@@ -257,15 +255,15 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     log.debug('PreferencesModalComponent: onPreferencesChanged(): preferences:', preferences);
     delete preferences['_id'];
     this.preferencesModel = preferences;
-    this.displayedNwKeysString = this.getDisplayedKeysValue(this.preferencesModel.nw.displayedKeys);
-    this.masonryNwKeysString = this.getMasonryKeysValue(this.preferencesModel.nw.masonryKeys);
-    this.displayedSaKeysString = this.getDisplayedKeysValue(this.preferencesModel.sa.displayedKeys);
-    this.masonrySaKeysString = this.getMasonryKeysValue(this.preferencesModel.sa.masonryKeys);
     // selectedServiceTypes: string[] = ['nw', null ]; // just netwitness by default
     if (preferences.serviceTypes.nw) {
+      this.displayedNwKeysString = this.getDisplayedKeysValue(this.preferencesModel.nw.displayedKeys);
+      this.masonryNwKeysString = this.getMasonryKeysValue(this.preferencesModel.nw.masonryKeys);
       this.selectedServiceTypes[0] = 'nw';
     }
     if (preferences.serviceTypes.sa) {
+      this.displayedSaKeysString = this.getDisplayedKeysValue(this.preferencesModel.sa.displayedKeys);
+      this.masonrySaKeysString = this.getMasonryKeysValue(this.preferencesModel.sa.masonryKeys);
       this.selectedServiceTypes[1] = 'sa';
     }
     this.changeDetectionRef.markForCheck();
@@ -284,10 +282,14 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     this.toolService.masonryAutoscrollSpeedChanged.next(this.autoScrollSpeed);
 
     let prefs: Preferences = this.preferencesModel;
-    prefs.nw.masonryKeys = this.setMasonryKeysValue(this.masonryNwKeysString);
-    prefs.nw.displayedKeys = this.setDisplayedKeysValue(this.displayedNwKeysString);
-    prefs.sa.masonryKeys = this.setMasonryKeysValue(this.masonrySaKeysString);
-    prefs.sa.displayedKeys = this.setDisplayedKeysValue(this.displayedSaKeysString);
+    if (this.preferencesModel.serviceTypes.nw) {
+      prefs.nw.masonryKeys = this.setMasonryKeysValue(this.masonryNwKeysString);
+      prefs.nw.displayedKeys = this.setDisplayedKeysValue(this.displayedNwKeysString);
+    }
+    if (this.preferencesModel.serviceTypes.sa) {
+      prefs.sa.masonryKeys = this.setMasonryKeysValue(this.masonrySaKeysString);
+      prefs.sa.displayedKeys = this.setDisplayedKeysValue(this.displayedSaKeysString);
+    }
 
     this.dataService.setPreferences(prefs)
                     .then( () => this.closeModal() );

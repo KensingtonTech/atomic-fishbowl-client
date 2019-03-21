@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
@@ -130,7 +130,8 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private authService: AuthenticationService,
               private changeDetectionRef: ChangeDetectorRef,
-              public fb: FormBuilder ) {}
+              public fb: FormBuilder,
+              private zone: NgZone ) {}
 
   @ViewChildren('userInAdd') userInAddRef: QueryList<any>; // used to focus input on element
   @ViewChildren('userInEdit') userInEditRef: QueryList<any>; // used to focus input on element
@@ -204,7 +205,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
     this.displayUserAddForm = true;
     this.usersFormDisabled = true;
     this.changeDetectionRef.markForCheck();
-    setTimeout( () => { this.userInAddRef.first.nativeElement.focus(); }, 10);
+    this.zone.runOutsideAngular( () => setTimeout( () => { this.userInAddRef.first.nativeElement.focus(); }, 10) );
   }
 
   addUserSubmit(): void {
@@ -268,7 +269,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
       this.usersFormDisabled = true;
       this.changeDetectionRef.markForCheck();
 
-      setTimeout( () => { this.userInEditRef.first.nativeElement.focus(); }, 10);
+      this.zone.runOutsideAngular( () => setTimeout( () => { this.userInEditRef.first.nativeElement.focus(); }, 10) );
     }
   }
 

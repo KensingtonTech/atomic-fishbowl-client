@@ -1,117 +1,199 @@
-import { Component, ChangeDetectorRef, OnInit, OnDestroy, ElementRef, ViewChild, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, ChangeDetectionStrategy, OnDestroy, Input, OnChanges } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { Logger } from 'loglevel';
+import { Preferences } from './preferences';
 declare var log: Logger;
-
-// We will use this in a future release
 
 @Component( {
   selector: 'session-widget',
-  encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div style="display: flex; flex-direction: column; position: relative; width: 100%; height: 100%;" *ngIf="sessionId && meta">
-      <h3 style="margin-top: 10px; margin-bottom: 5px;">Session {{sessionId}} Details</h3>
-      <div style="flex-grow: 1; overflow: auto;">
+  <div *ngIf="sessionId && meta" style="display: flex; flex-direction: column; position: relative; width: 100%; height: 100%;" [ngClass]="styleClass">
 
-        <div *ngIf="!showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
-          <table class="wrap" style="width: 100%; table-layout: fixed;">
-            <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td></tr>
-            <tr *ngFor="let key of displayedKeys">
-              <td class="metalabel">{{key}}</td>
-              <td>
-                <meta-accordion *ngIf="meta[key]" class="metavalue" [items]="meta[key]"></meta-accordion>
-                <i *ngIf="!meta[key]" class="fa fa-ban" style="color: red;"></i>
-              </td>
-            </tr>
-          </table>
-        </div>
+    <!-- session id -->
+    <h3 *ngIf="serviceType == 'nw'">Session {{sessionId}} Details</h3>
+    <h3 *ngIf="serviceType == 'sa'">Flow {{sessionId}} Details</h3>
 
-        <div *ngIf="showAll" style="position: relative; width: 100%; height: 100%; overflow: auto;">
-          <table class="wrap" style="width: 100%; table-layout: fixed;">
-            <tr><td class="metalabel" style="width: 35%;">time</td><td class="metavalue" style="width: 65%;">{{meta.time | fromEpoch}}</td></tr>
-            <tr *ngFor="let key of getMetaKeys()">
-              <td class="metalabel">{{key}}</td>
-              <td>
-                <meta-accordion class="metavalue" [items]="meta[key]"></meta-accordion>
-              </td>
-            </tr>
-          </table>
-        </div>
+    <!-- Show all toggle -->
+    <div class="iconsAlignTop eyeball" (click)="showAllClick()" style="position: absolute;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
 
-      </div>
-      <div (click)="showAllClick()" style="position: absolute; top: 5px; right: 40px;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
-      <div *ngIf="preferences.nw.url && deviceNumber && sessionId" style="position: absolute; top: 5px; right: 3px;"><a target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a></div>
+    <!-- bullseye -->
+    <!-- test
+    <div class="iconsAlignTop bullseye" style="position: absolute;">
+      <i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i>
     </div>
-  `
+    -->
+    <div class="iconsAlignTop bullseye" style="position: absolute;">
+      <a *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+      <a *ngIf="serviceType == 'sa' && preferences.sa.url && sessionId && meta" target="_blank" href="{{saUrlGetter(sessionId)}}"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+    </div>
+
+    <div class="overflowBox" style="flex-grow: 1;">
+
+      <!--scrollbar-width: none;-->
+      <div style="position: relative; width: 100%; height: 100%;">
+        <table class="wrap" style="width: 100%; table-layout: fixed;">
+
+          <!-- show time -->
+          <tr>
+
+            <td class="metalabel" style="width: 35%;">time</td>
+            <td *ngIf="serviceType == 'nw'" class="metavalue" style="width: 65%;">{{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+            <td *ngIf="serviceType == 'sa' && meta.stop_time" class="metavalue" style="width: 65%;">{{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}</td>
+
+          </tr>
+
+          <!-- show all other meta -->
+          <tr *ngFor="let key of displayedKeys" [style.display]="showAll || (!showall && checkForKeyInPreferences(key) ) ? 'table-row' : 'none'">
+
+            <td *ngIf="!showAll || (showAll && checkForKeyInMeta(key))" class="metalabel">{{key}}</td>
+            <td>
+              <meta-accordion *ngIf="checkForKeyInMeta(key)" class="metavalue" [items]="meta[key]" [key]="key"></meta-accordion>
+              <i *ngIf="!showAll && !checkForKeyInMeta(key)" class="fa fa-ban" style="color: red;"></i>
+            </td>
+
+          </tr>
+
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+  `,
+
+  styles: [`
+    .overflowBox {
+      overflow-y: scroll;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .overflowBox::-webkit-scrollbar {
+      display: none;
+    }
+
+    /*.metalabel {
+      color: rgb(118,143,181);
+      vertical-align: top;
+      font-size: 12px;
+    }
+
+    .metavalue {
+      color: rgb(230,234,234);
+      font-size: 10px;
+    }*/
+
+    .multiValues {
+      background-color: rgba(36, 109, 226, 0.65);
+    }
+
+    .expanded {
+      background-color: rgb(186, 48, 141);;
+    }
+
+`]
 
 })
 
-export class SessionWidgetComponent implements OnInit, OnDestroy {
+export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(private dataService: DataService,
               private changeDetectionRef: ChangeDetectorRef,
-              private el: ElementRef,
               private toolService: ToolService ) {}
 
-  @Input('sessionId') sessionId: number;
-  public showAll = false;
+  @Input() public serviceType: string; // 'nw' or 'sa'
+  @Input() public session: any;
+  @Input() public styleClass = '';
 
-  private sessions: any;
+  public sessionId;
   public meta: any;
-  private preferences: any;
-  private deviceNumber: number;
-  private displayedKeys: any =  [
-    'size',
-    'service',
-    'ip.src',
-    'ip.dst',
-    'alias.host',
-    'city.dst',
-    'country.dst',
-    'action',
-    'content',
-    'ad.username.src',
-    'ad.computer.src',
-    'filename',
-    'client'
-  ];
+  public showAll = false;
+  public deviceNumber: number;
+  private preferences: Preferences;
+  public preferenceKeys: string[] =  [];
+  public preferenceKeysObj = {};
+  public displayedKeys;
 
   // Subscriptions
-  private sessionsReplacedSubscription: Subscription;
-  private sessionPublishedSubscription: Subscription;
   private preferencesChangedSubscription: Subscription;
   private deviceNumberSubscription: Subscription;
 
+
   ngOnInit(): void {
-    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => { // log.debug("sessionsReplaced", s);
-      this.sessions = s;
-    });
-
-    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => {  // log.debug("sessionPublished", s);
-      let sessionId = s.id;
-      this.sessions[sessionId] = s;
-    });
-
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: any) => {  // log.debug("prefs observable: ", prefs);
-      this.preferences = prefs;
-      if ( 'displayedKeys' in prefs ) {
-        this.displayedKeys = prefs.displayedKeys;
-      }
-    });
-
-    this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( ($event: any) => this.deviceNumber = $event.deviceNumber );
+    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
+    this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( (event: any) => {
+      this.deviceNumber = event.deviceNumber;
+      log.debug('SessionWidgetComponent: deviceNumberSubscription: deviceNumber:', this.deviceNumber);
+      this.changeDetectionRef.markForCheck();
+      this.changeDetectionRef.detectChanges();
+     } );
   }
 
+
+
   ngOnDestroy() {
-    this.sessionsReplacedSubscription.unsubscribe();
-    this.sessionPublishedSubscription.unsubscribe();
     this.preferencesChangedSubscription.unsubscribe();
     this.deviceNumberSubscription.unsubscribe();
   }
 
+
+
+  ngOnChanges(values: any): void {
+    log.debug('SessionWidgetComponent ngOnChanges(): values', values);
+    if ( 'serviceType' in values
+        && this.preferences
+        && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
+        || ( values.serviceType.currentValue && values.serviceType.currentValue !== values.serviceType.previousValue ) ) ) {
+      this.preferenceKeys = this.preferences[values.serviceType.currentValue].displayedKeys;
+      // log.debug('ClassicSessionPopupComponent ngOnChanges(): preferenceKeys:', this.preferenceKeys);
+    }
+
+    if ('session' in values && values.session.currentValue) {
+      this.meta = JSON.parse(JSON.stringify(this.session['meta']));
+      this.sessionId = this.session['id'];
+      this.displayedKeys = this.getCombinedMetaKeys();
+    }
+    this.changeDetectionRef.markForCheck();
+  }
+
+
+
+  onPreferencesChanged(prefs: Preferences): void {
+    // log.debug('SessionWidgetComponent: onPreferencesChanged(): preferences:', prefs);
+    if (!this.serviceType) {
+      log.debug('SessionWidgetComponent: onPreferencesChanged(): did not have serviceType.  Returning');
+      return;
+    }
+    this.preferences = prefs;
+    this.preferenceKeys = this.preferences[this.serviceType].displayedKeys.slice(0);
+    let preferenceKeysObj = {};
+    for (let i = 0; i < this.preferenceKeys.length; i++) {
+      let key = this.preferenceKeys[i];
+      preferenceKeysObj[key] = 0;
+    }
+    this.preferenceKeysObj = preferenceKeysObj;
+    if (this.meta) {
+      this.displayedKeys = this.getCombinedMetaKeys();
+    }
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  getMetaForKey(k: string): any {
+    // log.debug('SessionWidgetComponent: getMetaForKey()', this.meta[k]);
+    return this.meta[k];
+  }
+
+
+
   getMetaKeys(): any {
+    // builds a list of keynames from the session's meta
+    // doesn't contain any reference displayed keys which aren't present in the meta
     let a = [];
     for (let k in this.meta) {
       if (this.meta.hasOwnProperty(k)) {
@@ -121,8 +203,78 @@ export class SessionWidgetComponent implements OnInit, OnDestroy {
     return a;
   }
 
+
+
+  getCombinedMetaKeys() {
+    // adds any preferred displayed keys to the list of meta keys
+    let metaKeys = this.getMetaKeys();
+    for (let i = 0; i < this.preferenceKeys.length; i++) {
+      let prefKey = this.preferenceKeys[i];
+      if ( !(prefKey in this.meta) ) {
+        metaKeys.push(prefKey);
+      }
+    }
+    return metaKeys;
+  }
+
+
+
   showAllClick(): void {
     this.showAll = !this.showAll;
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  convertSaTime(value: string) {
+    return parseInt(value[0].substring(0, value[0].indexOf(':')), 10) * 1000;
+  }
+
+
+
+  saUrlGetter(sessionId): string {
+    if (!this.meta || !sessionId || this.serviceType !== 'sa' || !('start_time' in this.meta && 'stop_time' in this.meta)) {
+      return;
+    }
+    // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO
+    // let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'pb' : ['flow_id=4898292'], 'ca' : { 'start' : 1518021720000, 'end' : 1518108120000}, 'now' : 1518108153464, 'ac': 'Summary' };
+
+    let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'ac': 'Summary' };
+    struct['pb'] = [ 'flow_id=' + sessionId ];
+    let startTime = this.convertSaTime(this.meta['start_time']);
+
+    let stopTime = this.convertSaTime(this.meta['stop_time']);
+    struct['ca'] = { 'start' : startTime, 'end': stopTime };
+    struct['now'] = new Date().getTime();
+    let encoded = btoa(JSON.stringify(struct));
+    // log.debug('ClassicSessionPopupComponent: saUrlGetter(): struct:', struct);
+
+    return this.preferences.sa.url + '/deepsee/index#' + encoded;
+  }
+
+
+
+  checkForKeyInPreferences(key: string) {
+    if (key in this.preferenceKeysObj) {
+      return true;
+    }
+    return false;
+  }
+
+
+
+  checkForKeyInMeta(key: string) {
+    if (key in this.meta) {
+      return true;
+    }
+    return false;
+  }
+
+
+
+  getMetaValue(key: string) {
+    return this.meta[key];
   }
 
 }

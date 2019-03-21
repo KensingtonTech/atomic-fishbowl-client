@@ -106,7 +106,6 @@ export class ClassicTileComponent implements OnInit, OnDestroy, OnChanges, After
   private mouseDownData: any = {}; // prevent opening pdf modal if dragging the view
 
   private showHighResSessionsSubscription: Subscription;
-  private imgElement: Element;
 
 
 
@@ -125,13 +124,20 @@ export class ClassicTileComponent implements OnInit, OnDestroy, OnChanges, After
     }
     else if (this.sessionId && this.sessionId in sessions ) {
       this.showHighRes = true;
+      // log.debug(`ClassicTileComponent: onShowHighResSessions(): swithing on high res for session ${this.sessionId}`);
     }
     else {
       this.showHighRes = false;
     }
 
     if (this.showHighRes !== oldHighRes) {
-      this.changeDetectionRef.detectChanges();
+      // only reattach the change detector if high res changed
+      if (this.showHighRes === false) {
+        // log.debug(`ClassicTileComponent: onShowHighResSessions(): switching off high res for session ${this.sessionId}`);
+      }
+      this.changeDetectionRef.reattach();
+      this.changeDetectionRef.markForCheck();
+      setTimeout( () => this.changeDetectionRef.detach(), 0);
     }
 
   }
@@ -139,13 +145,6 @@ export class ClassicTileComponent implements OnInit, OnDestroy, OnChanges, After
 
 
   ngAfterViewInit(): void {
-    /*setTimeout( () => {
-      // this.changeDetectionRef.reattach();
-      this.loadHighRes = true;
-      // this.changeDetectionRef.detectChanges();
-      setTimeout( () => this.changeDetectionRef.detach(), 0);
-      // this.changeDetectionRef.detach();
-    }, 1000);*/
     this.changeDetectionRef.detach();
   }
 

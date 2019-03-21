@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { Logger } from 'loglevel';
@@ -49,7 +49,8 @@ declare var log: Logger;
 export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
   constructor(private toolService: ToolService,
-              private changeDetectionRef: ChangeDetectorRef) {}
+              private changeDetectionRef: ChangeDetectorRef,
+              private zone: NgZone) {}
 
   public scrollStarted = false;
   public showMeta = true;
@@ -95,7 +96,7 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   showMetaFunction(): void {
     this.showMeta = true;
     this.toolService.showMasonryTextArea.next(true);
-    setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10);
+    this.zone.runOutsideAngular( () => setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10) );
   }
 
 
@@ -103,7 +104,7 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   hideMetaFunction(): void {
     this.showMeta = false;
     this.toolService.showMasonryTextArea.next(false);
-    setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10);
+    this.zone.runOutsideAngular( () => setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10) );
   }
 
 

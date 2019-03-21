@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { DataService } from './data.service';
 import { AuthenticationService } from './authentication.service';
 import { ModalService } from './modal/modal.service';
@@ -44,7 +44,8 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(private authService: AuthenticationService,
               private dataService: DataService,
               private modalService: ModalService,
-              private toolService: ToolService) { }
+              private toolService: ToolService,
+              private zone: NgZone ) { }
 
   public loggedIn = false;
   public serverReachable = false;
@@ -88,11 +89,11 @@ export class AppComponent implements OnInit, OnDestroy {
     log.debug('AppComponent: onLoginChanged(): loggedIn:', loggedIn);
     this.loggedIn = loggedIn;
     if (!loggedIn) {
-      setTimeout( () => {
+      this.zone.runOutsideAngular( () => setTimeout( () => {
         // wrapped in setTimeout to allow components to be destroyed before invalidating their inputs
         this.dataService.stop();
         this.toolService.stop();
-      }, 0);
+      }, 0) );
     }
     else {
       this.dataService.start();
@@ -118,20 +119,22 @@ export class AppComponent implements OnInit, OnDestroy {
     });
 
     // schedule a ping every 10 seconds and display error modal if it becomes unreachable
-    this.pingInterval = setInterval( () => {
-      this.dataService.ping()
-      .then( () => {
-        this.modalService.close('serverDownModal');
-        this.serverReachable = true;
-        if (!this.credentialsChecked) {
-          this.authService.checkCredentials();
-        }
-      })
-      .catch( () => {
-        this.serverReachable = false;
-        this.modalService.open('serverDownModal');
-      });
-      }, 10000);
+    this.pingInterval = this.zone.runOutsideAngular( () =>
+      setInterval( () => {
+        this.dataService.ping()
+        .then( () => {
+          this.modalService.close('serverDownModal');
+          this.serverReachable = true;
+          if (!this.credentialsChecked) {
+            this.authService.checkCredentials();
+          }
+        })
+        .catch( () => {
+          this.serverReachable = false;
+          this.modalService.open('serverDownModal');
+        });
+      }, 10000)
+    );
   }
 
 

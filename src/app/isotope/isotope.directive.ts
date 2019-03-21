@@ -163,7 +163,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
       // Layout bricks
       // we use a timer so that if many elements are being removed at once (due to a purge), layout will only be called once.
-      this.removeTimer = setTimeout( () => this.layout(), 10 );
+      this.removeTimer = this.ngZone.runOutsideAngular( () => setTimeout( () => this.layout(), 10 ) );
 
     }
 

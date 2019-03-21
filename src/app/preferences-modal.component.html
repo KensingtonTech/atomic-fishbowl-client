@@ -3,18 +3,6 @@
     <div class="modal-body" style="width:500px;" >
       <h3 style="margin-top:0px; margin-bottom: 10px;">Preferences</h3>
       <form #preferencesForm="ngForm" (ngSubmit)="onSubmitPreferences()" novalidate>
-      
-      <!--Service Type Selector-->
-      <table *ngIf="showServiceTypeSelector" style="width: 100%">
-          <tr>
-            <td>
-              <b>Enabled Service Types</b>
-            </td>
-            <td style="width: 99%;">
-              <p-selectButton name="serviceTypeOptions" [options]="serviceTypeOptions" [(ngModel)]="selectedServiceTypes" (ngModelChange)="onServiceTypeChanged()" multiple="multiple"></p-selectButton>
-            </td>
-          </tr>
-      </table>
 
       <p-tabView [activeIndex]="selectedTabIndex">
 

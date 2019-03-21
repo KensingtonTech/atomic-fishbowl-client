@@ -48,6 +48,11 @@ interface Point {
 
 </div>
 
+<!-- session popup -->
+<classic-session-popup *ngIf="selectedCollectionServiceType" [enabled]="sessionWidgetEnabled" #sessionWidget>
+  <session-widget [session]="popUpSession" [serviceType]="selectedCollectionServiceType" styleClass="popupSessionWidget"></session-widget>
+</classic-session-popup>
+
 <!-- modals -->
 <tab-container-modal [id]="tabContainerModalId"></tab-container-modal>
 <splash-screen-modal></splash-screen-modal>
@@ -60,7 +65,6 @@ interface Point {
   <nw-collection-modal *ngIf="preferences.serviceTypes.nw" [id]="nwCollectionModalId"></nw-collection-modal>
   <sa-collection-modal *ngIf="preferences.serviceTypes.sa" [id]="saCollectionModalId"></sa-collection-modal>
 </ng-container>
-<classic-session-popup *ngIf="selectedCollectionServiceType" [session]="popUpSession" [enabled]="sessionWidgetEnabled" [serviceType]="selectedCollectionServiceType" #sessionWidget></classic-session-popup>
 `,
   styles: [`
 
@@ -367,7 +371,6 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
       || ( !this.toolService.urlParametersLoaded && this.queryParams && Object.keys(this.queryParams).length === 0 ) ) ) {
         // only load the splash screen if we don't have ad hoc query parameters
         log.debug('ClassicGridComponent: ngAfterViewInit(): loading the splash screen');
-        // setTimeout( () => this.modalService.open('splashScreenModal'), 250);
         this.modalService.open('splashScreenModal');
     }
     else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
@@ -745,6 +748,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.collectionId = collection.id;
     }
     this.pauseMonitoring = false;
+    this.sessionWidgetEnabled = false;
     this.changeDetectionRef.detectChanges();
   }
 

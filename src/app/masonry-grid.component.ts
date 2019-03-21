@@ -415,7 +415,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       || ( !this.toolService.urlParametersLoaded && this.queryParams && Object.keys(this.queryParams).length === 0 ) ) ) {
         // only load the splash screen if we don't have ad hoc query parameters
         log.debug('MasonryGridComponent: ngAfterViewInit(): loading the splash screen');
-        // setTimeout( () => this.modalService.open('splashScreenModal'), 250);
         this.modalService.open('splashScreenModal');
     }
     else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
@@ -790,7 +789,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (collection.serviceType === 'sa') {
       this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
     }
-    setTimeout( () => this.selectedCollectionServiceType = collection.serviceType, 0); // 'nw' or 'sa'
+    this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
+    this.changeDetectionRef.detectChanges();
 
   }
 
@@ -853,12 +853,12 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroyView = false;
     this.changeDetectionRef.detectChanges();
 
-    setTimeout( () => {
+    this.zone.runOutsideAngular( () => setTimeout( () => {
       // Sets keyboard focus
       if (this.content && this.sessionsDefined && this.masonryKeys && this.masonryColumnWidth && !this.destroyView) {
         this.canvasRef.nativeElement.focus();
       }
-    }, 50);
+    }, 50) );
   }
 
 

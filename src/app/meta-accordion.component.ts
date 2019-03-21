@@ -1,34 +1,25 @@
-import { Component, ChangeDetectorRef, Input, ViewEncapsulation } from '@angular/core';
+import { Component, ChangeDetectorRef, Input, ChangeDetectionStrategy, ViewChild, ElementRef, ViewChildren, QueryList, OnChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
 @Component({
   selector: 'meta-accordion',
-  encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+<div style="height: auto; overflow: hidden;" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)">
 
-<div *ngIf="items.length == 1 && key != 'stop_time' && key != 'start_time'">
-  {{items[0]}}
-</div>
-<div *ngIf="items.length == 1 && ( key == 'stop_time' || key == 'start_time' )">
-  {{items[0] | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}
-</div>
-
-<div *ngIf="items.length > 1" style="height: auto; overflow: hidden;" (click)="toggleList()">
-
-  <div [class.hide]="hideHeader">
-    <ul>
-      <li>
-        <span *ngIf="key != 'stop_time' && key != 'start_time'" class="multiValues">{{items[0]}}</span>
-        <span *ngIf="key == 'stop_time' || key == 'start_time'" class="multiValues">{{items[0] | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</span>
+  <div #slider [@slideInOut]="collapsedState" style="overflow: hidden; height: 12px;">
+    <ul #itemList display="inline-block">
+      <li #firstListItem [class.bold]="collapsedState == 'expanded'" >
+        <span *ngIf="displayedItems.length != 0" class="fa fa-lg fa-fw noselect" [class.fa-caret-right]="collapsedState == 'collapsed'" [class.fa-caret-down]="collapsedState != 'collapsed'" style="color: white;">&nbsp;</span>
+        <!-- regular meta -->
+        <span *ngIf="key != 'stop_time' && key != 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsedState == 'collapsed'">{{firstItem}}</span>
+        <!-- sa time meta -->
+        <span *ngIf="key == 'stop_time' || key == 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsedState == 'collapsed'">{{firstItem | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</span>
       </li>
-    </ul>
-  </div>
-
-  <div [@slideInOut]="collapsed" style="display: none;">
-    <ul #itemList>
-      <li *ngFor="let item of items">
+      <li *ngFor="let item of displayedItems" class="bold">
+        <span *ngIf="displayedItems.length != 0" class="fa fa-lg fa-fw">&nbsp;</span>
         <span class="expanded">{{item}}</span>
       </li>
     </ul>
@@ -45,48 +36,72 @@ declare var log: Logger;
       word-wrap: break-word;
     }
 
-    .hide {
-      display: none !important;
+    bold {
+      font-weight: bold;
     }
   `],
 
   animations: [
     trigger('slideInOut', [
-      state('true', style({ height: '0px', display: 'none' })),
-      state('false',  style({ height: '*', display: 'block' })),
-      transition('* => *', animate('.15s')),
+      state('collapsed', style({ height: `12px` }) ),
+      state('expanded',  style({ height: '*' })),
+      transition(':enter', [] ),
+      transition('* => *', animate('.15s'))
     ])
   ]
 })
 
-export class MetaAccordionComponent {
+export class MetaAccordionComponent implements OnChanges {
 
   constructor ( private changeDetectionRef: ChangeDetectorRef ) {}
 
   @Input() public items: string[] = [];
   @Input() public key: string;
 
-  private hideHeader = false;
-  private collapsed = 'true';
+  @ViewChild('slider') sliderRef: ElementRef;
+  @ViewChild('firstListItem') firstListItem: ElementRef;
+  @ViewChildren('itemList') itemList: QueryList<ElementRef>;
 
-  toggleList(): void {
-    // log.debug("toggleList()");
-    let sel = getSelection().toString();
-    if (!sel) {
-        // this.hideHeader = (this.hideHeader === false ? true : false);
-        this.hideHeader = !this.hideHeader;
-        // this.collapsed = !this.collapsed;
-        this.collapsed = (this.collapsed === 'true' ? 'false' : 'true');
-    }
-    // this.changeDetectionRef.detectChanges();
+  public displayedItems: string[] = [];
+  public collapsedState = 'collapsed';
+  public collapsedHeight;
+  public firstItem: string;
+  public mouseDownTime: number;
+
+
+
+  ngOnChanges() {
+    this.displayedItems = this.items.slice(0);
+    this.firstItem = this.displayedItems.shift();
     this.changeDetectionRef.markForCheck();
   }
 
-  /*ngOnChanges(c: any): void {
-    if ('items' in c) {
-      log.debug('MetaAccordionComponent: ngOnChanges: items:', c.items.currentValue);
+
+
+  onMouseDown(event: MouseEvent) {
+    this.mouseDownTime = event.timeStamp;
+  }
+
+
+
+  onMouseUp(event: MouseEvent) {
+    if (event.timeStamp - this.mouseDownTime > 250) {
+      return;
     }
-  }*/
+    this.toggleList();
+  }
+
+
+
+  toggleList(): void {
+    if (this.displayedItems.length === 0) {
+      // do nothing if only a single meta item
+      return;
+    }
+    this.collapsedState = (this.collapsedState === 'collapsed' ? 'expanded' : 'collapsed');
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+  }
 
 }
 

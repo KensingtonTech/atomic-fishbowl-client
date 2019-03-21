@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
 import { Collection } from './collection';
@@ -161,7 +161,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   constructor (private dataService: DataService,
                private modalService: ModalService,
                private toolService: ToolService,
-               private changeDetectionRef: ChangeDetectorRef ) {}
+               private changeDetectionRef: ChangeDetectorRef,
+               private zone: NgZone ) {}
 
   @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
 
@@ -274,11 +275,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
   onContentCountChanged(count: any) {
     log.debug('ToolbarWidgetComponent: onContentCountChanged(): contentCount:', count);
-    // setTimeout needed to prevent ExpressionChangedAfterItHasBeenCheckedError in dev mode.
-    // The problem is that the modals are a child of this component, but when a grid chooses to reload a collection when it inits (when switching between views)...
-    // the grid view invokes onGetCollectionDataAgain() of CollectionsComponent, which is a child of this component.
-    // This causes the stupid error as things are happening out-of-order for the change detection system
-    // It isn't worth reworking the code to fix properly
     this.contentCount = count;
     this.changeDetectionRef.markForCheck();
   }
@@ -501,7 +497,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onSelectedCollectionChanged(): collection:', collection );
 
     if (this.showSearch) {
-      setTimeout( () => this.toggleSearch() ); // we do this to avoid an ExpressionChangedAfterItHasBeenCheckedError problem in template
+      this.toggleSearch();
     }
 
     // Reset content masks
@@ -549,7 +545,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
       }
       this.changeDetectionRef.markForCheck();
 
-      setTimeout( () => this.searchBoxRef.first.nativeElement.focus(), 50); // we use a setTimeout because of a weird timing issue caused by *ngIf.  Without it, .first is undefined
+      this.zone.runOutsideAngular( () => setTimeout( () => this.searchBoxRef.first.nativeElement.focus(), 20) );
     }
   }
 

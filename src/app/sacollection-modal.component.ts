@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, Input, ViewChild, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, Input, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
 import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
@@ -108,7 +108,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   constructor(private dataService: DataService,
               private toolService: ToolService,
               private modalService: ModalService,
-              private changeDetectionRef: ChangeDetectorRef) {}
+              private changeDetectionRef: ChangeDetectorRef,
+              private zone: NgZone) {}
 
   @Input() id: string;
   @ViewChild('addCollectionForm') public addCollectionForm: NgForm;
@@ -472,7 +473,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.apiServerMode = 'add';
     this.formDisabled = true;
     this.changeDetectionRef.markForCheck();
-    setTimeout( () => this.hostNameRef.first.nativeElement.focus(), 20 );
+    this.zone.runOutsideAngular( () => setTimeout( () => this.hostNameRef.first.nativeElement.focus(), 20 ) );
   }
 
 

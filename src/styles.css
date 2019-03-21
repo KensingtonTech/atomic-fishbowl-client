@@ -158,7 +158,6 @@ body .modal-open {
 /* Session Display Styles */
 
 .metalabel {
-  /*color: rgb(118,143,181);*/
   color: white;
   font-weight: bold;
   vertical-align: top;
@@ -167,7 +166,7 @@ body .modal-open {
 
 .metavalue {
   color: white;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .multiValues {
@@ -290,3 +289,54 @@ body .ui-dropdown::after {
   height: 100% !important;
   position: relative !important;
 }*/
+
+/*PDF Viewer Session Widget Sessings*/
+
+.eyeball {
+  right: 40px;
+}
+
+.bullseye {
+  right: 75px;
+}
+
+.pdfViewerSessionWidget h3 {
+  margin-top: 7px;
+  color: white;
+}
+
+.pdfViewerSessionWidget .iconsAlignTop {
+  top: 2px;
+} 
+
+.pdfViewerSessionWidget .eyeball {
+  color: white;
+}
+
+
+/*Pop-up Session Widget Sessings*/
+
+.popupSessionWidget h3 {
+  margin-top: 10px;
+}
+
+.popupSessionWidget .iconsAlignTop {
+  top: 5px;
+} 
+
+.popupSessionWidget .eyeball {
+  color: white;
+  right: 13px;
+}
+
+.popupSessionWidget .bullseye {
+  right: 45px;
+}
+
+.popupSessionWidget .metalabel {
+  color: rgb(118,143,181);
+}
+
+.popupSessionWidget .metavalue {
+  color: rgb(230,234,234);
+}
