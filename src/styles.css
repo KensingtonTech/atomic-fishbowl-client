@@ -132,6 +132,11 @@ modal { /*This is the modal frame.  Modals are hidden by default */
   /*padding-bottom: 5px;*/
 }
 
+.verfical-center {
+  top: 50%;
+  transform: perspective(1px) translateY(-50%);
+}
+
 modal .modal-background {
   /* modal background fixed across whole screen */
   position: fixed;
@@ -151,6 +156,42 @@ modal .modal-background {
 body .modal-open {
   /* body overflow is hidden to hide main scrollbar when modal window is open */
   overflow: hidden;
+}
+
+.centerWithinDiv {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.splash-body {
+  background-color: black !important;
+  position: relative;
+  top: 50% !important;
+  transform: translateY(-50%);
+}
+
+.feed-wizard-body {
+  position: absolute;
+  width: 1200px;
+  height: 500px;
+  top: 50%;
+  left: 50%;
+  margin: -250px 0 0 -600px;
+  overflow: hidden;
+  background-color: rgba(255,255,255,1);
+}
+
+.secondLevel {
+  z-index: 1100;
+}
+
+.secondLevelBackground
+{
+  opacity: 0.85;
+  /* z-index must be below .modal and above everything else  */
+  z-index: 1050 !important;
 }
 
 
@@ -340,3 +381,44 @@ body .ui-dropdown::after {
 .popupSessionWidget .metavalue {
   color: rgb(230,234,234);
 }
+
+.masonryTileTime {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background-color: rgba(0,0,0,0.75);
+  color: white;
+  border-radius: 5px;
+  padding: 2px;
+}
+
+.masonryTileSessionID {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(0,0,0,0.75);
+  color: white;
+  border-radius: 5px;
+  padding: 2px;
+}
+
+.masonryTileNetworkInfo {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  background-color: rgba(0,0,0,0.75);
+  color: white;
+  border-radius: 5px;
+  padding: 2px;
+}
+
+.masonryFileTypeIcon {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: rgba(0,0,0,0.75);
+  color: white;
+  border-radius: 5px;
+  padding: 2px;
+}
+

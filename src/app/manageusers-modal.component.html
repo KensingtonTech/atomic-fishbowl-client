@@ -1,165 +1,162 @@
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()">
-  <div class="modal">
-    <div class="modal-body mat-app-background manage-users" style="width:800px;">
-      <div style="width: 100%;">
-        <h3 style="float: left; margin-top:0px; margin-bottom: 10px;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; text-align: right; color: red;">{{errorMessage}}</span>
-        <div>&nbsp;</div>
-      </div>
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()" background="true" bodyClass="mat-app-background manage-users" bodyStyle="width: 800px;">
 
-      <div>
-        <fieldset [disabled]="usersFormDisabled" style="border: none; margin: 0; padding: 0; width: 100%;">
-          <div style="position: relative; max-height: 800px; overflow: auto;"> <!--min-height: 200px;-->
-            <table style="width: 100%;">
+  <div style="width: 100%;">
+    <h3 style="float: left; margin-top:0px; margin-bottom: 10px;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; text-align: right; color: red;">{{errorMessage}}</span>
+    <div>&nbsp;</div>
+  </div>
+
+  <div>
+    <fieldset [disabled]="usersFormDisabled" style="border: none; margin: 0; padding: 0; width: 100%;">
+      <div style="position: relative; max-height: 800px; overflow: auto;"> <!--min-height: 200px;-->
+        <table style="width: 100%;">
+          <tr>
+            <th align="left">Enabled</th>
+            <th align="left">User</th>
+            <th align="left">Full Name</th>
+            <th align="left">Email</th>
+            <th align="center">Actions</th>
+          </tr>
+          <tr *ngFor="let user of users" class="table-body">
+            <td>
+              <span *ngIf="!user.enabled" class="fa fa-ban" style="color: red;"></span>
+              <span *ngIf="user.enabled" class="fa fa-check" style="color: green;"></span>
+            </td>
+            <td>{{user.username}}</td>
+            <td>{{user.fullname}}</td>
+            <td>{{user.email}}</td>
+            <td align="center"><span class="fa fa-pencil" (click)="displayUserEditBox(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="deleteUser(user.id)"></span></td>
+          </tr>
+        </table>
+      </div>
+      <div style="float: left;">
+        <p-button type="button" (click)="displayUserAddBox()" label="New User"></p-button>
+      </div>
+      <div style="margin-top: 5px; float: right;">
+        <p-button type="button" (click)="cancel()" label="OK"></p-button>
+      </div>
+    </fieldset>
+
+
+
+
+    <div *ngIf="displayUserAddForm" style="padding: 5px;">
+      <mat-card>
+        <mat-card-content>
+          
+          <mat-card-title>
+            Add a User
+          </mat-card-title>
+
+          <form class="myForm" [formGroup]="addUserForm" (ngSubmit)="addUserSubmit()" novalidate>
+
+            <mat-form-field class="full-width">
+              <input #userInAdd matInput type="text" formControlName="username" placeholder="Username">
+              <mat-error *ngIf="addUserForm.controls['username'].hasError('spaceexists')">Spaces are not permitted in usernames</mat-error>
+              <mat-error *ngIf="addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">User already exists</mat-error>
+              <mat-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">Minimum username length is {{minUsernameLength}} characters</mat-error>
+            </mat-form-field>
+            
+            <mat-form-field class="full-width">
+              <input matInput type="text" formControlName="fullname" placeholder="Full Name">
+            </mat-form-field>
+            
+            <mat-form-field class="full-width">
+              <input matInput type="email" formControlName="email" placeholder="Email">
+              <mat-error>Not a valid email address format</mat-error>
+            </mat-form-field>
+            
+            <table class="full-width" formGroupName="passwords">
               <tr>
-                <th align="left">Enabled</th>
-                <th align="left">User</th>
-                <th align="left">Full Name</th>
-                <th align="left">Email</th>
-                <th align="center">Actions</th>
-              </tr>
-              <tr *ngFor="let user of users" class="table-body">
                 <td>
-                  <span *ngIf="!user.enabled" class="fa fa-ban" style="color: red;"></span>
-                  <span *ngIf="user.enabled" class="fa fa-check" style="color: green;"></span>
+                  <mat-form-field class="full-width">
+                    <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="addUserPasswordMatcher">
+                    <mat-error *ngIf="addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                      Passwords do not match
+                    </mat-error>
+                    <mat-error *ngIf="addUserForm.controls['passwords'].controls['password'].hasError('minlength') && !addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                      Minimum password length is {{minPasswordLength}}
+                    </mat-error>
+                  </mat-form-field>
                 </td>
-                <td>{{user.username}}</td>
-                <td>{{user.fullname}}</td>
-                <td>{{user.email}}</td>
-                <td align="center"><span class="fa fa-pencil" (click)="displayUserEditBox(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="deleteUser(user.id)"></span></td>
+                <td>
+                  <mat-form-field class="full-width">
+                    <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                  </mat-form-field>
+                </td>
               </tr>
             </table>
-          </div>
-          <div style="float: left;">
-            <p-button type="button" (click)="displayUserAddBox()" label="New User"></p-button>
-          </div>
-          <div style="margin-top: 5px; float: right;">
-            <p-button type="button" (click)="cancel()" label="OK"></p-button>
-          </div>
-        </fieldset>
 
+            <mat-checkbox type="checkbox" formControlName="enabled">Enabled</mat-checkbox>
 
-
-
-        <div *ngIf="displayUserAddForm" style="padding: 5px;">
-          <mat-card>
-            <mat-card-content>
-              
-              <mat-card-title>
-                Add a User
-              </mat-card-title>
-
-              <form class="myForm" [formGroup]="addUserForm" (ngSubmit)="addUserSubmit()" novalidate>
-
-                <mat-form-field class="full-width">
-                  <input #userInAdd matInput type="text" formControlName="username" placeholder="Username">
-                  <mat-error *ngIf="addUserForm.controls['username'].hasError('spaceexists')">Spaces are not permitted in usernames</mat-error>
-                  <mat-error *ngIf="addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">User already exists</mat-error>
-                  <mat-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">Minimum username length is {{minUsernameLength}} characters</mat-error>
-                </mat-form-field>
-                
-                <mat-form-field class="full-width">
-                  <input matInput type="text" formControlName="fullname" placeholder="Full Name">
-                </mat-form-field>
-                
-                <mat-form-field class="full-width">
-                  <input matInput type="email" formControlName="email" placeholder="Email">
-                  <mat-error>Not a valid email address format</mat-error>
-                </mat-form-field>
-                
-                <table class="full-width" formGroupName="passwords">
-                  <tr>
-                    <td>
-                      <mat-form-field class="full-width">
-                        <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="addUserPasswordMatcher">
-                        <mat-error *ngIf="addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
-                          Passwords do not match
-                        </mat-error>
-                        <mat-error *ngIf="addUserForm.controls['passwords'].controls['password'].hasError('minlength') && !addUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
-                          Minimum password length is {{minPasswordLength}}
-                        </mat-error>
-                      </mat-form-field>
-                    </td>
-                    <td>
-                      <mat-form-field class="full-width">
-                        <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
-                      </mat-form-field>
-                    </td>
-                  </tr>
-                </table>
-
-                <mat-checkbox type="checkbox" formControlName="enabled">Enabled</mat-checkbox>
-
-                <mat-card-actions align="end">
-                  <button mat-button type="submit" [disabled]="!addUserForm.valid">SAVE</button> <button mat-button type="button" (click)="hideUserAddBox()">CANCEL</button>
-                </mat-card-actions>
-              </form>
-            </mat-card-content>
-          </mat-card>
-        </div>
-
-
-        <div *ngIf="displayUserEditForm" style="padding: 5px;">
-          <mat-card>
-            <mat-card-content>
-              
-                <mat-card-title>
-                  Edit User
-                </mat-card-title>
-
-              <form class="myForm" [formGroup]="editUserForm" (ngSubmit)="editUserSubmit(editUserForm)" novalidate>
-
-                <mat-form-field class="full-width">
-                  <input matInput type="text" formControlName="username" placeholder="Username" readonly>
-                </mat-form-field>
-
-                <mat-form-field class="full-width">
-                  <input #userInEdit matInput type="text" formControlName="fullname" placeholder="Full Name">
-                </mat-form-field>
-                
-                <mat-form-field class="full-width">
-                  <input matInput type="email" formControlName="email" placeholder="Email">
-                  <mat-error>Not a valid email address format</mat-error>
-                </mat-form-field>
-
-                <table class="full-width" formGroupName="passwords">
-                  <tr>
-                    <td>
-                      <mat-form-field class="full-width">
-                        <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="editUserPasswordMatcher">
-                        <mat-error *ngIf="editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
-                          Passwords do not match
-                        </mat-error>
-                        <mat-error *ngIf="editUserForm.controls['passwords'].controls['password'].hasError('minlength') && !editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
-                          Minimum password length is {{minPasswordLength}}
-                        </mat-error>
-                      </mat-form-field>
-                    </td>
-                    <td>
-                      <mat-form-field class="full-width">
-                        <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
-                      </mat-form-field>
-                    </td>
-                  </tr>
-                </table>
-
-                  <mat-checkbox matInput type="checkbox" formControlName="enabled">Enabled</mat-checkbox>
-                  <div class="mat-input-error" *ngIf="editUserForm.controls['enabled'].hasError('isloggedinuser')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
-                    Cannot disable logged-in user
-                  </div>
-
-                <mat-card-actions align="end">
-                  <button mat-button type="submit" [disabled]="disableEditUserSubmitButton()">UPDATE</button> <button mat-button type="button" (click)="hideUserEditBox()">CANCEL</button>
-                </mat-card-actions>
-
-              </form>
-            </mat-card-content>
-          </mat-card>
-        </div>
-
-        
-      </div>
+            <mat-card-actions align="end">
+              <button mat-button type="submit" [disabled]="!addUserForm.valid">SAVE</button> <button mat-button type="button" (click)="hideUserAddBox()">CANCEL</button>
+            </mat-card-actions>
+          </form>
+        </mat-card-content>
+      </mat-card>
     </div>
+
+
+    <div *ngIf="displayUserEditForm" style="padding: 5px;">
+      <mat-card>
+        <mat-card-content>
+          
+            <mat-card-title>
+              Edit User
+            </mat-card-title>
+
+          <form class="myForm" [formGroup]="editUserForm" (ngSubmit)="editUserSubmit(editUserForm)" novalidate>
+
+            <mat-form-field class="full-width">
+              <input matInput type="text" formControlName="username" placeholder="Username" readonly>
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+              <input #userInEdit matInput type="text" formControlName="fullname" placeholder="Full Name">
+            </mat-form-field>
+            
+            <mat-form-field class="full-width">
+              <input matInput type="email" formControlName="email" placeholder="Email">
+              <mat-error>Not a valid email address format</mat-error>
+            </mat-form-field>
+
+            <table class="full-width" formGroupName="passwords">
+              <tr>
+                <td>
+                  <mat-form-field class="full-width">
+                    <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="editUserPasswordMatcher">
+                    <mat-error *ngIf="editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                      Passwords do not match
+                    </mat-error>
+                    <mat-error *ngIf="editUserForm.controls['passwords'].controls['password'].hasError('minlength') && !editUserForm.controls['passwords'].hasError('nomatch')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                      Minimum password length is {{minPasswordLength}}
+                    </mat-error>
+                  </mat-form-field>
+                </td>
+                <td>
+                  <mat-form-field class="full-width">
+                    <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                  </mat-form-field>
+                </td>
+              </tr>
+            </table>
+
+              <mat-checkbox matInput type="checkbox" formControlName="enabled">Enabled</mat-checkbox>
+              <div class="mat-input-error" *ngIf="editUserForm.controls['enabled'].hasError('isloggedinuser')">  <!-- *ngIf="addUserForm.controls['passwords'].hasError('nomatch')"-->
+                Cannot disable logged-in user
+              </div>
+
+            <mat-card-actions align="end">
+              <button mat-button type="submit" [disabled]="disableEditUserSubmitButton()">UPDATE</button> <button mat-button type="button" (click)="hideUserEditBox()">CANCEL</button>
+            </mat-card-actions>
+
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    
   </div>
-  <div class="modal-background"></div>
+
 </modal>
 <confirm-user-delete-modal></confirm-user-delete-modal>

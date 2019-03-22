@@ -10,42 +10,19 @@ declare var log: Logger;
   selector: 'delete-collection-confirm-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<modal id="{{id}}" class="delete-collection-confirm-modal">>
-  <div class="modal">
+<modal id="{{id}}" class="delete-collection-confirm-modal" background="true" secondLevel="true" bodyClass="centerWithinDiv noselect" bodyStyle="top: 500px;">
 
-    <div class="modal-body noselect" style="top: 500px;">
-      <div>
-        <p>Are you sure you want to delete collection <b>{{collection?.name}}</b> ?</p>
-        <p>This operation cannot be undone.</p>
-      </div>
-      <div style="float: right;">
-        <p-button type="button" (click)="deleteConfirmed()" label="Confirm"></p-button>&nbsp;<p-button type="button" (click)="cancelDelete()" label="Cancel"></p-button>
-      </div>
-    </div>
-
+  <div>
+    <p>Are you sure you want to delete collection <b>{{collection?.name}}</b> ?</p>
+    <p>This operation cannot be undone.</p>
   </div>
-  <div class="modal-background"></div>
+  <div style="float: right;">
+    <p-button type="button" (click)="deleteConfirmed()" label="Confirm"></p-button>&nbsp;<p-button type="button" (click)="cancelDelete()" label="Cancel"></p-button>
+  </div>
+
 </modal>
   `,
-  styles: [`
-    .delete-collection-confirm-modal .modal {
-        z-index: 1100;
-      }
-
-    .delete-collection-confirm-modal .modal-background {
-      opacity: 0.85;
-
-      /* z-index must be below .modal and above everything else  */
-      z-index: 1050 !important;
-    }
-
-    .modal-body {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-  `]
+  styles: [` `]
 })
 
 export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy {

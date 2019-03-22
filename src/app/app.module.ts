@@ -45,6 +45,7 @@ import { FormatSaTimePipe } from './pipes/format-satime.pipe';
 import { MapValuesPipe } from './pipes/mapValues.pipe';
 import { AllCapsPipe } from './pipes/allcaps.pipe';
 import { CapFirstLetterPipe } from './pipes/cap-firstletter.pipe';
+import { BoolToStringPipe } from './pipes/boolToString.pipe';
 
 // Our Directives
 import { ToggleFullscreenDirective } from './fullscreen.directive';
@@ -84,6 +85,8 @@ import { SaCollectionModalComponent } from './sacollection-modal.component';
 import { DeleteSaServerConfirmModalComponent } from './deletesaserver-confirm-modal.component';
 import { CollectionDeletedNotifyModalComponent } from './collection-deleted-notify-modal.component';
 import { EulaComponent } from './eula.component';
+import { LicensingPreferencesComponent } from './licensing-preferences';
+import { LicenseExpiredModalComponent } from './license-expired-modal.component';
 
 // Not yet used but imported to prevent compiler error
 import { SessionWidgetComponent } from './session-widget.component';
@@ -181,7 +184,10 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   SaCollectionModalComponent,
                   DeleteSaServerConfirmModalComponent,
                   CollectionDeletedNotifyModalComponent,
-                  EulaComponent
+                  EulaComponent,
+                  LicensingPreferencesComponent,
+                  BoolToStringPipe,
+                  LicenseExpiredModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

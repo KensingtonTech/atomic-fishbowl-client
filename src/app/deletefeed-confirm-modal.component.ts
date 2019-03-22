@@ -10,52 +10,27 @@ declare var log: Logger;
 @Component({
   selector: 'confirm-feed-delete-modal',
   template: `
-<modal id="{{id}}" class="confirm-feed-delete-modal">
-  <div class="modal">
-    <div class="modal-body noselect" style="top: 500px;">
+<modal id="{{id}}" class="confirm-feed-delete-modal" background="true" secondLevel="true" bodyClass="centerWithinDiv noselect" bodyStyle="top: 500px;">
 
-      <div>
+  <div>
 
-        <div *ngIf="feed" style="position: relative;">
-          Are you sure you want to delete feed <b>{{feed.name}}</b> ?
-        </div>
-
-        <div *ngIf="error" style="position: relative; top: 5px;">
-          The server reported an error when deleting the feed: {{error}}
-        </div>
-
-        <div style="float: right; margin-top: 15px;">
-          <p-button type="button" (click)="onConfirmDelete()" label="Confirm"></p-button>&nbsp;<p-button type="button" (click)="cancelDelete()" label="Cancel"></p-button>
-        </div>
-
-      </div>
-
+    <div *ngIf="feed" style="position: relative;">
+      Are you sure you want to delete feed <b>{{feed.name}}</b> ?
     </div>
+
+    <div *ngIf="error" style="position: relative; top: 5px;">
+      The server reported an error when deleting the feed: {{error}}
+    </div>
+
+    <div style="float: right; margin-top: 15px;">
+      <p-button type="button" (click)="onConfirmDelete()" label="Confirm"></p-button>&nbsp;<p-button type="button" (click)="cancelDelete()" label="Cancel"></p-button>
+    </div>
+
   </div>
-  <div class="modal-background"></div>
+
 </modal>
   `,
-  styles: [`
-
-  .confirm-feed-delete-modal .modal {
-      z-index: 1100;
-    }
-
-  .confirm-feed-delete-modal .modal-background {
-    opacity: 0.85;
-
-    /* z-index must be below .modal and above everything else  */
-    z-index: 1050 !important;
-  }
-
-  .modal-body {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  `]
+  styles: [` `]
 })
 
 export class DeleteFeedConfirmModalComponent implements OnInit, OnDestroy {

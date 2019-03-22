@@ -1,7 +1,6 @@
-<modal id="{{id}}" (cancelled)="cancelledEventReceived()">
-  <div class="modal">
-    <div class="modal-body" style="width:500px;" >
-      <h3 style="margin-top:0px; margin-bottom: 10px;">Preferences</h3>
+<modal id="{{id}}" (cancelled)="cancelledEventReceived()" background="true" bodyStyle="width: 500px;">
+
+      <h3 class="noselect" style="margin-top:0px; margin-bottom: 10px;">Preferences</h3>
       <form #preferencesForm="ngForm" (ngSubmit)="onSubmitPreferences()" novalidate>
 
       <p-tabView [activeIndex]="selectedTabIndex">
@@ -280,6 +279,10 @@
 
         </p-tabPanel>
 
+        <p-tabPanel header="License" headerStyleClass="noselect nooutline">
+          <licensing-prefs></licensing-prefs>
+        </p-tabPanel>
+
       </p-tabView>
 
 
@@ -288,7 +291,4 @@
         <p-button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="submit" label="OK"></p-button>&nbsp;<p-button type="button" (click)="cancel()" label="Cancel"></p-button>
       </div>
       </form>
-    </div>
-  </div>
-  <div class="modal-background"></div>
 </modal>

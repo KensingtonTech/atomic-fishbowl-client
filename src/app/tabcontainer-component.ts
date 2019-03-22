@@ -7,9 +7,7 @@ declare var log: Logger;
 @Component({
   selector: 'tab-container-modal',
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="onCancel()">
-  <div class="modal">
-    <div class="modal-body" style="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; background-color: white; font-size: 10pt;"> <!--max-height: 1024px;-->
+<modal id="{{id}}" (opened)="onOpen()" (cancelled)="onCancel()" [background]="true" bodyStyle="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; background-color: white; font-size: 10pt;">
 
       <div (click)="closeModal()" style="position: absolute; top: 10px; right: 16px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
 
@@ -23,9 +21,6 @@ declare var log: Logger;
       </p-tabView>
 
 
-    </div>
-  </div>
-  <div class="modal-background"></div>
 </modal>
   `,
   styles: [`

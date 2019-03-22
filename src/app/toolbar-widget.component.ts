@@ -7,6 +7,7 @@ import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
 import { UseCase } from './usecase';
 import { Subscription } from 'rxjs';
+import { License } from './license';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -15,7 +16,7 @@ declare var log: Logger;
   template: `
 <div class="afb-toolbar" style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
 
-  <ng-container *ngIf="selectedCollection">
+  <ng-container *ngIf="selectedCollection && license">
     <div style="position: absolute; top: 6px; width: 100%">
       <span class="noselect">
         &nbsp;&nbsp;&nbsp;
@@ -28,8 +29,8 @@ declare var log: Logger;
         <span class="collectionTooltip" *ngIf="selectedCollection" [pTooltip]="infoTooltipText" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" class="fa fa-info-circle fa-lg fa-fw"></span>
 
         <!-- Edit Icon -->
-        <span *ngIf="selectedCollection.type != 'fixed'" pTooltip="Edit collection" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
-        <span *ngIf="selectedCollection.type == 'fixed'" pTooltip="Reprocess collection" class="fa fa-repeat fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+        <span *ngIf="selectedCollection.type != 'fixed' && license.valid" pTooltip="Edit collection" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+        <span *ngIf="selectedCollection.type == 'fixed' && license.valid" pTooltip="Reprocess collection" class="fa fa-repeat fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
 
         <!--State Icons-->
         <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" pTooltip="Building collection"></span>
@@ -196,6 +197,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   public workerProgress: number = null;
   public workerLabel: string = null;
   public infoTooltipText = '';
+  public license: License;
 
 
   // Subscriptions
@@ -207,6 +209,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private selectedCollectionChangedSubscription: Subscription;
   private noCollectionSubscription: Subscription;
   private workerProgressSubscription: Subscription;
+  private licensingChangedSubscription: Subscription;
 
   ngOnInit(): void {
 
@@ -230,6 +233,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
     this.workerProgressSubscription = this.dataService.workerProgress.subscribe( progress => this.onWorkerProgress(progress) );
 
+    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
+
   }
 
 
@@ -243,6 +248,18 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.selectedCollectionChangedSubscription.unsubscribe();
     this.noCollectionSubscription.unsubscribe();
     this.workerProgressSubscription.unsubscribe();
+    this.licensingChangedSubscription.unsubscribe();
+  }
+
+
+
+  onLicenseChanged(license: License) {
+    // log.debug('ToolbarWidgetComponent: onLicenseChanged(): license:', license);
+    if (!license) {
+      return;
+    }
+    this.license = license;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -578,6 +595,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
   onEditCollectionClick(): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', this.selectedCollection);
+    if (!this.license.valid) {
+      return;
+    }
     if (this.selectedCollection.serviceType === 'nw') {
       this.toolService.editNwCollectionNext.next(this.selectedCollection);
       this.toolService.executeCollectionOnEdit.next(true);

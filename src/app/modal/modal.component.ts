@@ -1,4 +1,5 @@
 ﻿import { Component, ChangeDetectorRef, ElementRef, Input, Output, OnInit, OnDestroy, EventEmitter } from '@angular/core';
+import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
@@ -9,7 +10,12 @@ declare var log: Logger;
   selector: 'modal',
 
   template:  `<div [@faderAnimation]="enabledTrigger" (@faderAnimation.done)="onAnimationDone($event)">
-                <ng-content></ng-content>
+                <div *ngIf="background" class="modal-background" [class.secondLevelBackground]="secondLevel" [style]="bypassStyleSanitizer(backgroundStyle)" [ngClass]="backgroundClass"></div>
+                <div class="modal" [class.secondLevel]="secondLevel">
+                  <div class="modal-body" [ngClass]="bodyClass" [style]="bypassStyleSanitizer(bodyStyle)">
+                    <ng-content></ng-content>
+                  </div>
+                </div>
               </div>`,
 
   animations: [
@@ -25,11 +31,19 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   constructor(  private modalService: ModalService,
     private el: ElementRef,
-    private changeDetectionRef: ChangeDetectorRef) { }
+    private changeDetectionRef: ChangeDetectorRef,
+    private sanitizer: DomSanitizer) { }
 
   @Input() id: string;
   @Input() closeOnClickOutside = false;
   @Input() escapeEnabled = true; // pass escapeEnabled="false" to <modal> to disable escape
+  @Input() bodyClass = '';
+  @Input() bodyStyle = '';
+  @Input() background = false;
+  @Input() backgroundClass = '';
+  @Input() backgroundStyle = '';
+  @Input() secondLevel = false;
+
   @Output() cancelled: EventEmitter<void> = new EventEmitter<void>();
   @Output() opened: EventEmitter<void> = new EventEmitter<void>();
   @Output() closed: EventEmitter<void> = new EventEmitter<void>();
@@ -121,6 +135,12 @@ export class ModalComponent implements OnInit, OnDestroy {
     if (event.toState === 'disabled') {
       this.el.nativeElement.style['display'] = 'none';
     }
+  }
+
+
+
+  bypassStyleSanitizer(value): SafeStyle {
+    return this.sanitizer.bypassSecurityTrustStyle(value);
   }
 
 }

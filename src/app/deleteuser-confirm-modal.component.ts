@@ -9,37 +9,17 @@ declare var log: Logger;
 @Component({
   selector: 'confirm-user-delete-modal',
   template: `
-<modal id="{{id}}" class="confirm-user-delete-modal">
-    <div class="modal">
-      <div class="noselect">
-          <div class="modal-body" style="width: 350px;">
-            <div *ngIf="user">
-              <p>Are you sure you want to delete user {{user.username}}?</p>
-            </div>
-            <div style="float: right;">
-              <button (click)="confirmDelete()">Confirm</button>
-              <button (click)="cancelDelete()">Cancel</button>
-            </div>
-          </div>
-        </div>
-    </div>
-    <div class="modal-background"></div>
+<modal id="{{id}}" class="confirm-user-delete-modal" secondLevel="true" bodyClass="noselect" background="true" bodyStyle="width: 350px;">
+  <div *ngIf="user">
+    <p>Are you sure you want to delete user {{user.username}}?</p>
+  </div>
+  <div style="float: right;">
+    <button (click)="confirmDelete()">Confirm</button>
+    <button (click)="cancelDelete()">Cancel</button>
+  </div>
 </modal>
   `,
-  styles: [`
-
-  .confirm-user-delete-modal .modal {
-      z-index: 1100;
-    }
-
-  .confirm-user-delete-modal .modal-background {
-    opacity: 0.85;
-
-    /* z-index must be below .modal and above everything else  */
-    z-index: 1050 !important;
-  }
-
-  `]
+  styles: [` `]
 })
 
 export class DeleteUserConfirmModalComponent implements OnInit, OnDestroy {

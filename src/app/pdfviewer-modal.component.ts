@@ -18,9 +18,7 @@ export enum KEY_CODE {
   selector: 'pdf-viewer-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()">
-  <div class="modal">
-    <div class="modal-body" *ngIf="serviceType" style="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" bodyStyle="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
 
       <!-- close -->
       <div (click)="onCloseClicked()" style="position: absolute; top: 2px; right: 10px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
@@ -82,8 +80,6 @@ export enum KEY_CODE {
 
       </div>
 
-    </div>
-  </div>
 </modal>
 <downloadfile-confirm-modal></downloadfile-confirm-modal>
   `,
@@ -256,7 +252,10 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
   onClosed(): void {
     log.debug('PdfViewerModalComponent: onClosed()');
     this.isOpen = false;
-    this.removeKeyupFunc();
+    if (this.removeKeyupFunc) {
+      this.removeKeyupFunc();
+      this.removeKeyupFunc = null;
+    }
   }
 
 

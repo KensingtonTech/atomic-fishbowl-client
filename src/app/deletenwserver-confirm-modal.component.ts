@@ -10,40 +10,20 @@ declare var log: Logger;
 @Component({
   selector: 'confirm-nwserver-delete-modal',
   template: `
-<modal id="{{id}}" class="confirm-nwserver-delete-modal" (opened)="onOpen()">
-    <div class="modal">
-      <div class="noselect">
-          <div class="modal-body" style="top: 500px; width: 700px;">
-            <div *ngIf="nwServer" style="text-align: center;">
-              <p>Are you sure you want to delete NetWitness service <b>{{nwServer.friendlyName}}</b> ?</p>
-            </div>
-            <div *ngIf="error">
-              There was an error when deleting the collection: {{error}}
-            </div>
-            <div style="float: right;">
-              <button (click)="confirmDelete()">Confirm</button>
-              <button (click)="cancelDelete()">Cancel</button>
-            </div>
-          </div>
-        </div>
-    </div>
-    <div class="modal-background"></div>
+<modal id="{{id}}" class="confirm-nwserver-delete-modal" (opened)="onOpen()" background="true" secondLevel="true" bodyClass="noselect" bodyStyle="top: 500px; width: 700px;">
+  <div *ngIf="nwServer" style="text-align: center;">
+    <p>Are you sure you want to delete NetWitness service <b>{{nwServer.friendlyName}}</b> ?</p>
+  </div>
+  <div *ngIf="error">
+    There was an error when deleting the collection: {{error}}
+  </div>
+  <div style="float: right;">
+    <button (click)="confirmDelete()">Confirm</button>
+    <button (click)="cancelDelete()">Cancel</button>
+  </div>
 </modal>
   `,
-  styles: [`
-
-  .confirm-nwserver-delete-modal .modal {
-      z-index: 1100;
-    }
-
-  .confirm-nwserver-delete-modal .modal-background {
-    opacity: 0.85;
-
-    /* z-index must be below .modal and above everything else  */
-    z-index: 1050 !important;
-  }
-
-  `]
+  styles: [` `]
 })
 
 export class DeleteNwServerConfirmModalComponent implements OnInit, OnDestroy {

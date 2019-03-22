@@ -3,13 +3,12 @@ import { DataService } from './data.service';
 import { ToolService } from './tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
-import { NwServer } from './nwserver';
-import { SaServer } from './saserver';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
 import { DragulaService } from 'ng2-dragula';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
+import { License } from './license';
 declare var log: Logger;
 
 @Component({
@@ -85,8 +84,8 @@ declare var log: Logger;
       color: red;
     }
 
-    .modal-body {
-      background-color: rgba(255,255,255,1);
+    .iconDisabled {
+      color: grey;
     }
 
   `]
@@ -119,6 +118,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public preferences: Preferences = null;
   public filterEnabled = false;
   private editing = false;
+  public license: License;
 
   // Subscriptions
   private getCollectionDataAgainSubscription: Subscription;
@@ -131,6 +131,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   private dragulaDroppedSubscription: Subscription;
   private nwServersChangedSubscription: Subscription;
   private saServersChangedSubscription: Subscription;
+  private licensingChangedSubscription: Subscription;
 
   ngOnInit(): void {
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.onGetCollectionDataAgain() );
@@ -163,6 +164,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.nwServersChangedSubscription = this.dataService.nwServersChanged.subscribe( apiServers => this.onNwServersChanged(apiServers) );
     this.saServersChangedSubscription = this.dataService.saServersChanged.subscribe( apiServers => this.onSaServersChanged(apiServers) );
 
+    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
+
   }
 
 
@@ -178,6 +181,18 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.dragulaDroppedSubscription.unsubscribe();
     this.nwServersChangedSubscription.unsubscribe();
     this.saServersChangedSubscription.unsubscribe();
+    this.licensingChangedSubscription.unsubscribe();
+  }
+
+
+
+  onLicenseChanged(license: License) {
+    // log.debug('CollectionsComponent: onLicenseChanged(): license:', license);
+    if (!license) {
+      return;
+    }
+    this.license = license;
+    this.changeDetectionRef.markForCheck();
   }
 
 
@@ -318,6 +333,9 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
   onEditCollectionClick(collection: Collection): void {
     log.debug('CollectionsComponent: onEditCollectionClick(): collection:', collection);
+    if (!this.license.valid) {
+      return;
+    }
     if (collection.serviceType === 'nw') {
       this.toolService.editNwCollectionNext.next(collection);
       this.toolService.executeCollectionOnEdit.next(false);

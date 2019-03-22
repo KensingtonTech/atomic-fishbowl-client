@@ -6,6 +6,7 @@ import { SaServer } from './saserver';
 import { ToolService } from './tool.service';
 import { Feed } from './feed';
 import { Preferences } from './preferences';
+import { License } from './license';
 import * as io from 'socket.io-client';
 import { Logger } from 'loglevel';
 declare var JSEncrypt: any;
@@ -54,6 +55,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public usersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
   public serverVersionChanged: BehaviorSubject<string> = new BehaviorSubject<string>(null);
   public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+  public licensingChanged: BehaviorSubject<License> = new BehaviorSubject<License>(null);
 
   // Subscriptions
 
@@ -63,6 +65,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public encryptor: any;
   private pubKey: string;
   private running = false;
+
 
 
 
@@ -95,6 +98,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.serverSocket.on('feedStatus', feedStatus => this.onFeedStatusUpdate(feedStatus) );
     this.serverSocket.on('users', users => this.onUsersUpdate(users) );
     this.serverSocket.on('useCases', useCases => this.onUseCasesUpdate(useCases) );
+    this.serverSocket.on('license', license => this.onLicenseChanged(license) );
     this.serverSocket.on('logout', () => this.toolService.logout.next() ); // TODO: triggered by the socket when our validity expires
 
 
@@ -287,6 +291,13 @@ export class DataService { // Manages NwSession objects and also Image objects i
   }
 
 
+
+  onLicenseChanged(license) {
+    log.debug('DataService: onLicenseChanged(): license:', license);
+    this.licensingChanged.next(license);
+  }
+
+
   ///////////////////// NW SERVERS /////////////////////
 
   testNwServer( server: any ): Promise<any> {
@@ -325,6 +336,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
                   log.debug('DataService: editNwServer(): response:', response);
                 });
   }
+
 
 
 
@@ -438,137 +450,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
     log.debug('DataService: unpauseMonitoringCollection()');
     this.collectionsSocket.emit('unpause');
   }
-
-
-
-  /*getRollingCollectionOld(id: string): void {
-    // uses http
-    log.debug('DataService: getRollingCollection():', id);
-    this.httpJsonStreamService.fetchStream(this.apiUrl + '/collection/rolling/' + id, { afbsessionid: this.clientSessionId } )
-                              .subscribe( (o: any) => {
-                                                        if ('collection' in o) {
-                                                          // log.debug("received collection update",o.collection);
-                                                          this.collectionStateChanged.next(o.collection);
-                                                        }
-                                                        else if ('wholeCollection' in o) {
-                                                          this.sessionsReplaced.next( o['wholeCollection']['sessions'] );
-                                                          this.contentReplaced.next( o['wholeCollection']['images'] );
-                                                          this.searchReplaced.next( o['wholeCollection']['search'] );
-                                                        }
-                                                        else if ('collectionDeleted' in o) {
-                                                          let user = o['user'];
-                                                          this.collectionDeleted.next(user);
-                                                        }
-                                                        else if ('heartbeat' in o) { log.debug('heartbeat'); }
-                                                        else if ('error' in o) {
-                                                          this.errorPublished.next(o.error);
-                                                        }
-                                                        else if ('queryResultsCount' in o) {
-                                                          this.queryResultsCountUpdated.next(o.queryResultsCount);
-                                                        }
-                                                        else if ('collectionUpdate' in o) {
-                                                          if ('session' in o.collectionUpdate) {
-                                                            this.sessionPublished.next(o.collectionUpdate.session);
-                                                          }
-                                                          if ('images' in o.collectionUpdate) {
-                                                            this.contentPublished.next(o.collectionUpdate.images);
-                                                          }
-                                                          if ('search' in o.collectionUpdate) {
-                                                            this.searchPublished.next(o.collectionUpdate.search);
-                                                          }
-                                                        }
-                                                        else if ('close' in o) { return; }
-                                                        else if ('collectionPurge' in o) {
-                                                          this.sessionsPurged.next(o.collectionPurge);
-                                                        }
-                                                        else if ('collectionEdited' in o) { } // do something to reload the collection
-                                                        else {
-                                                          // there's data here that shouldn't be
-                                                          log.error('DataService: getRollingCollection(): unhandled JSON data', o);
-                                                        }
-                              });
-  }*/
-
-
-
-  /*getFixedCollection(id: string, collection: Collection): void {
-    log.debug('DataService: getFixedCollection():', id);
-    this.httpJsonStreamService.fetchStream(this.apiUrl + '/collection/fixed/' + id)
-                              .subscribe( (o: any) => {
-                                                        // log.debug('DataService: getFixedCollection(): o:', o);
-                                                        let good = false;
-                                                        if ('collection' in o) {
-                                                          // log.debug("received collection update",o.collection);
-                                                          this.collectionStateChanged.next(o.collection);
-                                                          good = true;
-                                                        }
-                                                        if ('wholeCollection' in o) {
-                                                          this.sessionsReplaced.next( o['wholeCollection']['sessions'] );
-                                                          this.contentReplaced.next( o['wholeCollection']['images'] );
-                                                          this.searchReplaced.next( o['wholeCollection']['search'] );
-                                                          good = true;
-                                                        }
-                                                        if ('collectionDeleted' in o) {
-                                                          let user = o['user'];
-                                                          this.collectionDeleted.next(user);
-                                                          good = true;
-                                                        }
-                                                        if ('heartbeat' in o) {
-                                                          good = true;
-                                                        }
-                                                        if ('error' in o) {
-                                                          this.errorPublished.next(o.error);
-                                                          good = true;
-                                                        }
-                                                        if ('queryResultsCount' in o) {
-                                                          this.queryResultsCountUpdated.next(o.queryResultsCount);
-                                                          good = true;
-                                                        }
-                                                        if ('collectionUpdate' in o) {
-                                                          good = true;
-                                                          if ('session' in o.collectionUpdate) {
-                                                            this.sessionPublished.next(o.collectionUpdate.session);
-                                                          }
-                                                          if ('images' in o.collectionUpdate) {
-                                                            this.contentPublished.next(o.collectionUpdate.images);
-                                                          }
-                                                          if ('search' in o.collectionUpdate) {
-                                                            this.searchPublished.next(o.collectionUpdate.search);
-                                                          }
-                                                        }
-                                                        if ('close' in o) { return; }
-                                                        if (!good) {
-                                                          // there's data here that shouldn't be
-                                                          log.error('DataService: getFixedCollection(): unhandled JSON data', o);
-                                                        }
-                              });
-  }*/
-
-
-  /*abortHttpStream(): Promise<void> {
-    log.debug('DataService: abortHttpStream()');
-    this.httpJsonStreamService.abort();
-    return Promise.resolve();
-  }*/
-
-
-  /*pauseMonitoringCollectionOld(id: string): Promise<void> {
-    log.debug('DataService: pauseMonitoringCollectionOld()');
-    let headers = new HttpHeaders().set('afbsessionid', this.clientSessionId.toString() );
-    return this.http.get(this.apiUrl + '/collection/monitoring/pause/' + id, { headers } )
-                    .toPromise()
-                    .catch(e => this.handleError(e));
-  }*/
-
-
-  /*
-  unpauseMonitoringCollectionOld(id: string): Promise<void> {
-    log.debug('DataService: unpauseMonitoringCollectionOld()');
-    let headers = new HttpHeaders().set('afbsessionid', this.clientSessionId.toString() );
-    return this.http.get(this.apiUrl + '/collection/monitoring/unpause/' + id, { headers } )
-                    .toPromise()
-                    .catch(e => this.handleError(e));
-  }*/
 
 
 

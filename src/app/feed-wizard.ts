@@ -19,16 +19,6 @@ interface ColumnId {
   selector: 'feed-wizard-modal',
   templateUrl: './feed-wizard.html',
   styles: [`
-    .modal-body {
-      position: absolute;
-      width: 1200px;
-      height: 500px;
-      top: 50%;
-      left: 50%;
-      margin: -250px 0 0 -600px;
-      overflow: hidden;
-      background-color: rgba(255,255,255,1);
-    }
 
     .table {
       display: table;

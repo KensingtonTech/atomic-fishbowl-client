@@ -19,32 +19,32 @@ declare var log: Logger;
 
       <!--NetWitness Tile Overlay-->
       <ng-container *ngIf="serviceType == 'nw'" >
-        <div class="selectable" style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <div class="selectable masonryTileTime">
           {{session.meta['time'] | formatTime}}
         </div>
-        <div class="selectable" style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <div class="selectable masonryTileSessionID">
           {{session.id}}
         </div>
-        <div class="selectable" style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <div class="selectable masonryTileNetworkInfo">
           {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
         </div>
       </ng-container>
 
       <!--SA Tile Overlay-->
       <ng-container *ngIf="serviceType == 'sa'">
-        <div class="selectable" style="position: absolute; top: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <div class="selectable masonryTileTime">
           {{session.meta['stop_time'] | formatSaTime}}
         </div>
-        <div class="selectable" style="position: absolute; top: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <div class="selectable masonryTileSessionID">
           {{session.id}}
         </div>
-        <div class="selectable" style="position: absolute; bottom: 5px; left: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+        <div class="selectable masonryTileNetworkInfo">
           {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
         </div>
       </ng-container>
 
       <!-- file type icon overlay -->
-      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" class="selectable" style="position: absolute; bottom: 5px; right: 5px; background-color: rgba(0,0,0,0.75); color: white; border-radius: 5px; padding: 2px;">
+      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" class="selectable masonryFileTypeIcon">
         <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
         <ng-container [ngSwitch]="content.contentType">
           <i *ngSwitchCase="'encryptedZipEntry'" class="fa fa-lock fa-2x"></i>

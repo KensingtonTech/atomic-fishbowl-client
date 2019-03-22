@@ -1,7 +1,7 @@
 <!-- Toolbar -->
-<p-toolbar *ngIf="preferences" styleClass="collectionsToolbar">
-  <p-button *ngIf="preferences.serviceTypes.nw" type="button" (click)="onAddNwCollectionClick()" label="New Collection"></p-button>
-  <p-button *ngIf="preferences.serviceTypes.sa" type="button" (click)="onAddSaCollectionClick()" label="New Collection"></p-button>
+<p-toolbar *ngIf="preferences && license" styleClass="collectionsToolbar">
+  <p-button *ngIf="preferences.serviceTypes.nw" type="button" (onClick)="onAddNwCollectionClick()" label="New Collection" [disabled]="!license.valid"></p-button>
+  <p-button *ngIf="preferences.serviceTypes.sa" type="button" (onClick)="onAddSaCollectionClick()" label="New Collection" [disabled]="!license.valid"></p-button>
   &nbsp;&nbsp;
   <div class="ui-toolbar-group-right">
     <div class="ui-inputgroup">
@@ -15,7 +15,7 @@
 <div *ngIf="collections && collections.length == 0"><p>No collections are defined</p></div>
 
 <!--collections container-->
-<div *ngIf="displayedCollections && displayedCollections.length > 0 && preferences" style="position: relative; width: 100%; margin-bottom: 25px; height: 100%; overflow: auto;">
+<div *ngIf="displayedCollections && displayedCollections.length > 0 && preferences && license" style="position: relative; width: 100%; margin-bottom: 25px; height: 100%; overflow: auto;">
   <div class="table tabTable" style="width: 100%; margin: auto;">
 
     <div class="header noselect">
@@ -35,18 +35,57 @@
         
         <!-- Collection Name for NetWitness -->
         <div *ngIf="collection.serviceType == 'nw'" class="cell">
-          <span *ngIf=" ( preferences.serviceTypes.nw && nwServerExists(collection.nwserver) ) ||  ( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.nw && collection.type == 'fixed' ) " class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
 
-          <span *ngIf="( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="NetWitness is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
-          <span *ngIf="( collection.type != 'fixed' && !nwServerExists(collection.nwserver) ) && !( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>
+          <ng-container *ngIf="license.valid; else licenseInvalid">
+
+            <span *ngIf=" ( preferences.serviceTypes.nw && nwServerExists(collection.nwserver) ) ||  ( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.nw && collection.type == 'fixed' ) " class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
+
+            <span *ngIf="( collection.type != 'fixed' && !nwServerExists(collection.nwserver) ) && !( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>
+          
+
+            <span *ngIf="( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.nw && collection.type != 'fixed' )" pTooltip="NetWitness is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
+
+          </ng-container>
+
+          <ng-template #licenseInvalid>
+
+            <ng-container *ngIf="collection.type == 'fixed' && ( collection.state =='complete' || collection.state =='building'); else licenseMessage">
+              <span class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
+            </ng-container>
+
+            <ng-template #licenseMessage>
+                <span pTooltip="The Atomic Fishbowl license has expired.  Only completed or building fixed collections will be available" class="no-nw-server">{{collection.name}}</span>
+            </ng-template>
+
+          </ng-template>
+        
         </div>
 
         <!-- Collection Name for SA -->
         <div *ngIf="collection.serviceType == 'sa'" class="cell">
-          <span *ngIf=" ( preferences.serviceTypes.sa && saServerExists(collection.saserver) ) ||  ( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.sa && collection.type == 'fixed' ) " class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
-          
-          <span *ngIf="( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="Symantec Security Analytics is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
-          <span *ngIf="( collection.type != 'fixed' && !saServerExists(collection.saserver) ) && !( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>
+
+          <ng-container *ngIf="license.valid; else saLicenseInvalid">
+
+            <span *ngIf=" ( preferences.serviceTypes.sa && saServerExists(collection.saserver) ) ||  ( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.sa && collection.type == 'fixed' ) " class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
+            
+            <span *ngIf="( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) || ( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="Symantec Security Analytics is not enabled in the preferences" class="no-nw-server">{{collection.name}}</span>
+            
+            <span *ngIf="( collection.type != 'fixed' && !saServerExists(collection.saserver) ) && !( !preferences.serviceTypes.sa && collection.type == 'fixed' && collection.state !='complete' ) && !( !preferences.serviceTypes.sa && collection.type != 'fixed' )" pTooltip="No API endpoint is configured for this collection" class="no-nw-server">{{collection.name}}</span>
+
+          </ng-container>
+
+          <ng-template #saLicenseInvalid>
+
+            <ng-container *ngIf="collection.type == 'fixed' && ( collection.state =='complete' || collection.state =='building'); else saLicenseMessage">
+              <span class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
+            </ng-container>
+
+            <ng-template #saLicenseMessage>
+                <span pTooltip="The Atomic Fishbowl license has expired.  Only completed or building fixed collections will be available" class="no-nw-server">{{collection.name}}</span>
+            </ng-template>
+
+          </ng-template>
+
         </div>
 
         <!-- Collection Type -->
@@ -75,8 +114,8 @@
         <div class="cell center" style="cursor: initial;">
           
           <!-- Edit or Reprocess-->
-          <span *ngIf="collection.type == 'fixed'" class="fa fa-repeat" (click)="onEditCollectionClick(collection)"></span>
-          <span *ngIf="collection.type != 'fixed'" class="fa fa-pencil" (click)="onEditCollectionClick(collection)"></span>
+          <span *ngIf="collection.type == 'fixed'" class="fa fa-repeat" [class.iconDisabled]="!license.valid" (click)="onEditCollectionClick(collection)"></span>
+          <span *ngIf="collection.type != 'fixed'" class="fa fa-pencil" [class.iconDisabled]="!license.valid" (click)="onEditCollectionClick(collection)"></span>
           &nbsp;&nbsp;&nbsp;&nbsp;
 
           <!-- Delete -->

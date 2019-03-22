@@ -14,6 +14,7 @@ import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { Collection } from './collection';
 import { Preferences } from './preferences';
+import { License } from './license';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -66,6 +67,7 @@ declare var $: any;
   <nw-collection-modal *ngIf="preferences.serviceTypes.nw" [id]="nwCollectionModalId"></nw-collection-modal>
   <sa-collection-modal *ngIf="preferences.serviceTypes.sa" [id]="saCollectionModalId"></sa-collection-modal>
 </ng-container>
+<license-expired-modal [id]="licenseExpiredModalId"></license-expired-modal>
 `,
 
   styles: [`
@@ -135,6 +137,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public tabContainerModalId = 'tab-container-modal';
   public nwCollectionModalId = 'nw-collection-modal';
   public saCollectionModalId = 'sa-collection-modal';
+  public licenseExpiredModalId = 'license-expired-modal';
   private urlParametersLoaded = false;
 
   // scrolling
@@ -150,6 +153,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private selectedSessionId: number = null;
   private selectedContentType: string = null;
   private selectedContentId: string = null;
+  public license: License;
+  private licenseChangedFunction = this.onLicenseChangedInitial;
 
   private queryParams: any;
 
@@ -187,6 +192,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private monitoringCollectionPauseSubscription: Subscription;
   private isotopeApiSubscription: Subscription;
   private isotopeInitializedSubscription: Subscription;
+  private licensingChangedSubscription: Subscription;
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
@@ -224,6 +230,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.monitoringCollectionPauseSubscription.unsubscribe();
     this.isotopeApiSubscription.unsubscribe();
     this.isotopeInitializedSubscription.unsubscribe();
+    this.licensingChangedSubscription.unsubscribe();
     this.mouseWheelRemoveFunc();
   }
 
@@ -269,8 +276,15 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     // New startup code
     log.debug('MasonryGridComponent: ngOnInit(): toolService.urlParametersLoaded:', this.toolService.urlParametersLoaded);
     log.debug('MasonryGridComponent: ngOnInit(): toolService.queryParams:', this.toolService.queryParams);
+
+    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.licenseChangedFunction(license) );
+
     this.onSplashScreenAtStartupClosedSubscription = this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
-      if (!this.toolService.queryParams) {
+      if (!this.license.valid) {
+        this.modalService.open(this.licenseExpiredModalId);
+      }
+      else if (!this.toolService.queryParams) {
+        // only show the collections tab container if the user hasn't passed in custom url params, like when drilling from an investigation
         this.modalService.open(this.tabContainerModalId);
       }
     });
@@ -419,13 +433,43 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
       // open the tab container on subsequent logout/login combos, if a collection wasn't previously selected
-      this.modalService.open(this.tabContainerModalId);
+      if (!this.license.valid) {
+        this.modalService.open(this.licenseExpiredModalId);
+      }
+      else {
+        this.modalService.open(this.tabContainerModalId);
+      }
     }
     else {
-      log.debug('MasonryGridComponent: ngAfterViewInit(): not loading the splash screen');
+      log.debug('MasonryGridComponent: ngAfterViewInit(): not loading the splash screen - this should mean that we\'re just witching views');
     }
 
 
+  }
+
+
+
+  onLicenseChangedInitial(license: License) {
+    log.debug('MasonryGridComponent: onLicenseChangedInitial(): license:', license);
+    if (!license) {
+      return;
+    }
+    this.license = license;
+    this.licenseChangedFunction = this.onLicenseChangedSubsequent; // change the callback after first load
+  }
+
+
+
+  onLicenseChangedSubsequent(license: License) {
+    log.debug('MasonryGridComponent: onLicenseChangedSubsequent(): license:', license);
+    this.license = license;
+    if (!this.license.valid) {
+      this.modalService.closeAll();
+      if (this.selectedCollectionType !== 'fixed' ||  (this.selectedCollectionType === 'fixed' && !['complete', 'building'].includes(this.collectionState)) ) {
+        this.dataService.noCollections.next(); // this will clear out the toolbar and all selected collection data
+      }
+      this.modalService.open(this.licenseExpiredModalId);
+    }
   }
 
 

@@ -8,8 +8,10 @@ import { Content } from './content';
 import { ModalService } from './modal/modal.service';
 import { ContentCount } from './contentcount';
 import { ContentMask } from './contentmask';
+import { Collection } from './collection';
 import { Preferences } from './preferences';
 import { Search } from './search';
+import { License } from './license';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -65,6 +67,7 @@ interface Point {
   <nw-collection-modal *ngIf="preferences.serviceTypes.nw" [id]="nwCollectionModalId"></nw-collection-modal>
   <sa-collection-modal *ngIf="preferences.serviceTypes.sa" [id]="saCollectionModalId"></sa-collection-modal>
 </ng-container>
+<license-expired-modal [id]="licenseExpiredModalId"></license-expired-modal>
 `,
   styles: [`
 
@@ -103,7 +106,6 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public toolbarHeight = 0;
   public initialZoomHeight: number = null; // set in resetZoomToFit()
   public initialZoomWidth = this.canvasWidth;
-
   public content: Content[] = [];
   private contentCount = new ContentCount;
   public sessionWidgetEnabled = false;
@@ -113,10 +115,8 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private deviceNumber: number;
   private search: Search[] = [];
   public displayedContent: Content[] = [];
-
   public sessions: any;
   public popUpSession: any;
-
   private pdfFile: string;
   private caseSensitiveSearch = false;
   private showOnlyImages: any = [];
@@ -132,22 +132,20 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private pauseMonitoring = false;
   private transitionZoomLevel = 3.9;
   private previousFocusedElement: Node;
-
   public tabContainerModalId = 'tab-container-modal';
   public nwCollectionModalId = 'nw-collection-modal';
   public saCollectionModalId = 'sa-collection-modal';
-
+  public licenseExpiredModalId = 'license-expired-modal';
   private urlParametersLoaded = false;
   private selectedSessionId: number = null;
   private selectedContentType: string = null;
   private selectedContentId: string = null;
-
   public preferences: Preferences;
-
   private center: Point = null;
-
   public loadAllHighResImages = false;
-
+  public license: License;
+  private licenseChangedFunction = this.onLicenseChangedInitial;
+  private collectionState = '';
   private queryParams: any;
 
   // Subscription holders
@@ -174,6 +172,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private newImageSubscription: Subscription;
   private monitoringCollectionPauseSubscription: Subscription;
   private preferencesChangedSubscription: Subscription;
+  private licensingChangedSubscription: Subscription;
 
 
 
@@ -202,6 +201,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.newImageSubscription.unsubscribe();
     this.monitoringCollectionPauseSubscription.unsubscribe();
     this.preferencesChangedSubscription.unsubscribe();
+    this.licensingChangedSubscription.unsubscribe();
   }
 
 
@@ -250,10 +250,14 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.toolService.lastRoute = 'classicGrid';
     this.toolService.setPreference('lastRoute', 'classicGrid');
 
+    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.licenseChangedFunction(license) );
 
     // New startup code
     this.onSplashScreenAtStartupClosedSubscription = this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
-      if (!this.toolService.queryParams) {
+      if (!this.license.valid) {
+        this.modalService.open(this.licenseExpiredModalId);
+      }
+      else if (!this.toolService.queryParams) {
         this.modalService.open(this.tabContainerModalId);
       }
     });
@@ -375,10 +379,40 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
       // open the tab container on subsequent logout/login combos, if a collection wasn't previously selected
-      this.modalService.open(this.tabContainerModalId);
+      if (!this.license.valid) {
+        this.modalService.open(this.licenseExpiredModalId);
+      }
+      else {
+        this.modalService.open(this.tabContainerModalId);
+      }
     }
     else {
       log.debug('ClassicGridComponent: ngAfterViewInit(): not loading the splash screen');
+    }
+  }
+
+
+
+  onLicenseChangedInitial(license: License) {
+    log.debug('ClassicGridComponent: onLicenseChangedInitial(): license:', license);
+    if (!license) {
+      return;
+    }
+    this.license = license;
+    this.licenseChangedFunction = this.onLicenseChangedSubsequent; // change the callback after first load
+  }
+
+
+
+  onLicenseChangedSubsequent(license: License) {
+    log.debug('ClassicGridComponent: onLicenseChangedSubsequent(): license:', license);
+    this.license = license;
+    if (!this.license.valid) {
+      this.modalService.closeAll();
+      if (this.selectedCollectionType !== 'fixed' ||  (this.selectedCollectionType === 'fixed' && !['complete', 'building'].includes(this.collectionState)) ) {
+        this.dataService.noCollections.next(); // this will clear out the toolbar and all selected collection data
+      }
+      this.modalService.open(this.licenseExpiredModalId);
     }
   }
 
@@ -712,6 +746,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   onCollectionStateChanged(state: string): void {
     // this triggers when a monitoring collection refreshes
     log.debug('ClassicGridComponent: onCollectionStateChanged(): collectionStateChanged:', state);
+    this.collectionState = state;
     if (state === 'monitoring')  {
       this.destroyView = true;
       this.sessionsDefined = false;
@@ -728,7 +763,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  onSelectedCollectionChanged(collection: any): void {
+  onSelectedCollectionChanged(collection: Collection): void {
     // this triggers whenever we choose a new collection
     log.debug('ClassicGridComponent: onSelectedCollectionChanged(): selectedCollectionChanged:', collection);
     this.destroyView = true;
@@ -740,6 +775,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadAllHighResImages = false;
     this.resetContentCount();
     this.selectedCollectionType = collection.type;
+    this.collectionState = collection.state;
     this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
     if (collection.type === 'monitoring') {
       this.collectionId = collection.id + '_' + this.dataService.clientSessionId;
@@ -765,6 +801,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resetContentCount();
     this.loadAllHighResImages = false;
     this.selectedCollectionType = null;
+    this.collectionState = '';
     this.collectionId = null;
     this.selectedCollectionServiceType = null;
     this.changeDetectionRef.detectChanges();

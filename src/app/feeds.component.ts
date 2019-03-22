@@ -70,9 +70,6 @@ interface FeedStatus {
     .no-nw-server:hover {
       color: red;
     }
-    .modal-body {
-      background-color: rgba(255,255,255,1);
-    }
 
   `]
 })
