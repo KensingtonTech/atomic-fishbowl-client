@@ -10,16 +10,15 @@ declare var log: Logger;
   template: `
 <div style="height: auto; overflow: hidden;" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)">
 
-  <!-- <div #slider [@slideInOut]="collapsed ? 'collapsed' : 'expanded'" style="overflow: hidden;"> -->
   <div #slider [@slideInOut]="{value: collapsedState, params: {collapsedHeight: collapsedHeight} }" style="overflow: hidden;">
     <ul #itemList>
       <li #firstListItem [class.bold]="!collapsed" class="firstItems" style="display: block;">
         <!-- expansion caret -->
         <span *ngIf="displayedItems.length != 0" class="fa fa-lg fa-fw noselect" [class.fa-caret-right]="collapsedState == 'collapsed'" [class.fa-caret-down]="collapsedState != 'collapsed'" style="color: white;">&nbsp;</span>
         <!-- regular meta -->
-        <span *ngIf="key != 'stop_time' && key != 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsed">{{firstItem}}</span>
+        <span *ngIf="key != 'stop_time' && key != 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsedState == 'collapsed'">{{firstItem}}</span>
         <!-- sa time meta -->
-        <span *ngIf="key == 'stop_time' || key == 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsed">{{firstItem | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</span>
+        <span *ngIf="key == 'stop_time' || key == 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsedState == 'collapsed'">{{firstItem | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</span>
       </li>
       <li *ngFor="let item of displayedItems" class="bold">
         <span *ngIf="displayedItems.length != 0" class="fa fa-lg fa-fw">&nbsp;</span>
