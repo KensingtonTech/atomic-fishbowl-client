@@ -46,11 +46,16 @@ declare var log: Logger;
           </tr>
 
           <!-- show all other meta -->
-          <tr *ngFor="let key of displayedKeys" [style.display]="showAll || (!showall && checkForKeyInPreferences(key) ) ? 'table-row' : 'none'">
+          <!-- displayedKeys is all keys, both real or if only a preferred meta key -->
+          <tr *ngFor="let key of displayedKeys" style="display: table-row;" [hidden]="isKeyHidden(key)">
 
+            <!-- only display a row if showAll is true or if its key is in the preferred meta keys -->
             <td *ngIf="!showAll || (showAll && checkForKeyInMeta(key))" class="metalabel">{{key}}</td>
             <td>
-              <meta-accordion *ngIf="checkForKeyInMeta(key)" class="metavalue" [items]="meta[key]" [key]="key"></meta-accordion>
+              <!-- only show the accordion if we have meta for its key -->
+              <meta-accordion *ngIf="checkForKeyInMeta(key)" class="metavalue" [items]="meta[key]" [key]="key" [enabled]="enabledMeta[key]"></meta-accordion>
+
+              <!-- if we're showing preferred meta and we don't have meta for a key, show the red no meta icon -->
               <i *ngIf="!showAll && !checkForKeyInMeta(key)" class="fa fa-ban" style="color: red;"></i>
             </td>
 
@@ -116,6 +121,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
   public preferenceKeys: string[] =  [];
   public preferenceKeysObj = {};
   public displayedKeys;
+  public enabledMeta: any;
 
   // Subscriptions
   private preferencesChangedSubscription: Subscription;
@@ -155,6 +161,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
       this.meta = JSON.parse(JSON.stringify(this.session['meta']));
       this.sessionId = this.session['id'];
       this.displayedKeys = this.getCombinedMetaKeys();
+      this.buildEnabledMeta();
     }
     this.changeDetectionRef.markForCheck();
   }
@@ -177,9 +184,26 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
     this.preferenceKeysObj = preferenceKeysObj;
     if (this.meta) {
       this.displayedKeys = this.getCombinedMetaKeys();
+      this.buildEnabledMeta();
     }
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  buildEnabledMeta() {
+    let tmpKeys = {};
+    for (let key in this.meta) {
+      if (this.meta.hasOwnProperty(key)) {
+        let enabled = true;
+        if (!this.showAll && !this.checkForKeyInPreferences(key)) {
+          enabled = false;
+        }
+        tmpKeys[key] = enabled;
+      }
+    }
+    this.enabledMeta = tmpKeys;
   }
 
 
@@ -221,6 +245,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
 
   showAllClick(): void {
     this.showAll = !this.showAll;
+    this.buildEnabledMeta();
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -275,6 +300,18 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
 
   getMetaValue(key: string) {
     return this.meta[key];
+  }
+
+
+
+  isKeyHidden(key: string) {
+    if (this.showAll) {
+      return false;
+    }
+    if (!this.showAll && this.checkForKeyInPreferences(key)) {
+      return false;
+    }
+    return true;
   }
 
 }

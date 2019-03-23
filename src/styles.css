@@ -422,3 +422,6 @@ body .ui-dropdown::after {
   padding: 2px;
 }
 
+[hidden] {
+  display: none !important;
+}

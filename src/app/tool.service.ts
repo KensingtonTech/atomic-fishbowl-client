@@ -16,6 +16,7 @@ export class ToolService {
   public queryParams: any = null;
   public urlParametersLoaded = false;
   public lastRoute: string = null;
+  public accordionCollapsedHeight = 0;
 
   ////////////  SUBSCRIPTIONS ////////////
 
