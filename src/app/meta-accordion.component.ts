@@ -12,7 +12,7 @@ declare var log: Logger;
 
   <div #slider [@slideInOut]="{value: collapsedState, params: {collapsedHeight: collapsedHeight} }" style="overflow: hidden;">
     <ul #itemList>
-      <li #firstListItem [class.bold]="!collapsed" class="firstItems" style="display: block;">
+      <li #firstListItem [class.bold]="collapsedState == 'expanded'" class="firstItems" style="display: block;">
         <!-- expansion caret -->
         <span *ngIf="displayedItems.length != 0" class="fa fa-lg fa-fw noselect" [class.fa-caret-right]="collapsedState == 'collapsed'" [class.fa-caret-down]="collapsedState != 'collapsed'" style="color: white;">&nbsp;</span>
         <!-- regular meta -->
