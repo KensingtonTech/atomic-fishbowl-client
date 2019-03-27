@@ -14,6 +14,7 @@ import { Search } from './search';
 import { License } from './license';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
+import { CollectionDeletedDetails } from './collection-deleted-details';
 declare var log: Logger;
 declare var imagesLoaded;
 
@@ -60,7 +61,7 @@ interface Point {
 <splash-screen-modal></splash-screen-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
-<collection-deleted-notify-modal></collection-deleted-notify-modal>
+<collection-deleted-notify-modal [id]="collectionDeletedModalId" [user]="collectionDeletedUser"></collection-deleted-notify-modal>
 <pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></pdf-viewer-modal>
 <session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></session-details-modal>
 <ng-container *ngIf="preferences && preferences.serviceTypes">
@@ -136,6 +137,8 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public nwCollectionModalId = 'nw-collection-modal';
   public saCollectionModalId = 'sa-collection-modal';
   public licenseExpiredModalId = 'license-expired-modal';
+  public collectionDeletedModalId = 'collection-deleted-notify-modal';
+  public collectionDeletedUser = '';
   private urlParametersLoaded = false;
   private selectedSessionId: number = null;
   private selectedContentType: string = null;
@@ -153,7 +156,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private caseSensitiveSearchChangedSubscription: Subscription;
   private searchTermsChangedSubscription: Subscription;
   private maskChangedSubscription: Subscription;
-  private noCollectionsSubscription: Subscription;
+  private collectionDeletedSubscription: Subscription;
   private selectedCollectionChangedSubscription: Subscription;
   private collectionStateChangedSubscription: Subscription;
   private sessionsReplacedSubscription: Subscription;
@@ -182,7 +185,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.caseSensitiveSearchChangedSubscription.unsubscribe();
     this.searchTermsChangedSubscription.unsubscribe();
     this.maskChangedSubscription.unsubscribe();
-    this.noCollectionsSubscription.unsubscribe();
+    this.collectionDeletedSubscription.unsubscribe();
     this.selectedCollectionChangedSubscription.unsubscribe();
     this.collectionStateChangedSubscription.unsubscribe();
     this.sessionsReplacedSubscription.unsubscribe();
@@ -308,7 +311,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.maskChangedSubscription = this.toolService.maskChanged.subscribe( (event: any) => this.maskChanged(event) );
 
-    this.noCollectionsSubscription = this.dataService.noCollections.subscribe( () => this.onNoCollections() );
+    this.collectionDeletedSubscription = this.dataService.collectionDeleted.subscribe( (details: CollectionDeletedDetails) => this.onCollectionDeleted(details) );
 
     this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: any) => this.onSelectedCollectionChanged(collection) );
 
@@ -410,7 +413,8 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.license.valid) {
       this.modalService.closeAll();
       if (this.selectedCollectionType !== 'fixed' ||  (this.selectedCollectionType === 'fixed' && !['complete', 'building'].includes(this.collectionState)) ) {
-        this.dataService.noCollections.next(); // this will clear out the toolbar and all selected collection data
+        this.dataService.noopCollection.next(); // this will clear out the toolbar and all selected collection data
+        this.noopCollection();
       }
       this.modalService.open(this.licenseExpiredModalId);
     }
@@ -420,7 +424,7 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onPreferencesChanged(prefs: Preferences): void {
     log.debug('ClassicGridComponent: onPreferencesChanged()');
-    this.preferences = JSON.parse(JSON.stringify(prefs));
+    this.preferences = utils.deepCopy(prefs);
   }
 
 
@@ -790,8 +794,22 @@ export class ClassicGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  onNoCollections(): void {
-    log.debug('ClassicGridComponent: onNoCollections()');
+  onCollectionDeleted(details: CollectionDeletedDetails): void {
+    log.debug('ClassicGridComponent: onCollectionDeleted()');
+    if (!this.collectionId || (this.collectionId && !this.collectionId.startsWith(details.id))) {
+      // this doesn't apply to the current collection
+      return;
+    }
+    this.collectionDeletedUser = details.user;
+    this.dataService.noopCollection.next();
+    this.noopCollection();
+    this.modalService.open(this.collectionDeletedModalId);
+  }
+
+
+
+  noopCollection() {
+    log.debug('ClassicGridComponent: noopCollection()');
     this.destroyView = true;
     this.sessionsDefined = false;
     this.displayedContent = [];

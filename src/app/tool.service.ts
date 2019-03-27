@@ -117,7 +117,7 @@ export class ToolService {
 
   constructor() {
     log.debug('ToolService: constructor()');
-    this.showMasonryTextAreaState = this.getPreference('showMeta');
+    this.showMasonryTextAreaState = this.getPreference('showMeta') == null ? true : this.getPreference('showMeta'); // sets to true if null
 
     this.showMasonryTextArea.subscribe( (show) => {
       this.showMasonryTextAreaState = show;
@@ -147,6 +147,11 @@ export class ToolService {
 
   getPreference(key): any {
     let item: any = localStorage.getItem(key);
+
+    if (item == null) {
+      return null;
+    }
+
     let numberRegex = /^[\d\.]+$/;
 
     if ( numberRegex.test(item) ) {

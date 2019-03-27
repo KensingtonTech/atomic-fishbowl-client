@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Subject, BehaviorSubject, Subscription } from 'rxjs';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { NwServer } from './nwserver';
@@ -9,6 +9,8 @@ import { Preferences } from './preferences';
 import { License } from './license';
 import * as io from 'socket.io-client';
 import { Logger } from 'loglevel';
+import { CollectionDeletedDetails } from './collection-deleted-details';
+import * as utils from './utils';
 declare var JSEncrypt: any;
 declare var log: Logger;
 
@@ -16,7 +18,10 @@ declare var log: Logger;
 
 export class DataService { // Manages NwSession objects and also Image objects in grid and the image's association with Session objects.  Adds more objects as they're added
 
-  constructor(private http: HttpClient, private toolService: ToolService ) {
+  constructor(
+    private http: HttpClient,
+    private toolService: ToolService,
+    private zone: NgZone ) {
     log.debug('DataService: constructor()');
     this.toolService.clientSessionId.subscribe( (clientSessionId: number) => {
       log.debug(`DataService: clientSessionIdSubscription(): got clientSessionId: ${clientSessionId}`);
@@ -41,8 +46,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public errorPublished: Subject<any> = new Subject<any>();
   public sessionsPurged: Subject<any> = new Subject<any>();
   public queryResultsCountUpdated: Subject<any> = new Subject<any>();
-  public collectionDeleted: Subject<string> = new Subject<string>();
-  public noCollections: Subject<void> = new Subject<void>();
+  public collectionDeleted: Subject<CollectionDeletedDetails> = new Subject<CollectionDeletedDetails>();
+  public noopCollection: Subject<void> = new Subject<void>(); // this is used when the license expires
   public workerProgress: Subject<any> = new Subject<any>();
   public monitoringCollectionPause: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
@@ -74,81 +79,82 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
     this.encryptor = new JSEncrypt();
 
-    this.serverSocket = io();
-    this.collectionsSocket = io('/collections');
+    this.zone.runOutsideAngular( () => {
 
-    // Subscribe to socket events
-    this.serverSocket.on('disconnect', reason => {
-      // log.debug('Server disconnected serverSocket with reason:', reason);
-      if (reason === 'io server disconnect') {
-        // the server disconnected us forcefully.  maybe due to logout or token timeout
-        // start trying to reconnect
-        // this will repeat until successful
-        this.serverSocket.open();
-      }
-    } );
-    this.serverSocket.on('connect', socket => log.debug('Socket.io connected to server' ));
-    this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
-    this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
-    this.serverSocket.on('serverVersion', version => this.onServerVersionUpdate(version) );
-    this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
-    this.serverSocket.on('nwservers', apiServers => this.onNwServersUpdate(apiServers) );
-    this.serverSocket.on('saservers', apiServers => this.onSaServersUpdate(apiServers) );
-    this.serverSocket.on('feeds', feeds => this.onFeedsUpdate(feeds) );
-    this.serverSocket.on('feedStatus', feedStatus => this.onFeedStatusUpdate(feedStatus) );
-    this.serverSocket.on('users', users => this.onUsersUpdate(users) );
-    this.serverSocket.on('useCases', useCases => this.onUseCasesUpdate(useCases) );
-    this.serverSocket.on('license', license => this.onLicenseChanged(license) );
-    this.serverSocket.on('logout', () => this.toolService.logout.next() ); // TODO: triggered by the socket when our validity expires
+      this.serverSocket = io();
+      this.collectionsSocket = io('/collections');
+
+      // Subscribe to socket events
+      this.serverSocket.on('disconnect', reason => {
+        // log.debug('Server disconnected serverSocket with reason:', reason);
+        if (reason === 'io server disconnect') {
+          // the server disconnected us forcefully.  maybe due to logout or token timeout
+          // start trying to reconnect
+          // this will repeat until successful
+          this.serverSocket.open();
+        }
+      } );
+      this.serverSocket.on('connect', socket => log.debug('Socket.io connected to server' ));
+      this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
+      this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
+      this.serverSocket.on('serverVersion', version => this.onServerVersionUpdate(version) );
+      this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
+      this.serverSocket.on('nwservers', apiServers => this.onNwServersUpdate(apiServers) );
+      this.serverSocket.on('saservers', apiServers => this.onSaServersUpdate(apiServers) );
+      this.serverSocket.on('feeds', feeds => this.onFeedsUpdate(feeds) );
+      this.serverSocket.on('feedStatus', feedStatus => this.onFeedStatusUpdate(feedStatus) );
+      this.serverSocket.on('users', users => this.onUsersUpdate(users) );
+      this.serverSocket.on('useCases', useCases => this.onUseCasesUpdate(useCases) );
+      this.serverSocket.on('license', license => this.onLicenseChanged(license) );
+      this.serverSocket.on('logout', () => this.toolService.logout.next() ); // TODO: triggered by the socket when our validity expires
+      this.serverSocket.on('collectionDeleted', (details: CollectionDeletedDetails) => this.collectionDeleted.next(details) );
 
 
-    // Subscribe to collection socket events
-    this.collectionsSocket.on('connect', socket => log.debug('Socket.io collectionsSocket connected to server' ));
-    this.collectionsSocket.on('disconnect', reason => {
-      if (reason === 'io server disconnect') {
-        this.collectionsSocket.open();
-      }
-    } );
-    this.collectionsSocket.on('state', (state) => this.collectionStateChanged.next(state) );
-    this.collectionsSocket.on('purge', (collectionPurge) => this.sessionsPurged.next(collectionPurge) );
-    this.collectionsSocket.on('deleted', (user) => {
-      this.noCollections.next();
-      this.collectionDeleted.next(user);
-    } );
-    this.collectionsSocket.on('clear', () => {
-      this.sessionsReplaced.next( {} );
-      this.searchReplaced.next( [] );
-      this.contentReplaced.next( [] );
-    } );
-    this.collectionsSocket.on('update', (update) => {
-      // log.debug('DataService: got update:', update);
-      if ('collectionUpdate' in update) {
-        update = update.collectionUpdate;
-        if ('session' in update) {
-          this.sessionPublished.next(update.session);
+
+      // Subscribe to collection socket events
+      this.collectionsSocket.on('connect', socket => log.debug('Socket.io collectionsSocket connected to server' ));
+      this.collectionsSocket.on('disconnect', reason => {
+        if (reason === 'io server disconnect') {
+          this.collectionsSocket.open();
         }
-        if ('images' in update) {
-          this.contentPublished.next(update.images);
+      } );
+      this.collectionsSocket.on('state', (state) => this.collectionStateChanged.next(state) );
+      this.collectionsSocket.on('purge', (collectionPurge) => this.sessionsPurged.next(collectionPurge) );
+      this.collectionsSocket.on('clear', () => {
+        this.sessionsReplaced.next( {} );
+        this.searchReplaced.next( [] );
+        this.contentReplaced.next( [] );
+      } );
+      this.collectionsSocket.on('update', (update) => {
+        // log.debug('DataService: got update:', update);
+        if ('collectionUpdate' in update) {
+          update = update.collectionUpdate;
+          if ('session' in update) {
+            this.sessionPublished.next(update.session);
+          }
+          if ('images' in update) {
+            this.contentPublished.next(update.images);
+          }
+          if ('search' in update) {
+            this.searchPublished.next(update.search);
+          }
         }
-        if ('search' in update) {
-          this.searchPublished.next(update.search);
+        if ('error' in update) {
+          this.errorPublished.next(update.error);
         }
-      }
-      if ('error' in update) {
-        this.errorPublished.next(update.error);
-      }
-      if ('queryResultsCount' in update) {
-        this.queryResultsCountUpdated.next(update.queryResultsCount);
-      }
-      if ('workerProgress' in update) {
-        this.workerProgress.next(update);
-      }
+        if ('queryResultsCount' in update) {
+          this.queryResultsCountUpdated.next(update.queryResultsCount);
+        }
+        if ('workerProgress' in update) {
+          this.workerProgress.next(update);
+        }
+      });
+      this.collectionsSocket.on('sessions', (sessions) => this.sessionsReplaced.next(sessions) );
+      this.collectionsSocket.on('content', (content) => this.contentReplaced.next(content) );
+      this.collectionsSocket.on('searches', (searches) => this.searchReplaced.next(searches) );
+      this.collectionsSocket.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
+      this.running = true;
     });
-    this.collectionsSocket.on('sessions', (sessions) => this.sessionsReplaced.next(sessions) );
-    this.collectionsSocket.on('content', (content) => this.contentReplaced.next(content) );
-    this.collectionsSocket.on('searches', (searches) => this.searchReplaced.next(searches) );
-    this.collectionsSocket.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
-    this.running = true;
 
   }
 

@@ -36,7 +36,7 @@
     "mathjs": "^3.16.5",
     "moment": "^2.18.1",
     "ng2-dragula": "^1.5.0",
-    "ng2-panzoom": "^2.1.0",
+    "ng2-panzoom": "^2.1.1",
     "ng2-pdf-viewer": "^5.2.3",
     "primeicons": "^1.0.0",
     "primeng": "^7.1.0",

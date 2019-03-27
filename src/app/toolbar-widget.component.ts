@@ -9,6 +9,7 @@ import { UseCase } from './usecase';
 import { Subscription } from 'rxjs';
 import { License } from './license';
 import { Logger } from 'loglevel';
+import { CollectionDeletedDetails } from './collection-deleted-details';
 declare var log: Logger;
 
 @Component( {
@@ -207,9 +208,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private queryResultsCountUpdatedSubscription: Subscription;
   private useCasesChangedSubscription: Subscription;
   private selectedCollectionChangedSubscription: Subscription;
-  private noCollectionSubscription: Subscription;
   private workerProgressSubscription: Subscription;
   private licensingChangedSubscription: Subscription;
+  private noopCollectionSubscription: Subscription;
 
   ngOnInit(): void {
 
@@ -229,7 +230,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
     this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
 
-    this.noCollectionSubscription = this.dataService.noCollections.subscribe( () => this.onNoCollections() );
+    this.noopCollectionSubscription = this.dataService.noopCollection.subscribe( () => this.onNoop() );
 
     this.workerProgressSubscription = this.dataService.workerProgress.subscribe( progress => this.onWorkerProgress(progress) );
 
@@ -246,9 +247,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.queryResultsCountUpdatedSubscription.unsubscribe();
     this.useCasesChangedSubscription.unsubscribe();
     this.selectedCollectionChangedSubscription.unsubscribe();
-    this.noCollectionSubscription.unsubscribe();
     this.workerProgressSubscription.unsubscribe();
     this.licensingChangedSubscription.unsubscribe();
+    this.noopCollectionSubscription.unsubscribe();
   }
 
 
@@ -582,7 +583,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.toolService.logout.next();
   }
 
-  onNoCollections(): void {
+  onNoop(): void {
     this.selectedCollection = null;
     this.selectedCollectionId = null;
     this.contentCount = new ContentCount;

@@ -7,6 +7,12 @@ import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
+interface MasonryKey {
+  key: string;
+  friendly: string;
+}
+
+
 @Component({
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -108,9 +114,12 @@ declare var log: Logger;
     </ul>
 
     <table style="width: 100%;">
-      <tr *ngFor="let key of masonryKeys">
-        <td *ngIf="session.meta[key.key]" class="column1">{{key.friendly}}</td>
-        <td *ngIf="session.meta[key.key]" class="value">{{session.meta[key.key]}}</td>
+      <tr *ngFor="let struct of masonryMeta">
+        <td class="column1">{{struct.friendly}}</td>
+        <td class="value">{{struct.value}}</td>
+      </tr>
+      <tr *ngIf="masonryMeta.length == 0">
+        <td colspan="2">No relevant meta for this session.</td>
       </tr>
       <tr *ngIf="content.contentType == 'hash'">
         <td class="column1">{{utils.toCaps(content.hashType)}} Hash:</td>
@@ -233,15 +242,16 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
   @Input() private content: any;
   @Input() public sessionId: number;
-  @Input() private masonryKeys: any;
+  @Input() private masonryKeys: MasonryKey[];
   @Input() public masonryColumnWidth: number;
   @Input() public serviceType: string; // 'nw' or 'sa'
   @Input() public collectionId: string = null;
 
-  public session;
+  public session; // holds meta, among other things
   public displayTextArea = true;
   private originalSession: any; // Session data that hasn't been de-duped
   private showMasonryTextAreaSubscription: Subscription;
+  private masonryMeta = [];
 
   private times = 0;
 
@@ -253,7 +263,8 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
     this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (TorF) => this.onToggleTextArea(TorF) );
 
     let parentSession = this.parent.sessions[this.sessionId];
-    this.originalSession = JSON.parse(JSON.stringify(parentSession));
+    this.originalSession = utils.deepCopy(parentSession);
+
     let session = { meta: {}, id: this.sessionId };
     for (let key in parentSession.meta) {
       // de-dupe meta
@@ -262,6 +273,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
       }
     }
     this.session = session;
+    this.updateMasonryMeta();
   }
 
 
@@ -286,8 +298,25 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
   ngOnChanges(values): void {
     // log.debug('MasonryTileComponent: ngOnChanges(): values:', values);
+    this.updateMasonryMeta();
     this.changeDetectionRef.reattach();
     setTimeout( () => this.changeDetectionRef.detach(), 0);
+  }
+
+
+
+  updateMasonryMeta() {
+    if (this.masonryKeys && this.session && this.masonryKeys.length !== 0 && 'meta' in this.session && Object.keys(this.session.meta).length !== 0) {
+      let masonryMeta = [];
+      for (let i = 0; i < this.masonryKeys.length; i++) {
+        let masonryKey = this.masonryKeys[i];
+        if (masonryKey.key in this.session.meta) {
+          let struct = { key: masonryKey.key, friendly: masonryKey.friendly, value: this.session.meta[masonryKey.key]};
+          masonryMeta.push(struct);
+        }
+      }
+      this.masonryMeta = masonryMeta;
+    }
   }
 
 

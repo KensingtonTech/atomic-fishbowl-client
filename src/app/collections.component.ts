@@ -193,6 +193,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
     this.license = license;
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -203,6 +204,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
     this.nwServers = apiServers;
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -213,6 +215,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
     this.saServers = apiServers;
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -242,6 +245,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     log.debug('CollectionsComponent: onCollectionsChanged(): collections update', this.collections);
     this.filterChanged();
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -360,8 +364,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     if (this.toolService.selectedCollection && collectionId === this.toolService.selectedCollection.id) {
       // we've deleted the currently selected collection
-      this.dataService.leaveCollection();
-      this.dataService.noCollections.next();
+      // this.dataService.leaveCollection();
+      // this.dataService.noCollections.next(); // this will be handled when we receive an update from the server
       this.dataService.deleteCollection(collectionId);
     }
     else {
@@ -484,6 +488,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.filterText = '';
     this.filterChanged();
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 }

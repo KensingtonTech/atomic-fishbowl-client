@@ -17,6 +17,7 @@ import { Preferences } from './preferences';
 import { License } from './license';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
+import { CollectionDeletedDetails } from './collection-deleted-details';
 declare var log: Logger;
 declare var $: any;
 
@@ -60,7 +61,7 @@ declare var $: any;
 <splash-screen-modal></splash-screen-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
-<collection-deleted-notify-modal></collection-deleted-notify-modal>
+<collection-deleted-notify-modal [id]="collectionDeletedModalId" [user]="collectionDeletedUser"></collection-deleted-notify-modal>
 <pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></pdf-viewer-modal>
 <session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></session-details-modal>
 <ng-container *ngIf="preferences && preferences.serviceTypes">
@@ -123,7 +124,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public selectedCollectionType: string = null;
   public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
   public collectionId: string = null;
-  private mouseWheelRemoveFunc: Function;
 
   private pixelsPerSecond = this.toolService.getPreference('autoScrollSpeed') || 200; // default is 200 pixels per second
 
@@ -138,6 +138,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   public nwCollectionModalId = 'nw-collection-modal';
   public saCollectionModalId = 'sa-collection-modal';
   public licenseExpiredModalId = 'license-expired-modal';
+  public collectionDeletedModalId = 'collection-deleted-notify-modal';
+  public collectionDeletedUser = '';
   private urlParametersLoaded = false;
 
   // scrolling
@@ -164,7 +166,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private caseSensitiveSearchChangedSubscription: Subscription;
   private searchTermsChangedSubscription: Subscription;
   private maskChangedSubscription: Subscription;
-  private noCollectionsSubscription: Subscription;
+  private collectionDeletedSubscription: Subscription;
   private selectedCollectionChangedSubscription: Subscription;
   private collectionStateChangedSubscription: Subscription;
   private sessionsReplacedSubscription: Subscription;
@@ -202,7 +204,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.caseSensitiveSearchChangedSubscription.unsubscribe();
     this.searchTermsChangedSubscription.unsubscribe();
     this.maskChangedSubscription.unsubscribe();
-    this.noCollectionsSubscription.unsubscribe();
+    this.collectionDeletedSubscription.unsubscribe();
     this.selectedCollectionChangedSubscription.unsubscribe();
     this.collectionStateChangedSubscription.unsubscribe();
     this.sessionsReplacedSubscription.unsubscribe();
@@ -231,7 +233,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isotopeApiSubscription.unsubscribe();
     this.isotopeInitializedSubscription.unsubscribe();
     this.licensingChangedSubscription.unsubscribe();
-    this.mouseWheelRemoveFunc();
+    this.canvasRef.nativeElement.removeEventListener('wheel', this.onMouseWheel);
   }
 
 
@@ -332,7 +334,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.maskChangedSubscription = this.toolService.maskChanged.subscribe( (event: ContentMask) => this.onMaskChanged(event) );
 
-    this.noCollectionsSubscription = this.dataService.noCollections.subscribe( () => this.onNoCollections() );
+    this.collectionDeletedSubscription = this.dataService.collectionDeleted.subscribe( (details: CollectionDeletedDetails) => this.onCollectionDeleted(details) );
 
     this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
 
@@ -421,7 +423,6 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.toolbarHeight = toolbar.offsetHeight;
     this.changeDetectionRef.detectChanges();
 
-    this.mouseWheelRemoveFunc = this.zone.runOutsideAngular( () => this.renderer.listen(this.canvasRef.nativeElement, 'wheel', (event) => this.onMouseWheel(event) ) );
     window.dispatchEvent(new Event('resize'));
 
     if ( !this.toolService.splashLoaded && (
@@ -466,7 +467,8 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.license.valid) {
       this.modalService.closeAll();
       if (this.selectedCollectionType !== 'fixed' ||  (this.selectedCollectionType === 'fixed' && !['complete', 'building'].includes(this.collectionState)) ) {
-        this.dataService.noCollections.next(); // this will clear out the toolbar and all selected collection data
+        this.dataService.noopCollection.next(); // this will clear out the toolbar and all selected collection data
+        this.noopCollection();
       }
       this.modalService.open(this.licenseExpiredModalId);
     }
@@ -709,7 +711,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
           callLayout = true;
         }
 
-        this.masonryKeys = JSON.parse(JSON.stringify(prefs.nw.masonryKeys));
+        this.masonryKeys = prefs.nw.masonryKeys.slice(0);
       }
 
       if (this.selectedCollectionServiceType === 'sa') {
@@ -719,7 +721,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
           callLayout = true;
         }
 
-        this.masonryKeys = JSON.parse(JSON.stringify(prefs.sa.masonryKeys));
+        this.masonryKeys = prefs.sa.masonryKeys.slice(0);
       }
 
     }
@@ -729,7 +731,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isotopeApi.layout();
     }
 
-    this.preferences = JSON.parse(JSON.stringify(prefs));
+    this.preferences = utils.deepCopy(prefs);
   }
 
 
@@ -782,8 +784,22 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  onNoCollections(): void {
-    log.debug('MasonryGridComponent: onNoCollections()');
+  onCollectionDeleted(details: CollectionDeletedDetails): void {
+    log.debug('MasonryGridComponent: onCollectionDeleted()');
+    if (!this.collectionId || (this.collectionId && !this.collectionId.startsWith(details.id))) {
+      // this doesn't apply to the current collection
+      return;
+    }
+    this.collectionDeletedUser = details.user;
+    this.dataService.noopCollection.next();
+    this.noopCollection();
+    this.modalService.open(this.collectionDeletedModalId);
+  }
+
+
+
+  noopCollection() {
+    log.debug('MasonryGridComponent: noopCollection()');
     if (this.isotopeInitialized) { this.isotopeApi.destroyMe(); }
     this.destroyView = true;
     this.sessionsDefined = false;
@@ -792,13 +808,11 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.content = [];
     this.resetContentCount();
     this.stopAutoScroll();
-
     this.selectedCollectionType = null;
     this.collectionState = '';
     this.collectionId = null;
     this.selectedCollectionServiceType = null;
     this.masonryKeys = null;
-
     this.changeDetectionRef.detectChanges();
   }
 
@@ -826,13 +840,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
       this.collectionId = collection.id;
     }
     this.changeDetectionRef.detectChanges();
-
-    if (collection.serviceType === 'nw') {
-      this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.nw.masonryKeys));
-    }
-    if (collection.serviceType === 'sa') {
-      this.masonryKeys = JSON.parse(JSON.stringify(this.preferences.sa.masonryKeys));
-    }
+    this.masonryKeys = this.preferences[collection.serviceType].masonryKeys.slice(0);
     this.selectedCollectionServiceType = collection.serviceType; // 'nw' or 'sa'
     this.changeDetectionRef.detectChanges();
 
@@ -990,9 +998,10 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-  onMouseWheel(event): void {
+  onMouseWheel = (wheelEvent) => {
     if (this.autoScrollStarted) {
       log.debug('MasonryGridComponent: onMouseWheel(): autoscroll is running, so stopping it now');
+      this.canvasRef.nativeElement.removeEventListener('wheel', this.onMouseWheel);
       this.stopAutoScroll();
     }
   }
@@ -1009,6 +1018,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
   onScrollToBottomClicked(): void {
     // runs autoScroller() when someone clicks the arrow button on the toolbar
     this.autoScrollStarted = true;
+    this.canvasRef.nativeElement.addEventListener('wheel', this.onMouseWheel, { passive: true });
     this.startScrollerAnimation();
   }
 
@@ -1143,7 +1153,7 @@ export class MasonryGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   private stopAutoScroll(): void {
-    // this gets called from onSearchTermsTyped(), onMaskChanged(), onNoCollections(), onSelectedCollectionChanged()
+    // this gets called from onSearchTermsTyped(), onMaskChanged(), onCollectionDeleted(), onSelectedCollectionChanged()
     log.debug('MasonryGridComponent: stopAutoScroll()');
     this.stopScrollerAnimation();
     this.toolService.scrollToBottomStopped.next();

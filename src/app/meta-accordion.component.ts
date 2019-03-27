@@ -12,16 +12,20 @@ declare var log: Logger;
 
   <div #slider [@slideInOut]="{value: collapsedState, params: {collapsedHeight: collapsedHeight} }" style="overflow: hidden;">
     <ul #itemList>
-      <li #firstListItem [class.bold]="collapsedState == 'expanded'" class="firstItems" style="display: block;">
+      <!-- first value -->
+      <li #firstListItem [class.bold]="collapsedState == 'expanded'" class="firstItems wrap" style="display: block;">
         <!-- expansion caret -->
         <span *ngIf="displayedItems.length != 0" class="fa fa-lg fa-fw noselect" [class.fa-caret-right]="collapsedState == 'collapsed'" [class.fa-caret-down]="collapsedState != 'collapsed'" style="color: white;">&nbsp;</span>
         <!-- regular meta -->
-        <span *ngIf="key != 'stop_time' && key != 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsedState == 'collapsed'">{{firstItem}}</span>
+        <span *ngIf="key != 'stop_time' && key != 'start_time'" style="overflow-wrap: break-word;" [class.multiValues]="displayedItems.length != 0 && collapsedState == 'collapsed'">{{firstItem}}</span>
         <!-- sa time meta -->
         <span *ngIf="key == 'stop_time' || key == 'start_time'" [class.multiValues]="displayedItems.length != 0 && collapsedState == 'collapsed'">{{firstItem | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}</span>
       </li>
-      <li *ngFor="let item of displayedItems" class="bold">
+      <!-- all other values -->
+      <li *ngFor="let item of displayedItems" class="bold wrap">
+        <!-- indent -->
         <span *ngIf="displayedItems.length != 0" class="fa fa-lg fa-fw">&nbsp;</span>
+        <!-- value -->
         <span class="expanded">{{item}}</span>
       </li>
     </ul>
@@ -41,6 +45,7 @@ declare var log: Logger;
     bold {
       font-weight: bold;
     }
+
   `],
 
   animations: [

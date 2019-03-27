@@ -4,6 +4,7 @@ import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { Logger } from 'loglevel';
 import { Preferences } from './preferences';
+import * as utils from './utils';
 declare var log: Logger;
 
 @Component( {
@@ -158,7 +159,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if ('session' in values && values.session.currentValue) {
-      this.meta = JSON.parse(JSON.stringify(this.session['meta']));
+      this.meta = utils.deepCopy(this.session['meta']);
       this.sessionId = this.session['id'];
       this.displayedKeys = this.getCombinedMetaKeys();
       this.buildEnabledMeta();
