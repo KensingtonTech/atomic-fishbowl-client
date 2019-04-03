@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { DataService } from './data.service';
-import { ToolService } from './tool.service';
-import { License } from './license';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
+import { License } from 'types/license';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
 import { Subscription } from 'rxjs';

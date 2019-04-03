@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Input, Renderer2, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-import { DataService } from './data.service';
+import { DataService } from 'services/data.service';
 import { ModalService } from './modal/modal.service';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
@@ -18,7 +18,7 @@ export enum KEY_CODE {
   selector: 'pdf-viewer-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" bodyStyle="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white; font-size: 10pt;">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" bodyStyle="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white;">
 
       <!-- close -->
       <div (click)="onCloseClicked()" style="position: absolute; top: 2px; right: 10px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>

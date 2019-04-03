@@ -44,7 +44,6 @@ export class ModalComponent implements OnInit, OnDestroy {
   @Input() backgroundStyle = '';
   @Input() secondLevel = false;
 
-  @Output() cancelled: EventEmitter<void> = new EventEmitter<void>();
   @Output() opened: EventEmitter<void> = new EventEmitter<void>();
   @Output() closed: EventEmitter<void> = new EventEmitter<void>();
 
@@ -55,7 +54,6 @@ export class ModalComponent implements OnInit, OnDestroy {
     // log.debug("keyup event:", event);
     event.stopPropagation();
     if (event.key === 'Escape' && this.enabledTrigger === 'enabled' && this.escapeEnabled === true) {
-      this.cancelled.emit();
       this.close();
     }
   }

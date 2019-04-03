@@ -1,115 +1,125 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
-import { ToolService } from './tool.service';
-import { DataService } from './data.service';
-import { Collection } from './collection';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, NgZone, ChangeDetectionStrategy, Input, Inject, forwardRef } from '@angular/core';
+import { ToolService } from 'services/tool.service';
+import { DataService } from 'services/data.service';
+import { Collection } from 'types/collection';
 import { ModalService } from './modal/modal.service';
-import { ContentCount } from './contentcount';
-import { ContentMask } from './contentmask';
-import { UseCase } from './usecase';
+import { ContentCount } from 'types/contentcount';
+import { ContentMask } from 'types/contentmask';
+import { UseCase } from 'types/usecase';
 import { Subscription } from 'rxjs';
-import { License } from './license';
+import { License } from 'types/license';
 import { Logger } from 'loglevel';
-import { CollectionDeletedDetails } from './collection-deleted-details';
+import { AbstractGrid } from './abstract-grid.class';
+import * as utils from './utils';
 declare var log: Logger;
 
 @Component( {
   selector: 'toolbar-widget',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div class="afb-toolbar" style="position: relative; top: 0; width: 100%; height: 20px; background-color: rgba(146,151,160,.85); padding: 5px; color: white; font-size: 12px;">
+<!-- begin toolbar -->
+<div class="afb-toolbar noselect">
 
-  <ng-container *ngIf="selectedCollection && license">
-    <div style="position: absolute; top: 6px; width: 100%">
-      <span class="noselect">
-        &nbsp;&nbsp;&nbsp;
-        <span class="label" style="font-style: underline;" (click)="onCollectionsClick()"><u>{{selectedCollection.name}}</u></span>
-
-        &nbsp;
-        <!--<span class="fa fa-ellipsis-v fa-lg fa-fw"></span>-->
-
-        <!--Info Tooltip Icon-->
-        <span class="collectionTooltip" *ngIf="selectedCollection" [pTooltip]="infoTooltipText" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" class="fa fa-info-circle fa-lg fa-fw"></span>
-
-        <!-- Edit Icon -->
-        <span *ngIf="selectedCollection.type != 'fixed' && license.valid" pTooltip="Edit collection" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
-        <span *ngIf="selectedCollection.type == 'fixed' && license.valid" pTooltip="Reprocess collection" class="fa fa-repeat fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
-
-        <!--State Icons-->
-        <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" pTooltip="Building collection"></span>
-        <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow;" [pTooltip]="errorMessage"></span>
-        <span *ngIf="queryingIcon && selectedCollection.serviceType == 'nw'" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying NetWitness data"></span>
-        <span *ngIf="queryingIcon && selectedCollection.serviceType == 'sa'" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying Security Analytics data"></span>
-        <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red;" pTooltip="0 results were returned from the query"></span>
-        <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" pTooltip="0 results were returned from the latest query"></span>
-        <span *ngIf="workerProgress != null">{{workerLabel}}: {{workerProgress}}&nbsp;&nbsp;</span>
-
-      </span>
-
-      <!--Statistics Text-->
-      <span>
-        <span class="label"> {{selectedCollection.type | capFirstLetter}} Collection&nbsp;&nbsp;</span>
-
-        <!-- Collection Time -->
-        <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
-        <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeBegin | formatTime}}</span>
-        <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time2: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value">{{selectedCollection.timeEnd | formatTime}}</span>
-      </span>
-
-    </div>
-
-    <!--Mask & Search Buttons-->
-    <div class="noselect" style="position: absolute; right: 160px; top: 2px;">
-
-      <!-- image mask-->
-      <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="imageMaskClick()" class="fa fa-file-image-o fa-2x" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!-- pdf mask -->
-      <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="pdfMaskClick()" class="fa fa-file-pdf-o fa-2x" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!-- word mask -->
-      <span *ngIf="contentCount.word != 0 && (contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showWord" [class.hide]="showSearch" (click)="wordMaskClick()" class="fa fa-file-word-o fa-2x" pTooltip="Mask for Word content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!-- excel mask -->
-      <span *ngIf="contentCount.excel != 0 && (contentCount.word != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showExcel" [class.hide]="showSearch" (click)="excelMaskClick()" class="fa fa-file-excel-o fa-2x" pTooltip="Mask for Excel content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!-- powerpoint mask -->
-      <span *ngIf="contentCount.powerpoint != 0 && (contentCount.word != 0 || contentCount.excel != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPowerpoint" [class.hide]="showSearch" (click)="powerpointMaskClick()" class="fa fa-file-powerpoint-o fa-2x" pTooltip="Mask for PowerPoint content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!-- dodgy archive mask -->
-      <span *ngIf="contentCount.dodgyArchives != 0 && !showFromArchivesOnly && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="dodgyMaskClick()" class="fa fa-lock fa-2x" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!-- hash mask -->
-      <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="hashMaskClick()" class="fa fa-hashtag fa-2x" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!-- only from archives mask -->
-      <span *ngIf="contentCount.fromArchives != 0 && contentCount.fromArchives != contentCount.total" [class.fa-deselect]="!showFromArchivesOnly" [class.hide]="showSearch" (click)="fromArchivesOnlyMaskClick()" class="fa fa-file-archive-o fa-2x" pTooltip="Only show content extracted from archives" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
-
-      <!--Search Button-->
-      <span *ngIf="contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0" class="fa fa-search fa-2x" (click)="toggleSearch()"></span>
-    </div>
-  </ng-container>
+  &nbsp;&nbsp;
 
   <!--Choose a Collection-->
-  <div *ngIf="!selectedCollection" (click)="onCollectionsClick()" style="position: absolute; top: 7px; left: 10px;" class="noselect">
+  <span *ngIf="!selectedCollection" (click)="onCollectionsClick()" class="noselect">
     <u>Choose a collection</u>
-  </div>
+  </span>
 
-  <!--Preferences, Accounts, Help, and Logout Buttons-->
-  <div class="noselect" style="position: absolute; right: 10px; top: 2px;">
-    <span (click)="preferencesButtonClick()" class="fa fa-cog fa-2x" pTooltip="Global preferences" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
-    <span (click)="accountsButtonClick()" class="fa fa-users fa-2x" pTooltip="Manage users" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
-    <span (click)="helpButtonClick()" class="fa fa-question fa-2x" pTooltip="About Atomic Fishbowl" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
-    <span (click)="logoutButtonClick()" class="fa fa-sign-out fa-2x" pTooltip="Logout" escape="false" showDelay="750" tooltipPosition="left"></span>
-  </div>
+  <ng-container *ngIf="selectedCollection && license">
+
+    &nbsp;&nbsp;&nbsp;
+
+    <!-- collection name -->
+    <span class="label selectable" style="font-style: underline;" (click)="onCollectionsClick()"><u>{{selectedCollection.name}}</u></span>
+
+    &nbsp;
+
+    <!--Info Tooltip Icon-->
+    <span class="collectionTooltip" *ngIf="selectedCollection" [pTooltip]="infoTooltipText" tooltipPosition="bottom" tooltipStyleClass="collectionTooltip" class="fa fa-info-circle fa-lg fa-fw"></span>
+
+    <!-- Edit Icon -->
+    <span *ngIf="selectedCollection.type != 'fixed' && license.valid" pTooltip="Edit collection" class="fa fa-pencil-square-o fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+    <span *ngIf="selectedCollection.type == 'fixed' && license.valid" pTooltip="Reprocess collection" class="fa fa-repeat fa-lg fa-fw" (click)="onEditCollectionClick()"></span>
+
+    <!--State Icons-->
+    <span *ngIf="spinnerIcon" class="fa fa-refresh fa-spin fa-lg fa-fw" pTooltip="Building collection"></span>
+    <span *ngIf="errorIcon" class="fa fa-exclamation-triangle fa-lg fa-fw" style="color: yellow;" [pTooltip]="errorMessage"></span>
+    <span *ngIf="queryingIcon && selectedCollection.serviceType == 'nw'" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying NetWitness data"></span>
+    <span *ngIf="queryingIcon && selectedCollection.serviceType == 'sa'" class="fa fa-question fa-spin fa-lg fa-fw" pTooltip="Querying Security Analytics data"></span>
+    <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'complete' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" style="color: red;" pTooltip="0 results were returned from the query"></span>
+    <span *ngIf="queryResultsCount == 0 && selectedCollection.state == 'resting' && contentCount.total == 0" class="fa fa-ban fa-lg fa-fw" pTooltip="0 results were returned from the latest query"></span>
+    <span *ngIf="workerProgress != null">{{workerLabel}}: {{workerProgress}}&nbsp;&nbsp;</span>
+
+    <!--Collection Type -->
+    <span class="label selectable"> {{selectedCollection.type | capFirstLetter}} Collection&nbsp;&nbsp;</span>
+
+    <!-- Collection Time -->
+    <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
+    <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value selectable">{{selectedCollection.timeBegin | formatTime}}</span>&nbsp;
+    <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time2: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value selectable">{{selectedCollection.timeEnd | formatTime}}</span>
+
+  </ng-container>
+
+
+    <!--Mask & Search Buttons-->
+    <span style="float: right;">
+
+      <ng-container *ngIf="selectedCollection && license">
+
+        <!-- image mask-->
+        <span *ngIf="contentCount.images != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showImages" [class.hide]="showSearch" (click)="maskClick('image')" class="fa fa-file-image-o fa-lg" pTooltip="Mask for image content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!-- pdf mask -->
+        <span *ngIf="contentCount.pdfs != 0 && (contentCount.images != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPdfs" [class.hide]="showSearch" (click)="maskClick('pdf')" class="fa fa-file-pdf-o fa-lg" pTooltip="Mask for PDF content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!-- word mask -->
+        <span *ngIf="contentCount.word != 0 && (contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showWord" [class.hide]="showSearch" (click)="maskClick('word')" class="fa fa-file-word-o fa-lg" pTooltip="Mask for Word content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!-- excel mask -->
+        <span *ngIf="contentCount.excel != 0 && (contentCount.word != 0 || contentCount.powerpoint != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showExcel" [class.hide]="showSearch" (click)="maskClick('excel')" class="fa fa-file-excel-o fa-lg" pTooltip="Mask for Excel content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!-- powerpoint mask -->
+        <span *ngIf="contentCount.powerpoint != 0 && (contentCount.word != 0 || contentCount.excel != 0 || contentCount.images != 0 || contentCount.pdfs != 0 || contentCount.dodgyArchives != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showPowerpoint" [class.hide]="showSearch" (click)="maskClick('powerpoint')" class="fa fa-file-powerpoint-o fa-lg" pTooltip="Mask for PowerPoint content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!-- dodgy archive mask -->
+        <span *ngIf="contentCount.dodgyArchives != 0 && !showFromArchivesOnly && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.images != 0 || contentCount.hashes != 0)" [class.fa-deselect]="!showDodgyArchives" [class.hide]="showSearch" (click)="maskClick('dodgy')" class="fa fa-lock fa-lg" pTooltip="Mask for dodgy archive content" escape="false" showdelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!-- hash mask -->
+        <span *ngIf="contentCount.hashes != 0 && (contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0 || contentCount.dodgyArchives != 0 || contentCount.images != 0)" [class.fa-deselect]="!showHashes" [class.hide]="showSearch" (click)="maskClick('hash')" class="fa fa-hashtag fa-lg" pTooltip="Mask for matched hash content" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!-- only from archives mask -->
+        <span *ngIf="contentCount.fromArchives != 0 && contentCount.fromArchives != contentCount.total" [class.fa-deselect]="!showFromArchivesOnly" [class.hide]="showSearch" (click)="maskClick('archivesOnly')" class="fa fa-file-archive-o fa-lg" pTooltip="Only show content extracted from archives" escape="false" showDelay="750" tooltipPosition="bottom">&nbsp;</span>
+
+        <!--Search Button-->
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span *ngIf="contentCount.pdfs != 0 || contentCount.excel != 0 || contentCount.powerpoint != 0 || contentCount.word != 0" class="fa fa-search fa-lg" (click)="toggleSearch()"></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+      </ng-container>
+
+      <!--Preferences, Accounts, Help, and Logout Buttons-->
+      <span (click)="preferencesButtonClick()" class="fa fa-cog fa-lg" pTooltip="Global preferences" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
+      <span (click)="accountsButtonClick()" class="fa fa-users fa-lg" pTooltip="Manage users" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
+      <span (click)="helpButtonClick()" class="fa fa-question fa-lg" pTooltip="About Atomic Fishbowl" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
+      <span (click)="logoutButtonClick()" class="fa fa-sign-out fa-lg" pTooltip="Logout" escape="false" showDelay="750" tooltipPosition="left"></span>&nbsp;&nbsp;
+
+    </span>
 </div>
+<!-- end toolbar -->
+
+
 
 <!--Search Bar Dropdown-->
-<div class="noselect" (keydown.escape)="toggleSearch()" *ngIf="showSearch" style="position: absolute; right: 60px; top: 30px; padding: 5px; background-color: rgba(146,151,160,.85); width: 315px; z-index: 100;">
-  <input #searchBox type="text" name="searchTerms" [(ngModel)]="searchTerms" (ngModelChange)="searchTermsUpdate()" style="width: 85%;">&nbsp;<span [class.fa-deselect]="caseSensitive" class="fa fa-text-height" (click)="toggleCaseSensitivity()" style="color: white;"></span>&nbsp;<span class="fa fa-times" (click)="toggleSearch()" style="color: white;"></span>
+<div class="noselect toolbarSearchDropdown" (keydown.escape)="toggleSearch()" *ngIf="showSearch">
+  <input #searchBox type="text" name="searchTerms" [(ngModel)]="searchTerms" (ngModelChange)="searchTermsUpdate()">&nbsp;&nbsp;<span [class.fa-deselect]="caseSensitive" class="fa fa-text-height" (click)="toggleCaseSensitivity()"></span>&nbsp;&nbsp;<span class="fa fa-times" (click)="toggleSearch()"></span>
 </div>
+
 
 
 <!-- Totals Box -->
-<div *ngIf="selectedCollection" style="position: absolute; left: 0; top: 200px; width: auto; height: auto; padding: 5px; border-radius: 5px; z-index: 100; background-color: rgba(0,0,0,.8); font-size: 9pt; color: white;">
+<div class="toolbarTotalsBox" *ngIf="selectedCollection">
   <div class="count" style="margin-top: 0; font-weight: bold;">Total: {{contentCount?.total}}</div>
   <div class="count">Images: {{contentCount?.images}}</div>
   <div class="count">PDF: {{contentCount?.pdfs}}</div>
@@ -120,42 +130,7 @@ declare var log: Logger;
   <div class="count">Dodgy<br>Archives: {{contentCount?.dodgyArchives}}</div>
   <div class="count">Extracted From<br>Archives: {{contentCount?.fromArchives}}</div>
 </div>
-`,
-
-  styles: [`
-    .label {
-      color: rgb(230,234,234);
-      font-size: 13x;
-      font-weight: bolder;
-    }
-
-    .value {
-      color: white;
-      font-size: 12px;
-      margin-right: 10px;
-    }
-
-    .fa-deselect {
-      color: black !important;
-    }
-
-    .hide {
-      display: none;
-    }
-
-    .count {
-      margin-top: 15px;
-      text-align: right;
-    }
-
-    /*.collectionTooltip.ui-tooltip .ui-tooltip-text {
-      white-space: pre-line;
-      width: 375px;
-    }
-    moved to styles.css so we don't need to disable view encapsulation
-    */
-
-  `]
+`
 } )
 
 export class ToolbarWidgetComponent implements OnInit, OnDestroy {
@@ -164,9 +139,11 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
                private modalService: ModalService,
                private toolService: ToolService,
                private changeDetectionRef: ChangeDetectorRef,
-               private zone: NgZone ) {}
+               private zone: NgZone,
+               @Inject(forwardRef(() => AbstractGrid )) private parent: AbstractGrid ) {}
 
   @ViewChildren('searchBox') searchBoxRef: QueryList<any>;
+  @Input() contentCount: ContentCount;
 
   private selectedCollectionId: string;
   public selectedCollection: Collection;
@@ -176,7 +153,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   public tabContainerModalId = 'tab-container-modal';
   public showSearch = false;
   private searchTerms: string;
-  private contentCount = new ContentCount;
   private showImages = true;
   private maskState: ContentMask = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true, showFromArchivesOnly: false };
   private showPdfs = true;
@@ -202,7 +178,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
 
   // Subscriptions
-  private contentCountSubscription: Subscription;
   private collectionStateChangedSubscription: Subscription;
   private errorPublishedSubscription: Subscription;
   private queryResultsCountUpdatedSubscription: Subscription;
@@ -217,8 +192,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: ngOnInit()');
 
     // take subscriptions
-
-    this.contentCountSubscription = this.toolService.contentCount.subscribe( (count: any) => this.onContentCountChanged(count) );
 
     this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (state: string) => this.onCollectionStateChanged(state) );
 
@@ -241,7 +214,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
 
   public ngOnDestroy() {
-    this.contentCountSubscription.unsubscribe();
     this.collectionStateChangedSubscription.unsubscribe();
     this.errorPublishedSubscription.unsubscribe();
     this.queryResultsCountUpdatedSubscription.unsubscribe();
@@ -260,7 +232,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
       return;
     }
     this.license = license;
+    // we need to run change detection as updates are out-of-band from the parent
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -269,6 +243,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onQueryResultsCountUpdated(): count:', count);
     this.queryResultsCount = count;
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -276,8 +251,12 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   onCollectionStateChanged(state: string): void {
     log.debug('ToolbarWidgetComponent: onCollectionStateChanged(): state:', state);
     this.iconDecider(state);
-    this.selectedCollection.state = state;
+    let dupeCollection = utils.deepCopy(this.selectedCollection);
+    dupeCollection['state'] = state;
+    this.selectedCollection = dupeCollection;
+    // we need to run change detection as updates are out-of-band from the parent
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -286,27 +265,21 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onWorkerProgress(): progress:', progress);
     this.workerProgress = progress.workerProgress;
     this.workerLabel = progress.label;
+    // we need to run change detection as updates are out-of-band from the parent
     this.changeDetectionRef.markForCheck();
-  }
-
-
-
-  onContentCountChanged(count: any) {
-    log.debug('ToolbarWidgetComponent: onContentCountChanged(): contentCount:', count);
-    this.contentCount = count;
-    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
 
   onUseCasesChanged(useCases: any): void {
-    log.debug('ToolbarWidgetComponent: onUseCasesChanged(): contentCount:', useCases);
+    log.debug('ToolbarWidgetComponent: onUseCasesChanged(): useCases:', useCases);
     if (Object.keys(useCases).length === 0) {
       return;
     }
     this.useCases = useCases.useCases;
     this.useCasesObj = useCases.useCasesObj;
-    this.changeDetectionRef.markForCheck();
+    // we don't need change detection here as useCases aren't used in the template at all
   }
 
 
@@ -407,65 +380,52 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     tt = tt + distillationTerms;
     tt = tt + regexDistillationEnabled;
     tt = tt + regexDistillationTerms;
-    log.debug('tt:', tt);
+    // log.debug('tt:', tt);
     this.infoTooltipText = tt;
   }
 
-  imageMaskClick(): void {
-    this.showImages = !this.showImages;
-    this.maskState.showImage = !this.maskState.showImage;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
+
+
+  maskClick(target) {
+    switch (target) {
+      case 'image':
+        this.showImages = !this.showImages;
+        this.maskState.showImage = !this.maskState.showImage;
+        break;
+      case 'pdf':
+        this.showPdfs = !this.showPdfs;
+        this.maskState.showPdf = !this.maskState.showPdf;
+        break;
+      case 'word':
+        this.showWord = !this.showWord;
+        this.maskState.showWord = !this.maskState.showWord;
+        break;
+      case 'excel':
+        this.showExcel = !this.showExcel;
+        this.maskState.showExcel = !this.maskState.showExcel;
+        break;
+      case 'powerpoint':
+        this.showPowerpoint = !this.showPowerpoint;
+        this.maskState.showPowerpoint = !this.maskState.showPowerpoint;
+        break;
+      case 'hash':
+        this.showHashes = !this.showHashes;
+        this.maskState.showHash = !this.maskState.showHash;
+        break;
+      case 'dodgy':
+        this.showDodgyArchives = !this.showDodgyArchives;
+        this.maskState.showDodgy = !this.maskState.showDodgy;
+        break;
+      case 'archivesOnly':
+        this.showFromArchivesOnly = !this.showFromArchivesOnly;
+        this.maskState.showFromArchivesOnly = !this.maskState.showFromArchivesOnly;
+        break;
+    }
+    this.parent.onMaskChanged(this.maskState);
+    // change detection will be handled by the parent
   }
 
-  pdfMaskClick(): void {
-    this.showPdfs = !this.showPdfs;
-    this.maskState.showPdf = !this.maskState.showPdf;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
-  }
 
-  wordMaskClick(): void {
-    this.showWord = !this.showWord;
-    this.maskState.showWord = !this.maskState.showWord;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
-  }
-
-  excelMaskClick(): void {
-    this.showExcel = !this.showExcel;
-    this.maskState.showExcel = !this.maskState.showExcel;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
-  }
-
-  powerpointMaskClick(): void {
-    this.showPowerpoint = !this.showPowerpoint;
-    this.maskState.showPowerpoint = !this.maskState.showPowerpoint;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
-  }
-
-  hashMaskClick(): void {
-    this.showHashes = !this.showHashes;
-    this.maskState.showHash = !this.maskState.showHash;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
-  }
-
-  dodgyMaskClick(): void {
-    this.showDodgyArchives = !this.showDodgyArchives;
-    this.maskState.showDodgy = !this.maskState.showDodgy;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
-  }
-
-  fromArchivesOnlyMaskClick(): void {
-    this.showFromArchivesOnly = !this.showFromArchivesOnly;
-    this.maskState.showFromArchivesOnly = !this.maskState.showFromArchivesOnly;
-    this.toolService.maskChanged.next(this.maskState);
-    this.changeDetectionRef.markForCheck();
-  }
 
   iconDecider(state: string): void {
     this.queryingIcon = false;
@@ -485,26 +445,28 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.markForCheck();
   }
 
+
+
   preferencesButtonClick(): void {
-    // log.debug("preferencesButtonClick()");
+    // log.debug("ToolbarWidgetComponent: preferencesButtonClick()");
     this.modalService.open('preferences-modal');
   }
 
+
+
   accountsButtonClick(): void {
-    // log.debug("preferencesButtonClick()");
+    // log.debug("ToolbarWidgetComponent: preferencesButtonClick()");
     this.modalService.open('accounts-modal');
   }
 
+
+
   helpButtonClick(): void {
-    // log.debug("helpButtonClick()");
+    // log.debug("ToolbarWidgetComponent: helpButtonClick()");
     this.modalService.open('splashScreenModal');
   }
 
 
-  closeModal(id: string): void {
-    log.debug('ToolbarWidgetComponent: closeModal()');
-    this.modalService.close(id);
-  }
 
   onSelectedCollectionChanged(collection: Collection): void {
 
@@ -528,7 +490,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.showHashes = true;
     this.showDodgyArchives = true;
     this.maskState = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true, showFromArchivesOnly: false };
-    this.toolService.maskChanged.next(this.maskState);
+    this.parent.onMaskChanged(this.maskState);
 
     this.buildTooltip();
 
@@ -536,8 +498,10 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
       this.iconDecider(collection.state);
     }
     this.changeDetectionRef.markForCheck();
-    // this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.detectChanges();
   }
+
+
 
   onEscape(event: KeyboardEvent ) {
     // log.debug("keyup event:", event);
@@ -547,52 +511,70 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.markForCheck();
   }
 
+
+
   toggleSearch(): void {
     this.showSearch = !this.showSearch;
-    this.toolService.searchBarOpen.next(this.showSearch);
+    this.parent.onSearchBarOpen(this.showSearch);
     if (!this.showSearch) {  // search bar is closed
       this.oldSearchTerms = this.searchTerms;
       this.searchTerms = ''; // set the search terms back to nothing when closing the search bar
       this.searchTermsUpdate();
-      this.toolService.maskChanged.next(this.maskState);
+      this.parent.onMaskChanged(this.maskState);
     }
     else { // search bar is open
       if (this.oldSearchTerms) {
         this.searchTerms = this.oldSearchTerms;
         this.searchTermsUpdate();
       }
-      this.changeDetectionRef.markForCheck();
-
+    }
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+    if (this.showSearch) {
       this.zone.runOutsideAngular( () => setTimeout( () => this.searchBoxRef.first.nativeElement.focus(), 20) );
     }
   }
 
+
+
   searchTermsUpdate(): void {
     // log.debug('ToolbarWidgetComponent: searchTermsUpdate()', this.searchTerms);
-    this.toolService.searchTermsChanged.next( { searchTerms: this.searchTerms } );
+    this.parent.onSearchTermsTyped( { searchTerms: this.searchTerms } );
   }
+
+
 
   toggleCaseSensitivity(): void {
     log.debug('ToolbarWidgetComponent: toggleCaseSensitivity()', this.caseSensitive);
     this.caseSensitive = !this.caseSensitive;
-    this.toolService.caseSensitiveSearchChanged.next();
+    this.changeDetectionRef.markForCheck();
+    this.parent.onToggleCaseSensitiveSearch();
   }
+
+
 
   logoutButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: logoutButtonClick()");
     this.toolService.logout.next();
   }
 
+
+
   onNoop(): void {
     this.selectedCollection = null;
     this.selectedCollectionId = null;
     this.contentCount = new ContentCount;
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
+
+
 
   onCollectionsClick(): void {
     this.modalService.open(this.tabContainerModalId);
   }
+
+
 
   onEditCollectionClick(): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', this.selectedCollection);

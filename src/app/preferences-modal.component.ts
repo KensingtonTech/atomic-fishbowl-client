@@ -1,25 +1,18 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { DataService } from './data.service';
+import { DataService } from 'services/data.service';
 import { ModalService } from './modal/modal.service';
 import { defaultNwQueries } from './default-nw-queries';
 import { defaultSaQueries } from './default-sa-queries';
 import { SelectItem } from 'primeng/components/common/selectitem';
-import { Preferences } from './preferences';
+import { Preferences } from 'types/preferences';
 import { Subscription } from 'rxjs';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
 @Component({
   selector: 'preferences-modal',
-  templateUrl: './preferences-modal.component.html',
-  styles: [`
-
-  table td {
-    white-space: nowrap;
-    width: 1px;
-  }
-  `]
+  templateUrl: './preferences-modal.component.html'
 })
 
 export class PreferencesModalComponent implements OnInit, OnDestroy {
@@ -228,21 +221,15 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
 
 
-  cancel(): void {
+  close(): void {
     // this.resetForm();
     this.modalService.close(this.id);
   }
 
 
 
-  closeModal(): void {
-    this.modalService.close(this.id);
-  }
-
-
-
-  cancelledEventReceived(): void {
-    // log.debug('PreferencesModalComponent: cancelledEventReceived()';
+  onClose(): void {
+    // log.debug('PreferencesModalComponent: onClose()';
     // this.resetForm();
   }
 
@@ -292,7 +279,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     }
 
     this.dataService.setPreferences(prefs)
-                    .then( () => this.closeModal() );
+                    .then( () => this.close() );
   }
 
 

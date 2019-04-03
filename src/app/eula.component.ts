@@ -1,5 +1,5 @@
 import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Logger } from 'loglevel';
 import { EulaHtml } from './eula';
 declare var log: Logger;
@@ -14,7 +14,7 @@ declare var log: Logger;
   <div [innerHTML]="eula" style="text-align: left;">
 
   </div>
-  <p-button type="button" (click)="onAccept()" label="I Agree"></p-button>
+  <p-button type="button" (onClick)="onAccept()" label="I Agree"></p-button>
 </div>
   `,
   styles: [``]

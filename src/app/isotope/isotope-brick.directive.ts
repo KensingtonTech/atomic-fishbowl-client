@@ -1,4 +1,4 @@
-import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, NgZone } from '@angular/core';
+import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, NgZone, Renderer2 } from '@angular/core';
 import { IsotopeDirective } from './isotope.directive';
 import 'imagesloaded';
 import { Logger } from 'loglevel';
@@ -15,6 +15,7 @@ export class IsotopeBrickDirective implements OnDestroy, AfterViewInit {
 
   constructor(private el: ElementRef,
               private ngZone: NgZone,
+              private renderer: Renderer2,
               @Inject(forwardRef(() => IsotopeDirective)) private parent: IsotopeDirective ) {}
 
   // tslint:disable-next-line:no-input-rename
@@ -27,8 +28,9 @@ export class IsotopeBrickDirective implements OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
 
-    this.el.nativeElement.style.display = 'none'; // isotope.directive will unhide the element after it's been laid-out
+    this.renderer.setStyle(this.el.nativeElement, 'visibility', 'hidden');
     this.ngZone.runOutsideAngular( () => {
+      // we need the image to be completely loaded before it gets laid out by isotope
       this.imgsLoaded = imagesLoaded(this.el.nativeElement);
       this.imgsLoaded.on('always', this.onImagesLoadedComplete);
      } );
@@ -55,6 +57,7 @@ export class IsotopeBrickDirective implements OnDestroy, AfterViewInit {
 
   onImagesLoadedComplete = () => {
     this.parent.add(this.el);
+    this.imgsLoaded.off('always', this.onImagesLoadedComplete);
     this.loadComplete = true;
   }
 

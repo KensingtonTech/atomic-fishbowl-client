@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
-import { ToolService } from './tool.service';
-import { Collection } from './collection';
+import { ToolService } from 'services/tool.service';
+import { Collection } from 'types/collection';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -17,7 +17,7 @@ declare var log: Logger;
     <p>This operation cannot be undone.</p>
   </div>
   <div style="float: right;">
-    <p-button type="button" (click)="deleteConfirmed()" label="Confirm"></p-button>&nbsp;<p-button type="button" (click)="cancelDelete()" label="Cancel"></p-button>
+    <p-button type="button" (onClick)="deleteConfirmed()" label="Confirm"></p-button>&nbsp;<p-button type="button" (onClick)="cancelDelete()" label="Cancel"></p-button>
   </div>
 
 </modal>

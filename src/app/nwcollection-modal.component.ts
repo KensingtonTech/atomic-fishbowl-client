@@ -1,20 +1,20 @@
 import { Component, OnInit, OnDestroy, ElementRef, Input, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
-import { DataService } from './data.service';
-import { ToolService } from './tool.service';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultNwQueries } from './default-nw-queries';
-import { Query } from './query';
-import { ContentTypes } from './contenttypes';
-import { UseCase } from './usecase';
+import { Query } from 'types/query';
+import { ContentTypes } from 'types/contenttypes';
+import { UseCase } from 'types/usecase';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { Subscription } from 'rxjs';
-import { NwServer } from './nwserver';
-import { Feed } from './feed';
-import { CollectionMeta } from './collection-meta';
-import { Collection } from './collection';
-import { Preferences } from './preferences';
+import { NwServer } from 'types/nwserver';
+import { Feed } from 'types/feed';
+import { CollectionMeta } from 'types/collection-meta';
+import { Collection } from 'types/collection';
+import { Preferences } from 'types/preferences';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -24,85 +24,7 @@ declare var moment;
 @Component({
   selector: 'nw-collection-modal',
 
-  templateUrl: './nwcollection-modal.component.html',
-  styles: [`
-
-    .full-width {
-      width: 100%;
-    }
-
-    .column1 {
-      white-space: nowrap;
-      /*width: 1px;*/
-      width: 150px;
-    }
-
-    .line-separator {
-      height: 7px;
-    }
-
-    .ourFont,
-    .ui-button-text {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
-      font-size: 11px !important;
-    }
-
-    .description-text {
-      font-size: 12px
-    }
-
-    .ui-radiobutton-label {
-      font-size: 14px;
-    }
-
-    .ui-radiobutton-box.ui-state-active {
-      background-color: rgb(59, 153, 252);
-    }
-
-    .minDimensionsTooltip.ui-tooltip .ui-tooltip-text {
-      width: 350px;
-    }
-
-    .contentLimitDistillationTooltip.ui-tooltip .ui-tooltip-text {
-      width: 300px;
-    }
-
-    .textDistillationTooltip.ui-tooltip .ui-tooltip-text {
-      width: 300px;
-    }
-
-    .regexDistillationTooltip.ui-tooltip .ui-tooltip-text {
-      width: 400px;
-    }
-
-    .hashingTooltip.ui-tooltip .ui-tooltip-text {
-      width: 405px;
-    }
-
-    .hashing256Tooltip.ui-tooltip .ui-tooltip-text {
-      width: 425px;
-    }
-
-    .addCollectionTooltip.ui-tooltip .ui-tooltip-text {
-      white-space: pre-line;
-      width: 375px;
-    }
-
-    .nwServerTitle {
-      margin-top: 5px;
-      margin-bottom: 5px;
-    }
-
-    .fa-deselect {
-      color: gray !important;
-    }
-
-    .investigationTooltip.ui-tooltip .ui-tooltip-text {
-      white-space: pre-line;
-      width: 375px;
-    }
-
-  `]
+  templateUrl: './nwcollection-modal.component.html'
 })
 
 export class NwCollectionModalComponent implements OnInit, OnDestroy {
@@ -467,12 +389,11 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public cancel(): void {
-    log.debug('NwCollectionModalComponent: cancel()');
+  public onClose(): void {
+    log.debug('NwCollectionModalComponent: onClose()');
     if (this.mode === 'editRolling' || this.mode === 'editFixed') {
       this.name = null;
     }
-    this.modalService.close(this.id);
     if (this.reOpenTabsModal) {
       this.modalService.open(this.tabContainerModalId);
     }
@@ -480,15 +401,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  private closeModal(): void {
+  public close(): void {
+    log.debug('NwCollectionModalComponent: close()');
     this.modalService.close(this.id);
-  }
-
-
-
-  public cancelledEventReceived(): void {
-    log.debug('NwCollectionModalComponent: cancelledEventReceived()');
-    this.cancel();
   }
 
 
@@ -708,7 +623,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.dataService.addCollection(newCollection)
                       .then( () => {
                           this.toolService.executeAddCollection.next( newCollection );
-                          this.closeModal();
+                          this.close();
                           this.name = null;
                         });
 
@@ -721,7 +636,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.dataService.editCollection(newCollection)
                       .then( () => {
                           this.toolService.executeEditCollection.next( newCollection );
-                          this.closeModal();
+                          this.close();
                           this.name = null;
                         });
     }

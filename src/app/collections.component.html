@@ -1,13 +1,16 @@
 <!-- Toolbar -->
 <p-toolbar *ngIf="preferences && license" styleClass="collectionsToolbar">
-  <p-button *ngIf="preferences.serviceTypes.nw" type="button" (onClick)="onAddNwCollectionClick()" label="New Collection" [disabled]="!license.valid"></p-button>
-  <p-button *ngIf="preferences.serviceTypes.sa" type="button" (onClick)="onAddSaCollectionClick()" label="New Collection" [disabled]="!license.valid"></p-button>
+  <p-menu #menu [popup]="true" styleClass="collectionMaskMenu" [model]="filterMenuItems" appendTo="body" showTransitionOptions="0s" hideTransitionOptions="0s"></p-menu>
+  <p-button icon="pi pi-bars" label="Types" (onClick)="toggleCollectionMaskMenu($event)"></p-button>
+  &nbsp;
+  <p-button *ngIf="preferences.serviceTypes.nw" (onClick)="onAddNwCollectionClick()" label="New Collection" [disabled]="!license.valid"></p-button>
+  <p-button *ngIf="preferences.serviceTypes.sa" (onClick)="onAddSaCollectionClick()" label="New Collection" [disabled]="!license.valid"></p-button>
   &nbsp;&nbsp;
   <div class="ui-toolbar-group-right">
     <div class="ui-inputgroup">
       <span class="ui-inputgroup-addon"><i class="pi pi-search"></i></span>
       <input pInputText name="filter" type="text" size="60" type="text" placeholder="Filter" [(ngModel)]="filterText" (ngModelChange)="filterChanged()">
-      <button pButton type="button" icon="pi pi-times" class="ui-button-danger" (click)="clearFilter()"></button>
+      <p-button icon="pi pi-times" class="ui-button-danger" (onClick)="clearFilter()"></p-button>
     </div>
   </div>
 </p-toolbar>

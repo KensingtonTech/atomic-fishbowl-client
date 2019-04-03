@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, ChangeDetectorRef } from '@angular/core';
-import { DataService } from './data.service';
-import { ToolService } from './tool.service';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
-import { Feed, FeedSchedule } from './feed';
+import { Feed, FeedSchedule } from 'types/feed';
 import { UUID } from 'angular2-uuid';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import * as utils from './utils';
@@ -375,8 +375,13 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onCancel(): void {
+  public close() {
     this.modalService.close(this.id);
+  }
+
+
+
+  public onClosed(): void {
     // add a bit to re-open feeds modal
     if ( this.reOpenTabsModal ) {
       this.modalService.open('tab-container-modal');
@@ -758,7 +763,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     };
     this.dataService.addFeedManual(feed, this.file)
       .then( () => {
-        this.onCancel();
+        this.close();
       })
       .catch( (err) => {
         log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -787,7 +792,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       // we uploaded a new file after editing
       this.dataService.editFeedWithFile(feed, this.file)
           .then( () => {
-            this.onCancel();
+            this.close();
           })
           .catch( (err) => {
             log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -799,7 +804,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       // we didn't upload a new file
       this.dataService.editFeedWithoutFile(feed)
       .then( () => {
-        this.onCancel();
+        this.close();
       })
       .catch( (err) => {
         log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -846,7 +851,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.dataService.addFeedScheduled(feed)
     .then( () => {
-      this.onCancel();
+      this.close();
     })
     .catch( (err) => {
       log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);
@@ -896,7 +901,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.dataService.editFeedWithoutFile(feed)
     .then( () => {
-      this.onCancel();
+      this.close();
     })
     .catch( (err) => {
       log.error('FeedWizardComponent: finalSubmit(): server returned error:', err);

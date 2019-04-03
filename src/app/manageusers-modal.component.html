@@ -1,13 +1,13 @@
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()" background="true" bodyClass="mat-app-background manage-users" bodyStyle="width: 800px;">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" background="true" bodyClass="mat-app-background manage-users">
 
   <div style="width: 100%;">
-    <h3 style="float: left; margin-top:0px; margin-bottom: 10px;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; text-align: right; color: red;">{{errorMessage}}</span>
+    <h3 style="float: left; margin-top: 0; margin-bottom: 0.526315789em;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; text-align: right; color: red;">{{errorMessage}}</span>
     <div>&nbsp;</div>
   </div>
 
   <div>
     <fieldset [disabled]="usersFormDisabled" style="border: none; margin: 0; padding: 0; width: 100%;">
-      <div style="position: relative; max-height: 800px; overflow: auto;"> <!--min-height: 200px;-->
+      <div style="position: relative; max-height: 42.10526316em; overflow: auto;"> <!--min-height: 200px;-->
         <table style="width: 100%;">
           <tr>
             <th align="left">Enabled</th>
@@ -29,17 +29,17 @@
         </table>
       </div>
       <div style="float: left;">
-        <p-button type="button" (click)="displayUserAddBox()" label="New User"></p-button>
+        <p-button type="button" (onClick)="displayUserAddBox()" label="New User"></p-button>
       </div>
-      <div style="margin-top: 5px; float: right;">
-        <p-button type="button" (click)="cancel()" label="OK"></p-button>
+      <div style="margin-top: 0.263157895em; float: right;">
+        <p-button type="button" (onClick)="close()" label="OK"></p-button>
       </div>
     </fieldset>
 
 
 
 
-    <div *ngIf="displayUserAddForm" style="padding: 5px;">
+    <div *ngIf="displayUserAddForm" style="padding: 0.263157895em;">
       <mat-card>
         <mat-card-content>
           
@@ -97,7 +97,7 @@
     </div>
 
 
-    <div *ngIf="displayUserEditForm" style="padding: 5px;">
+    <div *ngIf="displayUserEditForm" style="padding: 0.263157895em;">
       <mat-card>
         <mat-card-content>
           

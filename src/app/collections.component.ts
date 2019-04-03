@@ -1,14 +1,16 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { DataService } from './data.service';
-import { ToolService } from './tool.service';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
-import { Collection } from './collection';
-import { Preferences } from './preferences';
+import { Collection } from 'types/collection';
+import { Preferences } from 'types/preferences';
 import { DragulaService } from 'ng2-dragula';
-import * as utils from './utils';
 import { Logger } from 'loglevel';
-import { License } from './license';
+import { License } from 'types/license';
+import { MenuItem } from 'primeng/api';
+import * as utils from './utils';
+import { Menu } from 'primeng/menu';
 declare var log: Logger;
 
 @Component({
@@ -105,6 +107,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
                 dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => !el.classList.contains('nodrag') });
               }
 
+  @ViewChild(Menu) collectionMaskMenuComponent;
+
   public collections: Collection[] = [];
   public origCollections = {};
   public displayedCollections: Collection[];
@@ -119,6 +123,32 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public filterEnabled = false;
   private editing = false;
   public license: License;
+  private uncheckedClass = 'fa fa-square-o';
+  private checkedClass = 'fa fa-check-square-o';
+  public filterMenuItems: MenuItem[] = [
+    {
+      label: 'Fixed',
+      icon: this.checkedClass,
+      command: () => this.toggleTypeFilter('fixed')
+    },
+    {
+      label: 'Rolling',
+      icon: this.checkedClass,
+      command: () => this.toggleTypeFilter('rolling')
+    },
+    {
+      label: 'Monitoring',
+      icon: this.checkedClass,
+      command: () => this.toggleTypeFilter('monitoring')
+    }
+  ];
+  public showFixed = true;
+  public showRolling = true;
+  public showMonitoring = true;
+  public showMenu = false;
+  private lastEvent: MouseEvent; // this holds the last mouse event which we can use to hide the menu later on, as the component requires an event
+
+
 
   // Subscriptions
   private getCollectionDataAgainSubscription: Subscription;
@@ -440,7 +470,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
   public filterChanged(): void {
-    // log.debug('CollectionsComponent: filterChanged(): filterText:', this.filterText);
+    log.debug('CollectionsComponent: filterChanged(): filterText:', this.filterText);
     if (this.filterText === '') {
       // this.displayedCollections = this.collections;
       // log.debug('origCollections:', this.origCollections);
@@ -480,15 +510,85 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       this.displayedCollections = tempCollections;
       this.filterEnabled = true;
     }
-  }
-
-
-
-  public clearFilter(): void {
-    this.filterText = '';
-    this.filterChanged();
+    if (!this.showFixed || !this.showRolling || !this.showMonitoring) {
+      // apply collection type mask
+      this.filterEnabled = true;
+      let displayedCollections = utils.deepCopy(this.displayedCollections);
+      let tempCollections: Collection[] = [];
+      displayedCollections.forEach( (collection: Collection) => {
+        switch (collection.type) {
+          case 'fixed':
+            if (this.showFixed) {
+              tempCollections.push(collection);
+            }
+            break;
+          case 'rolling':
+            if (this.showRolling) {
+              tempCollections.push(collection);
+            }
+            break;
+          case 'monitoring':
+            if (this.showMonitoring) {
+              tempCollections.push(collection);
+            }
+            break;
+        }
+      });
+      this.displayedCollections = tempCollections;
+    }
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
+
+
+
+  clearFilter(): void {
+    this.filterText = '';
+    this.filterChanged();
+  }
+
+
+
+  toggleTypeFilter(type) {
+    let index: number;
+    switch (type) {
+      case 'fixed':
+        index = 0;
+        this.showFixed = !this.showFixed;
+        break;
+      case 'rolling':
+        index = 1;
+        this.showRolling = !this.showRolling;
+        break;
+      case 'monitoring':
+        index = 2;
+        this.showMonitoring = !this.showMonitoring;
+        break;
+    }
+    this.filterMenuItems[index]['icon'] = this.filterMenuItems[index].icon === this.uncheckedClass ? this.checkedClass : this.uncheckedClass;
+    this.showMenu = false;
+    this.filterChanged();
+  }
+
+
+
+  toggleCollectionMaskMenu(event) {
+    log.debug('CollectionsComponent: toggleCollectionMaskMenu()');
+    // we don't simply use the menu's toggle function as it's buggy.  Though if we manage ourselves, it works well
+    this.lastEvent = event;
+    this.showMenu ? this.collectionMaskMenuComponent.hide(event) : this.collectionMaskMenuComponent.show(event);
+    this.showMenu = !this.showMenu;
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  onClose() {
+    if (this.showMenu) {
+     this.toggleCollectionMaskMenu(this.lastEvent);
+    }
+  }
+
 
 }

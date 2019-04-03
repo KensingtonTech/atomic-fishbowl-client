@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { DataService } from './data.service';
-import { ToolService } from './tool.service';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
-import { Feed } from './feed';
+import { Feed } from 'types/feed';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;

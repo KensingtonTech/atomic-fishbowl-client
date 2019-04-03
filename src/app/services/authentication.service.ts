@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { User } from './user';
+import { User } from 'types/user';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
 import { Logger } from 'loglevel';

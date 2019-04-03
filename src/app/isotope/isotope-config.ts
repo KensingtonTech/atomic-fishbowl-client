@@ -37,7 +37,11 @@ export class IsotopeConfig {
   initialized: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   api: BehaviorSubject<IsotopeAPI> = new BehaviorSubject<IsotopeAPI>({
     layout: null,
-    destroyMe: null
+    destroyMe: null,
+    initializeMe: null,
+    unhideAll: null,
+    basicLayout: null,
+    reloadItems: null
   });
 
   constructor( options: any = null ) {

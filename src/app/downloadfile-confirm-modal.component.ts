@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalService } from './modal/modal.service';
-import { ToolService } from './tool.service';
-import { Subject, Subscription } from 'rxjs';
+import { ToolService } from 'services/tool.service';
+import { Subscription } from 'rxjs';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -15,7 +15,7 @@ declare var log: Logger;
     <span class="fa fa-exclamation-circle fa-fw fa-5x" style="display: inline-block; color: red; vertical-align: middle; line-height: 100px;"></span>
   </div>
 
-  <div style="position: absolute; left: 100px; right: 10px; top: 0; bottom: 0; font-size: 10pt;">
+  <div style="position: absolute; left: 100px; right: 10px; top: 0; bottom: 0;">
     <p>Are you sure you want to download file '<b>{{utils.pathToFilename(file)}}</b>'?</p>
     <p>This is potentially unsafe.  Be sure you know what you're doing!</p>
     <div style="float: right;">

@@ -8,29 +8,21 @@ declare var log: Logger;
   selector: 'control-bar-classic',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div class="noselect" style="position: absolute; top: 20px; left: 10px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px;">
+<div class="noselect">
 
-  <div style="position: absolute; left: 0;"><router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown></div>
+  <router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown>
 
-  <div *ngIf="!routerDropdownOpen" style="position: absolute; left: 40px;" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></div>
+  <span *ngIf="!routerDropdownOpen" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></span>
 
-  <div *ngIf="!routerDropdownOpen" style="position: absolute; left: 80px;" (click)="zoomToFit()" class="icon fa fa-home fa-2x fa-fw"></div>
+  <span *ngIf="!routerDropdownOpen" (click)="zoomToFit()" class="icon fa fa-home fa-2x fa-fw"></span>
 
-  <div *ngIf="!routerDropdownOpen" style="position: absolute; left: 120px;" (click)="zoomOut()" class="icon fa fa-search-minus fa-2x fa-fw"></div>
+  <span *ngIf="!routerDropdownOpen" (click)="zoomOut()" class="icon fa fa-search-minus fa-2x fa-fw"></span>
 
-  <div *ngIf="!routerDropdownOpen" style="position: absolute; left: 160px;" (click)="zoomIn()" class="icon fa fa-search-plus fa-2x fa-fw"></div>
+  <span *ngIf="!routerDropdownOpen" (click)="zoomIn()" class="icon fa fa-search-plus fa-2x fa-fw"></span>
 
 </div>
 `,
-  styles: [`
-    .icon {
-      background-color: rgb(75,173,243);
-      color: white;
-      border-radius: 10px;
-      padding: 3px;
-    }
-
-  `]
+  styles: [ ]
 })
 
 export class ClassicControlBarComponent implements OnInit, OnDestroy {

@@ -1,6 +1,6 @@
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="cancelledEventReceived()" background="true" bodyStyle="width: 500px; max-height: 90%; overflow: auto; top: 5%;">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" background="true" bodyClass="nwCollectionModal">
   <div>
-    <h3 style="margin-top:0px; margin-bottom: 10px;">
+    <h3 style="margin-top: 0; margin-bottom: 0.526315789em;">
       <ng-container *ngIf="mode == 'add'">Create a NetWitness Collection</ng-container>
       <ng-container *ngIf="mode == 'editRolling'">Edit a NetWitness Collection</ng-container>
       <ng-container *ngIf="mode == 'editFixed'">Reprocess a NetWitness Collection</ng-container>
@@ -17,9 +17,9 @@
             <b>Name</b>
           </td>
           <td>
-            <label *ngIf="name != null && !nameValid && name.length != 0" for="nwNameBox" style="font-size: 10pt; color: red;">A collection with this name already exists</label>
-            <label *ngIf="name != null && name.length == 0" for="nwNameBox" style="font-size: 10pt; color: red;">The name field is required</label>
-            <input #nwNameBox id="nwNameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="name" style="width: 100%;" autocomplete="off" required>
+            <label *ngIf="name != null && !nameValid && name.length != 0" for="nwNameBox" style="color: red;">A collection with this name already exists</label>
+            <label *ngIf="name != null && name.length == 0" for="nwNameBox" style="color: red;">The name field is required</label>
+            <input pInputText #nwNameBox id="nwNameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="name" style="width: 100%;" autocomplete="off" required>
           </td>
         </tr>
 
@@ -42,7 +42,7 @@
             <b>Timeframe</b>
           </td>
           <td>
-            <select name="timeFrame" style="width: 125px;" [(ngModel)]="selectedTimeframe" (ngModelChange)="timeframeSelected($event)">
+            <select name="timeFrame" style="width: 6.578947368em;" [(ngModel)]="selectedTimeframe" (ngModelChange)="timeframeSelected($event)">
               <option *ngFor="let t of timeframes">{{t}}</option>
             </select>
           </td>
@@ -53,7 +53,7 @@
             <b>Timeframe</b>
           </td>
           <td>
-            Last <input type="text" name="lastHours" [(ngModel)]="lastHours" style="width: 30px;"> hours
+            Last <input pInputText type="text" name="lastHours" [(ngModel)]="lastHours" style="width: 1.578947368em;"> hours
           </td>
         </tr>
         <!--CALENDAR FROM FOR FIXED COLLECTIONS-->
@@ -76,7 +76,7 @@
             <span pTooltip="Limits the number of content items to pull into the collection in a single query." tooltipStyleClass="contentLimitDistillationTooltip"><b>Content Limit</b></span>
           </td>
           <td>
-            <input type="number" name="contentLimit" [(ngModel)]="contentLimit" style="width: 60px;" required>
+            <input pInputText type="number" name="contentLimit" [(ngModel)]="contentLimit" min="1" max="10000" required>
           </td>
         </tr>
       </table>
@@ -94,7 +94,7 @@
             <div style="display: block;">
               <p-dropdown [disabled]="formDisabled" name="selectedUseCase" [options]="useCaseOptions" [(ngModel)]="selectedUseCase" (onChange)="onUseCaseChanged()" placeholder="Custom" required [style]="{'width':'100%'}" styleClass="noselect" panelStyleClass="noselect" ></p-dropdown>
             </div>
-            <div *ngIf="displayUseCaseDescription" class="description-text" style="margin-top: 5px;">
+            <div *ngIf="displayUseCaseDescription" class="description-text" style="margin-top: 0.263157895em;">
               {{useCaseDescription}}
             </div>
           </td>
@@ -128,8 +128,8 @@
             </div>
             <!--QUERY TEXT INPUT BOX-->
             <div>
-                <label *ngIf="mode == 'adhoc'" for="query" style="font-size: 10pt;">Your investigation target will be automatically added to the query when you execute</label>
-                <input type="text" name="query" id="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
+                <label *ngIf="mode == 'adhoc'" for="query">Your investigation target will be automatically added to the query when you execute</label>
+                <input pInputText type="text" name="query" id="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues || formDisabled">
             </div>
           </td>
         </tr>
@@ -147,11 +147,11 @@
             <div>
               <p-selectButton name="contentTypes" [options]="contentTypes" [(ngModel)]="selectedContentTypes" multiple="multiple" (onChange)="onSelectedTypesChanged()" styleClass="ourFont noselect" required [disabled]="showUseCaseValues || formDisabled"></p-selectButton>
             </div>
-            <div *ngIf="!showUseCaseValues" style="margin-top: 3px;">
-              <p-button type="button" (click)="onAllTypesSelected()" label="All" [disabled]="showUseCaseValues || formDisabled"></p-button>&nbsp;<p-button type="button" (click)="onClearTypesSelected()" label="None" [disabled]="showUseCaseValues || formDisabled"></p-button>
+            <div *ngIf="!showUseCaseValues" style="margin-top: 0.157894737em;">
+              <p-button type="button" (onClick)="onAllTypesSelected()" label="All" [disabled]="showUseCaseValues || formDisabled"></p-button>&nbsp;<p-button type="button" (onClick)="onClearTypesSelected()" label="None" [disabled]="showUseCaseValues || formDisabled"></p-button>
               &nbsp;&nbsp;<p-checkbox name="onlyContentFromArchives" label="Only content from archives" binary="true" [(ngModel)]="onlyContentFromArchives" pTooltip="If ticked, this option will cause content that is directly returned by the query to be ignored, excepting Dodgy Archives.  Only content contained within ZIP and RAR archives will be processed.  This is needed to exclude Office documents which are not within archives from the results, which get detected as ZIP archives by the upstream service."></p-checkbox>
             </div>
-            <div *ngIf="showUseCaseValues" style="margin-top: 3px;">
+            <div *ngIf="showUseCaseValues" style="margin-top: 0.157894737em;">
               <p-checkbox disabled="true" name="onlyContentFromArchives" label="Only content from archives" binary="true" [(ngModel)]="onlyContentFromArchives" pTooltip="If ticked, this option will cause content that is directly returned by the query to be ignored, excepting Dodgy Archives.  Only content contained within ZIP and RAR archives will be processed.  This is needed to exclude Office documents which are not within archives from the results, which get detected as ZIP archives by the upstream service."></p-checkbox>
             </div>
           </td>
@@ -167,7 +167,7 @@
             <span pTooltip="Image files with dimensions smaller than this will not be pulled into the collection." tooltipStyleClass="minDimensionsTooltip"><b>Min. Dimensions</b></span>
           </td>
           <td>
-            <input type="number" name="minX" [(ngModel)]="minX" style="width: 40px;" required> width x &nbsp;<input type="number" name="minY" [(ngModel)]="minY" style="width: 40px;" required> height
+            <input pInputText type="number" name="minX" [(ngModel)]="minX" min="100" max="1000" required> width x &nbsp;<input pInputText type="number" name="minY" [(ngModel)]="minY" min="100" max="1000" required> height
           </td>
         </tr>
       </table>
@@ -187,7 +187,7 @@
         <tr *ngIf="distillationEnabled && ( pdfsEnabled || officeEnabled )">
           <td>
             <b>Search Terms</b><br><br>
-            <span style="font-size: 8pt;">
+            <span>
               No images or dodgy archives will be returned.<br><br>
               Case-insensitive.<br><br>
               One per-line.<br><br>
@@ -195,7 +195,7 @@
             </span>
           </td>
           <td>
-            <textarea name="distillationTerms" wrap="off" [(ngModel)]="distillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+            <textarea name="distillationTerms" wrap="off" [(ngModel)]="distillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
           </td>
         </tr>
         <!--REGEX DISTILLATION-->
@@ -210,7 +210,7 @@
         <tr *ngIf="regexDistillationEnabled && ( pdfsEnabled || officeEnabled )">
           <td>
             <b>Regex Terms</b><span class="fa fa-info-circle fa-fw" #regexInfoIcon escape="false" pTooltip="Uses perl-style regular expressions.<br>Only match functionality is supported.<br>Perl-style modifiers such as 'i' for case-insensitivity are NOT supported.<br>Search only words, and do not use beginning or end of line metacharacters (e.g. '^' or '$').<br>Note that multi-word matches may or may not work, depending on how the document was laid out internally and how the text is generated by 'pdftotext'." tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
-            <span style="font-size: 8pt;">
+            <span>
               Perl-style Regex.<br><br>
               No images or dodgy archives will be returned.<br><br>
               One per-line.<br><br>
@@ -218,7 +218,7 @@
             </span>
           </td>
           <td>
-            <textarea name="regexDistillationTerms" wrap="off" [(ngModel)]="regexDistillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+            <textarea name="regexDistillationTerms" wrap="off" [(ngModel)]="regexDistillationTerms" [disabled]="showUseCaseValues" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
           </td>
         </tr>
       </table>
@@ -245,7 +245,7 @@
             <span pTooltip="Searches for executables matching a SHA1 hash value." tooltipStyleClass="hashingTooltip"><b>Choose a Feed</b></span>
           </td>
           <td>
-            <p-dropdown name="selectedFeed" [options]="feedOptions" [(ngModel)]="selectedFeed" [style]="{'width':'150px'}"></p-dropdown>
+            <p-dropdown name="selectedFeed" [options]="feedOptions" [(ngModel)]="selectedFeed" [style]="{'width':'7.894736842em'}"></p-dropdown>
           </td>
         </tr>
 
@@ -261,7 +261,7 @@
         <tr *ngIf="sha1Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
           <td>
             <b>SHA1 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
-            <span class="wrap" style="font-size: 8pt;">
+            <span class="wrap">
               Matches on executables.<br><br>
               Case-insensitive.<br><br>
               May be in <b>hash,friendlyName</b> CSV format, or a hash value only.<br><br>
@@ -269,7 +269,7 @@
             </span>
           </td>
           <td>
-            <textarea name="sha1Hashes" wrap="off" [(ngModel)]="sha1Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+            <textarea name="sha1Hashes" wrap="off" [(ngModel)]="sha1Hashes" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
           </td>
         </tr>
         <!--SHA256 HASHES-->
@@ -284,7 +284,7 @@
         <tr *ngIf="sha256Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
           <td>
             <b>SHA256 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
-            <span class="wrap" style="font-size: 8pt;">
+            <span class="wrap">
               Matches on executables.<br><br>
               Case-insensitive.<br><br>
               May be in <b>hash,friendlyName</b> CSV format, or a hash value only.<br><br>
@@ -292,7 +292,7 @@
             </span>
           </td>
           <td>
-            <textarea name="sha256Hashes" wrap="off" [(ngModel)]="sha256Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+            <textarea name="sha256Hashes" wrap="off" [(ngModel)]="sha256Hashes" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
           </td>
         </tr>
         <!--MD5 HASHES-->
@@ -307,7 +307,7 @@
         <tr *ngIf="md5Enabled && !showUseCaseValues && hashesEnabled && hashingMode == 'manual'">
           <td>
             <b>MD5 Hashes</b> <span class="fa fa-info-circle fa-fw" escape="false" [pTooltip]="hashTooltip" tooltipPosition="bottom" tooltipStyleClass="addCollectionTooltip"></span><br><br>
-            <span class="wrap" style="font-size: 8pt;">
+            <span class="wrap">
               Matches on executables.<br><br>
               Case-insensitive.<br><br>
               May be in <b>hash,friendlyName</b> CSV format, or a hash value only.<br><br>
@@ -315,32 +315,32 @@
             </span>
           </td>
           <td>
-            <textarea name="md5Hashes" wrap="off" [(ngModel)]="md5Hashes" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+            <textarea name="md5Hashes" wrap="off" [(ngModel)]="md5Hashes" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
           </td>
         </tr>
       </table>
 
       <!--SELECT A NETWITNESS SERVICE BOX-->
-      <div *ngIf="apiServers" style="position: relative; margin-top: 15px; height: auto; overflow: visible;">
-        <h4 style="margin-top: 0px; margin-bottom: 5px;">Select a NetWitness Service</h4>
+      <div *ngIf="apiServers" style="position: relative; margin-top: 0.789473684em; height: auto; overflow: visible;">
+        <h4 style="margin-top: 0; margin-bottom: 0.263157895em;">Select a NetWitness Service</h4>
         
         
 
         <!--ADD / REMOVE / EDIT NWSERVER BUTTONS-->
-          <div style="padding-top: 3px;">
+          <div style="padding-top: 0.157894737em;">
             <span (click)="displayServiceAddBox()" [class.fa-deselect]="formDisabled" class="fa fa-plus fa-1">&nbsp;&nbsp;</span>
             <span (click)="deleteApiServer()" [class.fa-deselect]="formDisabled" class="fa fa-minus fa-1">&nbsp;&nbsp;</span>
             <span *ngIf="selectedApiServer" [class.fa-deselect]="formDisabled" (click)="editApiServer()" class="fa fa-pencil fa-1"></span>
-            <span *ngIf="selectedApiServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<p-button [disabled]="formDisabled || testInProgress" type="button" (click)="testApiServer()" label="Test"> </p-button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
+            <span *ngIf="selectedApiServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<p-button [disabled]="formDisabled || testInProgress" type="button" (onClick)="testApiServer()" label="Test"> </p-button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
           </div>
 
           <!--NetWitness Server List-->
-          <p-listbox *ngIf="apiServers" [disabled]="formDisabled" [(ngModel)]="selectedApiServer" [style]="{'width': '100%'}" [listStyle]="{'height': '100px'}" name="nwserver" styleClass="noselect" [options]="apiServersOptions"></p-listbox>
+          <p-listbox *ngIf="apiServers" [disabled]="formDisabled" [(ngModel)]="selectedApiServer" [style]="{'width': '100%'}" [listStyle]="{'height': '5.263157895em'}" name="nwserver" styleClass="noselect" [options]="apiServersOptions"></p-listbox>
 
         
           <!--EXECUTE OR CANCEL BUTTONS-->
-        <div style="margin-top: 5px; float: right;">
-          <p-button type="submit" [disabled]="!apiServerFormValid() || !nameValid" label="Execute"></p-button>&nbsp;<p-button type="button" (click)="cancel()" label="Cancel"></p-button>
+        <div style="margin-top: 0.263157895em; float: right;">
+          <p-button type="submit" [disabled]="!apiServerFormValid() || !nameValid" label="Execute"></p-button>&nbsp;<p-button type="button" (onClick)="close()" label="Cancel" [disabled]="showApiServiceBox"></p-button>
         </div>
       </div>
       
@@ -350,7 +350,7 @@
 
 
     <!--ADD A NETWITNESS SERVICE BOX-->
-    <div *ngIf="showApiServiceBox" #addServiceBox style="margin-top: 20px; padding: 5px;">
+    <div *ngIf="showApiServiceBox" #addServiceBox style="margin-top: 1.052631579em; padding: 0.263157895em;">
 
       <form #addServiceForm="ngForm" (ngSubmit)="addApiServerSubmit(addServiceForm)" novalidate>
         <mat-card>

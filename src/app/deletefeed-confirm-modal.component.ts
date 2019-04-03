@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { ModalService } from './modal/modal.service';
-import { ToolService } from './tool.service';
-import { DataService } from './data.service';
+import { ToolService } from 'services/tool.service';
+import { DataService } from 'services/data.service';
 import { Subscription } from 'rxjs';
-import { Feed } from './feed';
+import { Feed } from 'types/feed';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -23,7 +23,7 @@ declare var log: Logger;
     </div>
 
     <div style="float: right; margin-top: 15px;">
-      <p-button type="button" (click)="onConfirmDelete()" label="Confirm"></p-button>&nbsp;<p-button type="button" (click)="cancelDelete()" label="Cancel"></p-button>
+      <p-button type="button" (onClick)="onConfirmDelete()" label="Confirm"></p-button>&nbsp;<p-button type="button" (onClick)="cancelDelete()" label="Cancel"></p-button>
     </div>
 
   </div>

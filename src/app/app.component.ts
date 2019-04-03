@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
-import { DataService } from './data.service';
-import { AuthenticationService } from './authentication.service';
+import { DataService } from 'services/data.service';
+import { AuthenticationService } from 'services/authentication.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription} from 'rxjs';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 

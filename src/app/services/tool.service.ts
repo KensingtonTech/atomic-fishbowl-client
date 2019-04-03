@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject, BehaviorSubject } from 'rxjs';
-import { Collection } from './collection';
-import { Feed } from './feed';
+import { Collection } from 'types/collection';
+import { Feed } from 'types/feed';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -19,15 +19,6 @@ export class ToolService {
   public accordionCollapsedHeight = 0;
 
   ////////////  SUBSCRIPTIONS ////////////
-
-  // Search
-  public caseSensitiveSearchChanged: Subject<any> = new Subject<any>();
-  public searchTermsChanged: Subject<any> = new Subject<any>();
-  public searchBarOpen: Subject<any> = new Subject<any>();
-  public maskChanged: Subject<any> = new Subject<any>();
-
-  // Statistics
-  public contentCount: Subject<any> = new Subject<any>();
 
   // Device Number
   public deviceNumber: BehaviorSubject<any> = new BehaviorSubject<any>(0);
@@ -59,7 +50,6 @@ export class ToolService {
   public confirmDownloadFile: Subject<any> = new Subject<any>();
   public clientSessionId: Subject<any> = new Subject<any>();
   public onSplashScreenAtStartupClosed: Subject<void> = new Subject<void>();
-  public showHighResSessions: Subject<any> = new Subject<any>();
   public eulaAccepted: Subject<void> = new Subject<void>();
 
   // Open viewers

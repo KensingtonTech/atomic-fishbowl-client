@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, Input, ChangeDetectionStrategy, ViewChild, ElementRef, ViewChildren, QueryList, OnChanges, Renderer2, SimpleChanges, AfterViewInit } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { Logger } from 'loglevel';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 declare var log: Logger;
 
 @Component({

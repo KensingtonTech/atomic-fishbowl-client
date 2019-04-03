@@ -1,4 +1,4 @@
-import {Directive, ElementRef, Output, EventEmitter, HostListener} from '@angular/core';
+import { Directive, ElementRef, Output, EventEmitter, HostListener } from '@angular/core';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 

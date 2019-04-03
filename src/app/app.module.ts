@@ -22,6 +22,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { DragDropModule } from 'primeng/dragdrop';
 import { TabViewModule } from 'primeng/tabview';
 import { ToolbarModule } from 'primeng/toolbar';
+import { MenuModule } from 'primeng/menu';
 
 // Angular Material
 import { MatCardModule, MatInputModule, MatButtonModule, MatCheckboxModule, MatToolbarModule } from '@angular/material';
@@ -33,10 +34,9 @@ import { DragulaModule } from 'ng2-dragula';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
 
 // Our Services
-import { DataService } from './data.service';
-import { AuthenticationService } from './authentication.service';
-import { ToolService } from './tool.service';
-import { ModalService } from './modal/modal.service';
+import { DataService } from 'services/data.service';
+import { AuthenticationService } from 'services/authentication.service';
+import { ToolService } from 'services/tool.service';
 
 // Our Pipes
 import { FromEpochPipe } from './pipes/from-epoch.pipe';
@@ -60,16 +60,16 @@ import { NwCollectionModalComponent } from './nwcollection-modal.component';
 import { DeleteCollectionConfirmModalComponent } from './deletecollection-confirm-modal.component';
 import { PreferencesModalComponent } from './preferences-modal.component';
 import { ManageUsersModalComponent } from './manageusers-modal.component';
-import { ClassicGridComponent } from './classic-grid.component';
-import { MasonryGridComponent } from './masonry-grid.component';
-import { ClassicControlBarComponent } from './controlbar-classic.component';
-import { MasonryControlBarComponent } from './controlbar-masonry.component';
-import { ClassicSessionPopupComponent } from './classic-session-popup.component';
+import { ClassicGridComponent } from './classic-grid/classic-grid.component';
+import { MasonryGridComponent } from './masonry-grid/masonry-grid.component';
+import { ClassicControlBarComponent } from './controlbar/controlbar-classic.component';
+import { MasonryControlBarComponent } from './controlbar/controlbar-masonry.component';
+import { RouterDropdownComponent } from './controlbar/controlbar-router-dropdown.component';
+import { ClassicSessionPopupComponent } from './classic-grid/classic-session-popup.component';
 import { PdfViewerModalComponent } from './pdfviewer-modal.component';
-import { ClassicTileComponent } from './classic-tile.component';
+import { ClassicTileComponent } from './classic-grid/classic-tile.component';
 import { MetaAccordionComponent } from './meta-accordion.component';
-import { RouterDropdownComponent } from './controlbar-router-dropdown.component';
-import { MasonryTileComponent } from './masonry-tile.component';
+import { MasonryTileComponent } from './masonry-grid/masonry-tile.component';
 import { SessionDetailsModalComponent } from './session-details-modal.component';
 import { DeleteUserConfirmModalComponent } from './deleteuser-confirm-modal.component';
 import { ServerDownModalComponent } from './serverdown-modal.component';
@@ -127,6 +127,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   FlexLayoutModule,
                   DragulaModule,
                   PdfViewerModule,
+                  MenuModule,
                   RouterModule.forRoot([
                     {
                       path: '',
@@ -191,8 +192,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                 ],
   providers:    [ DataService,
                   AuthenticationService,
-                  ToolService,
-                  ModalService
+                  ToolService
                 ],
   bootstrap:    [ AppComponent ]
 

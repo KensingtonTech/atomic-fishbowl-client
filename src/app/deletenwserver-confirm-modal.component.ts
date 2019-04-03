@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ModalService } from './modal/modal.service';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Subject, Subscription } from 'rxjs';
-import { NwServer } from './nwserver';
-import { DataService } from './data.service';
+import { NwServer } from 'types/nwserver';
+import { DataService } from 'services/data.service';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 

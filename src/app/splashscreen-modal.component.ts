@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
-import { DataService } from './data.service';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { buildProperties } from './build-properties';
-import { ToolService } from './tool.service';
 import { Subscription } from 'rxjs';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -10,24 +10,24 @@ declare var log: Logger;
 @Component({
   selector: 'splash-screen-modal',
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="onCancelled()" bodyClass="splash-body" bodyStyle="position: relative; width: 400px; background-color: rgba(0,0,0,.9); color: white; font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="!firstLoad" bodyClass="splash-body">
 
-  <h1 align="left" style="margin-bottom: 0px;">Atomic Fishbowl</h1>
-  <span>Client Version {{version}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span *ngIf="serverVersion">Server Version {{serverVersion}}</span>
-  <p align="center">
-    <img src="resources/logo-medium.png" style="width: 450px; height: auto;">
-  </p>
-  <p style="font-size: 9pt;">Copyright &copy; 2018 Kensington Technology Associates<br>
-  All Rights Reserved</p>
-  <div *ngIf="!firstLoad" (click)="closeModal()" style="position: absolute; top: 2px; right: 5px; z-index: 100; color: white;" class="fa fa-times-circle-o fa-2x"></div>
+  <ng-container *ngIf="serverVersion">
+
+    <h1 align="left">Atomic Fishbowl</h1>
+    <div>Client Version&nbsp;&nbsp;{{version}}</div>
+    <div *ngIf="serverVersion">Server Version {{serverVersion}}</div>
+    <p align="center">
+      <img src="resources/logo-medium.png">
+    </p>
+    <p class="noBottomMargin">Copyright &copy; 2018 Kensington Technology Associates<br>
+    All Rights Reserved</p>
+    <div *ngIf="!firstLoad" (click)="closeModal()" class="fa fa-times-circle-o fa-2x"></div>
+
+  </ng-container>
 
 </modal>
-`,
-
-  styles: [`
-
-  `]
-
+`
 })
 
 export class SplashScreenModalComponent implements OnInit, OnDestroy {
@@ -52,7 +52,7 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
 
     this.version = `${buildProperties.major}.${buildProperties.minor}.${buildProperties.patch}.${buildProperties.build}-${buildProperties.level}`;
 
-    this.serverVersionSubscription = this.dataService.serverVersionChanged.subscribe( version => this.serverVersion = version );
+    this.serverVersionSubscription = this.dataService.serverVersionChanged.subscribe( version => this.onServerVersionChanged(version) );
 
   }
 
@@ -60,6 +60,17 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.serverVersionSubscription.unsubscribe();
+  }
+
+
+
+  onServerVersionChanged(version) {
+    if (!version) {
+      return;
+    }
+    this.serverVersion = version;
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -86,7 +97,7 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
 
 
 
-  onCancelled(): void {
+  onClose(): void {
     if (!this.toolService.splashLoaded) {
       clearTimeout(this.closeTimeout);
       this.toolService.splashLoaded = true;

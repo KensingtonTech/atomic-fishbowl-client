@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, NgZone } from '@angular/core';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -8,42 +8,38 @@ declare var log: Logger;
   selector: 'control-bar-masonry',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div class="noselect" style="position: absolute; top: 20px; left: 10px; padding: 5px; background-color: rgba(0,0,0,0.8); font-size: 12px; border-radius:10px; z-index: 100;">
+<div class="noselect">
 
-  <!-- change view icon -->
-  <div style="position: absolute; left: 0;"><router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown></div>
-
-  <ng-container *ngIf="!routerDropdownOpen">
+  <!-- change route icon -->
+  <div>
+    <router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown>
 
     <!-- full screen button -->
-    <div style="position: absolute; left: 40px;" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></div>
+    <span *ngIf="!routerDropdownOpen" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></span>
+
+  </div>
+
+
+  <div *ngIf="!routerDropdownOpen" style="margin-top: .4em;">
 
     <!-- autoscroller start button -->
-    <div *ngIf="!scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-level-down fa-2x fa-fw" (click)="scrollToBottom()" pTooltip="Start autoscroller"></div>
+    <span *ngIf="!scrollStarted" class="icon fa fa-level-down fa-2x fa-fw" (click)="scrollToBottom()" pTooltip="Start autoscroller"></span>
 
     <!-- autoscroller stop button -->
-    <div *ngIf="scrollStarted" style="position: absolute; left: 0; top: 40px;" class="icon fa fa-stop fa-2x fa-fw" (click)="stopScrollToBottom()" pTooltip="Stop autoscroller"></div>
+    <span *ngIf="scrollStarted" class="icon fa fa-stop fa-2x fa-fw" (click)="stopScrollToBottom()" pTooltip="Stop autoscroller"></span>
 
     <!-- show meta -->
-    <div *ngIf="showMeta" style="position: absolute; left: 40px; top: 40px;" class="icon fa fa-comment fa-2x fa-fw" (click)="hideMetaFunction()" pTooltip="Hide Meta"></div>
+    <span *ngIf="showMeta" class="icon fa fa-comment fa-2x fa-fw" (click)="hideMetaFunction()" pTooltip="Hide Meta"></span>
 
     <!-- hide meta -->
-    <div *ngIf="!showMeta" style="position: absolute; left: 40px; top: 40px;" class="icon fa fa-comment-o fa-2x fa-fw" (click)="showMetaFunction()" pTooltip="Show Meta"></div>
+    <span *ngIf="!showMeta" class="icon fa fa-comment-o fa-2x fa-fw" (click)="showMetaFunction()" pTooltip="Show Meta"></span>
 
-  </ng-container>
+  </div>
+
 
 </div>
 `,
-  styles: [`
-
-.icon {
-  background-color: rgb(75,173,243);
-  color: white;
-  border-radius: 10px;
-  padding: 3px;
-}
-
-  `]
+  styles: []
 })
 
 export class MasonryControlBarComponent implements OnInit, OnDestroy {

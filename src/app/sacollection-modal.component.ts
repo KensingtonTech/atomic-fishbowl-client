@@ -1,20 +1,20 @@
 import { Component, OnInit, OnDestroy, ElementRef, Input, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
-import { DataService } from './data.service';
-import { ToolService } from './tool.service';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultSaQueries } from './default-sa-queries';
-import { Query } from './query';
-import { ContentTypes } from './contenttypes';
-import { UseCase } from './usecase';
+import { Query } from 'types/query';
+import { ContentTypes } from 'types/contenttypes';
+import { UseCase } from 'types/usecase';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { Subscription } from 'rxjs';
-import { SaServer } from './saserver';
-import { Feed } from './feed';
-import { CollectionMeta } from './collection-meta';
-import { Collection } from './collection';
-import { Preferences } from './preferences';
+import { SaServer } from 'types/saserver';
+import { Feed } from 'types/feed';
+import { CollectionMeta } from 'types/collection-meta';
+import { Collection } from 'types/collection';
+import { Preferences } from 'types/preferences';
 import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var moment;
@@ -42,15 +42,6 @@ declare var log: Logger;
     .ourFont,
     .ui-button-text {
       font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
-      font-size: 11px !important;
-    }
-
-    .description-text {
-      font-size: 12px
-    }
-
-    .ui-radiobutton-label {
-      font-size: 14px;
     }
 
     .ui-radiobutton-box.ui-state-active {
@@ -491,12 +482,11 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public cancel(): void {
-    log.debug('SaCollectionModalComponent: cancel()');
+  public onClose(): void {
+    log.debug('SaCollectionModalComponent: onClose()');
     if (this.mode === 'editRolling' || this.mode === 'editFixed') {
       this.name = '';
     }
-    this.modalService.close(this.id);
     if (this.reOpenTabsModal) {
       this.modalService.open(this.tabContainerModalId);
     }
@@ -504,15 +494,9 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  private closeModal(): void {
+  public close(): void {
+    log.debug('SaCollectionModalComponent: close()');
     this.modalService.close(this.id);
-  }
-
-
-
-  public cancelledEventReceived(): void {
-    log.debug('SaCollectionModalComponent: cancelledEventReceived()');
-    this.cancel();
   }
 
 
@@ -727,7 +711,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.dataService.addCollection(newCollection)
                       .then( () => {
                           this.toolService.executeAddCollection.next( newCollection );
-                          this.closeModal();
+                          this.close();
                           this.name = null; // reset collection name
                         });
     }
@@ -739,7 +723,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.dataService.editCollection(newCollection)
                       .then( () => {
                           this.toolService.executeEditCollection.next( newCollection );
-                          this.closeModal();
+                          this.close();
                           this.name = null; // reset collection name
                         });
     }

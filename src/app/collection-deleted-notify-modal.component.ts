@@ -14,7 +14,7 @@ declare var log: Logger;
     </div>
 
     <div style="float: right; margin-top: 15px;">
-      <p-button type="button" (click)="closeModal()" label="OK"></p-button>
+      <p-button type="button" (onClick)="closeModal()" label="OK"></p-button>
     </div>
 
   </div>

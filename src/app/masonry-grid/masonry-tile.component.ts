@@ -1,9 +1,8 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, ElementRef, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges } from '@angular/core';
-import { NgStyle } from '@angular/common';
-import { ToolService } from './tool.service';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges } from '@angular/core';
+import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import { MasonryGridComponent } from './masonry-grid.component';
-import * as utils from './utils';
+import * as utils from '../utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -17,9 +16,9 @@ interface MasonryKey {
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div *ngIf="masonryColumnWidth && session" [ngStyle]="{'width.px': masonryColumnWidth}" class="brickOuterDiv">
+<div class="brickOuterDiv" *ngIf="session" [style.width.px]="masonryColumnWidth" [style.margin.px]="margin">
 
-  <div style="position: relative; min-height: 50px;">
+  <div style="position: relative; min-height: 2.631578947em;">
 
     <ng-container *ngIf="displayTextArea">
 
@@ -63,7 +62,7 @@ interface MasonryKey {
       </div>
     </ng-container>
 
-    <!-- the images itself -->
+    <!-- the image itself -->
     <ng-container [ngSwitch]="content.contentType">
       <img *ngSwitchCase="'image'" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
       <img *ngSwitchCase="'pdf'" class="separator pdf" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
@@ -119,7 +118,7 @@ interface MasonryKey {
         <td class="value">{{struct.value}}</td>
       </tr>
       <tr *ngIf="masonryMeta.length == 0">
-        <td colspan="2">No relevant meta for this session.</td>
+        <td colspan="2">No relevant meta found for this session.</td>
       </tr>
       <tr *ngIf="content.contentType == 'hash'">
         <td class="column1">{{utils.toCaps(content.hashType)}} Hash:</td>
@@ -166,70 +165,7 @@ interface MasonryKey {
   </div>
 
 </div>
-  `,
-
-  styles: [`
-
-    .separator {
-        margin: 0;
-        padding: 0;
-        display: block;
-    }
-
-    .textArea {
-      border-top: 1px solid black;
-      padding: 5px;
-      font-size: 9pt;
-    }
-
-    .column1 {
-      white-space: nowrap;
-      width: 1px;
-      font-weight: bold;
-      vertical-align: top;
-    }
-
-    .value {
-      word-wrap: break-word;
-      word-break: break-all;
-      color: black;
-    }
-
-    img {
-      width: 100%;
-      height: auto;
-
-    }
-
-    .pdf {
-      box-sizing: border-box;
-      border: solid 3px red;
-    }
-
-    .word {
-      box-sizing: border-box;
-      border: solid 4px rgb(42,86,153);
-    }
-
-    .excel {
-      box-sizing: border-box;
-      border: solid 4px rgb(32,114,71);
-    }
-
-    .powerpoint {
-      box-sizing: border-box;
-      border: solid 3px rgb(211,71,38);
-    }
-
-    .brickOuterDiv {
-      background-color: white;
-      border-radius: 5px;
-      font-size: 9pt;
-      font-weight: lighter;
-      margin: 10px;
-    }
-
-  `]
+  `
 })
 
 export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
@@ -240,12 +176,13 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
   public utils = utils;
 
-  @Input() private content: any;
-  @Input() public sessionId: number;
-  @Input() private masonryKeys: MasonryKey[];
-  @Input() public masonryColumnWidth: number;
-  @Input() public serviceType: string; // 'nw' or 'sa'
-  @Input() public collectionId: string = null;
+  @Input() content: any;
+  @Input() sessionId: number;
+  @Input() masonryKeys: MasonryKey[];
+  @Input() masonryColumnWidth: number;
+  @Input() serviceType: string; // 'nw' or 'sa'
+  @Input() collectionId: string = null;
+  @Input() margin: number;
 
   public session; // holds meta, among other things
   public displayTextArea = true;
@@ -273,6 +210,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
       }
     }
     this.session = session;
+
     this.updateMasonryMeta();
   }
 

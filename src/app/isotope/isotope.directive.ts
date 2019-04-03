@@ -1,10 +1,12 @@
-import { Directive, OnInit, OnChanges, Input, ElementRef, NgZone, Renderer2, OnDestroy } from '@angular/core';
+import { Directive, OnInit, OnChanges, Input, ElementRef, NgZone, Renderer2, OnDestroy, ViewChildren, QueryList } from '@angular/core';
 import { IsotopeConfig } from './isotope-config';
 import { IsotopeAPI } from './isotope-api';
 import { Logger } from 'loglevel';
+
+// import { IsotopeBrickDirective } from './isotope-brick.directive';
 declare var log: Logger;
 declare var $: any;
-// import * as Isotope from 'isotope-layout'; // we're not using typescript / webpack loading as doing so breaks layout on prod.  We instead use a <script> tag in index.html to load it from resources
+// import * as Isotope from 'isotope-layout'; // we're not using typescript / webpack loading as doing so breaks layout on prod.  We instead use a <script> tag in index.html to load it from /resources
 declare var Isotope;
 
 @Directive({
@@ -19,8 +21,11 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
                 private renderer: Renderer2 ) {}
 
 
-  @Input() public config: IsotopeConfig;
-  @Input() public filter = '*';
+  // @ViewChildren(IsotopeBrickDirective) private bricks: QueryList<IsotopeBrickDirective>;
+
+  @Input() config: IsotopeConfig;
+  @Input() filter = '*';
+  @Input() addWithLayout = false; // controls whether layout will be called when adding items.  layout must be invoked manually at the end if true
   private api: IsotopeAPI;
   public isotope: any = null;
   private isDestroyed = false;
@@ -42,7 +47,11 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
     // create public API
     this.api = {
       layout: this.layout.bind(this),
-      destroyMe: this.destroyMe.bind(this)
+      destroyMe: this.destroyMe.bind(this),
+      initializeMe: this.initializeMe.bind(this),
+      unhideAll: this.unhideAll.bind(this),
+      basicLayout: this.basicLayout.bind(this),
+      reloadItems: this.reloadItems.bind(this)
     };
     this.config.api.next(this.api);
 
@@ -53,17 +62,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
     }
     // log.debug('IsotopeDirective: ngOnInit(): config:', this.config);
 
-    // Initialize Isotope
-    // this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, <Isotope.IsotopeOptions><unknown>this.config) );
-    this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, this.config) );
-    // this.isotope = new Isotope(this.el.nativeElement, this.config);
-
-    // Perform actions on layoutComplete event
-    this.ngZone.runOutsideAngular( () => {
-      this.isotope.on( 'layoutComplete', this.onLayoutComplete );
-    });
-
-    this.config.initialized.next(true);
+    this.initializeMe(); // auto-initialize
   }
 
 
@@ -97,6 +96,24 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
+  public initializeMe(): void {
+    // Initialize Isotope
+    if (this.isotope) {
+      log.error('IsotopeDirective: initializeMe(): isotope is already initialized');
+      return;
+    }
+    this.ngZone.runOutsideAngular( () => this.isotope = new Isotope(this.el.nativeElement, this.config) );
+    this.isDestroyed = false;
+
+    // Perform actions on layoutComplete event
+    this.ngZone.runOutsideAngular( () => {
+      this.isotope.on( 'layoutComplete', this.onLayoutComplete );
+    });
+    this.config.initialized.next(true);
+  }
+
+
+
   public destroyMe(): void {
     // this is used because onDestroy() is called after the bricks get removed.  We want to enhance performance by not allowing all the isotope remove operations to take place, and instead just destroy Isotope altogether.
     log.debug('IsotopeDirective: destroyMe():  Killing Isotope');
@@ -104,15 +121,21 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
       this.ngZone.runOutsideAngular( () => { this.isotope.off( 'layoutComplete', this.onLayoutComplete ); } );
       this.isotope = null;
       this.isDestroyed = true;
+      this.config.initialized.next(false);
     }
   }
 
 
 
-  public layout() {
+  public layout(refreshConfig = false) {
     log.debug('IsotopeDirective: layout()');
 
     if (!this.isotope) {
+      return;
+    }
+
+    if (refreshConfig) {
+      this.ngZone.runOutsideAngular( () => this.isotope.arrange( this.config ) );
       return;
     }
 
@@ -127,7 +150,35 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
     else {
       this.ngZone.runOutsideAngular( () => this.isotope.arrange() );
     }
+  }
 
+
+
+  basicLayout() {
+    // log.debug('IsotopeDirective: basicLayout()');
+    if (!this.isotope) {
+      return;
+    }
+    this.isotope.layout();
+  }
+
+
+
+  reloadItems() {
+    // log.debug('IsotopeDirective: reloadItems()');
+    if (!this.isotope) {
+      return;
+    }
+    this.isotope.reloadItems();
+  }
+
+
+
+  public unhideAll() {
+    for ( let i = 0; i < this.el.nativeElement.children.length; i++) {
+      let element = this.el.nativeElement.children[i];
+      element.style.visibility = 'visible';
+    }
   }
 
 
@@ -137,11 +188,18 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
     this.ngZone.runOutsideAngular( () => {
 
-      // this will only layout the new item
-      this.isotope.appended(element.nativeElement);
+      if (this.addWithLayout) {
+        // log.debug('IsotopeDirective: add(): adding brick with layout');
+        // this will only layout the new item
+        this.isotope.appended(element.nativeElement);
 
-      // tiles aren't displayed initially so that un-layed-out tiles won't pollute the view.  Now that they're layed out, we can un-hide them
-      this.renderer.setStyle(this.el.nativeElement, 'display', 'block');
+        // tiles aren't displayed initially so that un-layed-out tiles won't pollute the view.  Now that they're layed out, we can un-hide them
+        this.renderer.setStyle(element.nativeElement, 'visibility', 'visible');
+      }
+      else {
+        // log.debug('IsotopeDirective: add(): adding brick without layout');
+        this.isotope.addItems( element.nativeElement );
+      }
     } );
 
   }
@@ -158,7 +216,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
         clearTimeout(this.removeTimer); // cancel existing layout() call so a new one can run
       }
 
-      log.debug('IsotopeDirective: remove(): removing brick');
+      // log.debug('IsotopeDirective: remove(): removing brick');
       this.ngZone.runOutsideAngular( () => this.isotope.remove(element.nativeElement)); // tell isotope that the brick has been removed
 
       // Layout bricks

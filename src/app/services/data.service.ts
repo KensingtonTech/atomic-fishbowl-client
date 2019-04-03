@@ -1,16 +1,16 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Subject, BehaviorSubject, Subscription } from 'rxjs';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { NwServer } from './nwserver';
-import { SaServer } from './saserver';
+import { NwServer } from 'types/nwserver';
+import { SaServer } from 'types/saserver';
 import { ToolService } from './tool.service';
-import { Feed } from './feed';
-import { Preferences } from './preferences';
-import { License } from './license';
+import { Feed } from 'types/feed';
+import { Preferences } from 'types/preferences';
+import { License } from 'types/license';
 import * as io from 'socket.io-client';
 import { Logger } from 'loglevel';
-import { CollectionDeletedDetails } from './collection-deleted-details';
-import * as utils from './utils';
+import { CollectionDeletedDetails } from 'types/collection-deleted-details';
+import * as utils from '../utils';
 declare var JSEncrypt: any;
 declare var log: Logger;
 

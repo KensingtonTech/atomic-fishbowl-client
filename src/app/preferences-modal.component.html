@@ -1,6 +1,6 @@
-<modal id="{{id}}" (cancelled)="cancelledEventReceived()" background="true" bodyStyle="width: 500px;">
+<modal id="{{id}}" (closed)="onClose()" background="true" bodyClass="preferencesModal">
 
-      <h3 class="noselect" style="margin-top:0px; margin-bottom: 10px;">Preferences</h3>
+      <h2 class="noselect" style="margin-top: 0; margin-bottom: 0.526315789em;">Preferences</h2>
       <form #preferencesForm="ngForm" (ngSubmit)="onSubmitPreferences()" novalidate>
 
       <p-tabView [activeIndex]="selectedTabIndex">
@@ -60,7 +60,7 @@
                 <b>Login Token Expiration</b>
               </td>
               <td>
-                <input pInputText type="number" min="1" max="8760" name="tokenExpirationHours" [(ngModel)]="preferencesModel.tokenExpirationHours" style="width: 40px;" required pTooltip="This setting will only impact new logins.  Existing logged-in sessions will not be logged out until their token expires.  Be careful with this.  If you set it too high, newly logged-in clients will not have to login again until their token expires."> hours
+                <input pInputText type="number" min="1" max="8760" name="tokenExpirationHours" [(ngModel)]="preferencesModel.tokenExpirationHours" required pTooltip="This setting will only impact new logins.  Existing logged-in sessions will not be logged out until their token expires.  Be careful with this.  If you set it too high, newly logged-in clients will not have to login again until their token expires."> hours
               </td>
             </tr>
 
@@ -80,7 +80,7 @@
                     <b>NetWitness UI URL</b>
                   </td>
                   <td style="width: 99%;">
-                    <input type="text" name="url" [(ngModel)]="preferencesModel.nw.url" style="width: 100%;" required>
+                    <input pInputText type="text" name="url" [(ngModel)]="preferencesModel.nw.url" style="width: 100%;" required>
                   </td>
                 </tr>
                 <tr>
@@ -96,7 +96,7 @@
                     <b>Preset Query String</b>
                   </td>
                   <td>
-                    <input type="text" name="nwPresetQuery" [(ngModel)]="preferencesModel.nw.presetQuery" style="width: 100%;" required>
+                    <input pInputText type="text" name="nwPresetQuery" [(ngModel)]="preferencesModel.nw.presetQuery" style="width: 100%;" required>
                   </td>
                 </tr>
                 <tr>
@@ -104,7 +104,7 @@
                     <b>Session Limit</b>
                   </td>
                   <td>
-                    <input type="number" min="1" max="5000" name="nwSessionLimit" [(ngModel)]="preferencesModel.nw.sessionLimit" style="width: 40px;" required pTooltip="The maximum number of sessions to extract content from."> sessions
+                    <input pInputText type="number" min="1" max="5000" name="nwSessionLimit" [(ngModel)]="preferencesModel.nw.sessionLimit" required pTooltip="The maximum number of sessions to extract content from."> sessions
                   </td>
                 </tr>
                 <tr>
@@ -112,7 +112,7 @@
                     <b>Query Timeout</b>
                   </td>
                   <td>
-                    <input type="number" name="nwQueryTimeout" [(ngModel)]="preferencesModel.nw.queryTimeout" style="width: 40px;" required> seconds
+                    <input pInputText type="number" name="nwQueryTimeout" [(ngModel)]="preferencesModel.nw.queryTimeout" min="1" max="30" required> seconds
                   </td>
                 </tr>
                 <tr>
@@ -120,7 +120,7 @@
                     <b>Content Timeout</b>
                   </td>
                   <td>
-                    <input type="number" name="nwContentTimeout" [(ngModel)]="preferencesModel.nw.contentTimeout" style="width: 40px;" required> seconds
+                    <input pInputText type="number" name="nwContentTimeout" [(ngModel)]="preferencesModel.nw.contentTimeout" min="1" max="30" required> seconds
                   </td>
                 </tr>
                 <tr>
@@ -128,7 +128,7 @@
                     <b>Rolling Query Delay</b>
                   </td>
                   <td>
-                    <input type="number" min="1" name="nwQueryDelayMinutes" [(ngModel)]="preferencesModel.nw.queryDelayMinutes" style="width: 40px;" required> minutes
+                    <input pInputText type="number" min="1" name="nwQueryDelayMinutes" [(ngModel)]="preferencesModel.nw.queryDelayMinutes" min="1" max="60" required> minutes
                   </td>
                 </tr>
                 <tr>
@@ -136,33 +136,33 @@
                     <b>Max Content Errors</b>
                   </td>
                   <td>
-                    <input type="number" name="nwMaxContentErrors" [(ngModel)]="preferencesModel.nw.maxContentErrors" style="width: 40px;" required>
+                    <input pInputText type="number" name="nwMaxContentErrors" [(ngModel)]="preferencesModel.nw.maxContentErrors" min="0" max="1000" required>
                   </td>
                 </tr>
 
                 <tr>
                   <td>
                     <b>Summary Meta Keys</b><br><br>
-                    <div class="wrap" style="font-size: 10pt; width: 200px;">
+                    <div class="wrap commentText">
                       These are the meta keys which are displayed when viewing only summarised meta in the session view.<br><br>
                       One key per-line.
                     </div>
                   </td>
                   <td>
-                    <textarea name="nwDisplayedKeys" wrap="off" [(ngModel)]="displayedNwKeysString" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                    <textarea name="nwDisplayedKeys" wrap="off" [(ngModel)]="displayedNwKeysString" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     <b>Masonry Meta Keys</b><br><br>
-                    <div class="wrap" style="font-size: 10pt; width: 200px;">
+                    <div class="wrap commentText">
                       These define extra meta keys to display on masonry tiles. May be in <b>key,friendlyName</b> CSV format, or a key name only.<br><br>
                       Only keys with values will be displayed.<br><br>
                       One item per-line.
                     </div>
                   </td>
                   <td>
-                    <textarea name="nwMasonryKeys" wrap="off" [(ngModel)]="masonryNwKeysString" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                    <textarea name="nwMasonryKeys" wrap="off" [(ngModel)]="masonryNwKeysString" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
                   </td>
                 </tr>
               </table>
@@ -213,7 +213,7 @@
                   <b>Flow Limit</b>
                 </td>
                 <td>
-                  <input type="number" min="1" max="5000" name="saSessionLimit" [(ngModel)]="preferencesModel.sa.sessionLimit" style="width: 40px;" required pTooltip="The maximum number of flows to extract content from."> flows
+                  <input type="number" min="1" max="5000" name="saSessionLimit" [(ngModel)]="preferencesModel.sa.sessionLimit" required pTooltip="The maximum number of flows to extract content from."> flows
                 </td>
               </tr>
               <tr>
@@ -221,7 +221,7 @@
                   <b>Query Timeout</b>
                 </td>
                 <td>
-                  <input type="number" name="saQueryTimeout" [(ngModel)]="preferencesModel.sa.queryTimeout" style="width: 40px;" required> seconds
+                  <input type="number" name="saQueryTimeout" [(ngModel)]="preferencesModel.sa.queryTimeout" required> seconds
                 </td>
               </tr>
               <tr>
@@ -229,7 +229,7 @@
                   <b>Content Timeout</b>
                 </td>
                 <td>
-                  <input type="number" name="saContentTimeout" [(ngModel)]="preferencesModel.sa.contentTimeout" style="width: 40px;" required> seconds
+                  <input type="number" name="saContentTimeout" [(ngModel)]="preferencesModel.sa.contentTimeout" required> seconds
                 </td>
               </tr>
               <tr>
@@ -237,7 +237,7 @@
                   <b>Rolling Query Delay</b>
                 </td>
                 <td>
-                  <input type="number" min="1" name="saQueryDelayMinutes" [(ngModel)]="preferencesModel.sa.queryDelayMinutes" style="width: 40px;" required> minutes
+                  <input type="number" min="1" name="saQueryDelayMinutes" [(ngModel)]="preferencesModel.sa.queryDelayMinutes" required> minutes
                 </td>
               </tr>
               <tr>
@@ -245,32 +245,32 @@
                   <b>Max Content Errors</b>
                 </td>
                 <td>
-                  <input type="number" name="saMaxContentErrors" [(ngModel)]="preferencesModel.sa.maxContentErrors" style="width: 40px;" required>
+                  <input type="number" name="saMaxContentErrors" [(ngModel)]="preferencesModel.sa.maxContentErrors" required>
                 </td>
               </tr>
               <tr>
                 <td>
                   <b>Summary Meta Keys</b><br><br>
-                  <div class="wrap" style="font-size: 10pt; width: 200px;">
+                  <div class="wrap commentText">
                     These are the meta keys which are displayed when viewing only summarised meta in the session view.<br><br>
                     One key per-line.
                   </div>
                 </td>
                 <td>
-                  <textarea name="saDisplayedKeys" wrap="off" [(ngModel)]="displayedSaKeysString" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                  <textarea name="saDisplayedKeys" wrap="off" [(ngModel)]="displayedSaKeysString" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
                 </td>
               </tr>
               <tr>
                 <td>
                   <b>Masonry Meta Keys</b><br><br>
-                  <div class="wrap" style="font-size: 10pt; width: 200px;">
+                  <div class="wrap commentText">
                     These define extra meta keys to display on masonry tiles. May be in <b>key,friendlyName</b> CSV format, or a key name only.<br><br>
                     Only keys with values will be displayed.<br><br>
                     One item per-line.
                   </div>
                 </td>
                 <td>
-                  <textarea name="saMasonryKeys" wrap="off" [(ngModel)]="masonrySaKeysString" style="width: 100%; height: 200px; resize: vertical;"></textarea>
+                  <textarea name="saMasonryKeys" wrap="off" [(ngModel)]="masonrySaKeysString" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
                 </td>
               </tr>
 
@@ -287,8 +287,8 @@
 
 
 
-      <div style="margin-top: 5px; float: right;">
-        <p-button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="submit" label="OK"></p-button>&nbsp;<p-button type="button" (click)="cancel()" label="Cancel"></p-button>
+      <div style="margin-top: 0.263157895em; float: right;">
+        <p-button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="submit" label="OK"></p-button>&nbsp;<p-button type="button" (onClick)="close()" label="Cancel"></p-button>
       </div>
       </form>
 </modal>

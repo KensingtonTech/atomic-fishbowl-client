@@ -1,4 +1,4 @@
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="onCancel()" background="true" bodyClass="feed-wizard-body">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" background="true" bodyClass="feed-wizard-body">
 
   <!--header-->
   <h2 *ngIf="!editing" style="margin-top: 0px; margin-bottom: 5px; color: rgb(54, 60, 66);">Hash Feed Wizard - New Feed</h2>
@@ -13,8 +13,8 @@
         <div class="row">
           <div class="cell left-column" style="vertical-align: bottom;">Feed Name</div>
           <div class="cell right-column">
-            <label *ngIf="!nameValid && name.length != 0" for="feedName" style="font-size: 10pt; color: red;">A feed already exists with this name</label>
-            <label *ngIf="name.length == 0" for="nameBox" style="font-size: 10pt; color: red;">The name field is required</label>
+            <label *ngIf="!nameValid && name.length != 0" for="feedName" style="color: red;">A feed already exists with this name</label>
+            <label *ngIf="name.length == 0" for="nameBox" style="color: red;">The name field is required</label>
             <input type="text" id="feedName" pInputText name="feedName" [(ngModel)]="name" (ngModelChange)="onNameChanged($event)" autocomplete="off" required style="width: 100%;"/>
           </div>
         </div>
@@ -42,7 +42,7 @@
           <div class="cell left-column">URL</div>
           <div class="cell">
             <input type="text" pInputText name="url" size="100" (ngModelChange)="onUrlChange()" [(ngModel)]="url" autocomplete="off" required/>
-            <p-button type="button" (click)="verifyUrl()" label="Verify" [disabled]="!validateUrlInput() || (!editing && urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication == 'enabled' && authChanged && !(urlUser && urlPassword))"></p-button>
+            <p-button (onClick)="verifyUrl()" label="Verify" [disabled]="!validateUrlInput() || (!editing && urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication == 'enabled' && authChanged && !(urlUser && urlPassword))"></p-button>
             <span *ngIf="urlVerified && urlVerifyClicked" class="fa fa-thumbs-up"> Success</span>
             <span *ngIf="!urlVerified && urlTested" class="fa fa-thumbs-down"> Failure<span *ngIf="testError">: {{testError}}</span></span>
           </div>
@@ -85,7 +85,7 @@
       <!-- next / cancel buttons -->
       <div style="position: absolute; bottom: 10px; right: 10px;">
         
-        <p-button type="button" (click)="onCancel()" label="Cancel"></p-button>&nbsp;<p-button *ngIf="type == 'manual'" type="submit" label="Next" [disabled]="!highLevelDetailsForm.valid || lines.length == 0 || !nameValid"></p-button><p-button *ngIf="type == 'scheduled' && !editing" type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified || !nameValid"></p-button><p-button *ngIf="type == 'scheduled' && editing" type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValid"></p-button>
+        <p-button (onClick)="close()" label="Cancel"></p-button>&nbsp;<p-button *ngIf="type == 'manual'" type="submit" label="Next" [disabled]="!highLevelDetailsForm.valid || lines.length == 0 || !nameValid"></p-button><p-button *ngIf="type == 'scheduled' && !editing" type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication == 'enabled' && !(urlUser && urlPassword)) || !urlVerified || !nameValid"></p-button><p-button *ngIf="type == 'scheduled' && editing" type="submit" label="Next" [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication == 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValid"></p-button>
       </div>
       
     </form>
@@ -145,7 +145,7 @@
                   <div pDroppable="columnIdentifier" (onDrop)="onDrop($event, i)">
                     <span>Column {{column}}</span>
                     <span *ngIf="columnDropPort && columnDropPort[i]?.enabled">
-                      &nbsp;<p-button icon="fa fa-fw fa-close" iconPos="right" [label]="columnDropPort[i].columnId.name" (click)="onDeselectColumnId(i)" style="vertical-align: top;"></p-button>
+                      &nbsp;<p-button icon="fa fa-fw fa-close" iconPos="right" [label]="columnDropPort[i].columnId.name" (onClick)="onDeselectColumnId(i)" style="vertical-align: top;"></p-button>
                     </span>
                   </div>
                 </div>
@@ -187,7 +187,7 @@
           <div style="display: inline-block;">
             <div style="text-align: left;">
               <div *ngFor="let columnId of availableColumnIDs" class="dragButton" style="margin-bottom: 3px;" pDraggable="columnIdentifier" (onDragStart)="onDragStart($event, columnId)" (onDragEnd)="onDragEnd($event,columnId)">
-                <p-button type="button" icon="fa fa-fw fa-check" [label]="columnId.name"></p-button>
+                <p-button icon="fa fa-fw fa-check" [label]="columnId.name"></p-button>
               </div>
             </div>
           </div>
@@ -198,7 +198,7 @@
 
       <!-- next / previous buttons -->
       <div style="position: absolute; bottom: 10px; right: 10px;">
-        <p-button type="button" (click)="pageTwoToPageOneSubmit()" label="Previous"></p-button>&nbsp;<p-button type="submit" label="Next" [disabled]="!feedDetailsForm.valid || !feedDetailsFormValid()"></p-button>
+        <p-button (onClick)="pageTwoToPageOneSubmit()" label="Previous"></p-button>&nbsp;<p-button type="submit" label="Next" [disabled]="!feedDetailsForm.valid || !feedDetailsFormValid()"></p-button>
       </div>
 
     </form>
@@ -289,7 +289,7 @@
     
       <!-- previous / submit buttons -->
       <div style="position: absolute; bottom: 10px; right: 10px;">
-        <p-button type="button" (click)="pageThreeToPageTwoSubmit()" label="Previous"></p-button>&nbsp;<p-button type="submit" label="Finish"></p-button>
+        <p-button (onClick)="pageThreeToPageTwoSubmit()" label="Previous"></p-button>&nbsp;<p-button type="submit" label="Finish"></p-button>
       </div>
 
     </form>

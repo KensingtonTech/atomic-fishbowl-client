@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ElementRef, Output, EventEmitter, Renderer2 } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, ElementRef, Output, EventEmitter, Renderer2 } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -14,29 +14,21 @@ interface RouterOption {
 @Component({
   selector: 'router-dropdown',
   template: `
-<div *ngIf="selectedRoute" style="position: relative; display: block; z-index: 101;" class="noselect routerDropdownBody">
-  <div *ngIf="!selectionExpanded">
-    <i (click)="expandRouterOptions()" class="routerIcon {{selectedRoute.class}}"></i><br>
-  </div>
-  <div *ngIf="selectionExpanded" (clickOutside)="collapseRouterOptions()" style="width: 100px;">
-    <div *ngFor="let option of routerOptions" style="margin-bottom: 2px;" (click)="routeSelected(option)">
-      <i class="routerIcon {{option.class}}" [class.deselect]="selectedRoute.name == option.name"></i>&nbsp;<span style="color: white; vertical-align: 50%;">{{option.tooltip}}</span>
+<ng-container *ngIf="selectedRoute">
+
+  <!-- collapsed -->
+  <span *ngIf="!selectionExpanded" (click)="expandRouterOptions()" [ngClass]="selectedRoute.class" class="routerIcon"></span>
+
+  <!-- expanded -->
+  <div *ngIf="selectionExpanded" (clickOutside)="collapseRouterOptions()">
+    <div *ngFor="let option of routerOptions" style="margin-bottom: .2em" (click)="routeSelected(option)">
+      <span class="routerIcon {{option.class}}" [class.deselect]="selectedRoute.name == option.name"></span>&nbsp;<span style="color: white; vertical-align: 50%;">{{option.tooltip}}</span>
     </div>
   </div>
-</div>
-  `,
-  styles: [`
-    .icon {
-      background-color: rgb(75,173,243);
-      color: white;
-      border-radius: 10px;
-      padding: 3px;
-    }
 
-    .deselect {
-      color: grey;
-    }
-  `],
+</ng-container>
+  `,
+  styles: [ ],
 })
 
 export class RouterDropdownComponent implements OnInit {

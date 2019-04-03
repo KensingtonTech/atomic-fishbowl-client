@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription} from 'rxjs';
 import { Logger } from 'loglevel';

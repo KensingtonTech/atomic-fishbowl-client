@@ -236,3 +236,40 @@ export function deepCopy(o) {
   return newO;
 }
 
+
+
+function getRootElementFontSize() {
+  // Returns a number
+  return parseFloat(
+    // of the computed font-size, so in px
+    getComputedStyle(
+      // for the root <html> element
+      document.documentElement
+    ).fontSize
+  );
+}
+
+
+
+function getElementFontSize(element: Element) {
+  // Returns a number
+  return parseFloat(
+    // of the computed font-size, so in px
+    getComputedStyle(
+      // for the root <html> element
+      element
+    ).fontSize
+  );
+}
+
+
+
+export function convertEmRelativeToElement(value, element: Element) {
+  return value * getElementFontSize(element);
+}
+
+
+
+export function convertRem(value) {
+  return value * getRootElementFontSize();
+}

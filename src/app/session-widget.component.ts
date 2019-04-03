@@ -1,9 +1,9 @@
 import { Component, ChangeDetectorRef, OnInit, ChangeDetectionStrategy, OnDestroy, Input, OnChanges } from '@angular/core';
-import { DataService } from './data.service';
-import { ToolService } from './tool.service';
+import { DataService } from 'services/data.service';
+import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import { Logger } from 'loglevel';
-import { Preferences } from './preferences';
+import { Preferences } from 'types/preferences';
 import * as utils from './utils';
 declare var log: Logger;
 
@@ -18,16 +18,11 @@ declare var log: Logger;
     <h3 *ngIf="serviceType == 'sa'">Flow {{sessionId}} Details</h3>
 
     <!-- Show all toggle -->
-    <div class="iconsAlignTop eyeball" (click)="showAllClick()" style="position: absolute;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-2x fa-fw"></i></div>
+    <div class="iconsAlignTop eyeball" (click)="showAllClick()" style="position: absolute;"><i [class.fa-eye-slash]="!showAll" [class.fa-eye]="showAll" class="fa fa-lg fa-fw"></i></div>
 
     <!-- bullseye -->
-    <!-- test
     <div class="iconsAlignTop bullseye" style="position: absolute;">
-      <i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i>
-    </div>
-    -->
-    <div class="iconsAlignTop bullseye" style="position: absolute;">
-      <a *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
+      <a *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-lg fa-fw" style="color: red;"></i></a>
       <a *ngIf="serviceType == 'sa' && preferences.sa.url && sessionId && meta" target="_blank" href="{{saUrlGetter(sessionId)}}"><i class="fa fa-bullseye fa-2x fa-fw" style="color: red;"></i></a>
     </div>
 
@@ -79,21 +74,6 @@ declare var log: Logger;
 
     .overflowBox::-webkit-scrollbar {
       display: none;
-    }
-
-    /*.metalabel {
-      color: rgb(118,143,181);
-      vertical-align: top;
-      font-size: 12px;
-    }
-
-    .metavalue {
-      color: rgb(230,234,234);
-      font-size: 10px;
-    }*/
-
-    .multiValues {
-      background-color: rgba(36, 109, 226, 0.65);
     }
 
     .expanded {

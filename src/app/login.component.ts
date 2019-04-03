@@ -1,6 +1,6 @@
-import { Component, ElementRef, Renderer2, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
-import { AuthenticationService } from './authentication.service';
-import { User } from './user';
+import { Component, ElementRef, Renderer2, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { AuthenticationService } from 'services/authentication.service';
+import { User } from 'types/user';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -40,10 +40,6 @@ declare var log: Logger;
 `,
 styles: [`
 
-  /*mat-card {
-    padding: 0 !important;
-  }*/
-
   .full-width {
     width: 100%;
   }
@@ -51,7 +47,7 @@ styles: [`
 `]
 })
 
-export class LoginComponent implements OnInit, AfterViewInit {
+export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public user: User = { username: '', password: '' };
   public errorMsg = '';
@@ -66,6 +62,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
+  }
+
+  ngOnDestroy() {
+    this.renderer.removeStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color');
   }
 
   ngAfterViewInit(): void {

@@ -1,15 +1,14 @@
-import { Component, OnInit, OnDestroy, OnChanges, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { ModalService } from './modal/modal.service';
-import { ToolService } from './tool.service';
+import { ToolService } from 'services/tool.service';
 import { Logger } from 'loglevel';
+import { CollectionsComponent } from './collections.component';
 declare var log: Logger;
 
 @Component({
   selector: 'tab-container-modal',
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (cancelled)="onCancel()" [background]="true" bodyStyle="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; background-color: white; font-size: 10pt;">
-
-      <div (click)="closeModal()" style="position: absolute; top: 10px; right: 16px; z-index: 100; color: black;" class="fa fa-times-circle-o fa-2x"></div>
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="true" bodyStyle="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; background-color: white;">
 
       <p-tabView [activeIndex]="selectedTabIndex" (onChange)="onTabChange($event)">
         <p-tabPanel header="Collections" headerStyleClass="noselect nooutline">
@@ -19,6 +18,8 @@ declare var log: Logger;
           <feeds></feeds>
         </p-tabPanel>
       </p-tabView>
+
+      <div (click)="closeModal()" class="fa fa-times-circle-o fa-2x closeButton"></div>
 
 
 </modal>
@@ -33,25 +34,19 @@ declare var log: Logger;
   `]
 })
 
-export class TabContainerComponent implements OnInit, OnDestroy {
+export class TabContainerComponent {
 
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
   @Input() id: string;
+  @ViewChild(CollectionsComponent) CollectionsComponent;
 
   public selectedTabIndex = 0;
 
-  ngOnInit(): void {
 
-  }
-
-  ngOnDestroy(): void {
-
-  }
-
-  onCancel(): void {
-    this.modalService.close(this.id);
+  onClose(): void {
+    this.CollectionsComponent.onClose();
   }
 
   onOpen(): void {
@@ -73,6 +68,7 @@ export class TabContainerComponent implements OnInit, OnDestroy {
     }
     if (index === 1) {
       this.toolService.feedsOpened.next();
+      this.CollectionsComponent.onClose();
     }
   }
 

@@ -6,7 +6,7 @@ declare var log: Logger;
 @Component( {
   selector: 'classic-session-popup',
   template: `
-<div [@faderAnimation]="enabledTrigger" (@faderAnimation.done)="onAnimationDone($event)" (@faderAnimation.start)="onAnimationStart($event)" style="position: absolute; right: 0; top: 30px; bottom: 0; width: 350px; background-color: rgba(0,0,0,.8); padding-left: 5px; color: white; font-size: 12px;">
+<div [@faderAnimation]="enabledTrigger" (@faderAnimation.done)="onAnimationDone($event)" (@faderAnimation.start)="onAnimationStart($event)">
 
   <ng-content></ng-content>
 

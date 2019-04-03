@@ -1,4 +1,4 @@
-import { Query } from './query';
+import { Query } from 'types/query';
 
 export const defaultNwQueries: Query[] = [
   { text: 'All Supported File Types', queryString: `filetype = 'jpg','gif','png','pdf','office 2007 document','zip','rar','windows executable','x86 pe','windows dll','x64pe','apple executable (pef)','apple executable (mach-o)'`},
