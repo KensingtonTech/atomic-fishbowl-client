@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { PanZoomConfig, PanZoomAPI, PanZoomModel } from 'ng2-panzoom';
 import { ToolService } from 'services/tool.service';
 import { DataService } from 'services/data.service';
-import { Content } from 'types/content';
+import { Content, Contents } from 'types/content';
 import { ModalService } from '../modal/modal.service';
 import { ContentCount } from 'types/contentcount';
 import { ContentMask } from 'types/contentmask';
@@ -19,6 +19,8 @@ import { trigger, state, style, animate, transition, query, animateChild } from 
 import { Point } from 'types/point';
 import { Sessions, Session } from 'types/session';
 import { AbstractGrid } from '../abstract-grid.class';
+import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
+import { SessionsAvailable } from 'types/sessions-available';
 declare var log: Logger;
 declare var imagesLoaded;
 
@@ -29,7 +31,7 @@ declare var imagesLoaded;
   providers: [ { provide: AbstractGrid, useExisting: forwardRef(() => ClassicGridComponent ) } ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<div #classicGridElement (window:resize)="onWindowResize()" style="position: absolute; left: 0; right: 0; bottom: 0; top: 0; overflow: hidden;">
+<div #classicGridElement class="classic-grid-element" (window:resize)="onWindowResize()" style="height: 100%; width: 100%; overflow: hidden;">
 
   <pan-zoom *ngIf="content && sessionsDefined && displayedContent && !destroyView && highResSessions" [config]="panzoomConfig">
 
@@ -37,7 +39,7 @@ declare var imagesLoaded;
 
       <!--@zoomInOutParent-->
 
-      <classic-tile *ngFor="let item of content; index as i;" (openPDFViewer)="openPdfViewer()" (openSessionDetails)="openSessionDetails()" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionid]="item.session" [serviceType]="selectedCollectionServiceType" [loadHighRes]="loadAllHighResImages" [showHighRes]="highResSessions[i]" [hide]="!displayedContent[i]">
+      <classic-tile @zoomInOutParent *ngFor="let item of content; index as i;" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionId]="item.session" [attr.id]="item.id" [serviceType]="selectedCollectionServiceType" [loadHighRes]="loadAllHighResImages" [showHighRes]="highResSessions[i]" [hide]="!displayedContent[i]" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)">
       </classic-tile>
 
     </div>
@@ -46,36 +48,43 @@ declare var imagesLoaded;
 
 </div>
 
-<!-- control bar -->
-<control-bar-classic *ngIf="panzoomConfig" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight" ></control-bar-classic>
+<div class="classic-left-bar" fxLayout="column" fxLayoutAlign="start start">
 
-<!-- pause / resume buttons for monitoring collections -->
-<div *ngIf="selectedCollectionType == 'monitoring'" style="position: absolute; left: 11.05263158em; top: 0.526315789em; color: white; z-index: 100;">
-  <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
-  <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
+  <!-- control bar -->
+  <control-bar-classic *ngIf="panzoomConfig" fxFlexOffset="2em" [panzoomConfig]="panzoomConfig" [initialZoomWidth]="initialZoomWidth" [initialZoomHeight]="initialZoomHeight"></control-bar-classic>
+
+  <!-- pause / resume buttons for monitoring collections -->
+  <div *ngIf="selectedCollectionType == 'monitoring'" class="monitoringBox" fxFlexOffset=".5em" style="color: white;">
+    <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
+    <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
+  </div>
+
+  <!-- content count -->
+  <content-count-widget *ngIf="selectedCollectionType" [contentCount]="contentCount"></content-count-widget>
+
 </div>
+
 
 <!-- toolbar -->
 <toolbar-widget [contentCount]="contentCount"></toolbar-widget>
 
 <!-- session popup -->
 <classic-session-popup *ngIf="selectedCollectionServiceType" [enabled]="sessionWidgetEnabled" #sessionWidget>
-  <session-widget [session]="popUpSession" [serviceType]="selectedCollectionServiceType" styleClass="popupSessionWidget"></session-widget>
+  <meta-widget [session]="popUpSession" [serviceType]="selectedCollectionServiceType" styleClass="popupSessionWidget"></meta-widget>
 </classic-session-popup>
 
 <!-- modals -->
-<tab-container-modal [id]="tabContainerModalId"></tab-container-modal>
+<tab-container-modal></tab-container-modal>
 <splash-screen-modal></splash-screen-modal>
 <preferences-modal></preferences-modal>
 <manage-users-modal></manage-users-modal>
-<collection-deleted-notify-modal [id]="collectionDeletedModalId" [user]="collectionDeletedUser"></collection-deleted-notify-modal>
-<pdf-viewer-modal *ngIf="selectedCollectionServiceType" id="pdf-viewer" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></pdf-viewer-modal>
-<session-details-modal *ngIf="selectedCollectionServiceType" id="sessionDetails" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId"></session-details-modal>
+<collection-deleted-notify-modal [user]="collectionDeletedUser"></collection-deleted-notify-modal>
+<content-details-modal *ngIf="selectedCollectionServiceType" [session]="selectedSession" [content]="selectedContent" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId" [sessionsAvailable]="sessionsAvailable"></content-details-modal>
 <ng-container *ngIf="preferences && preferences.serviceTypes">
-  <nw-collection-modal *ngIf="preferences.serviceTypes.nw" [id]="nwCollectionModalId"></nw-collection-modal>
-  <sa-collection-modal *ngIf="preferences.serviceTypes.sa" [id]="saCollectionModalId"></sa-collection-modal>
+  <nw-collection-modal *ngIf="preferences.serviceTypes.nw"></nw-collection-modal>
+  <sa-collection-modal *ngIf="preferences.serviceTypes.sa"></sa-collection-modal>
 </ng-container>
-<license-expired-modal [id]="licenseExpiredModalId"></license-expired-modal>
+<license-expired-modal></license-expired-modal>
 `,
   animations: [
     trigger('zoomInOutParent', [
@@ -100,6 +109,26 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   @ViewChild('classicGridElement') private classicGridElement: ElementRef;
   @ViewChild('gridItems') public gridItems: ElementRef;
 
+  // preferences
+  public preferences: Preferences;
+
+  // high-level session, content, and search data pushed from server
+  public content: Content[] = [];
+  public contentObj: Contents = {}; // contains every item of content, indexed by its content id
+  public contentCount = new ContentCount;
+  private search: Search[] = [];
+  public sessions: Sessions;
+
+  // collection information
+  public selectedCollectionType: string = null;
+  public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
+  private collectionId: string = null;
+  public sessionsDefined = false;
+  public collectionDeletedUser = ''; // holds the username of the user who deletes a collection
+  private collectionState = ''; // initial, building, rolling, etc
+  public destroyView = true;
+
+  // pan-zoom
   public panzoomConfig = new PanZoomConfig({
     zoomLevels: 10,
     scalePerZoomLevel: 2.0,
@@ -113,56 +142,57 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   public canvasWidth = 2400;
   public initialZoomHeight: number = null; // set in resetZoomToFit()
   public initialZoomWidth = this.canvasWidth;
-  public content: Content[] = [];
-  public contentCount = new ContentCount;
+
+  // session viewer
+  public selectedSession: Session;
+  public selectedContent: Content;
+  private selectedContentId: string = null;
+  public sessionsAvailable: SessionsAvailable = { previous: false, next: false };
+  private selectedContentType: string = null;
+
+  // session widget and high-res sessions
+  private transitionZoomLevel = 3.9;
   public sessionWidgetEnabled = false;
+  public popUpSession: any;
   public hoveredContentSession: number;
   public highResSessions: boolean[] = [];
-  private deviceNumber: number;
-  private search: Search[] = [];
-  public displayedContent: boolean[] = []; // now changing to be 1:1 with this.content, with every member as boolean
-  public sessions: Sessions;
-  public popUpSession: any;
-  private pdfFile: string;
-  private caseSensitiveSearch = false;
-  private showOnlyImages: any = [];
-  private lastSearchTerm = '';
-  public selectedCollectionType: string = null;
-  public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
-  private collectionId: string = null;
-  public sessionsDefined = false;
-  public destroyView = true;
-  private dodgyArchivesIncludedTypes: any = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
-  private lastMask = new ContentMask;
-  private searchBarOpen = false;
-  private pauseMonitoring = false;
-  private transitionZoomLevel = 3.9;
   private previousFocusedElement: Node;
-  public tabContainerModalId = 'tab-container-modal';
-  public nwCollectionModalId = 'nw-collection-modal';
-  public saCollectionModalId = 'sa-collection-modal';
-  public licenseExpiredModalId = 'license-expired-modal';
-  public collectionDeletedModalId = 'collection-deleted-notify-modal';
-  public collectionDeletedUser = '';
-  private urlParametersLoaded = false;
-  private selectedSessionId: number = null;
-  private selectedContentType: string = null;
-  private selectedContentId: string = null;
-  public preferences: Preferences;
-  private center: Point = null;
   public loadAllHighResImages = false;
   private tooFarOutForHighRes = true;
-  public license: License;
-  private licenseChangedFunction = this.onLicenseChangedInitial;
-  private collectionState = '';
-  private queryParams: any;
-  private firstRun = true;
+  private center: Point = null;
   private wheelPoint: Point = {
     x: 0,
     y: 0
   };
   private lastWheelPoint: Point;
-  private imagesLoaded: any; // handler to imagesLoaded instance
+  private firstRun = true;
+  private mouseDownData: any = {}; // prevent opening session viewer modal if dragging the view
+
+  // search and filtering
+  public displayedContent: boolean[] = []; // now changing to be 1:1 with this.content, with every member as boolean
+  private caseSensitiveSearch = false;
+  private lastSearchTerm = '';
+  private lastMask = new ContentMask;
+  private searchBarOpen = false;
+
+  // monitoring collections
+  public pauseMonitoring = false;
+
+  // images loaded
+  private imagesLoaded: any; // handler to imagesLoaded instance, assigned later
+
+  // routing
+  private urlParametersLoaded = false;
+  private selectedSessionId: number = null;
+  private queryParams: any;
+
+  // license
+  public license: License;
+  private licenseChangedFunction = this.onLicenseChangedInitial;
+
+
+
+
 
   // Subscription holders
   private collectionDeletedSubscription: Subscription;
@@ -178,10 +208,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private modelChangedSubscription: Subscription;
   private apiSubscription: Subscription;
   private onSplashScreenAtStartupClosedSubscription: Subscription;
-  private nextSessionClickedSubscription: Subscription;
-  private previousSessionClickedSubscription: Subscription;
-  private newSessionSubscription: Subscription;
-  private newImageSubscription: Subscription;
   private monitoringCollectionPauseSubscription: Subscription;
   private preferencesChangedSubscription: Subscription;
   private licensingChangedSubscription: Subscription;
@@ -203,10 +229,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.modelChangedSubscription.unsubscribe();
     this.apiSubscription.unsubscribe();
     this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
-    this.nextSessionClickedSubscription.unsubscribe();
-    this.previousSessionClickedSubscription.unsubscribe();
-    this.newSessionSubscription.unsubscribe();
-    this.newImageSubscription.unsubscribe();
     this.monitoringCollectionPauseSubscription.unsubscribe();
     this.preferencesChangedSubscription.unsubscribe();
     this.licensingChangedSubscription.unsubscribe();
@@ -266,10 +288,10 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // New startup code
     this.onSplashScreenAtStartupClosedSubscription = this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
       if (!this.license.valid) {
-        this.modalService.open(this.licenseExpiredModalId);
+        this.modalService.open(this.toolService.licenseExpiredModalId);
       }
       else if (!this.toolService.queryParams) {
-        this.modalService.open(this.tabContainerModalId);
+        this.modalService.open(this.toolService.tabContainerModalId);
       }
     });
 
@@ -328,25 +350,9 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) => this.onSessionsPurged(sessionsToPurge) );
 
-    this.newSessionSubscription = this.toolService.newSession.subscribe( (session: any ) => {
-      log.debug('ClassicGridComponent: newSessionSubscription: Got new session', session);
-      this.selectedSessionId = session['id'];
-    });
-
-    this.nextSessionClickedSubscription = this.toolService.nextSessionClicked.subscribe( () => this.onNextSessionClicked() );
-
-    this.previousSessionClickedSubscription = this.toolService.previousSessionClicked.subscribe( () => this.onPreviousSessionClicked() );
-
     this.monitoringCollectionPauseSubscription = this.dataService.monitoringCollectionPause.subscribe( (paused) => {
       this.pauseMonitoring = paused;
       this.changeDetectionRef.detectChanges();
-    } );
-
-    this.newImageSubscription = this.toolService.newImage.subscribe( (content: Content) => {
-      log.debug('ClassicGridComponent: newImageSubscription: Got new image', content);
-      this.selectedContentType = content.contentType;
-      this.selectedContentId = content.id;
-      this.updateNextPreviousButtonStatus();
     } );
 
     this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
@@ -376,15 +382,15 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       || ( !this.toolService.urlParametersLoaded && this.queryParams && Object.keys(this.queryParams).length === 0 ) ) ) {
         // only load the splash screen if we don't have ad hoc query parameters
         log.debug('ClassicGridComponent: ngAfterViewInit(): loading the splash screen');
-        this.modalService.open('splashScreenModal');
+        this.modalService.open(this.toolService.splashScreenModalId);
     }
     else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
       // open the tab container on subsequent logout/login combos, if a collection wasn't previously selected
       if (!this.license.valid) {
-        this.modalService.open(this.licenseExpiredModalId);
+        this.modalService.open(this.toolService.licenseExpiredModalId);
       }
       else {
-        this.modalService.open(this.tabContainerModalId);
+        this.modalService.open(this.toolService.tabContainerModalId);
       }
     }
     else {
@@ -414,7 +420,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
         this.dataService.noopCollection.next(); // this will clear out the toolbar and all selected collection data
         this.noopCollection();
       }
-      this.modalService.open(this.licenseExpiredModalId);
+      this.modalService.open(this.toolService.licenseExpiredModalId);
     }
   }
 
@@ -436,24 +442,15 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
         displayedTileIds.push(contentItem.id);
       }
     });
-    // log.debug('ClassicGridComponent: onNextSessionClicked(): displayedTileIds:', displayedTileIds);
-    // log.debug('content:', this.content);
+    log.debug('ClassicGridComponent: onNextSessionClicked(): displayedTileIds:', displayedTileIds);
+
     let nextContentItem: Content = null;
     let nextContentItemId = null;
     let nextSessionId = null;
     for (let i = 0; i < displayedTileIds.length; i++) {
       if (displayedTileIds[i] === this.selectedContentId && i < displayedTileIds.length - 1 ) {
         nextContentItemId = displayedTileIds[i + 1];
-        // log.debug('ClassicGridComponent: onNextSessionClicked(): nextContentItemId:', nextContentItemId);
-        if (displayedTileIds.length - 1 === i + 1) {
-          // this is the last displayed item.  disable the next session button
-          // log.debug('ClassicGridComponent: onNextSessionClicked(): noNextSession:', true);
-          this.toolService.noNextSession.next(true);
-        }
-        else {
-          // log.debug('ClassicGridComponent: onNextSessionClicked(): noNextSession:', false);
-          this.toolService.noNextSession.next(false);
-        }
+        log.debug('ClassicGridComponent: onNextSessionClicked(): nextContentItemId:', nextContentItemId);
         break;
       }
     }
@@ -467,35 +464,14 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       }
     }
 
-    // log.debug('ClassicGridComponent: onNextSessionClicked(): nextContentItem:', nextContentItem);
-    // log.debug('ClassicGridComponent: onNextSessionClicked(): nextSessionId:', nextSessionId);
-    // log.debug('ClassicGridComponent: onNextSessionClicked(): selectedContentType:', this.selectedContentType);
+    log.debug('ClassicGridComponent: onNextSessionClicked(): nextContentItem:', nextContentItem);
+    log.debug('ClassicGridComponent: onNextSessionClicked(): nextSessionId:', nextSessionId);
 
-    if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && ( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
-      // just display the next content item
-      // log.debug('ClassicGridComponent: onNextSessionClicked(): got to 1');
-      this.toolService.newSession.next(this.sessions[nextSessionId]);
-      this.toolService.newImage.next(nextContentItem);
-    }
-    else if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
-      // close the pdf modal and open the session-details modal
-      this.modalService.close('pdf-viewer');
-      this.toolService.newSession.next(this.sessions[nextSessionId]);
-      this.toolService.newImage.next(nextContentItem);
-      this.modalService.open('sessionDetails');
-    }
-    else if ( !(this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( nextContentItem.contentType === 'pdf' || nextContentItem.contentType === 'office') ) {
-      // just display the next content item
-      this.toolService.newSession.next(this.sessions[nextSessionId]);
-      this.toolService.newImage.next(nextContentItem);
-    }
-    else {
-      // close the session-details modal and open the pdf modal
-      this.modalService.close('sessionDetails');
-      this.toolService.newSession.next(this.sessions[nextSessionId]);
-      this.toolService.newImage.next(nextContentItem);
-      this.modalService.open('pdf-viewer');
-    }
+    this.selectedSession = this.sessions[nextSessionId];
+    this.selectedContent = nextContentItem;
+    this.selectedContentId = nextContentItem.id;
+    this.updateNextPreviousButtonStatus();
+    this.changeDetectionRef.detectChanges();
 
   }
 
@@ -505,34 +481,19 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('ClassicGridComponent: onPreviousSessionClicked()');
     // build a list of un-filtered tile id's
     let displayedTileIds: string[] = [];
-    /*for (let i = 0; i < this.displayedContent.length; i++) {
-      let contentItem = this.displayedContent[i];
-      displayedTileIds.push(contentItem.id);
-    }*/
     this.content.forEach( (contentItem, i) => {
       if (this.displayedContent[i] === true) {
         displayedTileIds.push(contentItem.id);
       }
     });
     log.debug('ClassicGridComponent: onPreviousSessionClicked(): displayedTileIds:', displayedTileIds);
-    // log.debug('content:', this.content);
     let previousContentItem: Content = null;
     let previousContentItemId = null;
     let previousSessionId = null;
     for (let i = 0; i < displayedTileIds.length; i++) {
       if (displayedTileIds[i] === this.selectedContentId && i <= displayedTileIds.length - 1 ) {
-        log.debug('got to 0');
         previousContentItemId = displayedTileIds[i - 1];
         log.debug('ClassicGridComponent: onPreviousSessionClicked(): previousContentItemId:', previousContentItemId);
-        if (i === 0) {
-          // this is the first displayed item.  disable the previous session button
-          log.debug('ClassicGridComponent: onPreviousSessionClicked(): noNextSession:', true);
-          this.toolService.noNextSession.next(true);
-        }
-        else {
-          log.debug('ClassicGridComponent: onPreviousSessionClicked(): noNextSession:', false);
-          this.toolService.noNextSession.next(false);
-        }
         break;
       }
     }
@@ -549,34 +510,11 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('ClassicGridComponent: onPreviousSessionClicked(): previousContentItem:', previousContentItem);
     log.debug('ClassicGridComponent: onPreviousSessionClicked(): previousSessionId:', previousSessionId);
 
-    if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && ( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
-      // just display the next content item
-      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 1');
-      this.toolService.newSession.next(this.sessions[previousSessionId]);
-      this.toolService.newImage.next(previousContentItem);
-    }
-    else if ( (this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
-      // close the pdf modal and open the session-details modal
-      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 2');
-      this.modalService.close('pdf-viewer');
-      this.toolService.newSession.next(this.sessions[previousSessionId]);
-      this.toolService.newImage.next(previousContentItem);
-      this.modalService.open('sessionDetails');
-    }
-    else if ( !(this.selectedContentType === 'pdf' || this.selectedContentType === 'office') && !( previousContentItem.contentType === 'pdf' || previousContentItem.contentType === 'office') ) {
-      // just display the next content item
-      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 3');
-      this.toolService.newSession.next(this.sessions[previousSessionId]);
-      this.toolService.newImage.next(previousContentItem);
-    }
-    else {
-      // close the session-details modal and open the pdf modal
-      log.debug('ClassicGridComponent: onPreviousSessionClicked(): got to 4');
-      this.modalService.close('sessionDetails');
-      this.toolService.newSession.next(this.sessions[previousSessionId]);
-      this.toolService.newImage.next(previousContentItem);
-      this.modalService.open('pdf-viewer');
-    }
+    this.selectedSession = this.sessions[previousSessionId];
+    this.selectedContent = previousContentItem;
+    this.selectedContentId = previousContentItem.id;
+    this.updateNextPreviousButtonStatus();
+    this.changeDetectionRef.detectChanges();
 
   }
 
@@ -585,38 +523,35 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   updateNextPreviousButtonStatus(): void {
     // build a list of un-filtered tile id's
     let displayedTileIds: string[] = [];
-    /*for (let i = 0; i < this.displayedContent.length; i++) {
-      let contentItem = this.displayedContent[i];
-      displayedTileIds.push(contentItem.id);
-    }*/
     this.content.forEach( (contentItem, i) => {
       if (this.displayedContent[i] === true) {
         displayedTileIds.push(contentItem.id);
       }
     });
+
     for (let i = 0; i < displayedTileIds.length; i++) {
 
       if (displayedTileIds[i] === this.selectedContentId) {
 
         if (displayedTileIds.length - 1 === i) {
           // this is the last displayed item.  disable the next item button
-          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noNextSession:', true);
-          this.toolService.noNextSession.next(true);
+          this.sessionsAvailable.next = false;
         }
         else {
-          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noNextSession:', false);
-          this.toolService.noNextSession.next(false);
+          this.sessionsAvailable.next = true;
         }
         if (i === 0) {
-          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noPreviousSession:', true);
           // this is the first displayed item.  disable the item button
-          this.toolService.noPreviousSession.next(true);
+          this.sessionsAvailable.previous = false;
         }
         else {
-          log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): noPreviousSession:', false);
           // this is not the first displayed item.  enable the item button
-          this.toolService.noPreviousSession.next(false);
+          this.sessionsAvailable.previous = true;
         }
+
+        this.sessionsAvailable = utils.deepCopy(this.sessionsAvailable);
+        log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): previousSessionAvailable:', this.sessionsAvailable.previous);
+        log.debug('ClassicGridComponent: updateNextPreviousButtonStatus(): nextSessionAvailable:', this.sessionsAvailable.next);
         break;
       }
     }
@@ -635,6 +570,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.search = [];
     this.sessions = {};
     this.content = [];
+    this.contentObj = {};
     this.loadAllHighResImages = false;
     this.resetContentCount();
     this.selectedCollectionType = collection.type;
@@ -669,6 +605,10 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('ClassicGridComponent: onContentReplaced(): contentReplaced:', content);
     this.destroyView = true;
     this.content = content.sort(this.sortContentFunc);
+    this.content.forEach( (item: Content) => {
+      let contentId = item.id;
+      this.contentObj[contentId] = item;
+    });
     this.displayedContent = [];
     this.content.forEach( (contentItem) => {
       this.displayedContent.push(true); // set all content to visible
@@ -715,6 +655,8 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     newContent.forEach(content => {
       this.content.push(content);
+      let contentId = content.id;
+      this.contentObj[contentId] = content;
       this.highResSessions.push(false); // default to low-res
       this.displayedContent.push(true);
     });
@@ -773,6 +715,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.search = [];
       this.sessions = {};
       this.content = [];
+      this.contentObj = {};
       this.displayedContent = [];
       this.highResSessions = [];
       this.loadAllHighResImages = false;
@@ -793,7 +736,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.collectionDeletedUser = details.user;
     this.dataService.noopCollection.next();
     this.noopCollection();
-    this.modalService.open(this.collectionDeletedModalId);
+    this.modalService.open(this.toolService.collectionDeletedModalId);
   }
 
 
@@ -807,6 +750,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.search = [];
     this.sessions = {};
     this.content = [];
+    this.contentObj = {};
     this.resetContentCount();
     this.loadAllHighResImages = false;
     this.selectedCollectionType = null;
@@ -868,22 +812,9 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  private openPdfViewer(e: any): void {
-    log.debug('ClassicGridComponent: openPdfViewer()');
-    /*
-    if (this.selectedCollectionType === 'monitoring' && this.pauseMonitoring === false) {
-      // pause monitoring
-      this.suspendMonitoring();
-    }
-    */
-    this.modalService.open('pdf-viewer');
-  }
-
-
-
   openSessionDetails(): void {
     log.debug('ClassicGridComponent: openSessionDetails()');
-    this.modalService.open('sessionDetails');
+    this.modalService.open(this.toolService.contentDetailsModalId);
   }
 
 
@@ -1184,43 +1115,44 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  private countContent(newContent = null): void {
+  private countContent(newContent: Content[] = null): void {
     // count content from scratch (if no newContent), or add to existing this.contentCount if newContent is defined
-    let contentCount = newContent ? this.contentCount : new ContentCount;
-    this.content.forEach( (content) => {
+    let contentCount = newContent ? this.contentCount : new ContentCount; // operate on this.contentCount if newContent is defined
+    let tempContent: Content[] = newContent || this.content;
+    tempContent.forEach( (content) => {
       switch (content.contentType) {
         case 'image':
-          contentCount.images++;
+          contentCount.images += 1;
           break;
         case 'pdf':
-          contentCount.pdfs++;
+          contentCount.pdfs += 1;
+          break;
+        case 'hash':
+          contentCount.hashes += 1;
           break;
         case 'office':
           switch (content.contentSubType) {
             case 'word':
-              contentCount.word++;
+              contentCount.word += 1;
               break;
             case 'excel':
-              contentCount.excel++;
+              contentCount.excel += 1;
               break;
             case 'powerpoint':
-              contentCount.powerpoint++;
+              contentCount.powerpoint += 1;
               break;
           }
           break;
-        case 'hash':
-          contentCount.hashes++;
-          break;
       }
-      if (this.dodgyArchivesIncludedTypes.includes(content.contentType)) {
-        contentCount.dodgyArchives++;
+      if (DodgyArchiveTypes.includes(content.contentType)) {
+        contentCount.dodgyArchives += 1;
       }
-      if (content.fromArchive && !this.dodgyArchivesIncludedTypes.includes(content.contentType)) {
-        contentCount.fromArchives++;
+      if (content.fromArchive && !DodgyArchiveTypes.includes(content.contentType)) {
+        contentCount.fromArchives += 1;
       }
     });
     contentCount.total = this.content.length;
-    this.contentCount = newContent ? contentCount : utils.deepCopy(contentCount);
+    this.contentCount = utils.deepCopy(contentCount);
   }
 
 
@@ -1320,6 +1252,39 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.wheelPoint.x = event.pageX;
     this.wheelPoint.y = event.pageY;
     // console.log('changed wheelPoint:', this.wheelPoint);
+  }
+
+
+
+  onMouseDown(event: MouseEvent): void {
+    this.mouseDownData = { top: event.pageX, left: event.pageY, time: event.timeStamp };
+  }
+
+
+
+  onMouseUp(event): void {
+    // log.debug('ClassicGridComponent: onMouseUp(): event:', event);
+    let top   = event.pageX;
+    let left  = event.pageY;
+    let ptop  = this.mouseDownData.top;
+    let pleft = this.mouseDownData.left;
+    // prevent opening pdf modal if dragging the view
+    if (Math.abs(top - ptop) === 0 || Math.abs(left - pleft) === 0) {
+
+      if (event.target.tagName === 'IMG') {
+        // set session and open session viewer
+        let sessionId = event.currentTarget.getAttribute('sessionId');
+        let contentId = event.currentTarget.getAttribute('id');
+        this.selectedSession = this.sessions[sessionId];
+        this.selectedContent = this.contentObj[contentId];
+        this.selectedContentId = contentId;
+        // log.debug('MasonryGridComponent: onTileClicked(): selectedContentId:', this.selectedContentId);
+        this.updateNextPreviousButtonStatus();
+        this.changeDetectionRef.detectChanges();
+        this.openSessionDetails();
+      }
+
+    }
   }
 
 }

@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { ModalService } from './modal/modal.service';
+import { ToolService } from 'services/tool.service';
 
 @Component({
     selector: 'license-expired-modal, licenseexpiredmodal',
@@ -22,9 +23,10 @@ import { ModalService } from './modal/modal.service';
 
 export class LicenseExpiredModalComponent {
 
-  constructor(private modalService: ModalService ) {}
+  constructor(private modalService: ModalService,
+              private toolService: ToolService ) {}
 
-  @Input() id: string;
+  public id = this.toolService.licenseExpiredModalId;
 
 
 

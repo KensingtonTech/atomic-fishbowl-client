@@ -84,13 +84,10 @@ export class FeedsComponent implements OnInit, OnDestroy {
   public feeds: Feed[];
   public displayedFeeds: Feed[];
   private utils = utils;
-  public feedWizardModalId = 'feed-wizard-modal';
   public filterText = '';
   private reOpenTabsModal = false;
-  public deleteFeedModalId = 'deleteFeedConfirmModalId';
   public feedStatus = {};
   private feedStatusInterval: number;
-  private tabContainerModalId = 'tab-container-modal';
 
   // Subscriptions
   private feedsChangedSubscription: Subscription;
@@ -162,9 +159,9 @@ export class FeedsComponent implements OnInit, OnDestroy {
   onAddFeedClick(): void {
     log.debug('FeedsComponent: onAddFeedClick()');
     this.toolService.addFeedNext.next();
-    this.modalService.close(this.tabContainerModalId);
+    this.modalService.close(this.toolService.tabContainerModalId);
     this.toolService.reOpenTabsModal.next(true);
-    this.modalService.open(this.feedWizardModalId);
+    this.modalService.open(this.toolService.feedWizardModalId);
   }
 
 
@@ -172,9 +169,9 @@ export class FeedsComponent implements OnInit, OnDestroy {
   onEditFeedClick(feed: Feed): void {
     log.debug('FeedsComponent: onEditFeedClick(): feed:', feed);
     this.toolService.editFeedNext.next(feed);
-    this.modalService.close(this.tabContainerModalId);
+    this.modalService.close(this.toolService.tabContainerModalId);
     this.toolService.reOpenTabsModal.next(true);
-    this.modalService.open(this.feedWizardModalId);
+    this.modalService.open(this.toolService.feedWizardModalId);
   }
 
 
@@ -182,7 +179,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
   onDeleteFeedClick(feed: Feed): void {
     log.debug('FeedsComponent: onDeleteFeedClick()');
     this.toolService.deleteFeedNext.next(feed);
-    this.modalService.open(this.deleteFeedModalId);
+    this.modalService.open(this.toolService.confirmDeleteFeedModalId);
   }
 
 

@@ -1,30 +1,27 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Logger } from 'loglevel';
+import { ToolService } from 'services/tool.service';
 declare var log: Logger;
 
 @Component({
   selector: 'serverdown-modal',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<modal *ngIf="id" id="{{id}}" escapeEnabled="false" bodyStyle="position: relative; width: 800px; text-align: center;" bodyClass="splash-body">
+<modal *ngIf="id" id="{{id}}" escapeEnabled="false" bodyClass="serverdown-body">
 
-    <div style="position: relative; display: inline-block; text-align: left; vertical-align: middle;">
-      <span class="fa fa-exclamation-triangle fa-4x" style="float: left; color: yellow;">&nbsp;</span><span style="color: white;">I'm afraid the server has become unreachable.  Kindly address the problem and this message will disappear.</span>
+    <div style="display: inline-block; line-height: 4em;">
+      <span class="fa fa-exclamation-triangle fa-4x" style="color: yellow; margin-right: .25em; vertical-align: bottom;"></span>
+      <span style="vertical-align: center;">I'm afraid the server has become unreachable.  Kindly address the problem and this message will disappear.</span>
     </div>
 
 </modal>
-  `,
-
-  styles: [` `]
-
+`
 })
 
-export class ServerDownModalComponent implements OnInit {
+export class ServerDownModalComponent {
 
-  @Input() public id: string; // = 'serverdown-modal'
+  constructor( private toolService: ToolService ) {}
 
-  ngOnInit(): void {
-    log.debug('ServerDownModalComponent: ngOnInit()');
-    // log.debug("modalService:", this.modalService);
-  }
+  public id = this.toolService.serverDownModalId; // = 'serverdown-modal'
 
 }

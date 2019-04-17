@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
@@ -86,7 +86,7 @@ declare var log: Logger;
       color: red;
     }
 
-    .iconDisabled {
+    .disabled {
       color: grey;
     }
 
@@ -101,23 +101,23 @@ export class CollectionsComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private dragulaService: DragulaService ) {
                 let bag: any = dragulaService.find('first-bag');
-                if (bag !== undefined) {
+                if (bag) {
                   this.dragulaService.destroy('first-bag');
                 }
-                dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => !el.classList.contains('nodrag') });
+                dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => handle.classList.contains('draggable') && !handle.classList.contains('disabled') } );
               }
 
   @ViewChild(Menu) collectionMaskMenuComponent;
+  @ViewChild('collectionContainer') collectionContainer: ElementRef;
 
+  public firstRun = true;
   public collections: Collection[] = [];
   public origCollections = {};
   public displayedCollections: Collection[];
+  public selectedCollection: Collection;
   public nwServers: any = {};
   public saServers: any = {};
   private utils = utils;
-  public nwCollectionModalId = 'nw-collection-modal';
-  public saCollectionModalId = 'sa-collection-modal';
-  private tabContainerModalId = 'tab-container-modal';
   public filterText = '';
   public preferences: Preferences = null;
   public filterEnabled = false;
@@ -147,6 +147,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public showMonitoring = true;
   public showMenu = false;
   private lastEvent: MouseEvent; // this holds the last mouse event which we can use to hide the menu later on, as the component requires an event
+  public isDragging = false;
 
 
 
@@ -162,6 +163,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   private nwServersChangedSubscription: Subscription;
   private saServersChangedSubscription: Subscription;
   private licensingChangedSubscription: Subscription;
+  private selectedCollectionChangedSubscription: Subscription;
+  private dragStartSubscription: Subscription;
+  private dragEndSubscription: Subscription;
+  private noopCollectionSubscription: Subscription;
 
   ngOnInit(): void {
     this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.onGetCollectionDataAgain() );
@@ -196,6 +201,18 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
 
+    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
+
+    this.dragStartSubscription = this.dragulaService.drag.asObservable().subscribe( () => this.isDragging = true );
+
+    this.dragEndSubscription = this.dragulaService.dragend.asObservable().subscribe( () => this.isDragging = false );
+
+    this.noopCollectionSubscription = this.dataService.noopCollection.subscribe( () => {
+      this.selectedCollection = null;
+      this.changeDetectionRef.markForCheck();
+      this.changeDetectionRef.detectChanges();
+     } );
+
   }
 
 
@@ -212,6 +229,21 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.nwServersChangedSubscription.unsubscribe();
     this.saServersChangedSubscription.unsubscribe();
     this.licensingChangedSubscription.unsubscribe();
+    this.selectedCollectionChangedSubscription.unsubscribe();
+    this.dragStartSubscription.unsubscribe();
+    this.dragEndSubscription.unsubscribe();
+    this.noopCollectionSubscription.unsubscribe();
+  }
+
+
+
+  onSelectedCollectionChanged(collection: Collection) {
+    if (!collection) {
+      return;
+    }
+    this.selectedCollection = utils.deepCopy(collection);
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -276,6 +308,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.filterChanged();
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
+
   }
 
 
@@ -348,8 +381,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   onAddNwCollectionClick(): void {
     // log.debug("CollectionsComponent: onAddNwCollectionClick()");
     this.toolService.addNwCollectionNext.next();
-    this.modalService.close(this.tabContainerModalId);
-    this.modalService.open(this.nwCollectionModalId);
+    this.modalService.close(this.toolService.tabContainerModalId);
+    this.modalService.open(this.toolService.nwCollectionModalId);
     this.toolService.reOpenTabsModal.next(true);
   }
 
@@ -358,8 +391,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   onAddSaCollectionClick(): void {
     // log.debug("CollectionsComponent: onAddNwCollectionClick()");
     this.toolService.addSaCollectionNext.next();
-    this.modalService.close(this.tabContainerModalId);
-    this.modalService.open(this.saCollectionModalId);
+    this.modalService.close(this.toolService.tabContainerModalId);
+    this.modalService.open(this.toolService.saCollectionModalId);
     this.toolService.reOpenTabsModal.next(true);
   }
 
@@ -373,16 +406,16 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     if (collection.serviceType === 'nw') {
       this.toolService.editNwCollectionNext.next(collection);
       this.toolService.executeCollectionOnEdit.next(false);
-      this.modalService.close(this.tabContainerModalId);
+      this.modalService.close(this.toolService.tabContainerModalId);
       this.toolService.reOpenTabsModal.next(true);
-      this.modalService.open(this.nwCollectionModalId);
+      this.modalService.open(this.toolService.nwCollectionModalId);
     }
     if (collection.serviceType === 'sa') {
       this.toolService.editSaCollectionNext.next(collection);
       this.toolService.executeCollectionOnEdit.next(false);
-      this.modalService.close(this.tabContainerModalId);
+      this.modalService.close(this.toolService.tabContainerModalId);
       this.toolService.reOpenTabsModal.next(true);
-      this.modalService.open(this.saCollectionModalId);
+      this.modalService.open(this.toolService.saCollectionModalId);
     }
   }
 
@@ -410,7 +443,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   onDeleteCollectionClick(collection: Collection): void {
     // log.debug('CollectionsComponent: onDeleteCollectionClick()');
     this.toolService.deleteCollectionNext.next(collection);
-    this.modalService.open('collection-confirm-delete-modal');
+    this.modalService.open(this.toolService.confirmCollectionDeleteModalId);
   }
 
 
@@ -418,14 +451,20 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   onCollectionExecuted(collection: Collection): void {
     // only runs when we click a collection, add a new collection, or edit an existing collection
     if (!this.editing && this.toolService.selectedCollection && this.toolService.selectedCollection.id === collection.id) {
-      this.modalService.close(this.tabContainerModalId);
+      log.debug('CollectionsComponent: onCollectionExecuted(): immediately returning.  Collection', collection);
+      this.modalService.close(this.toolService.tabContainerModalId);
       return;
     }
     log.debug('CollectionsComponent: onCollectionExecuted():', collection.id, collection);
+    if (this.editing && (!this.toolService.selectedCollection || this.toolService.selectedCollection.id !== collection.id)) {
+      // do nothing if we're just editing a collection we're not presently connected to or if no collection is selected
+      this.editing = false; // just resets this value for the next run
+      return;
+    }
     this.editing = false; // just resets this value for the next run
     this.toolService.selectedCollection = collection;
     this.connectToCollection(collection);
-    this.modalService.close(this.tabContainerModalId);
+    this.modalService.close(this.toolService.tabContainerModalId);
 
   }
 

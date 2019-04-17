@@ -126,8 +126,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
               private modalService: ModalService,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
-  @Input() public id: string;
-
+  public id = this.toolService.feedWizardModalId;
   public editing = false; // true = editing, false = adding
   public feed: Feed; // the feed we're working on
   public page = 1;
@@ -384,7 +383,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   public onClosed(): void {
     // add a bit to re-open feeds modal
     if ( this.reOpenTabsModal ) {
-      this.modalService.open('tab-container-modal');
+      this.modalService.open(this.toolService.tabContainerModalId);
     }
     this.reOpenTabsModal = false; // re-sets the value to default
     this.changeDetectionRef.markForCheck();

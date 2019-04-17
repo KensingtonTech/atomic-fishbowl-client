@@ -12,19 +12,18 @@ declare var log: Logger;
   template: `
 <modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="!firstLoad" bodyClass="splash-body">
 
-  <ng-container *ngIf="serverVersion">
-
+  <div *ngIf="serverVersion">
+    <span *ngIf="!firstLoad" (click)="closeModal()" class="fa fa-times-circle-o fa-2x" style="float: right;"></span>
     <h1 align="left">Atomic Fishbowl</h1>
     <div>Client Version&nbsp;&nbsp;{{version}}</div>
     <div *ngIf="serverVersion">Server Version {{serverVersion}}</div>
-    <p align="center">
+    <p align="center" style="margin: 2em 0;">
       <img src="resources/logo-medium.png">
     </p>
-    <p class="noBottomMargin">Copyright &copy; 2018 Kensington Technology Associates<br>
+    <p class="noBottomMargin">Copyright &copy; 2019 Kensington Technology Associates<br>
     All Rights Reserved</p>
-    <div *ngIf="!firstLoad" (click)="closeModal()" class="fa fa-times-circle-o fa-2x"></div>
 
-  </ng-container>
+  </div>
 
 </modal>
 `
@@ -38,7 +37,7 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone ) {}
 
-  public id = 'splashScreenModal';
+  public id = this.toolService.splashScreenModalId;
   public version: string;
   public serverVersion: string;
   private closeTimeout: any;

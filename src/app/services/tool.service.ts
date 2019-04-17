@@ -16,7 +16,6 @@ export class ToolService {
   public queryParams: any = null;
   public urlParametersLoaded = false;
   public lastRoute: string = null;
-  public accordionCollapsedHeight = 0;
 
   ////////////  SUBSCRIPTIONS ////////////
 
@@ -38,30 +37,18 @@ export class ToolService {
 
   // Users
   public confirmUserDelete: Subject<any> = new Subject<any>();
-  public userToDelete: Subject<any> = new Subject<any>();
 
   // Authentication
   public logout: Subject<any> = new Subject<any>();
 
   // Misc
-  public newSession: Subject<any> = new Subject<any>();
-  public newImage: Subject<any> = new Subject<any>();
   public fileToDownload: Subject<any> = new Subject<any>();
   public confirmDownloadFile: Subject<any> = new Subject<any>();
   public clientSessionId: Subject<any> = new Subject<any>();
   public onSplashScreenAtStartupClosed: Subject<void> = new Subject<void>();
   public eulaAccepted: Subject<void> = new Subject<void>();
 
-  // Open viewers
-  public openPDFViewer: Subject<any> = new Subject<any>();
-  public openSessionViewer: Subject<any> = new Subject<any>();
-  public nextSessionClicked: Subject<any> = new Subject<any>(); // tells the view component to send the next session to the pdf / session details modal
-  public previousSessionClicked: Subject<any> = new Subject<any>(); // tells the view component to send the previous session to the
-  public noNextSession: Subject<boolean> = new Subject<boolean>(); // tells the  pdf / session details modal that there is no next session to view, so disable its next session button
-  public noPreviousSession: Subject<boolean> = new Subject<boolean>(); // tells the  pdf / session details modal that there is no previous session to view, so disable its prebious session button
-
   // NW and SA Servers
-  public nwServerToDelete: Subject<any> = new Subject<any>();
   public saServerToDelete: Subject<any> = new Subject<any>();
   public confirmNwServerDelete: Subject<string> = new Subject<string>();
   public confirmSaServerDelete: Subject<string> = new Subject<string>();
@@ -102,6 +89,30 @@ export class ToolService {
   public feedsOpened: Subject<void> = new Subject<void>();
   public tabContainerClosed: Subject<void> = new Subject<void>();
   public reOpenTabsModal: Subject<boolean> = new Subject<boolean>();
+
+
+
+  // Modal ID's
+  public collectionDeletedModalId = 'collection-deleted-notify-modal';
+  public contentDetailsModalId = 'content-details-modal';
+  public confirmDeleteFeedModalId = 'confirm-delete-feed-modal';
+  public feedWizardModalId = 'feed-wizard-modal';
+  public licenseExpiredModalId = 'license-expired-modal';
+  public nwCollectionModalId = 'nw-collection-modal';
+  public saCollectionModalId = 'sa-collection-modal';
+  public tabContainerModalId = 'tab-container-modal';
+  public splashScreenModalId = 'splash-screen-modal';
+  public serverDownModalId = 'server-down-modal';
+  public confirmCollectionDeleteModalId = 'confirm-collection-delete-modal';
+  public confirmUserDeleteModalId = 'confirm-user-delete-modal';
+  public confirmNwServerDeleteModalId = 'confirm-nwserver-delete-modal';
+  public confirmSaServerDeleteModalId = 'confirm-saserver-delete-modal';
+  public confirmDownloadFileModalId = 'confirm-downloadfile-modal';
+  public preferencesModalId = 'preferences-modal';
+  public manageeUsersModalId = 'manage-users-modal';
+  public newEditUserModalId = 'new-edit-user-modal';
+  public newEditNwServiceModalId = 'new-edit-nw-server-modal';
+
 
 
 

@@ -15,7 +15,7 @@ export enum KEY_CODE {
 }
 
 @Component({
-  selector: 'pdf-viewer-modal',
+  selector: 'legacy-pdf-viewer-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" bodyStyle="position: absolute; top: 40px; bottom: 20px; left: 10px; right: 25px; background-color: white;">
@@ -28,11 +28,17 @@ export enum KEY_CODE {
 
         <!-- filename and download link (disabled) -->
         <div style="position: absolute; top: 5px; left: 10px; width: 85%; white-space: nowrap;">
+
           <span class="fa fa-lg" [ngClass]="iconClass" style="background-color: white;"></span>&nbsp;
+
           <!--<a (click)="downloadLinkClicked(content.contentFile)" style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750"></a>-->
+
           <!--<a style="display: inline-block; vertical-align: middle;" class="fa fa-arrow-circle-o-down fa-2x" pTooltip="Download Document" showDelay="750" href="{{content.contentFile}}"></a>-->
+
           <span style="vertical-align: middle;">{{utils.pathToFilename(content.contentFile)}}</span>
+
           <!--<span *ngIf="content.contentType == 'office'" style="vertical-align: middle;">{{utils.pathToFilename(content.proxyContentFile)}}</span>-->
+
         </div>
 
         <!-- zoom, rotation, next / previous controls -->
@@ -60,9 +66,11 @@ export enum KEY_CODE {
       </div>
 
       <!-- pdf viewer -->
-      <div *ngIf="pdfFile" style="position: absolute; top: 40px; bottom: 10px; left: 0; right: 350px;"> <!--overflow-y: scroll; overflow-x: auto;-->
+      <!--overflow-y: scroll; overflow-x: auto;-->
+      <div *ngIf="pdfFile" style="position: absolute; top: 40px; bottom: 10px; left: 0; right: 350px;">
         <div style="position: relative; width: 100%; height: 100%; overflow-x: scroll; overflow-y: scroll;">
-          <pdf-viewer [rotation]="rotation" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)" [src]="'/collections/' + collectionId + '/' + pdfFile" [original-size]="false" [show-all]="true" (error)="onPdfViewerError($event)" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
+          <!-- [src]="'/collections/' + collectionId + '/' + pdfFile" -->
+          <pdf-viewer [rotation]="rotation" [src]="pdfFile" [zoom]="pdfZoom" [(page)]="selectedPage" (after-load-complete)="absorbPdfInfo($event)"  [original-size]="false" [show-all]="true" (error)="onPdfViewerError($event)" style="display: block; width: 100%; margin: 0 auto;"></pdf-viewer>
         </div>
       </div> <!--overflow: auto;-->
 
@@ -182,36 +190,7 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
       this.changeDetectionRef.detectChanges();
     });
 
-    this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => {
-      if (! ['pdf', 'office'].includes(content.contentType)) {
-        return;
-      }
-      log.debug('PdfViewerModalComponent: newImageSubscription: Got new content:', content);
-      this.content = content;
-      if (this.content.contentType === 'pdf') {
-        this.iconClass = 'fa-file-pdf-o';
-      }
-      else {
-        switch (this.content.contentSubType) {
-          case 'excel':
-            this.iconClass = 'fa-file-excel-o';
-            break;
-          case 'word':
-            this.iconClass = 'fa-file-word-o';
-            break;
-          case 'powerpoint':
-            this.iconClass = 'fa-file-powerpoint-o';
-            break;
-        }
-      }
-      let pdfFile = this.content.contentFile;
-      if ('proxyContentFile' in this.content) {
-        pdfFile = this.content.proxyContentFile;
-      }
-      this.pdfFile = pdfFile;
-      this.changeDetectionRef.markForCheck();
-      this.changeDetectionRef.detectChanges();
-    });
+    this.newImageSubscription = this.toolService.newImage.subscribe( (content: any) => this.onNewContent(content) );
 
     this.confirmDownloadFileSubscription = this.toolService.confirmDownloadFile.subscribe( (f: string) => this.downloadConfirmed(f) );
 
@@ -229,6 +208,50 @@ export class PdfViewerModalComponent implements OnInit, OnDestroy {
     this.confirmDownloadFileSubscription.unsubscribe();
     this.noNextSessionSubscription.unsubscribe();
     this.noPreviousSessionSubscription.unsubscribe();
+    if (this.removeKeyupFunc) {
+      this.removeKeyupFunc();
+    }
+  }
+
+
+
+  async onNewContent(content: any) {
+  log.debug('PdfViewerModalComponent: onNewContent()');
+    if (! ['pdf', 'office'].includes(content.contentType)) {
+      return;
+    }
+    log.debug('PdfViewerModalComponent: onNewContent(): Got new content:', content);
+    this.content = content;
+    if (this.content.contentType === 'pdf') {
+      this.iconClass = 'fa-file-pdf-o';
+    }
+    else {
+      switch (this.content.contentSubType) {
+        case 'excel':
+          this.iconClass = 'fa-file-excel-o';
+          break;
+        case 'word':
+          this.iconClass = 'fa-file-word-o';
+          break;
+        case 'powerpoint':
+          this.iconClass = 'fa-file-powerpoint-o';
+          break;
+      }
+    }
+    let pdfFile = this.content.contentFile;
+    if ('proxyContentFile' in this.content) {
+      pdfFile = this.content.proxyContentFile;
+    }
+    try {
+      pdfFile = await this.dataService.getImage('/collections/' + this.collectionId + '/' + pdfFile);
+    }
+    catch {
+      // do something
+    }
+    this.pdfFile = pdfFile;
+    log.debug('PdfViewerModalComponent: onNewContent(): pdfFile:', this.pdfFile);
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 

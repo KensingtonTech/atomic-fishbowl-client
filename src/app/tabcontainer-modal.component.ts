@@ -8,7 +8,8 @@ declare var log: Logger;
 @Component({
   selector: 'tab-container-modal',
   template: `
-<modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="true" bodyStyle="position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; background-color: white;">
+<!-- position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; -->
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="true" modalClass="tab-container-modal" bodyClass="tab-container-modal-body" bodyStyle="background-color: white;">
 
       <p-tabView [activeIndex]="selectedTabIndex" (onChange)="onTabChange($event)">
         <p-tabPanel header="Collections" headerStyleClass="noselect nooutline">
@@ -20,7 +21,6 @@ declare var log: Logger;
       </p-tabView>
 
       <div (click)="closeModal()" class="fa fa-times-circle-o fa-2x closeButton"></div>
-
 
 </modal>
   `,
@@ -39,9 +39,9 @@ export class TabContainerComponent {
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  @Input() id: string;
   @ViewChild(CollectionsComponent) CollectionsComponent;
 
+  public id = this.toolService.tabContainerModalId;
   public selectedTabIndex = 0;
 
 

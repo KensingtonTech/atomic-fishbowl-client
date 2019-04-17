@@ -183,21 +183,21 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
-  public add(element: ElementRef) {
-    // log.debug('IsotopeDirective: add()');
+  public addBrick(element: ElementRef) {
+    // log.debug('IsotopeDirective: addBrick()');
 
     this.ngZone.runOutsideAngular( () => {
 
       if (this.addWithLayout) {
-        // log.debug('IsotopeDirective: add(): adding brick with layout');
-        // this will only layout the new item
-        this.isotope.appended(element.nativeElement);
+        // log.debug('IsotopeDirective: addBrick(): adding brick with layout');
+        this.isotope.appended(element.nativeElement); // this will only layout the new item
+        // this.isotope.insert(element.nativeElement); // this re-adds the detached element to the dom
 
         // tiles aren't displayed initially so that un-layed-out tiles won't pollute the view.  Now that they're layed out, we can un-hide them
         this.renderer.setStyle(element.nativeElement, 'visibility', 'visible');
       }
       else {
-        // log.debug('IsotopeDirective: add(): adding brick without layout');
+        // log.debug('IsotopeDirective: addBrick(): adding brick without layout');
         this.isotope.addItems( element.nativeElement );
       }
     } );

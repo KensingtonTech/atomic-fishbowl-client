@@ -1,0 +1,69 @@
+// Breakpoints
+/*$bp-medium: 1024;
+$bp-large: 1366;
+$bp-xlarge: 1920;
+$bp-2xlarge: 2560;
+$bp-3xlarge: 3200;
+$bp-4xlarge: 3360;
+$bp-5xlarge: 3840;
+*/
+
+$bp-medium: 64em; // 1024
+$bp-large: 85.375em; // 1366
+$bp-xlarge: 120em; // 1920
+$bp-2xlarge: 160em; // 2560
+$bp-3xlarge: 200em; // 3200
+$bp-4xlarge: 210em; // 3360
+$bp-5xlarge: 240em; // 3840
+
+
+// Media Queries
+/*
+$mq-medium: "(min-width: #{$bp-medium}px) and (max-width: #{$bp-large - 1}px)";
+$mq-large: "(min-width: #{$bp-large}px) and (max-width: #{$bp-xlarge - 1}px)";
+$mq-xlarge: "(min-width: #{$bp-xlarge}px) and (max-width: #{$bp-2xlarge - 1}px)";
+$mq-2xlarge: "(min-width: #{$bp-2xlarge}px) and (max-width: #{$bp-3xlarge - 1}px)";
+// $mq-2xretina: "(min-width: #{$bp-2xlarge}) and (min-resolution: 192dpi)";
+$mq-3xlarge: "(min-width: #{$bp-3xlarge}px) and (max-width: #{$bp-4xlarge - 1}px)";
+// $mq-3xretina: "(min-width: #{$bp-3xlarge}) and (min-resolution: 192dpi)";
+$mq-4xlarge: "(min-width: #{$bp-4xlarge}px) and (max-width: #{$bp-5xlarge - 1}px)";
+// $mq-4xretina: "(min-width: #{$bp-4xlarge}) and (min-resolution: 192dpi)";
+$mq-5xlarge: "(min-width: #{$bp-5xlarge}px)";
+// $mq-5xretina: "(min-width: #{$bp-5xlarge}) and (min-resolution: 192dpi)";
+*/
+
+$mq-medium: "screen and (min-width: #{$bp-medium})";
+$mq-large: "screen and  (min-width: #{$bp-large})";
+$mq-xlarge: "screen and (min-width: #{$bp-xlarge})";
+$mq-2xlarge: "screen and (min-width: #{$bp-2xlarge})";
+$mq-3xlarge: "screen and (min-width: #{$bp-3xlarge})";
+$mq-4xlarge: "screen and (min-width: #{$bp-4xlarge})";
+$mq-5xlarge: "screen and (min-width: #{$bp-5xlarge})";
+$mq-retina: "screen and (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)"; // not used to determine font scaling - just images
+
+/*
+media queries template
+
+@media #{$mq-medium} {
+  // 1024 - purple
+}
+@media #{$mq-large} {
+  // 1366 - green
+}
+@media #{$mq-xlarge} {
+  // 1920 - blue
+}
+@media #{$mq-2xlarge} {
+  // 2560 - yellow
+}
+@media #{$mq-3xlarge} {
+  // 3200 - red
+}
+@media #{$mq-4xlarge} {
+  // 3360 - orange
+}
+@media #{$mq-5xlarge} {
+  // 3840 - black
+}
+  
+*/

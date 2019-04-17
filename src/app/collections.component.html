@@ -33,13 +33,18 @@
       </div>
     </div>
     
-    <div [dragula]='"first-bag"' [dragulaModel]="displayedCollections" class="row-group">
-      <div class="row" *ngFor="let collection of displayedCollections" [class.nodrag]="filterEnabled">
+    <div #collectionContainer [dragula]='"first-bag"' [dragulaModel]="displayedCollections" class="row-group">
+
+      <div class="row" *ngFor="let collection of displayedCollections">
         
         <!-- Collection Name for NetWitness -->
         <div *ngIf="collection.serviceType == 'nw'" class="cell">
 
           <ng-container *ngIf="license.valid; else licenseInvalid">
+
+            <span [class.disabled]="filterEnabled" class="fa fa-bars draggable noselect"></span>&nbsp;
+
+            <span *ngIf="selectedCollection && collection.id === selectedCollection.id" style="line-height: .5; font-size: 2em; font-weight: bold; vertical-align: -.35em;">*&nbsp;</span>
 
             <span *ngIf=" ( preferences.serviceTypes.nw && nwServerExists(collection.nwserver) ) ||  ( !preferences.serviceTypes.nw && collection.type == 'fixed' && collection.state =='complete' ) || ( preferences.serviceTypes.nw && collection.type == 'fixed' ) " class="link" (click)="onCollectionExecuted(collection)">{{collection.name}}</span>
 
@@ -117,8 +122,8 @@
         <div class="cell center" style="cursor: initial;">
           
           <!-- Edit or Reprocess-->
-          <span *ngIf="collection.type == 'fixed'" class="fa fa-repeat" [class.iconDisabled]="!license.valid" (click)="onEditCollectionClick(collection)"></span>
-          <span *ngIf="collection.type != 'fixed'" class="fa fa-pencil" [class.iconDisabled]="!license.valid" (click)="onEditCollectionClick(collection)"></span>
+          <span *ngIf="collection.type == 'fixed'" class="fa fa-repeat" [class.disabled]="!license.valid" (click)="onEditCollectionClick(collection)"></span>
+          <span *ngIf="collection.type != 'fixed'" class="fa fa-pencil" [class.disabled]="!license.valid" (click)="onEditCollectionClick(collection)"></span>
           &nbsp;&nbsp;&nbsp;&nbsp;
 
           <!-- Delete -->

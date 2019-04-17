@@ -115,21 +115,6 @@ declare var log: Logger;
 <div class="noselect toolbarSearchDropdown" (keydown.escape)="toggleSearch()" *ngIf="showSearch">
   <input #searchBox type="text" name="searchTerms" [(ngModel)]="searchTerms" (ngModelChange)="searchTermsUpdate()">&nbsp;&nbsp;<span [class.fa-deselect]="caseSensitive" class="fa fa-text-height" (click)="toggleCaseSensitivity()"></span>&nbsp;&nbsp;<span class="fa fa-times" (click)="toggleSearch()"></span>
 </div>
-
-
-
-<!-- Totals Box -->
-<div class="toolbarTotalsBox" *ngIf="selectedCollection">
-  <div class="count" style="margin-top: 0; font-weight: bold;">Total: {{contentCount?.total}}</div>
-  <div class="count">Images: {{contentCount?.images}}</div>
-  <div class="count">PDF: {{contentCount?.pdfs}}</div>
-  <div class="count">Word: {{contentCount?.word}}</div>
-  <div class="count">Excel: {{contentCount?.excel}}</div>
-  <div class="count">Powerpoint: {{contentCount?.powerpoint}}</div>
-  <div class="count">Hash: {{contentCount?.hashes}}</div>
-  <div class="count">Dodgy<br>Archives: {{contentCount?.dodgyArchives}}</div>
-  <div class="count">Extracted From<br>Archives: {{contentCount?.fromArchives}}</div>
-</div>
 `
 } )
 
@@ -148,9 +133,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   private selectedCollectionId: string;
   public selectedCollection: Collection;
 
-  public nwCollectionModalId = 'nw-collection-modal';
-  public saCollectionModalId = 'sa-collection-modal';
-  public tabContainerModalId = 'tab-container-modal';
   public showSearch = false;
   private searchTerms: string;
   private showImages = true;
@@ -251,7 +233,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   onCollectionStateChanged(state: string): void {
     log.debug('ToolbarWidgetComponent: onCollectionStateChanged(): state:', state);
     this.iconDecider(state);
-    let dupeCollection = utils.deepCopy(this.selectedCollection);
+
+    let dupeCollection: Collection = utils.deepCopy(this.selectedCollection);
     dupeCollection['state'] = state;
     this.selectedCollection = dupeCollection;
     // we need to run change detection as updates are out-of-band from the parent
@@ -449,21 +432,21 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
   preferencesButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: preferencesButtonClick()");
-    this.modalService.open('preferences-modal');
+    this.modalService.open(this.toolService.preferencesModalId);
   }
 
 
 
   accountsButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: preferencesButtonClick()");
-    this.modalService.open('accounts-modal');
+    this.modalService.open(this.toolService.manageeUsersModalId);
   }
 
 
 
   helpButtonClick(): void {
     // log.debug("ToolbarWidgetComponent: helpButtonClick()");
-    this.modalService.open('splashScreenModal');
+    this.modalService.open(this.toolService.splashScreenModalId);
   }
 
 
@@ -571,7 +554,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
 
   onCollectionsClick(): void {
-    this.modalService.open(this.tabContainerModalId);
+    this.modalService.open(this.toolService.tabContainerModalId);
   }
 
 
@@ -585,13 +568,13 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
       this.toolService.editNwCollectionNext.next(this.selectedCollection);
       this.toolService.executeCollectionOnEdit.next(true);
       this.toolService.reOpenTabsModal.next(false);
-      this.modalService.open(this.nwCollectionModalId);
+      this.modalService.open(this.toolService.nwCollectionModalId);
     }
     if (this.selectedCollection.serviceType === 'sa') {
       this.toolService.editSaCollectionNext.next(this.selectedCollection);
       this.toolService.executeCollectionOnEdit.next(true);
       this.toolService.reOpenTabsModal.next(false);
-      this.modalService.open(this.saCollectionModalId);
+      this.modalService.open(this.toolService.saCollectionModalId);
     }
   }
 

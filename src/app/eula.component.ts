@@ -1,13 +1,13 @@
-import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { ToolService } from 'services/tool.service';
-import { Logger } from 'loglevel';
 import { EulaHtml } from './eula';
+import { Logger } from 'loglevel';
 declare var log: Logger;
 
 @Component({
   selector: 'eula',
   template: `
-<div style="text-align: center; margin-bottom: 50px;">
+<div style="position: relative; height: 100%; width: 100%; overflow: auto; text-align: center; margin-bottom: 2.5em; background-color: white;">
   <h1>Atomic Fishbowl</h1>
   <h2>End User License Agreement</h2>
 
@@ -20,17 +20,11 @@ declare var log: Logger;
   styles: [``]
 })
 
-export class EulaComponent implements OnInit {
+export class EulaComponent {
 
-  constructor(private toolService: ToolService,
-              private renderer: Renderer2,
-              private elRef: ElementRef ) {}
+  constructor(private toolService: ToolService) {}
 
   public eula = EulaHtml;
-
-  ngOnInit() {
-    this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
-  }
 
   onAccept(): void {
     this.toolService.setPreference('eulaAccepted', true);

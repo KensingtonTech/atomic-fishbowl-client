@@ -6,6 +6,6 @@ export interface Session {
   meta: Meta; // we don't know what type of meta we'll be getting
 }
 
-export class Sessions {
-  [key: number]: Session
+export interface Sessions {
+  [key: number]: Session;
 }

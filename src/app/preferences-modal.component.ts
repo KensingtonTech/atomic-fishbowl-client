@@ -22,7 +22,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef) {}
 
-  public id = 'preferences-modal';
+  public id = this.toolService.preferencesModalId;
 
   public defaultNwQueries = defaultNwQueries;
   public defaultNwQueriesOptions: SelectItem[] = [];

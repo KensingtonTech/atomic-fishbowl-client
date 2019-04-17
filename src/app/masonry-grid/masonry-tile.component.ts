@@ -1,14 +1,23 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import { MasonryGridComponent } from './masonry-grid.component';
+import { IsotopeBrickDirective } from '../isotope/isotope-brick.directive';
 import * as utils from '../utils';
 import { Logger } from 'loglevel';
+import { DataService } from 'services/data.service';
+import { Meta } from 'types/meta';
+import { AuthenticationService } from 'services/authentication.service';
 declare var log: Logger;
 
 interface MasonryKey {
   key: string;
   friendly: string;
+}
+
+interface TableEntry {
+  key: string;
+  value: string;
 }
 
 
@@ -63,29 +72,21 @@ interface MasonryKey {
     </ng-container>
 
     <!-- the image itself -->
-    <ng-container [ngSwitch]="content.contentType">
-      <img *ngSwitchCase="'image'" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
-      <img *ngSwitchCase="'pdf'" class="separator pdf" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
-      <img *ngSwitchCase="'office'" [ngClass]="content.contentSubType" class="separator" (click)="onClick($event)" [src]="'/collections/' + collectionId + '/' + content.thumbnail" draggable="false">
-      <img *ngSwitchCase="'encryptedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_locked.png" draggable="false">
-      <img *ngSwitchCase="'unsupportedZipEntry'" class="separator" (click)="onClick($event)" src="/resources/zip_icon_unknown.png" draggable="false">
-      <img *ngSwitchCase="'encryptedRarEntry'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
-      <img *ngSwitchCase="'encryptedRarTable'" class="separator" (click)="onClick($event)" src="/resources/rar_icon_locked.png" draggable="false">
-      <ng-container *ngSwitchCase="'hash'">
-        <ng-container [ngSwitch]="content.hashType">
-          <img *ngSwitchCase="'md5'" class="separator" (click)="onClick($event)" src="/resources/md5_hash_icon.png" draggable="false">
-          <img *ngSwitchCase="'sha1'" class="separator" (click)="onClick($event)" src="/resources/sha1_hash_icon.png" draggable="false">
-          <img *ngSwitchCase="'sha256'" class="separator" (click)="onClick($event)" src="/resources/sha256_hash_icon.png" draggable="false">
-        </ng-container>
-      </ng-container>
-    </ng-container>
+    <img #image class="separator" (load)="onImageLoaded()" (error)="onImageError()" [ngClass]="extraClass" [src]="imageSource" draggable="false">
 
   </div>
 
   <!-- text area -->
-  <div class="textArea selectable" *ngIf="session && masonryKeys && displayTextArea" style="position: relative;">
+  <!--*ngIf="session && masonryKeys && "-->
+  <div *ngIf="displayTextArea" class="textArea selectable">
 
-    <ul *ngIf="content.contentType != 'image'" style="list-style-type: none; padding: 0;">
+    <ul *ngIf="textAreaList.length !== 0" style="list-style-type: none; padding: 0;">
+      <li *ngFor="let text of textAreaList">
+        <b>{{text}}</b>
+      </li>
+    </ul>
+
+    <!--<ul *ngIf="content.contentType !== 'image'" style="list-style-type: none; padding: 0;">
       <li *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
         <b>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</b>
       </li>
@@ -110,15 +111,25 @@ interface MasonryKey {
       <li *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
         <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
       </li>
-    </ul>
+    </ul>-->
 
     <table style="width: 100%;">
+      <tr *ngIf="masonryMeta.length === 0">
+        <td colspan="2">
+          <div style="margin-bottom: .5em;">
+            No relevant meta found for this session.
+          </div>
+        </td>
+      </tr>
+      <tr *ngFor="let struct of textAreaTableItems">
+        <td class="column1">{{struct.key}}</td>
+        <td class="value">{{struct.value}}</td>
+      </tr>
+
+      <!--
       <tr *ngFor="let struct of masonryMeta">
         <td class="column1">{{struct.friendly}}</td>
         <td class="value">{{struct.value}}</td>
-      </tr>
-      <tr *ngIf="masonryMeta.length == 0">
-        <td colspan="2">No relevant meta found for this session.</td>
       </tr>
       <tr *ngIf="content.contentType == 'hash'">
         <td class="column1">{{utils.toCaps(content.hashType)}} Hash:</td>
@@ -145,7 +156,7 @@ interface MasonryKey {
         <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
       </tr>
       <tr *ngIf="content.fromArchive">
-        <td class="column1">Archive Filename:</td>
+        <td class="column1">Archived Filename:</td>
         <td class="value">{{utils.pathToFilename(content.archiveFilename)}}</td>
       </tr>
       <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
@@ -160,6 +171,7 @@ interface MasonryKey {
         <td class="column1">Matched RegEx:</td>
         <td class="value">{{content.regexTermsMatched}}</td>
       </tr>
+      -->
     </table>
 
   </div>
@@ -172,9 +184,16 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
   constructor(  private toolService: ToolService,
                 private changeDetectionRef: ChangeDetectorRef,
+                public dataService: DataService,
+                private el: ElementRef,
+                private zone: NgZone,
+                private isotopeBrick: IsotopeBrickDirective,
+                private authService: AuthenticationService,
                 @Inject(forwardRef(() => MasonryGridComponent)) private parent: MasonryGridComponent ) {}
 
   public utils = utils;
+
+  @ViewChild('image') public imageRef: ElementRef;
 
   @Input() content: any;
   @Input() sessionId: number;
@@ -189,8 +208,11 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
   private originalSession: any; // Session data that hasn't been de-duped
   private showMasonryTextAreaSubscription: Subscription;
   private masonryMeta = [];
-
-  private times = 0;
+  public imageSource: string;
+  public extraClass: string;
+  public textAreaList: string[] = [];
+  public textAreaTableItems: TableEntry[] = [];
+  public loadImage = false;
 
 
 
@@ -212,6 +234,123 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
     this.session = session;
 
     this.updateMasonryMeta();
+
+    // set up the image
+    switch (this.content.contentType) {
+      case 'image':
+        this.imageSource = '/collections/' + this.collectionId + '/' + utils.uriEncodeFilename(this.content.thumbnail);
+        break;
+      case 'pdf':
+        this.imageSource = '/collections/' + this.collectionId + '/' + utils.uriEncodeFilename(this.content.thumbnail);
+        this.extraClass = 'pdf';
+        break;
+      case 'office':
+        this.imageSource = '/collections/' + this.collectionId + '/' + utils.uriEncodeFilename(this.content.thumbnail);
+        this.extraClass = this.content.contentSubType;
+        break;
+      case 'encryptedZipEntry':
+        this.imageSource = '/resources/zip_icon_locked.png';
+        break;
+      case 'unsupportedZipEntry':
+        this.imageSource = '/resources/zip_icon_unknown.png';
+        break;
+      case 'encryptedRarEntry':
+        this.imageSource = '/resources/rar_icon_locked.png';
+        break;
+      case 'encryptedRarTable':
+        this.imageSource = '/resources/rar_icon_locked.png';
+        break;
+      case 'hash':
+        switch (this.content.hashType) {
+          case 'md5':
+            this.imageSource = '/resources/md5_hash_icon.png';
+            break;
+          case 'sha1':
+            this.imageSource = '/resources/sha1_hash_icon.png';
+            break;
+          case 'sha256':
+            this.imageSource = '/resources/sha256_hash_icon.png';
+            break;
+        }
+    }
+
+    // set up the text area list items
+    if (['encryptedRarEntry', 'encryptedZipEntry'].includes(this.content.contentType)) {
+      let msg = `Encrypted file within a ${utils.toCaps(this.content.archiveType)} archive`;
+      this.textAreaList.push(msg);
+    }
+    if (this.content.contentType === 'unsupportedZipEntry') {
+      let msg = `Unsupported ZIP format`;
+      this.textAreaList.push(msg);
+    }
+    if (this.content.contentType === 'encryptedRarTable') {
+      let msg = `RAR archive has an encrypted table`;
+      this.textAreaList.push(msg);
+    }
+    if (this.content.contentType === 'hash') {
+      let msg = `Found executable matching ${utils.toCaps(this.content.hashType)} hash value`;
+      this.textAreaList.push(msg);
+    }
+    if (['office', 'pdf'].includes(this.content.contentType) && this.content.textDistillationEnabled && 'textTermsMatched' in this.content && this.content.textTermsMatched.length > 0) {
+      let type = this.content.contentType === 'pdf' ? 'PDF' : utils.capitalizeFirstLetter(this.content.contentSubType);
+      let msg = `Found ${type} document containing text term`;
+      this.textAreaList.push(msg);
+    }
+    if (['office', 'pdf'].includes(this.content.contentType) && this.content.regexDistillationEnabled && 'regexTermsMatched' in this.content && this.content.regexTermsMatched.length > 0) {
+      let type = this.content.contentType === 'pdf' ? 'PDF' : utils.capitalizeFirstLetter(this.content.contentSubType);
+      let msg = `Found ${type} document matching Regex term`;
+      this.textAreaList.push(msg);
+    }
+
+    // set up the text area table items
+    this.masonryMeta.forEach( struct => {
+      this.textAreaTableItems.push( { key: struct.friendly || struct.key, value: struct.value } );
+    });
+
+    if (this.content.contentType === 'hash') {
+      let struct = { key: `${utils.toCaps(this.content.hashType)} Hash:`, value: this.content.hashValue};
+      this.textAreaTableItems.push(struct);
+
+      if (this.content.hashFriendly) {
+        struct = { key: `${utils.toCaps(this.content.hashType)} Description:`, value: this.content.hashFriendly};
+        this.textAreaTableItems.push(struct);
+      }
+
+      struct = { key: `Filename:`, value: utils.pathToFilename(this.content.contentFile)};
+      this.textAreaTableItems.push(struct);
+    }
+
+    if (['pdf', 'office'].includes(this.content.contentType) && this.content.contentFile) {
+      let type = this.content.contentType === 'pdf' ? 'PDF' : 'Office';
+      let struct = { key: `${type} Filename:`, value: utils.pathToFilename(this.content.contentFile)};
+      this.textAreaTableItems.push(struct);
+    }
+
+    if (this.content.isArchive) {
+      let struct = { key: `Archive File:`, value: utils.pathToFilename(this.content.contentFile)};
+      this.textAreaTableItems.push(struct);
+    }
+
+    if (this.content.fromArchive) {
+      let struct = { key: `Archived Filename:`, value: utils.pathToFilename(this.content.archiveFilename)};
+      this.textAreaTableItems.push(struct);
+    }
+
+    if (['encryptedZipEntry', 'encryptedRarEntry'].includes(this.content.contentType)) {
+      let struct = { key: `Encrypted File:`, value: utils.pathToFilename(this.content.contentFile)};
+      this.textAreaTableItems.push(struct);
+    }
+
+    if (this.content.textDistillationEnabled && 'textTermsMatched' in this.content && this.content.textTermsMatched.length > 0) {
+      let struct = { key: `Matched Text:`, value: this.content.textTermsMatched};
+      this.textAreaTableItems.push(struct);
+    }
+
+    if (this.content.regexDistillationEnabled && 'regexTermsMatched' in this.content && this.content.regexTermsMatched.length > 0) {
+      let struct = { key: `Matched RegEx:`, value: this.content.regexTermsMatched};
+      this.textAreaTableItems.push(struct);
+    }
+
   }
 
 
@@ -221,15 +360,9 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
   }
 
 
+
   ngOnDestroy(): void {
     this.showMasonryTextAreaSubscription.unsubscribe();
-  }
-
-
-
-  onToggleTextArea(TorF): void {
-    this.displayTextArea = TorF;
-    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -239,6 +372,40 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
     this.updateMasonryMeta();
     this.changeDetectionRef.reattach();
     setTimeout( () => this.changeDetectionRef.detach(), 0);
+  }
+
+
+
+  onImageLoaded() {
+    // log.debug('MasonryTileComponent: onImageLoaded()');
+    let event = new Event('onloaded');
+    this.zone.runOutsideAngular( () => {
+        this.el.nativeElement.dispatchEvent(event);
+    });
+  }
+
+
+
+  async onImageError() {
+    log.debug('MasonryTileComponent: onImageError()');
+    // we should load an error image here
+    this.imageSource = '/resources/error_icon.png';
+    this.changeDetectionRef.reattach();
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.detach();
+    let event = new Event('onloaded');
+    this.zone.runOutsideAngular( () => {
+        this.el.nativeElement.dispatchEvent(event);
+    });
+    await this.authService.checkCredentials(false); // check credentials and logout if not logged in if we start getting errors due to auth, since we can't catch the error code
+  }
+
+
+
+  onToggleTextArea(TorF): void {
+    this.displayTextArea = TorF;
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -259,18 +426,9 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
 
 
-  onClick(e: any): void {
-    // log.debug('MasonryTileComponent: onClick()')
-
-    this.toolService.newSession.next( this.originalSession );
-    this.toolService.newImage.next(this.content);
-
-    if (this.content.contentType === 'pdf' || this.content.contentType === 'office') {
-      this.toolService.openPDFViewer.next();
-    }
-    else {
-      this.toolService.openSessionViewer.next();
-    }
+  async getImage(origUrl: string) {
+    // we don't want to bind this directly to the image with an async pipe as it gets stuck in a loop
+    return  await this.dataService.getImage(origUrl);
   }
 
 

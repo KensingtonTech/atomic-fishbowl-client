@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { AuthenticationService } from 'services/authentication.service';
 import { ModalService } from './modal/modal.service';
@@ -27,12 +27,12 @@ declare var log: Logger;
 
       <ng-container *ngIf="loggedIn">
         <router-outlet></router-outlet>
-        <img class="noselect" src="/resources/logo.png" style="position: absolute; left:10px; bottom: 15px;">
+        <img class="noselect" src="/resources/logo.png" style="position: absolute; left: 0.526315789em; bottom: 0.789473684em;">
       </ng-container>
 
     </div>
 
-    <serverdown-modal id="serverDownModal"></serverdown-modal>
+    <serverdown-modal></serverdown-modal>
   </ng-container>
 
 </ng-container>
@@ -45,7 +45,8 @@ export class AppComponent implements OnInit, OnDestroy {
               private dataService: DataService,
               private modalService: ModalService,
               private toolService: ToolService,
-              private zone: NgZone ) { }
+              private zone: NgZone,
+              private changeDetectorRef: ChangeDetectorRef ) { }
 
   public loggedIn = false;
   public serverReachable = false;
@@ -88,15 +89,13 @@ export class AppComponent implements OnInit, OnDestroy {
   onLoginChanged(loggedIn: boolean) {
     log.debug('AppComponent: onLoginChanged(): loggedIn:', loggedIn);
     this.loggedIn = loggedIn;
+    this.changeDetectorRef.detectChanges();
     if (!loggedIn) {
       this.zone.runOutsideAngular( () => setTimeout( () => {
         // wrapped in setTimeout to allow components to be destroyed before invalidating their inputs
         this.dataService.stop();
         this.toolService.stop();
       }, 0) );
-    }
-    else {
-      this.dataService.start();
     }
   }
 
@@ -115,7 +114,7 @@ export class AppComponent implements OnInit, OnDestroy {
     } )
     .catch( () => {
       this.serverReachable = false;
-      this.modalService.open('serverDownModal');
+      this.modalService.open(this.toolService.serverDownModalId);
     });
 
     // schedule a ping every 10 seconds and display error modal if it becomes unreachable
@@ -123,7 +122,7 @@ export class AppComponent implements OnInit, OnDestroy {
       setInterval( () => {
         this.dataService.ping()
         .then( () => {
-          this.modalService.close('serverDownModal');
+          this.modalService.close(this.toolService.serverDownModalId);
           this.serverReachable = true;
           if (!this.credentialsChecked) {
             this.authService.checkCredentials();
@@ -131,7 +130,7 @@ export class AppComponent implements OnInit, OnDestroy {
         })
         .catch( () => {
           this.serverReachable = false;
-          this.modalService.open('serverDownModal');
+          this.modalService.open(this.toolService.serverDownModalId);
         });
       }, 10000)
     );

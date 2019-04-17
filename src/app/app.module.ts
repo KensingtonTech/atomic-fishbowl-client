@@ -57,7 +57,7 @@ import { DefaultRouteComponent } from './default-route.component';
 import { ToolbarWidgetComponent } from './toolbar-widget.component';
 import { SplashScreenModalComponent } from './splashscreen-modal.component';
 import { NwCollectionModalComponent } from './nwcollection-modal.component';
-import { DeleteCollectionConfirmModalComponent } from './deletecollection-confirm-modal.component';
+import { DeleteCollectionConfirmModalComponent } from './confirmation-modals/deletecollection-confirm-modal.component';
 import { PreferencesModalComponent } from './preferences-modal.component';
 import { ManageUsersModalComponent } from './manageusers-modal.component';
 import { ClassicGridComponent } from './classic-grid/classic-grid.component';
@@ -66,30 +66,31 @@ import { ClassicControlBarComponent } from './controlbar/controlbar-classic.comp
 import { MasonryControlBarComponent } from './controlbar/controlbar-masonry.component';
 import { RouterDropdownComponent } from './controlbar/controlbar-router-dropdown.component';
 import { ClassicSessionPopupComponent } from './classic-grid/classic-session-popup.component';
-import { PdfViewerModalComponent } from './pdfviewer-modal.component';
 import { ClassicTileComponent } from './classic-grid/classic-tile.component';
-import { MetaAccordionComponent } from './meta-accordion.component';
+import { MetaAccordionComponent } from './viewers/meta-accordion.component';
 import { MasonryTileComponent } from './masonry-grid/masonry-tile.component';
-import { SessionDetailsModalComponent } from './session-details-modal.component';
-import { DeleteUserConfirmModalComponent } from './deleteuser-confirm-modal.component';
+import { SessionDetailsModalComponent } from './viewers/content-details-modal.component';
+import { DeleteUserConfirmModalComponent } from './confirmation-modals/deleteuser-confirm-modal.component';
 import { ServerDownModalComponent } from './serverdown-modal.component';
-import { LoginComponent } from './login.component';
-import { DownloadFileConfirmModalComponent } from './downloadfile-confirm-modal.component';
-import { DeleteNwServerConfirmModalComponent } from './deletenwserver-confirm-modal.component';
+import { LoginFormComponent } from './login-form.component';
+// import { DownloadFileConfirmModalComponent } from './confirmation-modals/downloadfile-confirm-modal.component';
+import { DeleteNwServerConfirmModalComponent } from './confirmation-modals/deletenwserver-confirm-modal.component';
 import { CollectionsComponent } from './collections.component';
 import { FeedsComponent } from './feeds.component';
 import { FeedWizardComponent } from './feed-wizard';
-import { DeleteFeedConfirmModalComponent } from './deletefeed-confirm-modal.component';
-import { TabContainerComponent } from './tabcontainer-component';
+import { DeleteFeedConfirmModalComponent } from './confirmation-modals/deletefeed-confirm-modal.component';
+import { TabContainerComponent } from './tabcontainer-modal.component';
 import { SaCollectionModalComponent } from './sacollection-modal.component';
-import { DeleteSaServerConfirmModalComponent } from './deletesaserver-confirm-modal.component';
+import { DeleteSaServerConfirmModalComponent } from './confirmation-modals/deletesaserver-confirm-modal.component';
 import { CollectionDeletedNotifyModalComponent } from './collection-deleted-notify-modal.component';
 import { EulaComponent } from './eula.component';
 import { LicensingPreferencesComponent } from './licensing-preferences';
 import { LicenseExpiredModalComponent } from './license-expired-modal.component';
-
-// Not yet used but imported to prevent compiler error
-import { SessionWidgetComponent } from './session-widget.component';
+import { ContentViewerComponent } from './viewers/content-viewer.component';
+import { SessionWidgetComponent } from './viewers/meta-widget.component';
+import { ContentCountWidgetComponent } from './viewers/content-count-widget.component';
+import { NewEditUserModalComponent } from './new-edit-user.modal.component';
+import { NewEditNwServiceModalComponent } from './new-edit-nw-service.component';
 
 // Other
 // import 'hammerjs'; // required for Material gesture support
@@ -163,18 +164,17 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   ToggleFullscreenDirective,
                   MetaAccordionComponent,
                   ClassicTileComponent,
-                  PdfViewerModalComponent,
                   SplashScreenModalComponent,
                   RouterDropdownComponent,
                   MasonryControlBarComponent,
                   ClickOutsideDirective,
                   MasonryTileComponent,
                   SessionDetailsModalComponent,
-                  LoginComponent,
+                  LoginFormComponent,
                   ManageUsersModalComponent,
                   DeleteUserConfirmModalComponent,
                   ServerDownModalComponent,
-                  DownloadFileConfirmModalComponent,
+                  // DownloadFileConfirmModalComponent,
                   SessionWidgetComponent,
                   DeleteNwServerConfirmModalComponent,
                   CollectionsComponent,
@@ -188,7 +188,11 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   EulaComponent,
                   LicensingPreferencesComponent,
                   BoolToStringPipe,
-                  LicenseExpiredModalComponent
+                  LicenseExpiredModalComponent,
+                  ContentViewerComponent,
+                  ContentCountWidgetComponent,
+                  NewEditUserModalComponent,
+                  NewEditNwServiceModalComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

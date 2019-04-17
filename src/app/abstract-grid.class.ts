@@ -3,4 +3,6 @@ export abstract class AbstractGrid {
   onMaskChanged: Function;
   onSearchTermsTyped: Function;
   onToggleCaseSensitiveSearch: Function;
+  onNextSessionClicked: Function;
+  onPreviousSessionClicked: Function;
 }

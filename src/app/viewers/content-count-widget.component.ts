@@ -1,0 +1,28 @@
+import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
+import { ContentCount } from 'types/contentcount';
+
+@Component({
+  selector: 'content-count-widget',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+
+  <div class="contentCountViewer">
+    <div class="count" style="margin-top: 0; font-weight: bold;">Total: <b>{{contentCount?.total}}</b></div>
+    <div class="count">Images: <b>{{contentCount?.images}}</b></div>
+    <div class="count">PDF: <b>{{contentCount?.pdfs}}</b></div>
+    <div class="count">Word: <b>{{contentCount?.word}}</b></div>
+    <div class="count">Excel: <b>{{contentCount?.excel}}</b></div>
+    <div class="count">Powerpoint: <b>{{contentCount?.powerpoint}}</b></div>
+    <div class="count">Hash: <b>{{contentCount?.hashes}}</b></div>
+    <div class="count">Dodgy Archives: <b>{{contentCount?.dodgyArchives}}</b></div>
+    <div class="count">From Archives: <b>{{contentCount?.fromArchives}}</b></div>
+  </div>
+
+`
+})
+
+export class ContentCountWidgetComponent {
+
+  @Input() contentCount: ContentCount;
+
+}

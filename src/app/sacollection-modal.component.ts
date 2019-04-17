@@ -102,14 +102,12 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone) {}
 
-  @Input() id: string;
   @ViewChild('addCollectionForm') public addCollectionForm: NgForm;
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('saNameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
+  public id = this.toolService.saCollectionModalId;
   private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
-
-  public tabContainerModalId = 'tab-container-modal';
 
   public mode = 'add'; // can be add, editRolling, editFixed, or adhoc
   public apiServerMode = 'add'; // can be add or edit
@@ -488,7 +486,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.name = '';
     }
     if (this.reOpenTabsModal) {
-      this.modalService.open(this.tabContainerModalId);
+      this.modalService.open(this.toolService.tabContainerModalId);
     }
   }
 
@@ -541,7 +539,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       return;
     }
     this.toolService.saServerToDelete.next(this.apiServers[this.selectedApiServer]);
-    this.modalService.open('confirm-saserver-delete-modal');
+    this.modalService.open(this.toolService.confirmSaServerDeleteModalId);
   }
 
 
@@ -711,6 +709,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.dataService.addCollection(newCollection)
                       .then( () => {
                           this.toolService.executeAddCollection.next( newCollection );
+                          this.reOpenTabsModal = false;
                           this.close();
                           this.name = null; // reset collection name
                         });
@@ -723,6 +722,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.dataService.editCollection(newCollection)
                       .then( () => {
                           this.toolService.executeEditCollection.next( newCollection );
+                          this.reOpenTabsModal = false;
                           this.close();
                           this.name = null; // reset collection name
                         });

@@ -8,3 +8,7 @@ export interface NwServer {
   deviceNumber: number;
   password?: string;
 }
+
+export interface NwServers {
+  [id: string]: NwServer;
+}

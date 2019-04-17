@@ -273,3 +273,17 @@ export function convertEmRelativeToElement(value, element: Element) {
 export function convertRem(value) {
   return value * getRootElementFontSize();
 }
+
+
+
+export function isOverflown(element) {
+  // from https://stackoverflow.com/questions/9333379/check-if-an-elements-content-is-overflowing
+  // tells if a DOM element is overflown
+  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+}
+
+
+
+export function uriEncodeFilename(filename) {
+  return encodeURIComponent(filename);
+}

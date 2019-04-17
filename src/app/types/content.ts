@@ -19,3 +19,7 @@ export interface Content {
   textTermsMatched?: string[];
   regexTermsMatched?: string[];
 }
+
+export interface Contents {
+  [id: number]: Content;
+}

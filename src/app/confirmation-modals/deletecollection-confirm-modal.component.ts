@@ -1,5 +1,5 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
-import { ModalService } from './modal/modal.service';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
+import { ModalService } from '../modal/modal.service';
 import { Subscription } from 'rxjs';
 import { ToolService } from 'services/tool.service';
 import { Collection } from 'types/collection';
@@ -10,7 +10,7 @@ declare var log: Logger;
   selector: 'delete-collection-confirm-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<modal id="{{id}}" class="delete-collection-confirm-modal" background="true" secondLevel="true" bodyClass="centerWithinDiv noselect" bodyStyle="top: 500px;">
+<modal id="{{id}}" class="delete-collection-confirm-modal" background="true" secondLevel="true" bodyClass="noselect modal-confirm">
 
   <div>
     <p>Are you sure you want to delete collection <b>{{collection?.name}}</b> ?</p>
@@ -21,8 +21,7 @@ declare var log: Logger;
   </div>
 
 </modal>
-  `,
-  styles: [` `]
+`
 })
 
 export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy {
@@ -31,7 +30,7 @@ export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy 
               private changeDetectionRef: ChangeDetectorRef,
               private toolService: ToolService ) {}
 
-  public id = 'collection-confirm-delete-modal';
+  public id = this.toolService.confirmCollectionDeleteModalId;
   private deleteCollectionNextSubscription: Subscription;
   public collection: Collection;
 

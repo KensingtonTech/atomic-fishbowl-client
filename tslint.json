@@ -1,4 +1,9 @@
 {
+  "linterOptions": {
+    "exclude": [
+      "src/**/*.disabled.ts"
+    ]
+  },
   "rulesDirectory": [
     "node_modules/codelyzer"
   ],

@@ -29,7 +29,7 @@ export class IsotopeConfig {
   stamp: string;
   originLeft = true;
   originTop = true;
-  containerStyle: string;
+  containerStyle: any;
   transitionDuration: string;
   resize: boolean;
   initLayout = true;
