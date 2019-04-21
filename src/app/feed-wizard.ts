@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, Input, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Input, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
@@ -324,7 +324,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.columnDropPort = {};
 
       // now do column id's
-      this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
+      this.availableColumnIDs = utils.deepCopy(this.initialColumnIDs);
       this.columnDropPort[this.feed.valueColumn] = { 'enabled': true, 'columnId': this.availableColumnIDs.shift() };
       this.columnDropPort[this.feed.typeColumn] = { 'enabled': true, 'columnId': this.availableColumnIDs.shift() };
       if ('friendlyNameColumn' in this.feed) {
@@ -510,7 +510,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public uploadHandler(event): void {
+  public uploadHandler(event, formRef): void {
     log.debug('FeedWizardComponent: uploadHandler(): event:', event);
     this.fileChanged = true;
     this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
@@ -573,6 +573,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     };
 
     readFunc();
+    formRef.clear();
     this.changeDetectionRef.markForCheck();
 
   }

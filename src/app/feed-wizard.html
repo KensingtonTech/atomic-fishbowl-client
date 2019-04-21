@@ -43,7 +43,7 @@
         <div *ngIf="type == 'manual'" class="row">
           <div class="cell left-column">Select File</div>
           <div class="cell">
-            <p-fileUpload mode="basic" name="myfiles[]" customUpload="true" (uploadHandler)="uploadHandler($event)" [chooseLabel]="label" auto="auto" accept=".csv" required>filename</p-fileUpload>
+            <p-fileUpload #fileUpload mode="basic" name="myfiles[]" [customUpload]="true" (uploadHandler)="uploadHandler($event, fileUpload)" [chooseLabel]="label" [auto]="true" accept=".csv" required>filename</p-fileUpload>
           </div>
         </div>
 
