@@ -858,30 +858,12 @@ toolbar-widget {
 
 }
 
-/*classic-grid-view {
-  
-  .afb-toolbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: auto;
-  }
-
-}*/
 
 
 
 /////////// Feed Wizard ///////////
 
-.feed-wizard-body {
-  position: absolute;
-  width: 63.15789474em; // 1200px
-  height: 26.31578947em; // 500px
-  top: 50%;
-  left: 50%;
-  // margin: -250px 0 0 -600px;
-  margin: -13.15789474em 0 0 -31.57894737em;
+.feed-wizard-modal-body {
   overflow: hidden;
   background-color: rgba(255,255,255,1);
 }

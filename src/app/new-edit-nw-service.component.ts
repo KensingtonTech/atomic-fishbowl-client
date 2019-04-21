@@ -122,8 +122,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
   public id = this.toolService.newEditNwServiceModalId;
 
   @Input() addingService = true; // if true, we're adding a service.  If false, we're editing a service
-  @Input() selectedApiServerId: string; // the service we are editing (if we're editing)
-  @Input() apiServers: NwServers;
+  @Input() selectedApiServer: NwServer; // the service we are editing (if we're editing)
   @Output() newApiServer: EventEmitter<NwServer> = new EventEmitter<NwServer>();
 
   @ViewChild('hostName') hostNameRef: ElementRef;
@@ -177,10 +176,10 @@ export class NewEditNwServiceModalComponent implements OnInit {
 
 
   onEditingApiServiceAfterOpen(): void {
-    log.debug('NwCollectionModalComponent: onEditingApiServiceAfterOpen()');
+    log.debug('NewEditNwServiceModalComponent: onEditingApiServiceAfterOpen()');
 
-    let server = this.apiServers[this.selectedApiServerId];
-    log.debug('NwCollectionModalComponent: onEditingApiServiceAfterOpen(): server:', server);
+    let server = this.selectedApiServer;
+    log.debug('NewEditNwServiceModalComponent: onEditingApiServiceAfterOpen(): server:', server);
     let tempModel = {
       hostname: server.host,
       user: server.user,
@@ -210,7 +209,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
 
 
   public addServiceFormValid(form: NgForm): boolean {
-    // log.debug('NwCollectionModalComponent: addServiceFormValid()');
+    // log.debug('NewEditNwServiceModalComponent: addServiceFormValid()');
 
     if (this.addingService && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) {
       return true;
@@ -249,7 +248,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
     }
     else if (!this.addingService) {
       server = {
-        id: this.selectedApiServerId,
+        id: this.selectedApiServer.id,
         host: this.serviceFormModel.hostname,
         port: this.serviceFormModel.restPort,
         ssl: this.serviceFormModel.ssl,
@@ -283,7 +282,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
 
 
   addApiServerSubmit(f: NgForm) {
-    // log.debug("NwCollectionModalComponent: addApiServerSubmit(): f:", f);
+    // log.debug("NewEditNwServiceModalComponent: addApiServerSubmit(): f:", f);
     this.resetForm();
     let encPassword = this.dataService.encryptor.encrypt(f.value.password);
     let newServer: NwServer = {
@@ -297,13 +296,13 @@ export class NewEditNwServiceModalComponent implements OnInit {
       friendlyName: f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ' (' + f.value.deviceNumber + ')'
     };
     if (!this.addingService) {
-      newServer.id = this.selectedApiServerId;
+      newServer.id = this.selectedApiServer.id;
     }
     if (newServer.ssl) {
       // newServer.friendlyName = newServer.friendlyName + ':ssl';
       newServer.friendlyName = f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ':ssl' + ' (' + f.value.deviceNumber + ')';
     }
-    log.debug('NwCollectionModalComponent: addNwServer() newServer:', newServer);
+    log.debug('NewEditNwServiceModalComponent: addNwServer() newServer:', newServer);
 
     let apiMethod = this.addingService ? this.dataService.addNwServer.bind(this.dataService) : this.dataService.editNwServer.bind(this.dataService);
 
@@ -317,7 +316,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
                         })
                         .catch( (err) => {
                           let error = JSON.parse(err);
-                          log.error('NwCollectionModalComponent: addApiServerSubmit(): error response from server:', error.error);
+                          log.error('NewEditNwServiceModalComponent: addApiServerSubmit(): error response from server:', error.error);
                         });
 
   }

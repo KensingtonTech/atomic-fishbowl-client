@@ -287,3 +287,23 @@ export function isOverflown(element) {
 export function uriEncodeFilename(filename) {
   return encodeURIComponent(filename);
 }
+
+
+
+export function isEven(num: number) {
+  if (num % 2 === 0) {
+    return true;
+  }
+  return false;
+}
+
+
+
+export function getRectWidth (rect) {
+  return rect.width || (rect.right - rect.left);
+}
+
+
+export function getRectHeight (rect) {
+  return rect.height || (rect.bottom - rect.top);
+}

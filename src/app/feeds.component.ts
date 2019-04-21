@@ -17,59 +17,58 @@ interface FeedStatus {
   selector: 'feeds',
   templateUrl: './feeds.component.html',
   styles: [`
-    .table {
-      display: table;
-      border-collapse: separate;
-      border-spacing: 2px;
-    }
-    .header {
-      display: table-header-group;
-    }
-    .row {
-      display: table-row;
-    }
-    .cell {
-      display: table-cell;
-      padding: 2px;
-      border-bottom: 1px solid black;
-    }
-    .header-cell {
-      display: table-cell;
-      font-weight: bold;
-      font-size: 14pt;
-      height: 35px;
-    }
-    .row-group {
-      display: table-row-group;
-      border: 1px solid black;
-    }
-    .row-group > .row:nth-child(even) {background: #CCC;}
-    .row-group > .row:nth-child(odd) {background: #FFF;}
 
-    .grabbable {
-      cursor: move; /* fallback if grab cursor is unsupported */
-      cursor: grab;
-      cursor: -moz-grab;
-      cursor: -webkit-grab;
-    }
-    /* (Optional) Apply a "closed-hand" cursor during drag operation. */
-    .grabbable:active {
-      cursor: grabbing;
-      cursor: -moz-grabbing;
-      cursor: -webkit-grabbing;
-    }
-    .center {
-      text-align: center;
-    }
-    .link {
-      cursor: pointer;
-    }
-    .link:hover {
-      font-weight: bold;
-    }
-    .no-nw-server:hover {
-      color: red;
-    }
+  .cell {
+    padding-left: .3em;
+  }
+
+  .evenRow {
+    background-color: #FFF;
+  }
+
+  .oddRow {
+    background-color: #CCC;
+  }
+
+  .header {
+    font-weight: bold;
+    font-size: 1.3em;
+    background-color: #CCC;
+  }
+
+  .grabbable {
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+  }
+
+  /* (Optional) Apply a "closed-hand" cursor during drag operation. */
+  .grabbable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+  }
+
+  .center {
+    text-align: center;
+  }
+
+  .link {
+    cursor: pointer;
+  }
+
+  .link:hover {
+    font-weight: bold;
+  }
+
+  .no-nw-server:hover {
+    color: red;
+  }
+
+  .disabled {
+    color: grey;
+  }
 
   `]
 })

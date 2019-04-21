@@ -18,7 +18,7 @@ declare var log: Logger;
   template: `
 <!--[@zoom]="animationState"-->
 <!--@zoom-->
-<div class="thumbnail-container" [hidden]="hide" [@zoom]="animationState" [class.hidden]="hidden" [class.visible]="!hidden">
+<div class="thumbnail-container" [hidden]="hide" [@zoom]="animationState" [class.hidden]="hide" [class.visible]="!hide">
 
   <img #image class="thumbnail" [src]="imgSource" [hidden]="showHighRes && highResLoaded" (load)="onLowResLoaded()" (error)="onLowResError()" [ngClass]="loadedContentClass" draggable="false" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
 

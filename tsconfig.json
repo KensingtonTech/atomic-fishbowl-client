@@ -6,6 +6,7 @@
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
+    "module": "es2015",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -14,12 +15,12 @@
       "node_modules/@types"
     ],
     "lib": [
-      "es2017",
+      "es2018",
       "dom"
     ],
     "paths": {
       "dragula": [
-        "node_modules/dragula/dist/dragula.min.js"
+        "node_modules/@kensingtontech/dragula/dist/dragula.min.js"
       ],
       "socket.io-client": [
         "node_modules/socket.io-client/dist/socket.io.slim.js"

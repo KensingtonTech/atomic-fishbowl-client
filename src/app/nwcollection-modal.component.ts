@@ -145,10 +145,11 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
   // API Servers
   public addingService = true; // if true, we're adding a service.  If false, we're editing a service
-  public selectedApiServerId = '';
+  // public selectedApiServerId = '';
   public selectedApiServer: NwServer;
   public apiServers: NwServers = {};
   public apiServersOptions: SelectItem[];
+  private setThisApiServerIdOnNextPick: string;
 
 
   // Subscriptions
@@ -442,12 +443,12 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       name: this.name,
       type: this.type,
       state: 'initial',
-      nwserver: this.selectedApiServerId,
-      nwserverName: this.apiServers[this.selectedApiServerId].friendlyName,
+      nwserver: this.selectedApiServer.id,
+      nwserverName: this.selectedApiServer.friendlyName,
       // query: null,
       // contentTypes: null,
       contentLimit: this.contentLimit,
-      deviceNumber: this.apiServers[this.selectedApiServerId].deviceNumber,
+      deviceNumber: this.selectedApiServer.deviceNumber,
       bound: false, // may get overridden later
       usecase: 'custom', // may get overridden later
       // minX: this.minX,
@@ -818,9 +819,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.showUseCaseValues = false;
     this.displayUseCaseDescription = false;
     if (Object.keys(this.apiServers).length !== 0) {
-      this.selectedApiServerId = Object.keys(this.apiServers)[0];
+      let firstApiServerId = Object.keys(this.apiServers)[0];
+      this.selectedApiServer = this.apiServers[firstApiServerId];
     }
-    log.debug('NwCollectionModalComponent: onAddCollection(): selectedApiServerId', this.selectedApiServerId);
+    log.debug('NwCollectionModalComponent: onAddCollection(): selectedApiServer.id', this.selectedApiServer.id);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -879,9 +881,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     // API Server
     if (Object.keys(this.apiServers).length !== 0) {
-      this.selectedApiServerId = Object.keys(this.apiServers)[0];
+      let firstApiServerId = Object.keys(this.apiServers)[0];
+      this.selectedApiServer = this.apiServers[firstApiServerId];
     }
-    log.debug('NwCollectionModalComponent: onAdhocCollection(): selectedApiServerId', this.selectedApiServerId);
+    log.debug('NwCollectionModalComponent: onAdhocCollection(): selectedApiServer.id', this.selectedApiServer.id);
     this.modalService.open(this.id);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
@@ -966,11 +969,12 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     // TODO: add logic for when server has been deleted
     if (collection.nwserver in this.apiServers) {
       log.debug(`Collection's nwserver ${collection.nwserver} is defined`);
-      this.selectedApiServerId = collection.nwserver;
+      let firstApiServerId = collection.nwserver;
+      this.selectedApiServer = this.apiServers[firstApiServerId];
     }
     else {
       log.debug(`Collection's nwserver ${collection.nwserver} is not currently defined`);
-      this.selectedApiServerId = '';
+      this.selectedApiServer = null;
     }
 
     if (collection.distillationEnabled) {
@@ -1036,43 +1040,62 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
     log.debug('NwCollectionModalComponent: onApiServersChanged(): apiServers:', apiServers);
     this.apiServers = apiServers;
-    // log.debug("NwCollectionModalComponent: onApiServersChanged(): this.apiServers:", this.apiServers);
 
     let options: SelectItem[] = [];
     Object.keys(this.apiServers).forEach( server => {
       // log.debug('nwserver:', server);
-      options.push( { label: this.apiServers[server].friendlyName, value: this.apiServers[server].id } )  ;
+      options.push( { label: this.apiServers[server].friendlyName, value: this.apiServers[server] } )  ;
     });
 
     this.apiServersOptions = options;
 
-    if (Object.keys(this.apiServers).length === 0) {
-      // log.debug('this.selectedApiServerId:', this.selectedApiServerId);
-      this.selectedApiServerId = '';
-    }
-    else if (Object.keys(this.apiServers).length === 1) {
-      // log.debug('this.selectedApiServerId:', this.selectedApiServerId);
-      this.selectedApiServerId = Object.keys(this.apiServers)[0]; // choose the one and only api server
-    }
+    this.pickAnApiServer();
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  private pickAnApiServer() {
+    log.debug('NwCollectionModalComponent: pickAnApiServer()');
+    if (Object.keys(this.apiServers).length === 0) {
+      // no API servers are defined
+      this.selectedApiServer = null;
+    }
+    else if (this.setThisApiServerIdOnNextPick) {
+      // we predetermined which server we're going to choose.  Only used if onNewApiServer() has run
+      this.selectedApiServer = this.apiServers[this.setThisApiServerIdOnNextPick];
+      this.setThisApiServerIdOnNextPick = null;
+    }
+    else if (Object.keys(this.apiServers).length === 1) {
+      // only one api server is defined - select it
+      let firstApiServerId = Object.keys(this.apiServers)[0];
+      this.selectedApiServer = this.apiServers[firstApiServerId];
+    }
+    else if (this.selectedApiServer && !Object.keys(this.apiServers).includes(this.selectedApiServer.id)) {
+      // we got new api servers and our selected server isn't one of them (deletion).
+      // let's make no assumptions and force the user to select one
+      this.selectedApiServer = null;
+    }
+    else {
+      // we got new api servers and our selected server is one of them - do nothing
+    }
+    // log.debug('NwCollectionModalComponent: pickAnApiServer(): selectedApiServerId:', selectedApiServerId);
+
   }
 
 
 
   onNewApiServer(newServer: NwServer) {
-    if (this.selectedApiServerId !== '') {
-      return;
-    }
-    this.selectedApiServerId = newServer.id;
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
+    log.debug('NwCollectionModalComponent: onNewApiServer(): newServer:', newServer);
+    // select the new server
+    this.setThisApiServerIdOnNextPick = newServer.id;
   }
 
 
 
   public onDeleteApiServerClicked(): void {
-    log.debug('NwCollectionModalComponent: onDeleteApiServerClicked(): selectedApiServerId', this.selectedApiServerId);
+    log.debug('NwCollectionModalComponent: onDeleteApiServerClicked(): selectedApiServer.id', this.selectedApiServer.id);
     this.modalService.open(this.toolService.confirmNwServerDeleteModalId);
   }
 
@@ -1080,15 +1103,18 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
   public apiServerSelectionValid(): boolean {
     // log.debug('NwCollectionModalComponent: apiServerFormValid()');
-    // log.debug('this.selectedApiServerId:', this.selectedApiServerId);
+    // log.debug('this.selectedApiServer.id:', this.selectedApiServer.id);
     // log.debug('this.apiServers:', this.apiServers);
     if (Object.keys(this.apiServers).length === 0) {
       return false;
     }
-    if (!(this.selectedApiServerId in this.apiServers)) {
+    else if (!this.selectedApiServer) {
       return false;
     }
-    if (this.addCollectionForm.form.valid && this.selectedApiServerId !== '') {
+    if (!(this.selectedApiServer.id in this.apiServers)) {
+      return false;
+    }
+    if (this.addCollectionForm.form.valid && this.selectedApiServer) {
       return true;
     }
     return false;
@@ -1108,7 +1134,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
 
-    let server = this.apiServers[this.selectedApiServerId];
+    let server = this.selectedApiServer;
 
     this.dataService.testNwServer(server)
                     .then( () => {
@@ -1143,8 +1169,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   onApiServerClicked(event) {
-    log.debug('NwCollectionModalComponent: onApiServerClicked(): selectedApiServerId:', this.selectedApiServerId);
-    this.selectedApiServer = this.apiServers[this.selectedApiServerId];
+    log.debug('NwCollectionModalComponent: onApiServerClicked(): selectedApiServer.id:', this.selectedApiServer.id);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -1152,7 +1177,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   onSetDefaultApiServerClicked() {
-    this.toolService.setPreference('defaultNwService', this.selectedApiServerId);
+    if (!this.selectedApiServer) {
+      return;
+    }
+    this.toolService.setPreference('defaultNwService', this.selectedApiServer.id);
   }
 
 }

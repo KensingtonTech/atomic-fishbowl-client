@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Input, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
@@ -17,13 +17,14 @@ interface ColumnId {
 
 @Component({
   selector: 'feed-wizard-modal',
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feed-wizard.html',
   styles: [`
 
     .table {
       display: table;
       border-collapse: separate;
-      border-spacing: 15px;
+      border-spacing: 0.75em;
       width: 100%;
     }
 
@@ -38,7 +39,6 @@ interface ColumnId {
     .header-cell {
       display: table-cell;
       font-weight: bold;
-      font-size: 14pt;
     }
 
     .row {
@@ -56,17 +56,16 @@ interface ColumnId {
 
     .cell {
       display: table-cell;
-      padding: 2px;
-      /*border-bottom: 1px solid black;*/
+      padding: 0.1em;
     }
 
     .csv-cell {
-      border: 1px solid black;
+      border: 0.05em solid black;
     }
 
     .row-group {
       display: table-row-group;
-      border: 1px solid black;
+      border: 0.05em solid black;
     }
 
     .row-group > .row:nth-child(even) {background: #CCC;}
@@ -105,6 +104,8 @@ interface ColumnId {
 
     .dragButton {
       position: relative;
+      background-color: initial;
+      width: fit-content;
     }
 
     .dragButton:after {
@@ -114,6 +115,10 @@ interface ColumnId {
        right: 0;
        bottom: 0;
        position: absolute;
+    }
+
+    .headerButton {
+      font-size: .8em;
     }
 
   `]

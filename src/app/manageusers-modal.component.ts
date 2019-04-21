@@ -1,22 +1,13 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectionStrategy, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, ViewChild, ElementRef } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { AuthenticationService } from 'services/authentication.service';
 import { ModalService } from './modal/modal.service';
-import { AbstractControl, NgForm, FormBuilder, FormControl, FormGroup, Validators, FormGroupDirective } from '@angular/forms';
-import { UUID } from 'angular2-uuid';
 import { User } from 'types/user';
 import { Subscription } from 'rxjs';
-import { ErrorStateMatcher } from '@angular/material/core';
-
+import * as utils from './utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
-
-
-
-
-
-
 
 
 
@@ -26,37 +17,43 @@ declare var log: Logger;
   templateUrl: './manageusers-modal.component.html',
   styles: [`
 
-    .myForm {
-      width: 500px;
+    /*tr.table-body:nth-child(odd) {background: #CCC;}
+    tr.table-body:nth-child(even) {background: #FFF;}*/
+
+    .cell {
+      padding-left: .3em;
     }
 
-    .full-width {
+    .evenRow {
+      background-color: #FFF;
+    }
+
+    .oddRow {
+      background-color: #CCC;
+    }
+
+    .header {
+      font-weight: bold;
+      background-color: #CCC;
+    }
+
+    .center {
       width: 100%;
+      text-align: center;
     }
 
-    .column1 {
-      white-space: nowrap;
-      width: 1px;
+    .fa-check {
+      color: green;
     }
 
-    .ui-radiobutton-label {
-      font-size: 14px;
+    .fa-ban {
+      color: red;
     }
-
-    .ui-radiobutton-box.ui-state-active {
-      background-color: rgb(59, 153, 252);
-    }
-
-    .ui-tooltip {
-      width: 275px;
-      word-wrap: normal;
-    }
-
-    tr.table-body:nth-child(odd) {background: #CCC;}
-    tr.table-body:nth-child(even) {background: #FFF;}
 
   `]
 })
+
+
 
 export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
@@ -65,7 +62,6 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private authService: AuthenticationService,
               private changeDetectionRef: ChangeDetectorRef,
-              public fb: FormBuilder,
               private zone: NgZone ) {}
 
   public id = this.toolService.manageeUsersModalId;
@@ -75,6 +71,10 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public errorDefined = false;
   public errorMessage: string;
   public userToDelete: User;
+  public utils = utils;
+
+  @ViewChild('userTable') private userTableRef: ElementRef;
+  @ViewChild('emptyRow') private emptyRowTemplateRef;
 
   // Subscriptions
   private confirmUserDeleteSubscription: Subscription;

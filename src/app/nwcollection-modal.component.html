@@ -18,7 +18,7 @@
               <b>Name</b>
             </td>
             <td>
-              <label *ngIf="!nameValid" for="nwNameBox" style="color: red;">{{nameInvalidMessage}}</label>
+              <label *ngIf="!nameValid" for="nwNameBox" style="color: red;">{{nameInvalidMessage}}<br></label>
               <input pInputText #nwNameBox id="nwNameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="name" style="width: 100%;" autocomplete="off" required>
             </td>
           </tr>
@@ -243,15 +243,15 @@
                       <!-- add button -->
                       <span (click)="onAddNwServiceClicked()" class="fa fa-plus fa-1">&nbsp;&nbsp;</span>
                       <!-- delete button -->
-                      <span (click)="onDeleteApiServerClicked()" class="fa fa-minus fa-1">&nbsp;&nbsp;</span>
+                      <span *ngIf="selectedApiServer" (click)="onDeleteApiServerClicked()" class="fa fa-minus fa-1">&nbsp;&nbsp;</span>
                       <!-- edit button -->
-                      <span *ngIf="selectedApiServerId" (click)="onEditApiServerClicked()" class="fa fa-pencil fa-1"></span>
+                      <span *ngIf="selectedApiServer" (click)="onEditApiServerClicked()" class="fa fa-pencil fa-1"></span>
                       <!-- test button -->
-                      <span *ngIf="selectedApiServerId">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<p-button [disabled]="testInProgress" type="button" (onClick)="onTestApiServerClicked()" label="Test"> </p-button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
+                      <span *ngIf="selectedApiServer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<p-button [disabled]="testInProgress" type="button" (onClick)="onTestApiServerClicked()" label="Test"> </p-button>&nbsp;&nbsp;<i [ngClass]="thumbClass" class="fa"></i> {{testError}}</span>
                     </div>
           
                     <!--NetWitness Server List-->
-                    <p-listbox *ngIf="apiServers" [(ngModel)]="selectedApiServerId" [listStyle]="{'height':'14em'}" [style]="{'width': '100%'}" name="nwserver" styleClass="noselect" [options]="apiServersOptions" (onChange)="onApiServerClicked($event)"></p-listbox>
+                    <p-listbox *ngIf="apiServers" [(ngModel)]="selectedApiServer" [listStyle]="{'height':'14em'}" [style]="{'width': '100%'}" name="nwserver" styleClass="noselect" [options]="apiServersOptions" (onChange)="onApiServerClicked($event)"></p-listbox>
                   
                 </div>
             </p-tabPanel>
@@ -379,4 +379,4 @@
 
 </modal>
 <confirm-nwserver-delete-modal [serverToDelete]="selectedApiServer"></confirm-nwserver-delete-modal>
-<new-edit-nw-service-modal [selectedApiServerId]="selectedApiServerId" [apiServers]="apiServers" [addingService]="addingService" (newApiServer)="onNewApiServer($event)"></new-edit-nw-service-modal>
+<new-edit-nw-service-modal [selectedApiServer]="selectedApiServer" [addingService]="addingService" (newApiServer)="onNewApiServer($event)"></new-edit-nw-service-modal>

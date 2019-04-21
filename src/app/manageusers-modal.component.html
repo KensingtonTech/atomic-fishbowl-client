@@ -1,42 +1,61 @@
-<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" background="true" modalClass="manage-users-modal" bodyClass="mat-app-background manage-users-modal-body">
+<modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" background="true" modalClass="manage-users-modal" bodyClass="mat-app-background manage-users-modal-body" bodyStyle="background-color: initial; padding: 0; border-radius: initial; box-sizing: border-box;">
 
-  <div style="width: 100%;">
-    <h3 style="float: left; margin-top: 0; margin-bottom: 0.526315789em;">Manage Users</h3><span *ngIf="errorDefined" style="float: right; text-align: right; color: red;">{{errorMessage}}</span>
-    <div>&nbsp;</div>
+  <div style="position: relative; background-color: rgba(255,255,255,0.8); padding: .5em; border-radius: 0.526315789em; max-height: 100%; overflow: hidden; box-sizing: border-box;">
+
+    <div fxLayout="row" style="width: 100%;">
+      <h3 style="margin-top: 0; margin-bottom: 0.526315789em; margin-right: auto;">Manage Users</h3>
+      <div *ngIf="errorDefined" style="color: red; margin-right: 2em; line-height: 2;">{{errorMessage}}</div>
+      <div style="margin-right: 1em;"><p-button type="button" (onClick)="onAddUserClicked()" label="New User"></p-button></div>
+      <div (click)="close()" class="fa fa-times-circle-o fa-2x" style="vertical-align: top;"></div>
+    </div>
+
+    <div #userTable class="user-table" style="position: relative; top: 1em; overflow-y: auto; width: 100%;">
+
+      <div class="header cell">Enabled</div>
+      <div class="header">&nbsp;&nbsp;&nbsp;&nbsp;Actions&nbsp;&nbsp;&nbsp;&nbsp;</div>
+      <div class="header cell">User</div>
+      <div class="header cell">Full Name</div>
+      <div class="header cell">Email</div>
+
+      <ng-container *ngFor="let user of users; index as i; odd as odd">
+
+        <div class="cell center" [class.evenRow]="!odd" [class.oddRow]="odd">
+          <span [class.fa-ban]="!user.enabled" [class.fa-check]="user.enabled" class="fa"></span>
+        </div>
+
+        <div class="center" [class.evenRow]="!odd" [class.oddRow]="odd">
+          <span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span>
+        </div>
+        
+        <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.username}}</div>
+        <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.fullname}}</div>
+        <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.email}}</div>
+
+      </ng-container>
+
+    </div>
+
   </div>
 
-  <div>
-    <fieldset style="border: none; margin: 0; padding: 0; width: 100%;">
-      <div style="position: relative; overflow: auto;"> <!--max-height: 42.10526316em; min-height: 200px;-->
-        <table style="width: 100%;">
-          <tr>
-            <th align="left">Enabled</th>
-            <th align="left">User</th>
-            <th align="left">Full Name</th>
-            <th align="left">Email</th>
-            <th align="center">Actions</th>
-          </tr>
-          <tr *ngFor="let user of users" class="table-body">
-            <td>
-              <span *ngIf="!user.enabled" class="fa fa-ban" style="color: red;"></span>
-              <span *ngIf="user.enabled" class="fa fa-check" style="color: green;"></span>
-            </td>
-            <td>{{user.username}}</td>
-            <td>{{user.fullname}}</td>
-            <td>{{user.email}}</td>
-            <td align="center"><span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span></td>
-          </tr>
-        </table>
-      </div>
-      <div style="float: left;">
-        <p-button type="button" (onClick)="onAddUserClicked()" label="New User"></p-button>
-      </div>
-      <div style="margin-top: 0.263157895em; float: right;">
-        <p-button type="button" (onClick)="close()" label="OK"></p-button>
-      </div>
-    </fieldset>
-    
-  </div>
+  <!--<table style="width: 100%;">
+    <tr>
+      <th align="left">Enabled</th>
+      <th align="left">User</th>
+      <th align="left">Full Name</th>
+      <th align="left">Email</th>
+      <th align="center">Actions</th>
+    </tr>
+    <tr *ngFor="let user of users" class="table-body">
+      <td>
+        <span *ngIf="!user.enabled" class="fa fa-ban" style="color: red;"></span>
+        <span *ngIf="user.enabled" class="fa fa-check" style="color: green;"></span>
+      </td>
+      <td>{{user.username}}</td>
+      <td>{{user.fullname}}</td>
+      <td>{{user.email}}</td>
+      <td align="center"><span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span></td>
+    </tr>
+  </table>-->
 
 </modal>
 <confirm-user-delete-modal [user]="userToDelete"></confirm-user-delete-modal>

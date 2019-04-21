@@ -18,77 +18,57 @@ declare var log: Logger;
   templateUrl: './collections.component.html',
   styles: [`
 
-    .table {
-      display: table;
-      border-collapse: separate;
-      border-spacing: 2px;
-    }
+  .cell {
+    padding-left: .3em;
+  }
 
-    .header {
-      display: table-header-group;
-      padding-bottom: 10px;
-    }
+  .evenRow {
+    background-color: #FFF;
+  }
 
-    .row {
-      display: table-row;
-    }
+  .oddRow {
+    background-color: #CCC;
+  }
 
-    .cell {
-      display: table-cell;
-      padding: 2px;
-      border-bottom: 1px solid black;
-    }
+  .header {
+    font-weight: bold;
+    font-size: 1.3em;
+    background-color: #CCC;
+  }
 
-    .header-cell {
-      display: table-cell;
-      font-weight: bold;
-      font-size: 14pt;
-      height: 35px;
-    }
+  .grabbable {
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+  }
 
-    .row-group {
-      display: table-row-group;
-      border: 1px solid black;
-      overflow: auto;
-    }
+  /* (Optional) Apply a "closed-hand" cursor during drag operation. */
+  .grabbable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+  }
 
-    .row-group > .row:nth-child(even) {background: #CCC;}
+  .center {
+    text-align: center;
+  }
 
-    .row-group > .row:nth-child(odd) {background: #FFF;}
+  .link {
+    cursor: pointer;
+  }
 
-    .grabbable {
-      cursor: move; /* fallback if grab cursor is unsupported */
-      cursor: grab;
-      cursor: -moz-grab;
-      cursor: -webkit-grab;
-    }
+  .link:hover {
+    font-weight: bold;
+  }
 
-    /* (Optional) Apply a "closed-hand" cursor during drag operation. */
-    .grabbable:active {
-      cursor: grabbing;
-      cursor: -moz-grabbing;
-      cursor: -webkit-grabbing;
-    }
+  .no-nw-server:hover {
+    color: red;
+  }
 
-    .center {
-      text-align: center;
-    }
-
-    .link {
-      cursor: pointer;
-    }
-
-    .link:hover {
-      font-weight: bold;
-    }
-
-    .no-nw-server:hover {
-      color: red;
-    }
-
-    .disabled {
-      color: grey;
-    }
+  .disabled {
+    color: grey;
+  }
 
   `]
 })
@@ -100,15 +80,81 @@ export class CollectionsComponent implements OnInit, OnDestroy {
               private modalService: ModalService,
               private changeDetectionRef: ChangeDetectorRef,
               private dragulaService: DragulaService ) {
-                let bag: any = dragulaService.find('first-bag');
-                if (bag) {
-                  this.dragulaService.destroy('first-bag');
-                }
-                dragulaService.setOptions('first-bag', { moves: (el, source, handle, sibling) => handle.classList.contains('draggable') && !handle.classList.contains('disabled') } );
+                dragulaService.createGroup('first-bag', this.dragulaOptions);
               }
 
   @ViewChild(Menu) collectionMaskMenuComponent;
-  @ViewChild('collectionContainer') collectionContainer: ElementRef;
+  @ViewChild('collectionsTable') private collectionsTableRef: ElementRef;
+
+  private dragulaOptions: any = {
+    copy: true,
+    // copyItem: (item) => utils.deepCopy(item),
+    copyItem: (item) => {
+      console.log('item:', item);
+      return utils.deepCopy(item);
+    },
+    moves: (el, source, handle, sibling) => handle.classList.contains('draggable') && !handle.classList.contains('disabled'), // only allow enabled draghandle to be dragged
+    accepts: (el, target, source, sibling) => {
+      // console.log('accepts: el:', el);
+      // console.log('accepts: target:', target);
+      // console.log('accepts: source:', source);
+      // console.log('accepts: sibling:', sibling);
+
+      // sibling is always the element immediately following the one we dropped on
+      // to get the row we dropped on
+
+      if (!target.classList.contains('collections-table')) {
+        //  if this isn't our container, do nothing
+        this.droppedTargetCollectionId = null;
+        return false;
+      }
+
+      if (!sibling) {
+        // if sibling is null, we selected the last item in the list.  this is an edge case
+        // console.log('accepts: got to 1');
+        this.droppedTargetCollectionId = this.displayedCollections[this.displayedCollections.length - 1].id;
+        return true;
+      }
+      if (sibling.classList.contains('header')) {
+        // if a header - select the first collection
+        // console.log('accepts: got to 2');
+        this.droppedTargetCollectionId = this.displayedCollections[0].id;
+        return true;
+      }
+      else if (sibling.classList.contains('actions') && sibling.previousElementSibling) {
+        // if sibling has class 'actions', then we actually dropped on the last column on the previous row
+        // console.log('accepts: got to 3');
+        this.droppedTargetCollectionId = sibling.previousElementSibling.getAttribute('collectionId');
+        return true;
+      }
+      else {
+        // console.log('accepts: got to 4');
+        this.droppedTargetCollectionId = sibling.getAttribute('collectionId');
+        return true;
+      }
+
+      return true;
+    },
+    mirror: (item) => {
+      let rect = item.getBoundingClientRect();
+      let collectionId = item.getAttribute('collectionId');
+      let collectionRowElements = this.collectionsTableRef.nativeElement.querySelectorAll(`[collectionId="${collectionId}"]:not(.actions)`);
+      let container = document.createElement('div');
+      container.className = 'collections-table-clone';
+      let width = 0;
+      collectionRowElements.forEach( el => {
+        let w = utils.getRectWidth(el.getBoundingClientRect());
+        width += w;
+        let clonedEl = el.cloneNode(true);
+        clonedEl.style['width'] = w + 'px';
+        container.appendChild(clonedEl);
+      });
+
+      container.style.width = width + 'px';
+      container.style.height = utils.getRectHeight(rect) + 'px';
+      return container;
+    }
+  };
 
   public firstRun = true;
   public collections: Collection[] = [];
@@ -148,6 +194,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   public showMenu = false;
   private lastEvent: MouseEvent; // this holds the last mouse event which we can use to hide the menu later on, as the component requires an event
   public isDragging = false;
+  private dragulaInstance: any;
+  private droppedTargetCollectionId: string;
 
 
 
@@ -194,24 +242,24 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       }
      } );
 
-     this.dragulaDroppedSubscription = this.dragulaService.dropModel.subscribe( (bagName, el, target, source) => this.onDragulaDrop(bagName, el, target, source) );
+     this.nwServersChangedSubscription = this.dataService.nwServersChanged.subscribe( apiServers => this.onNwServersChanged(apiServers) );
+     this.saServersChangedSubscription = this.dataService.saServersChanged.subscribe( apiServers => this.onSaServersChanged(apiServers) );
 
-    this.nwServersChangedSubscription = this.dataService.nwServersChanged.subscribe( apiServers => this.onNwServersChanged(apiServers) );
-    this.saServersChangedSubscription = this.dataService.saServersChanged.subscribe( apiServers => this.onSaServersChanged(apiServers) );
+     this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
 
-    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
+     this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
 
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
-
-    this.dragStartSubscription = this.dragulaService.drag.asObservable().subscribe( () => this.isDragging = true );
-
-    this.dragEndSubscription = this.dragulaService.dragend.asObservable().subscribe( () => this.isDragging = false );
-
-    this.noopCollectionSubscription = this.dataService.noopCollection.subscribe( () => {
+     this.noopCollectionSubscription = this.dataService.noopCollection.subscribe( () => {
       this.selectedCollection = null;
       this.changeDetectionRef.markForCheck();
       this.changeDetectionRef.detectChanges();
      } );
+
+    // dragula
+    // this.dragulaDroppedSubscription = this.dragulaService.dropModel('first-bag').subscribe( ({name, el, target, source, sibling, sourceModel, targetModel, item}) => this.onDragulaDrop(name, el, target, source, sibling, sourceModel, targetModel, item) );
+    this.dragulaDroppedSubscription = this.dragulaService.drop('first-bag').subscribe( ({ name, el, target, source, sibling }) => this.onDragulaDrop(name, el, target, source, sibling) );
+    this.dragStartSubscription = this.dragulaService.drag('first-bag').subscribe( () => this.isDragging = true );
+    this.dragEndSubscription = this.dragulaService.dragend('first-bag').subscribe( () => this.isDragging = false );
 
   }
 
@@ -233,6 +281,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.dragStartSubscription.unsubscribe();
     this.dragEndSubscription.unsubscribe();
     this.noopCollectionSubscription.unsubscribe();
+    this.dragulaService.destroy('first-bag');
   }
 
 
@@ -286,23 +335,31 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     // triggered by update of collections
 
     if (Object.keys(collections).length === 0) {
-      // return;
+      // if there are no collections, enter this block;
       this.collections = [];
       this.origCollections = {};
       this.filterChanged();
       return;
     }
 
+    // we have collections - yay
+
+    Object.keys(collections).forEach( (id) => {
+      // only keep collections for which the preferences have its service enabled
+      let collection = collections[id];
+      if (this.preferences && this.preferences.serviceTypes[collection.serviceType] === false) {
+        delete collections[id];
+      }
+    });
+
     this.origCollections = collections;
+
     let tempCollections = [];
 
-    for (let c in collections) {
-      if (collections.hasOwnProperty(c)) {
-        let collection = collections[c];
-        // let option: SelectItem = { label: collection.name, value: collection.id };
-        tempCollections.push(collection);
-      }
-    }
+    Object.keys(collections).forEach( (c) => {
+      let collection = collections[c];
+      tempCollections.push(collection);
+    });
     this.collections = tempCollections;
     log.debug('CollectionsComponent: onCollectionsChanged(): collections update', this.collections);
     this.filterChanged();
@@ -313,19 +370,86 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  onDragulaDrop(bagName, el, target, source): void {
+  onDragulaDrop(bagName, el, target, source, sibling): void {
     // Save the order of collections to local storage
-    log.debug('CollectionsComponent: onDragulaDrop()');
-    if (this.collections.length === this.displayedCollections.length) {
-      // only do this if the user isn't filtering
-      let temp = [];
-      for (let i = 0; i < this.displayedCollections.length; i++) {
-        let collection = this.displayedCollections[i];
-        temp.push(collection.id);
-      }
-      // log.debug('CollectionsComponent: onDragulaDrop(): temp:', temp);
-      this.toolService.setPreference('collectionOrder', JSON.stringify(temp));
+
+    /*if (container === source) {
+      drake.cancel(true);
+    }*/
+
+    if (!this.droppedTargetCollectionId) {
+      return;
     }
+
+    log.debug('CollectionsComponent: onDragulaDrop()');
+
+    /*
+    console.log('el:', el);
+    console.log('source:', source);
+    console.log('target:', target);
+    console.log('sibling:', sibling);
+    */
+
+    if (this.collections.length !== this.displayedCollections.length) {
+      // only do this if the user isn't filtering
+      return;
+    }
+
+    // get collection id of dropped item
+    let collectionId = el.getAttribute('collectionId');
+    // log.debug('CollectionsComponent: onDragulaDrop(): collectionId:', collectionId);
+
+    // first we need to un-screw the view and move our other cells to where we dropped it
+    // select all elements in the row
+    // let collectionRowElements = this.collectionsTableRef.nativeElement.querySelectorAll(`[collectionId="${collectionId}"]`); // :not(.collectionName)
+    // console.log('collectionElements:', collectionRowElements);
+
+    // work out where to place the moved row
+    // log.debug('CollectionsComponent: onDragulaDrop(): droppedTargetCollectionId:', this.droppedTargetCollectionId);
+    let targetCollectionId = this.droppedTargetCollectionId;
+
+    // move the row
+    let tempDisplayedCollections: Collection[] = [];
+    if (targetCollectionId === collectionId) {
+      // nothing changed - just return;
+      return;
+    }
+    this.displayedCollections.forEach( (collection, i) => {
+      if (collection.id === collectionId) {
+        // do nothing - we'll insert it later
+        // console.log('got to 1');
+      }
+      else if (collection.id === targetCollectionId && i === 0) {
+        // console.log('got to 2');
+        tempDisplayedCollections.push(this.origCollections[collectionId]);
+        tempDisplayedCollections.push(collection);
+      }
+      else if (collection.id === targetCollectionId && i !== 0) {
+        // console.log('got to 3');
+        tempDisplayedCollections.push(collection);
+        tempDisplayedCollections.push(this.origCollections[collectionId]);
+      }
+      else {
+        // console.log('got to 4');
+        tempDisplayedCollections.push(collection);
+      }
+    });
+    // log.debug('CollectionsComponent: onDragulaDrop(): tempDisplayedCollections:', tempDisplayedCollections);
+    this.displayedCollections = tempDisplayedCollections;
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+    let tempCollectionOrder = [];
+    this.displayedCollections.forEach( collection => tempCollectionOrder.push(collection.id));
+    // log.debug('CollectionsComponent: onDragulaDrop(): tempCollectionOrder:', tempCollectionOrder);
+    this.toolService.setPreference('collectionOrder', JSON.stringify(tempCollectionOrder));
+
+  }
+
+
+
+
+  myDropModelFunc($event) {
+    log.debug('CollectionsComponent: myDropModelFunc()');
   }
 
 
@@ -475,7 +599,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     log.debug('CollectionsComponent: onGetCollectionDataAgain()');
     if (!this.toolService.selectedCollection || (this.toolService.selectedCollection && !( this.toolService.selectedCollection.id in this.origCollections) ) ) {
       // selectedCollection should only ever be undefined if we close the window on first load without ever selecting a collection...
-      // we need the second clause in case we delete a collection and switch views.  It will try to reload the deleted collection...
+      // we need the second clause in case we delete a collection and switch views.  It would otherwise try to reload the deleted collection...
       // resulting in a server crash
       return;
     }
@@ -510,35 +634,49 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
   public filterChanged(): void {
     log.debug('CollectionsComponent: filterChanged(): filterText:', this.filterText);
+
     if (this.filterText === '') {
+      // enter this block if no filterText is defined
+
       // this.displayedCollections = this.collections;
       // log.debug('origCollections:', this.origCollections);
 
       let collectionOrder = JSON.parse(this.toolService.getPreference('collectionOrder'));
       let temp = [];
       let tempFound = {};
-      if (collectionOrder) {
-        for (let i = 0; i < collectionOrder.length; i++) {
-          let id = collectionOrder[i];
+
+      if (!collectionOrder) {
+        // no pre-establish collection order exists, so just set displayedCollections to the list of collections
+        this.displayedCollections = this.collections;
+      }
+
+      else {
+        // build the collection list from the pre-established collection order
+
+        // first, get the collections which are defined in the order
+        collectionOrder.forEach( (id) => {
           if (id in this.origCollections) {
             temp.push(this.origCollections[id]);
             tempFound[id] = null;
           }
-        }
-        for (let i = 0; i < this.collections.length; i++) {
-          let collection = this.collections[i];
+        });
+
+        // now add in any collections which aren't already defined in the order
+        this.collections.forEach( (collection) => {
           if (!(collection.id in tempFound)) {
             temp.push(collection);
           }
-        }
+        });
+
+        // finish by setting this.displayedCollections to our temp list
         this.displayedCollections = temp;
       }
-      else {
-        this.displayedCollections = this.collections;
-      }
+
       this.filterEnabled = false;
     }
+
     else {
+      // enter this block if the user has entered filter text
       let tempCollections: Collection[] = [];
       for (let i = 0; i < this.collections.length; i++) {
         let collection = this.collections[i];
@@ -549,6 +687,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       this.displayedCollections = tempCollections;
       this.filterEnabled = true;
     }
+
     if (!this.showFixed || !this.showRolling || !this.showMonitoring) {
       // apply collection type mask
       this.filterEnabled = true;

@@ -33,7 +33,7 @@
               "node_modules/primeicons/primeicons.css",
               "node_modules/primeng/resources/themes/nova-light/theme.css",
               "node_modules/primeng/resources/primeng.min.css",
-              "node_modules/dragula/dist/dragula.css",
+              "node_modules/@kensingtontech/dragula/dist/dragula.css",
               "src/styles.scss",
               "src/layout.scss"
             ],

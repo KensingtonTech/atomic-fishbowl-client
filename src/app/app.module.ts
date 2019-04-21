@@ -126,7 +126,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   MatButtonModule,
                   MatToolbarModule,
                   FlexLayoutModule,
-                  DragulaModule,
+                  DragulaModule.forRoot(),
                   PdfViewerModule,
                   MenuModule,
                   RouterModule.forRoot([

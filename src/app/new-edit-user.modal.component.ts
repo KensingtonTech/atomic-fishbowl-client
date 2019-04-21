@@ -64,7 +64,7 @@ declare var log: Logger;
             </tr>
           </table>
 
-          <mat-checkbox type="checkbox" formControlName="userEnabled">Enabled</mat-checkbox>
+          <mat-checkbox formControlName="userEnabled" [indeterminate]="false" (change)="onUserEnabledChanged($event)">Enabled</mat-checkbox>
 
           <mat-card-actions align="end">
             <button mat-button type="submit" [disabled]="!addUserForm.valid">SAVE</button> <button mat-button type="button" (click)="onCloseClicked()">CANCEL</button>
@@ -255,10 +255,13 @@ export class NewEditUserModalComponent implements OnInit {
       fullname: this.addUserForm.value.fullname,
       password: encPassword,
       email: this.addUserForm.value.email,
-      enabled: this.addUserForm.value.enabled
+      enabled: this.addUserForm.value.userEnabled
     };
     log.debug('NewEditUserModalComponent: addUserSubmit(): newUser:', newUser);
-    this.addUserForm.patchValue({
+    await this.dataService.addUser(newUser);
+    this.modalService.close(this.id);
+    this.zone.runOutsideAngular( () => setTimeout( () => this.addUserForm.patchValue({
+      // wait for modal to fade out before resetting the values
       username: '',
       email: '',
       fullname: '',
@@ -267,9 +270,7 @@ export class NewEditUserModalComponent implements OnInit {
         passwordConfirm: ''
       },
       userEnabled: true
-    });
-    await this.dataService.addUser(newUser);
-    this.modalService.close(this.id);
+    }), 260) );
   }
 
 
@@ -301,7 +302,7 @@ export class NewEditUserModalComponent implements OnInit {
 
 
 
-  editUserSubmit(form: any): void {
+  async editUserSubmit(form: any) {
     log.debug('NewEditUserModalComponent: editUserSubmit(): form:', form);
     let updatedUser: User = new User;
     updatedUser.id = this.editingUser.id;
@@ -317,7 +318,7 @@ export class NewEditUserModalComponent implements OnInit {
       updatedUser.password = encPassword;
     }
     log.debug('NewEditUserModalComponent: editUserSubmit(): updatedUser:', updatedUser);
-    this.dataService.updateUser(updatedUser);
+    await this.dataService.updateUser(updatedUser);
     this.modalService.close(this.id);
   }
 
