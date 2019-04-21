@@ -32,20 +32,28 @@ interface TableEntry {
     <ng-container *ngIf="displayTextArea">
 
       <!--NetWitness Tile Overlay-->
-      <ng-container *ngIf="serviceType == 'nw'" >
+      <ng-container *ngIf="serviceType === 'nw'; else saOverlay">
+
+        <!-- time -->
         <div class="selectable masonryTileTime">
           {{session.meta['time'] | formatTime}}
         </div>
+
+        <!-- file icons and session id -->
         <div class="selectable masonryTileSessionID">
-          {{session.id}}
+          <span style="vertical-align: top; color: white; background-color: rgba(0,0,0,0.75);">{{session.id}}</span>
+          <ng-container *ngTemplateOutlet="fileIcons"></ng-container>
         </div>
+
+        <!-- network info -->
         <div class="selectable masonryTileNetworkInfo">
           {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
         </div>
+
       </ng-container>
 
       <!--SA Tile Overlay-->
-      <ng-container *ngIf="serviceType == 'sa'">
+      <ng-template #saOverlay>
         <div class="selectable masonryTileTime">
           {{session.meta['stop_time'] | formatSaTime}}
         </div>
@@ -55,24 +63,26 @@ interface TableEntry {
         <div class="selectable masonryTileNetworkInfo">
           {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
         </div>
-      </ng-container>
+      </ng-template>
 
-      <!-- file type icon overlay -->
-      <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" class="selectable masonryFileTypeIcon">
-        <i *ngIf="content.fromArchive || content.isArchive" class="fa fa-file-archive-o fa-2x"></i>
-        <ng-container [ngSwitch]="content.contentType">
-          <i *ngSwitchCase="'encryptedZipEntry'" class="fa fa-lock fa-2x"></i>
-          <i *ngSwitchCase="'unsupportedZipEntry'" class="fa fa-lock fa-2x"></i>
-          <i *ngSwitchCase="'encryptedRarEntry'" class="fa fa-lock fa-2x"></i>
-          <i *ngSwitchCase="'encryptedRarTable'" class="fa fa-lock fa-2x"></i>
-          <i *ngSwitchCase="'pdf'" class="fa fa-file-pdf-o fa-2x"></i>
-          <i *ngSwitchCase="'office'" [class.fa-file-word-o]="content.contentSubType == 'word'" [class.fa-file-excel-o]="content.contentSubType == 'excel'" [class.fa-file-powerpoint-o]="content.contentSubType == 'powerpoint'" class="fa fa-2x"></i>
-        </ng-container>
-      </div>
+      <ng-template #fileIcons>
+        <!-- file type icon overlay -->
+        <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" class="selectable masonryFileTypeIcon">
+          &nbsp;
+          <!-- file archive icon - must be separate from regular icon -->
+          <ng-container *ngIf="content.fromArchive || content.isArchive"><i class="fa fa-file-archive-o fa-2x"></i></ng-container>
+
+          <!-- regular file type icon -->
+          <i *ngIf="content.contentType == 'pdf' || content.contentType == 'office'" class="fa fa-2x" [class.fa-lock]="['encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarEntry', 'encryptedRarTable'].includes(content.contentType)" [class.fa-file-pdf-o]="content.contentType === 'pdf'" [class.fa-file-word-o]="content.contentType === 'office' && content.contentSubType === 'word'" [class.fa-file-excel-o]="content.contentType === 'office' && content.contentSubType === 'excel'" [class.fa-file-powerpoint-o]="content.contentType === 'office' && content.contentSubType === 'powerpoint'"></i>
+
+        </div>
+      </ng-template>
+
+
+      <!-- the image itself -->
+      <img #image class="separator" (load)="onImageLoaded()" (error)="onImageError()" [ngClass]="extraClass" [src]="imageSource" draggable="false">
+
     </ng-container>
-
-    <!-- the image itself -->
-    <img #image class="separator" (load)="onImageLoaded()" (error)="onImageError()" [ngClass]="extraClass" [src]="imageSource" draggable="false">
 
   </div>
 

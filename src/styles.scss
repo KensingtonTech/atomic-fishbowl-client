@@ -663,8 +663,8 @@ masonry-tile {
     position: absolute;
     top: 0.263157895em; // 5px
     right: 0.263157895em; // 5px
-    background-color: rgba(0,0,0,0.75);
-    color: white;
+    // background-color: rgba(0,0,0,0.75);
+    // color: white;
     border-radius: 0.263157895em; // 5px
     padding: 0.105263158em; // 2px
   }
@@ -680,14 +680,20 @@ masonry-tile {
   }
 
   .masonryFileTypeIcon {
-    position: absolute;
-    bottom: 0.263157895em; // 5px
-    right: 0.263157895em; // 5px
-    background-color: rgba(0,0,0,0.75);
-    color: white;
-    border-radius: 0.263157895em; // 5px
-    padding: 0.105263158em; // 2px
+    // position: absolute;
+    // bottom: 0.263157895em; // 5px
+    // right: 0.263157895em; // 5px
+    display: inline-block;
+   
+    > i {
+      background-color: rgba(0,0,0,0.75);
+      color: white;
+      border-radius: 0.263157895em; // 5px
+      padding: 0.105263158em; // 2px
+    }
+
   }
+
 }
 
 
