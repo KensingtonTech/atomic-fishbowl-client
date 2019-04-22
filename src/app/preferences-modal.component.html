@@ -1,32 +1,34 @@
 <modal id="{{id}}" (closed)="onClose()" background="true" modalClass="preferences-modal" bodyClass="preferences-modal-body">
 
-      <h2 class="noselect" style="margin-top: 0; margin-bottom: 0.526315789em;">Preferences</h2>
-      <form #preferencesForm="ngForm" (ngSubmit)="onSubmitPreferences()" novalidate>
+  <div style="position: relative;">
 
-      <p-tabView [activeIndex]="selectedTabIndex">
+    <h2 class="noselect" style="margin-top: 0; margin-bottom: 0.526315789em;">Preferences</h2>
 
-          <p-tabPanel header="User" headerStyleClass="noselect nooutline">
-              <table style="width: 100%">
-    
-                <tr>
-                  <td>
-                    <b>Masonry Column Width</b>
-                  </td>
-                  <td>
-                    <input pInputText type="number" name="masonryColumnWidth" [(ngModel)]="masonryColumnWidth" min="100" max="9999" required> pixels
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <b>Masonry Autoscroll Speed</b>
-                  </td>
-                  <td>
-                    <input pInputText type="number" name="autoScrollSpeed" [(ngModel)]="autoScrollSpeed" min="100" max="999" required> pixels per second
-                  </td>
-                </tr>
-    
-              </table>
-            </p-tabPanel>
+    <div class="tabViewContainer" style="position: relative;">
+      <p-tabView [activeIndex]="selectedTabIndex" [style]="{ 'position': 'absolute', 'top': '0', 'bottom': '0', 'left': '0', 'right': '0' }">
+
+        <p-tabPanel header="User" headerStyleClass="noselect nooutline">
+          <table style="width: 100%;">
+
+            <tr>
+              <td>
+                <b>Masonry Column Width</b>
+              </td>
+              <td>
+                <input pInputText type="number" name="masonryColumnWidth" [(ngModel)]="masonryColumnWidth" min="100" max="9999" required> pixels
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Masonry Autoscroll Speed</b>
+              </td>
+              <td>
+                <input pInputText type="number" name="autoScrollSpeed" [(ngModel)]="autoScrollSpeed" min="100" max="999" required> pixels per second
+              </td>
+            </tr>
+
+          </table>
+        </p-tabPanel>
 
         <p-tabPanel header="Global" headerStyleClass="noselect nooutline">
           <table style="width: 100%">
@@ -44,7 +46,7 @@
                 <b>Default Min. Dimensions</b>
               </td>
               <td>
-                <input pInputText type="number" name="minX" [(ngModel)]="preferencesModel.minX" min="0" max="9999" required> px width x &nbsp;<input type="number" name="minY" [(ngModel)]="preferencesModel.minY" min="0" max="9999" required> px height
+                <input pInputText type="number" name="minX" [(ngModel)]="preferencesModel.minX" min="0" max="9999" required> px width x &nbsp;<input pInputText type="number" name="minY" [(ngModel)]="preferencesModel.minY" min="0" max="9999" required> px height
               </td>
             </tr>
             <tr>
@@ -141,6 +143,9 @@
                 </tr>
 
                 <tr>
+                  <td colspan="2"><div style="border-bottom: .05em solid black; margin-top: 1em; margin-bottom: 1em;"></div></td>
+                </tr>
+                <tr>
                   <td>
                     <b>Summary Meta Keys</b><br><br>
                     <div class="wrap commentText">
@@ -151,6 +156,9 @@
                   <td>
                     <textarea name="nwDisplayedKeys" wrap="off" [(ngModel)]="displayedNwKeysString" style="width: 100%; height: 10.52631579em; resize: vertical;"></textarea>
                   </td>
+                </tr>
+                <tr>
+                  <td colspan="2"><div style="border-bottom: .05em solid black; margin-top: 1em; margin-bottom: 1em;"></div></td>
                 </tr>
                 <tr>
                   <td>
@@ -284,11 +292,16 @@
         </p-tabPanel>
 
       </p-tabView>
+    </div>
 
 
 
-      <div style="margin-top: 0.263157895em; float: right;">
+    <div class="okayButtons" style="margin-top: 0.263157895em;">
+      <div style="float: right;">
         <p-button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="submit" label="OK"></p-button>&nbsp;<p-button type="button" (onClick)="close()" label="Cancel"></p-button>
       </div>
-      </form>
+    </div>
+
+  </div>
+
 </modal>

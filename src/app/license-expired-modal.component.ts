@@ -6,7 +6,7 @@ import { ToolService } from 'services/tool.service';
     selector: 'license-expired-modal, licenseexpiredmodal',
     template: `
 
-<modal id="{{id}}" class="license-expired-modal" background="true" bodyClass="verfical-center" bodyStyle="width: 500px; background-color: rgba(255, 255, 255, 0.7);">
+<modal id="{{id}}" class="license-expired-modal" background="true" bodyClass="license-expired-modal-body modal-confirm">
 
   <p style="font-weight: bold;">The Atomic Fishbowl license has expired. Only previously-built fixed collections will be accessible until a full license has been purchased.</p>
 
@@ -15,10 +15,7 @@ import { ToolService } from 'services/tool.service';
   </div>
 
 </modal>
-    `,
-    styles: [`
-
-    `]
+    `
 })
 
 export class LicenseExpiredModalComponent {

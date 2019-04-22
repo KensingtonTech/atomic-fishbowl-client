@@ -60,12 +60,81 @@
 
 
 
+
+// License Expired Modal
+
+.license-expired-modal {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: 1fr auto 1fr;
+}
+
+
+
 // Preferences Modal
 
 .preferences-modal {
-  @extend .center-container;
-  // grid-template-rows: 1fr 30.7214453125em 1fr;
-  // grid-template-rows: 1fr 41.39310526em 1fr;`
+  // @extend .center-container;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(12, 1fr);
+  // grid-template-rows: 1fr 41.39310526em 1fr;
+
+  .preferences-modal-body {
+    grid-column: 6 / -6;
+    grid-row: 4 / -3;
+
+    @media #{$mq-medium} {
+      // 1024 - purple
+      grid-row: 2 / -2;
+      grid-column: 4 / -4;
+    }
+    @media #{$mq-large} {
+      // 1366 - green
+      grid-row: 2 / -3;
+    }
+    @media #{$mq-xlarge} {
+      // 1920 - blue
+      grid-row: 2 / -4;
+    }
+    @media #{$mq-2xlarge} {
+      // 2560 - yellow
+      grid-column: 5 / -5;
+      grid-row: 3 / -4;
+    }
+    @media #{$mq-3xlarge} {
+      // 3200 - red
+      grid-row: 3 / -4;
+    }
+    @media #{$mq-4xlarge} {
+      // 3360 - orange
+      grid-row: 3 / -5;
+    }
+    @media #{$mq-5xlarge} {
+      // 3840 - black
+      grid-row: 3 / -5;
+    }
+
+    > div {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1;
+      grid-template-rows: 2em auto 2em;
+      
+      h2 {
+        grid-row: 1;
+      }
+
+      .tabViewContainer {
+        grid-row: 2;
+      }
+
+      .okayButtons {
+        grid-row: 3;
+      }
+      
+    }
+  }
 }
 
 

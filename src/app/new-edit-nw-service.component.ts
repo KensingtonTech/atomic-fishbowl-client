@@ -86,7 +86,7 @@ declare var log: Logger;
           <mat-card-actions align="end">
 
             <!-- thumbs-up / thumbs-down icon -->
-            <div *ngIf="thumbClass" style="margin-left: 1em; margin-right: auto; line-height: 36px;">{{testError}} <i style="vertical-align: top;" [ngClass]="thumbClass" class="fa fa-lg"></i></div>
+            <div *ngIf="thumbClass" style="margin-left: 1em; margin-right: auto; line-height: 1.8em;">{{testError}} <i style="vertical-align: top;" [ngClass]="thumbClass" class="fa fa-lg"></i></div>
 
             <!-- test button -->
             <button mat-button type="button" (click)="onTestApiServerClicked()" [disabled]="!addServiceFormValid(addServiceForm) || testInProgress" color="accent">Test</button>

@@ -8,7 +8,6 @@ declare var log: Logger;
 @Component({
   selector: 'tab-container-modal',
   template: `
-<!-- position: relative; top: 40px; width: 90%; height: 1024px; max-height: 90%; -->
 <modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="true" modalClass="tab-container-modal" bodyClass="tab-container-modal-body" bodyStyle="background-color: white;">
 
       <p-tabView [activeIndex]="selectedTabIndex" (onChange)="onTabChange($event)">

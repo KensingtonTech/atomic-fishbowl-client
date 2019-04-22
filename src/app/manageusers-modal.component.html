@@ -19,16 +19,23 @@
 
       <ng-container *ngFor="let user of users; index as i; odd as odd">
 
+        <!-- enabled / disabled -->
         <div class="cell center" [class.evenRow]="!odd" [class.oddRow]="odd">
           <span [class.fa-ban]="!user.enabled" [class.fa-check]="user.enabled" class="fa"></span>
         </div>
 
+        <!-- actions -->
         <div class="center" [class.evenRow]="!odd" [class.oddRow]="odd">
-          <span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span>
+          <span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>
         </div>
         
+        <!-- username -->
         <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.username}}</div>
+
+        <!-- full name -->
         <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.fullname}}</div>
+
+        <!-- email -->
         <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.email}}</div>
 
       </ng-container>
@@ -36,26 +43,6 @@
     </div>
 
   </div>
-
-  <!--<table style="width: 100%;">
-    <tr>
-      <th align="left">Enabled</th>
-      <th align="left">User</th>
-      <th align="left">Full Name</th>
-      <th align="left">Email</th>
-      <th align="center">Actions</th>
-    </tr>
-    <tr *ngFor="let user of users" class="table-body">
-      <td>
-        <span *ngIf="!user.enabled" class="fa fa-ban" style="color: red;"></span>
-        <span *ngIf="user.enabled" class="fa fa-check" style="color: green;"></span>
-      </td>
-      <td>{{user.username}}</td>
-      <td>{{user.fullname}}</td>
-      <td>{{user.email}}</td>
-      <td align="center"><span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span></td>
-    </tr>
-  </table>-->
 
 </modal>
 <confirm-user-delete-modal [user]="userToDelete"></confirm-user-delete-modal>
