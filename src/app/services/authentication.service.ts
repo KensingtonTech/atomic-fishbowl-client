@@ -11,16 +11,6 @@ declare var log: Logger;
 
 export class AuthenticationService {
 
-  constructor(  private dataService: DataService,
-                private http: HttpClient,
-                private toolService: ToolService
-                ) {
-                  log.debug('AuthenticationService: constructor()');
-                  this.toolService.logout.subscribe( () => {
-                    this.logout();
-                  } );
-                }
-
   public loggedInChanged: Subject<boolean> = new Subject<boolean>();
   public loggedInUser: User;
   public clientSessionId: number;
@@ -28,7 +18,16 @@ export class AuthenticationService {
 
 
 
-  logout(): void {
+  constructor(  private dataService: DataService,
+                private http: HttpClient,
+                private toolService: ToolService ) {
+                  log.debug('AuthenticationService: constructor()');
+                  this.toolService.logout.subscribe( (socketId) => this.logout(socketId) );
+                }
+
+
+
+  logout(socketId): void {
     log.debug('AuthenticationService: logout(): logging out');
     if (!this.loggedIn) {
       log.debug('AuthenticationService: logout(): User already logged out; not trying again');
@@ -36,7 +35,7 @@ export class AuthenticationService {
     }
     this.dataService.leaveCollection();
     this.http
-        .get(this.dataService.apiUrl + '/logout' )
+        .get(this.dataService.apiUrl + '/logout?socketId=' + socketId )
         .toPromise()
         .catch( (error: HttpErrorResponse) => {
           if (error.status === 401) {
@@ -56,11 +55,11 @@ export class AuthenticationService {
 
 
 
-  login(user: User): Promise<boolean> {
+  login(user: User, socketId): Promise<boolean> {
     // called by login-form
     let headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
-                .post(this.dataService.apiUrl + '/login', user, { headers } )
+                .post(this.dataService.apiUrl + '/login?socketId=' + socketId, user, { headers } )
                 .toPromise()
                 .then( (response: any) => {
                   log.debug('AuthenticationService: login(): Got login response:', response);
@@ -68,7 +67,6 @@ export class AuthenticationService {
                   this.loggedInUser = response.user;
                   this.clientSessionId = response.sessionId;
                   this.toolService.clientSessionId.next(this.clientSessionId);
-                  this.dataService.start();
                   this.loggedInChanged.next(true);
                   return true;
                 })
@@ -86,11 +84,11 @@ export class AuthenticationService {
 
 
 
-  private checkWhetherLoggedIn(): Promise<boolean> {
+  private checkWhetherLoggedIn(socketId): Promise<boolean> {
     // only called by this.checkCredentials()
     log.debug('AuthenticationService: checkWhetherLoggedIn()');
     return this.http
-                .get(this.dataService.apiUrl + '/isloggedin' )
+                .get(this.dataService.apiUrl + '/isloggedin?socketId=' + socketId )
                 .toPromise()
                 .then( (res: any) => {
                   this.loggedIn = true;
@@ -112,15 +110,12 @@ export class AuthenticationService {
 
 
 
-  checkCredentials(startData = true): Promise<boolean> {
+  checkCredentials(socketId): Promise<boolean> {
     // called by app-component when first loading the app, after ping is successful
     log.debug('AuthenticationService: checkCredentials()');
-    return this.checkWhetherLoggedIn()
+    return this.checkWhetherLoggedIn(socketId)
                 .then( (result) => {
                   if (result === true) {
-                    if (startData) {
-                      this.dataService.start();
-                    }
                     this.loggedInChanged.next(true); // handled in AppComponent
                     return true;
                   }

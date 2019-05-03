@@ -429,6 +429,13 @@ body classic-grid-view {
     }
   }
 
+.classic-grid-container {
+  display: grid;
+  grid-template-columns: repeat(19, 126px);
+  grid-auto-rows: auto;
+}
+
+
 }
 
 

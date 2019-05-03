@@ -264,13 +264,13 @@ function getElementFontSize(element: Element) {
 
 
 
-export function convertEmRelativeToElement(value, element: Element) {
+export function convertEmRelativeToElement(value: number, element: Element) {
   return value * getElementFontSize(element);
 }
 
 
 
-export function convertRem(value) {
+export function convertRem(value: number) {
   return value * getRootElementFontSize();
 }
 

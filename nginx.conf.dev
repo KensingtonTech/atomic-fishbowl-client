@@ -1,14 +1,10 @@
 load_module "modules/ngx_http_auth_jwt_module.so";
 
 #user  nobody;
-#worker_processes  1;
 #worker_processes  4;
 worker_processes  auto;
 
-#error_log  logs/error.log;
-#error_log  logs/error.log  notice;
-#error_log  logs/error.log  info;
-error_log /opt/local/var/log/nginx/error.log info;
+error_log /opt/local/var/log/nginx/error.log warn;
 
 #pid        logs/nginx.pid;
 
@@ -51,11 +47,9 @@ http {
 
     server {
         #listen       80;
-        http2_max_requests 6000;
-        #http2_max_concurrent_streams 256;
+        http2_max_requests 1000000000;
         http2_max_concurrent_streams 1024;
         listen 443 ssl http2 default_server;
-        #listen 443 ssl default_server;
         ssl_certificate /etc/kentech/afb/certificates/ssl.cer;
         ssl_certificate_key /etc/kentech/afb/certificates/ssl.key;
 

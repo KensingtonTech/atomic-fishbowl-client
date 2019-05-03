@@ -50,19 +50,19 @@ export class LicensingPreferencesComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef) { }
 
-  private licensingChangedSubscription: Subscription;
   public license: License;
   public licenseValid: string;
+  private subscriptions = new Subscription;
 
 
   ngOnInit() {
-    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
+    this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) ));
   }
 
 
 
   ngOnDestroy() {
-    this.licensingChangedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

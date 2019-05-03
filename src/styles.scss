@@ -1,5 +1,6 @@
 @import "media-queries.scss";
 @import '~@angular/material/theming';
+@import 'app/scrollpanel/scrollpanel.scss';
 
 $base-multiplier: .625;
 // $base-multiplier: 1;
@@ -879,11 +880,21 @@ toolbar-widget {
 
 ////////// Classic Tile //////////
 
+classic-tile.hidden {
+  display: none;
+}
+
 classic-tile {
 
   // this is one area we are not converting to em's for now as it is scaled by panzoom, so we don't need to muck with it
 
-  display: inline-block; // the inline context needs to be set on this element
+  // display: inline-block; // the inline context needs to be set on this element
+  display: block;
+
+  .hidden {
+    display: none;
+  }
+
 
   // $width: 6.105263158em;
   // $borderWidth: 0.157894737em;

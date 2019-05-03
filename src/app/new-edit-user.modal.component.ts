@@ -28,14 +28,14 @@ declare var log: Logger;
         <form [formGroup]="addUserForm" (ngSubmit)="addUserSubmit()" novalidate>
 
           <mat-form-field class="full-width">
-            <input #userInAdd matInput type="text" formControlName="username" placeholder="Username">
+            <input #userInAdd matInput type="text" formControlName="username" placeholder="Username" autocomplete="off">
             <mat-error *ngIf="addUserForm.controls['username'].hasError('spaceexists')">Spaces are not permitted in usernames</mat-error>
             <mat-error *ngIf="addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">User already exists</mat-error>
             <mat-error *ngIf="addUserForm.controls['username'].hasError('minlength') && !addUserForm.controls['username'].hasError('userexists') && !addUserForm.controls['username'].hasError('spaceexists')">Minimum username length is {{minUsernameLength}} characters</mat-error>
           </mat-form-field>
 
           <mat-form-field class="full-width">
-            <input matInput type="text" formControlName="fullname" placeholder="Full Name">
+            <input matInput type="text" formControlName="fullname" placeholder="Full Name" autocomplete="off">
           </mat-form-field>
 
           <mat-form-field class="full-width">
@@ -47,7 +47,7 @@ declare var log: Logger;
             <tr>
               <td>
                 <mat-form-field class="full-width">
-                  <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="addUserPasswordMatcher">
+                  <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="addUserPasswordMatcher" autocomplete="off">
                   <mat-error *ngIf="addUserForm.controls['passwords'].hasError('nomatch')">
                     Passwords do not match
                   </mat-error>
@@ -58,7 +58,7 @@ declare var log: Logger;
               </td>
               <td>
                 <mat-form-field class="full-width">
-                  <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                  <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password" autocomplete="off">
                 </mat-form-field>
               </td>
             </tr>
@@ -91,11 +91,11 @@ declare var log: Logger;
           </mat-form-field>
 
           <mat-form-field class="full-width">
-            <input #userInEdit matInput type="text" formControlName="fullname" placeholder="Full Name">
+            <input #userInEdit matInput type="text" formControlName="fullname" placeholder="Full Name" autocomplete="off">
           </mat-form-field>
 
           <mat-form-field class="full-width">
-            <input matInput type="email" formControlName="email" placeholder="Email">
+            <input matInput type="email" formControlName="email" placeholder="Email" autocomplete="off">
             <mat-error>Not a valid email address format</mat-error>
           </mat-form-field>
 
@@ -103,7 +103,7 @@ declare var log: Logger;
             <tr>
               <td>
                 <mat-form-field class="full-width">
-                  <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="editUserPasswordMatcher">
+                  <input matInput type="password" formControlName="password" placeholder="Password" [errorStateMatcher]="editUserPasswordMatcher" autocomplete="off">
                   <mat-error *ngIf="editUserForm.controls['passwords'].hasError('nomatch')">
                     Passwords do not match
                   </mat-error>
@@ -114,7 +114,7 @@ declare var log: Logger;
               </td>
               <td>
                 <mat-form-field class="full-width">
-                  <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password">
+                  <input matInput type="password" formControlName="passwordConfirm" placeholder="Confirm Password" autocomplete="off">
                 </mat-form-field>
               </td>
             </tr>

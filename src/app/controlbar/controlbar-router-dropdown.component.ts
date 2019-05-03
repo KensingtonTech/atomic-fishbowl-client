@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnInit, ElementRef, Output, EventEmitter, Renderer2 } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, ElementRef, Output, EventEmitter, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToolService } from 'services/tool.service';
 import { Logger } from 'loglevel';
@@ -36,7 +36,8 @@ export class RouterDropdownComponent implements OnInit {
   constructor(private router: Router,
               private toolService: ToolService,
               private changeDetectorRef: ChangeDetectorRef,
-              private el: ElementRef ) { }
+              private el: ElementRef,
+              private zone: NgZone ) { }
 
   private routerOptions: RouterOption[] = [
                                             {
@@ -118,7 +119,7 @@ export class RouterDropdownComponent implements OnInit {
       this.selectedRoute = e;
       this.selectionExpanded = false;
       // execute route
-      this.router.navigate([e.link]);
+      this.zone.run( () => this.router.navigate([e.link]));
       this.changeDetectorRef.markForCheck();
       this.toolService.loadCollectionOnRouteChange = true;
     }

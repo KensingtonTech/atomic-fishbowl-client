@@ -57,8 +57,8 @@ declare var log: Logger;
 
     <!-- Collection Time -->
     <span *ngIf="selectedCollection.type == 'rolling'" class="label">Last {{selectedCollection.lastHours}} Hours&nbsp;&nbsp;</span>
-    <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time1: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value selectable">{{selectedCollection.timeBegin | formatTime}}</span>&nbsp;
-    <span *ngIf="selectedCollection.type == 'fixed'" class="label">Time2: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value selectable">{{selectedCollection.timeEnd | formatTime}}</span>
+    <span *ngIf="selectedCollection.type == 'fixed'" class="label">Begin: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value selectable">{{selectedCollection.timeBegin | formatTime}}</span>&nbsp;
+    <span *ngIf="selectedCollection.type == 'fixed'" class="label">End: </span><span *ngIf="selectedCollection.type == 'fixed'" class="value selectable">{{selectedCollection.timeEnd | formatTime}}</span>
 
   </ng-container>
 
@@ -103,7 +103,7 @@ declare var log: Logger;
       <span (click)="preferencesButtonClick()" class="fa fa-cog fa-lg" pTooltip="Global preferences" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
       <span (click)="accountsButtonClick()" class="fa fa-users fa-lg" pTooltip="Manage users" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
       <span (click)="helpButtonClick()" class="fa fa-question fa-lg" pTooltip="About Atomic Fishbowl" escape="false" showDelay="750" tooltipPosition="bottom"></span>&nbsp;
-      <span (click)="logoutButtonClick()" class="fa fa-sign-out fa-lg" pTooltip="Logout" escape="false" showDelay="750" tooltipPosition="left"></span>&nbsp;&nbsp;
+      <span (click)="onLogoutButtonClick()" class="fa fa-sign-out fa-lg" pTooltip="Logout" escape="false" showDelay="750" tooltipPosition="left"></span>&nbsp;&nbsp;
 
     </span>
 </div>
@@ -160,14 +160,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
 
   // Subscriptions
-  private collectionStateChangedSubscription: Subscription;
-  private errorPublishedSubscription: Subscription;
-  private queryResultsCountUpdatedSubscription: Subscription;
-  private useCasesChangedSubscription: Subscription;
-  private selectedCollectionChangedSubscription: Subscription;
-  private workerProgressSubscription: Subscription;
-  private licensingChangedSubscription: Subscription;
-  private noopCollectionSubscription: Subscription;
+  private subscriptions = new Subscription;
 
   ngOnInit(): void {
 
@@ -175,35 +168,28 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
     // take subscriptions
 
-    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (state: string) => this.onCollectionStateChanged(state) );
+    this.subscriptions.add(this.dataService.collectionStateChanged.subscribe( (state: string) => this.onCollectionStateChanged(state) ));
 
-    this.errorPublishedSubscription = this.dataService.errorPublished.subscribe( (e: string) => this.errorMessage = e );
+    this.subscriptions.add(this.dataService.errorPublished.subscribe( (e: string) => this.errorMessage = e ));
 
-    this.queryResultsCountUpdatedSubscription = this.dataService.queryResultsCountUpdated.subscribe( (count: number) => this.onQueryResultsCountUpdated(count) );
+    this.subscriptions.add(this.dataService.queryResultsCountUpdated.subscribe( (count: number) => this.onQueryResultsCountUpdated(count) ));
 
-    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (useCases: any) => this.onUseCasesChanged(useCases) );
+    this.subscriptions.add(this.dataService.useCasesChanged.subscribe( (useCases: any) => this.onUseCasesChanged(useCases) ));
 
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
+    this.subscriptions.add(this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) ));
 
-    this.noopCollectionSubscription = this.dataService.noopCollection.subscribe( () => this.onNoop() );
+    this.subscriptions.add(this.dataService.noopCollection.subscribe( () => this.onNoop() ));
 
-    this.workerProgressSubscription = this.dataService.workerProgress.subscribe( progress => this.onWorkerProgress(progress) );
+    this.subscriptions.add(this.dataService.workerProgress.subscribe( progress => this.onWorkerProgress(progress) ));
 
-    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
+    this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) ));
 
   }
 
 
 
   public ngOnDestroy() {
-    this.collectionStateChangedSubscription.unsubscribe();
-    this.errorPublishedSubscription.unsubscribe();
-    this.queryResultsCountUpdatedSubscription.unsubscribe();
-    this.useCasesChangedSubscription.unsubscribe();
-    this.selectedCollectionChangedSubscription.unsubscribe();
-    this.workerProgressSubscription.unsubscribe();
-    this.licensingChangedSubscription.unsubscribe();
-    this.noopCollectionSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 
@@ -536,9 +522,9 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
 
 
-  logoutButtonClick(): void {
-    // log.debug("ToolbarWidgetComponent: logoutButtonClick()");
-    this.toolService.logout.next();
+  onLogoutButtonClick(): void {
+    log.debug('ToolbarWidgetComponent: onLogoutButtonClick()');
+    this.toolService.logout.next(this.dataService.socketId);
   }
 
 

@@ -205,25 +205,22 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   ];
 
   // subscriptions
-  private addFeedNextSubscription: Subscription;
-  private editFeedNextSubscription: Subscription;
-  private reOpenTabsModalSubscription: Subscription;
-  private feedsChangedSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
   ngOnInit(): void {
     log.debug('FeedWizardComponent: ngOnInit()');
 
-    this.addFeedNextSubscription = this.toolService.addFeedNext.subscribe( () => this.editing = false );
+    this.subscriptions.add(this.toolService.addFeedNext.subscribe( () => this.editing = false ));
 
-    this.editFeedNextSubscription = this.toolService.editFeedNext.subscribe( (feed) => {
+    this.subscriptions.add(this.toolService.editFeedNext.subscribe( (feed) => {
       this.editing = true;
       this.feed = feed;
-     } );
+     } ));
 
-    this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( TorF => this.reOpenTabsModal = TorF );
+     this.subscriptions.add(this.toolService.reOpenTabsModal.subscribe( TorF => this.reOpenTabsModal = TorF ));
 
-    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: any) => {
+     this.subscriptions.add(this.dataService.feedsChanged.subscribe( (feeds: any) => {
       let temp = {};
       for (let c in feeds) {
         if (feeds.hasOwnProperty(c)) {
@@ -232,7 +229,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
       this.feedNames = temp;
-    } );
+    } ));
 
   }
 
@@ -247,10 +244,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   ngOnDestroy(): void {
-    this.addFeedNextSubscription.unsubscribe();
-    this.editFeedNextSubscription.unsubscribe();
-    this.reOpenTabsModalSubscription.unsubscribe();
-    this.feedsChangedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

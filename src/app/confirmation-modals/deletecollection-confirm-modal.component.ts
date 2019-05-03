@@ -31,15 +31,15 @@ export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy 
               private toolService: ToolService ) {}
 
   public id = this.toolService.confirmCollectionDeleteModalId;
-  private deleteCollectionNextSubscription: Subscription;
   public collection: Collection;
+  private subscriptions = new Subscription;
 
   ngOnInit(): void {
-    this.deleteCollectionNextSubscription = this.toolService.deleteCollectionNext.subscribe( (collection: Collection) => this.collection = collection );
+    this.subscriptions.add(this.toolService.deleteCollectionNext.subscribe( (collection: Collection) => this.collection = collection ));
   }
 
   ngOnDestroy(): void {
-    this.deleteCollectionNextSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   deleteConfirmed(): void {

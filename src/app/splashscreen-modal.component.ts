@@ -43,7 +43,7 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
   private closeTimeout: any;
   public firstLoad = this.toolService.firstLoad;
 
-  private serverVersionSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
   ngOnInit(): void {
@@ -51,14 +51,14 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
 
     this.version = `${buildProperties.major}.${buildProperties.minor}.${buildProperties.patch}.${buildProperties.build}-${buildProperties.level}`;
 
-    this.serverVersionSubscription = this.dataService.serverVersionChanged.subscribe( version => this.onServerVersionChanged(version) );
+    this.subscriptions.add(this.dataService.serverVersionChanged.subscribe( version => this.onServerVersionChanged(version) ));
 
   }
 
 
 
   ngOnDestroy(): void {
-    this.serverVersionSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

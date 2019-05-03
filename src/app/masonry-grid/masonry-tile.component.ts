@@ -7,7 +7,6 @@ import * as utils from '../utils';
 import { Logger } from 'loglevel';
 import { DataService } from 'services/data.service';
 import { Meta } from 'types/meta';
-import { AuthenticationService } from 'services/authentication.service';
 declare var log: Logger;
 
 interface MasonryKey {
@@ -78,11 +77,10 @@ interface TableEntry {
         </div>
       </ng-template>
 
-
-      <!-- the image itself -->
-      <img #image class="separator" (load)="onImageLoaded()" (error)="onImageError()" [ngClass]="extraClass" [src]="imageSource" draggable="false">
-
     </ng-container>
+
+    <!-- the image itself -->
+    <img #image class="separator" (load)="onImageLoaded()" (error)="onImageError()" [ngClass]="extraClass" [src]="imageSource" draggable="false">
 
   </div>
 
@@ -198,7 +196,6 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
                 private el: ElementRef,
                 private zone: NgZone,
                 private isotopeBrick: IsotopeBrickDirective,
-                private authService: AuthenticationService,
                 @Inject(forwardRef(() => MasonryGridComponent)) private parent: MasonryGridComponent ) {}
 
   public utils = utils;
@@ -215,24 +212,22 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
   public session; // holds meta, among other things
   public displayTextArea = true;
-  private originalSession: any; // Session data that hasn't been de-duped
-  private showMasonryTextAreaSubscription: Subscription;
   private masonryMeta = [];
   public imageSource: string;
   public extraClass: string;
   public textAreaList: string[] = [];
   public textAreaTableItems: TableEntry[] = [];
   public loadImage = false;
+  private subscriptions = new Subscription;
 
 
 
   ngOnInit(): void {
     // log.debug('MasonryTileComponent: ngOnInit()');
     this.displayTextArea = this.toolService.showMasonryTextAreaState;
-    this.showMasonryTextAreaSubscription = this.toolService.showMasonryTextArea.subscribe( (TorF) => this.onToggleTextArea(TorF) );
+    this.subscriptions.add(this.toolService.showMasonryTextArea.subscribe( (TorF) => this.onToggleTextArea(TorF) ));
 
     let parentSession = this.parent.sessions[this.sessionId];
-    this.originalSession = utils.deepCopy(parentSession);
 
     let session = { meta: {}, id: this.sessionId };
     for (let key in parentSession.meta) {
@@ -372,7 +367,7 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
 
   ngOnDestroy(): void {
-    this.showMasonryTextAreaSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 
@@ -401,14 +396,13 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
     // we should load an error image here
     this.imageSource = '/resources/error_icon.png';
     this.changeDetectionRef.reattach();
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
-    this.changeDetectionRef.detach();
+    setTimeout( () => this.changeDetectionRef.detach(), 0);
+    // this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.detectChanges();
     let event = new Event('onloaded');
     this.zone.runOutsideAngular( () => {
-        this.el.nativeElement.dispatchEvent(event);
+      this.el.nativeElement.dispatchEvent(event);
     });
-    await this.authService.checkCredentials(false); // check credentials and logout if not logged in if we start getting errors due to auth, since we can't catch the error code
   }
 
 

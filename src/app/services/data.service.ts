@@ -20,19 +20,6 @@ declare var log: Logger;
 
 export class DataService { // Manages NwSession objects and also Image objects in grid and the image's association with Session objects.  Adds more objects as they're added
 
-  constructor(
-    private http: HttpClient,
-    private toolService: ToolService,
-    private zone: NgZone ) {
-    log.debug('DataService: constructor()');
-    this.toolService.clientSessionId.subscribe( (clientSessionId: number) => {
-      log.debug(`DataService: clientSessionIdSubscription(): got clientSessionId: ${clientSessionId}`);
-      this.clientSessionId = clientSessionId;
-    });
-  }
-
-
-
   private serverSocket: any;
   private collectionsRoom: any;
 
@@ -63,6 +50,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public serverVersionChanged: BehaviorSubject<string> = new BehaviorSubject<string>(null);
   public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
   public licensingChanged: BehaviorSubject<License> = new BehaviorSubject<License>(null);
+  public loggedOutByServer: Subject<void> = new Subject<void>();
+  public socketConnected: BehaviorSubject<any> = new BehaviorSubject<any>({connected: null, socketId: null});
 
 
   // Properties
@@ -70,40 +59,94 @@ export class DataService { // Manages NwSession objects and also Image objects i
   public clientSessionId: number;
   public encryptor: any;
   private pubKey: string;
-  private running = false;
+  private authenticated = false;
   private blobTable: BlobTable = {};
+  public socketId;
+
+
+
+  constructor(
+    private http: HttpClient,
+    private toolService: ToolService,
+    private zone: NgZone ) {
+    log.debug('DataService: constructor()');
+    this.toolService.clientSessionId.subscribe( (clientSessionId: number) => {
+      log.debug(`DataService: clientSessionIdSubscription(): got clientSessionId: ${clientSessionId}`);
+      this.clientSessionId = clientSessionId;
+    });
+
+
+    // new init protocol
+    this.zone.runOutsideAngular( () => {
+      this.serverSocket = io();
+
+      this.serverSocket.on('connect', () => {
+        log.debug('Socket.io connected to server');
+        this.socketConnected.next({ connected: true, socketId: this.serverSocket.id });
+        this.socketId = this.serverSocket.id;
+        log.debug('DataService: socketId:', this.socketId);
+      });
+
+      this.serverSocket.on('serverVersion', version => this.onServerVersionUpdate(version) );
+      this.serverSocket.on('socketUpgrade',  () => this.onSocketUpgrade() );
+      this.serverSocket.on('socketDowngrade',  () => this.onSocketDowngrade() );
+
+      this.serverSocket.on('disconnect', reason => {
+        log.debug('serverSocket was disconnected with reason:', reason);
+        /*if (reason === 'io server disconnect') {
+          // the server disconnected us forcefully.  maybe due to logout or token timeout
+          // start trying to reconnect
+          // this will repeat until successful
+          this.serverSocket.open();
+        }*/
+        // server should never forcefully disconnect under the new protocol
+        // if (reason === 'ping timeout') {
+          this.socketConnected.next({ connected: false, socketId: null });
+          this.onSocketDowngrade();
+        // }
+      } );
+    });
+
+  }
 
 
 
 
-  public start() {
+  public onSocketUpgrade() {
     // Run by authentication service after successful credentials check
-    log.debug('DataService: start()');
+    log.debug('DataService: onSocketUpgrade()');
 
     this.encryptor = new JSEncrypt();
 
     this.zone.runOutsideAngular( () => {
 
-      if (!this.serverSocket) {
+      /*if (!this.serverSocket) {
         this.serverSocket = io();
       }
       else {
         this.serverSocket.open();
-      }
+      }*/
+      // socket will always be connected now
+
 
       // Subscribe to socket events
-      this.serverSocket.on('disconnect', reason => {
-        // log.debug('Server disconnected serverSocket with reason:', reason);
+      /*this.serverSocket.on('disconnect', reason => {
+        log.debug('serverSocket was disconnected with reason:', reason);
         if (reason === 'io server disconnect') {
           // the server disconnected us forcefully.  maybe due to logout or token timeout
           // start trying to reconnect
           // this will repeat until successful
           this.serverSocket.open();
         }
-      } );
+        if (reason === 'ping timeout') {
+          this.socketConnected.next(false);
+        }
+      } );*/
 
-      this.serverSocket.on('connect', socket => {
-        log.debug('Socket.io connected to server' );
+      // this.serverSocket.on('connect', socket => {
+        // log.debug('Socket.io connected to server' );
+        // this.socketConnected.next(true);
+
         if (!this.collectionsRoom) {
           this.collectionsRoom = io('/collections' );
         }
@@ -121,8 +164,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
         this.collectionsRoom.on('purge', (collectionPurge) => this.sessionsPurged.next(collectionPurge) );
         this.collectionsRoom.on('clear', () => {
           this.sessionsReplaced.next( {} );
-          this.searchReplaced.next( [] );
           this.contentReplaced.next( [] );
+          this.searchReplaced.next( [] );
         } );
         this.collectionsRoom.on('update', (update) => {
           // log.debug('DataService: got update:', update);
@@ -152,11 +195,10 @@ export class DataService { // Manages NwSession objects and also Image objects i
         this.collectionsRoom.on('content', (content) => this.contentReplaced.next(content) );
         this.collectionsRoom.on('searches', (searches) => this.searchReplaced.next(searches) );
         this.collectionsRoom.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
-      });
+      // });
 
       this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
       this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
-      this.serverSocket.on('serverVersion', version => this.onServerVersionUpdate(version) );
       this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
       this.serverSocket.on('nwservers', apiServers => this.onNwServersUpdate(apiServers) );
       this.serverSocket.on('saservers', apiServers => this.onSaServersUpdate(apiServers) );
@@ -165,23 +207,23 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.serverSocket.on('users', users => this.onUsersUpdate(users) );
       this.serverSocket.on('useCases', useCases => this.onUseCasesUpdate(useCases) );
       this.serverSocket.on('license', license => this.onLicenseChanged(license) );
-      this.serverSocket.on('logout', () => this.onLogoutMessageReceived() ); // TODO: triggered by the socket when our validity expires
+      this.serverSocket.on('logout', (reason => this.onLogoutMessageReceived(reason) ) ); // TODO: triggered by the socket when our validity expires
       this.serverSocket.on('collectionDeleted', (details: CollectionDeletedDetails) => this.collectionDeleted.next(details) );
 
-      this.running = true;
+      // instruct server to send data
+      this.serverSocket.emit('clientReady');
     });
 
   }
 
 
 
-  public stop() {
-    if (!this.running) {
-      return;
-    }
-    log.debug('DataService: stop()');
+  // public stop() {
+  public onSocketDowngrade() {
+    log.debug('DataService: onSocketDowngrade()');
+
     // clear application state to prevent prying
-    this.running = false;
+    this.authenticated = false;
     this.encryptor = null;
     this.pubKey = null;
     this.monitoringCollectionPause.next(false);
@@ -192,15 +234,11 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.feedsChanged.next({});
     this.feedStatusChanged.next({});
     this.usersChanged.next({});
-    this.serverVersionChanged.next(null);
     this.useCasesChanged.next({useCases: [], useCasesObj: {} });
 
-    // We must disconnect sockets when a user logs out
-    this.serverSocket.off('disconnect');
-    this.serverSocket.off('connect');
+    // We must disconnect events when a user logs out
     this.serverSocket.off('preferences');
     this.serverSocket.off('collections');
-    this.serverSocket.off('serverVersion');
     this.serverSocket.off('publicKey');
     this.serverSocket.off('nwservers');
     this.serverSocket.off('saservers');
@@ -210,21 +248,23 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.serverSocket.off('useCases');
     this.serverSocket.off('logout');
 
-    // Turn off collection socket events
-    this.collectionsRoom.off('connect');
-    this.collectionsRoom.off('disconnect');
-    this.collectionsRoom.off('state');
-    this.collectionsRoom.off('purge');
-    this.collectionsRoom.off('deleted');
-    this.collectionsRoom.off('clear');
-    this.collectionsRoom.off('update');
-    this.collectionsRoom.off('sessions');
-    this.collectionsRoom.off('content');
-    this.collectionsRoom.off('searches');
-    this.collectionsRoom.off('paused');
+    if (this.collectionsRoom) {
+      // Turn off collection socket events
+      // we should only not enter this block if we never logged in
+      this.collectionsRoom.off('connect');
+      this.collectionsRoom.off('disconnect');
+      this.collectionsRoom.off('state');
+      this.collectionsRoom.off('purge');
+      this.collectionsRoom.off('deleted');
+      this.collectionsRoom.off('clear');
+      this.collectionsRoom.off('update');
+      this.collectionsRoom.off('sessions');
+      this.collectionsRoom.off('content');
+      this.collectionsRoom.off('searches');
+      this.collectionsRoom.off('paused');
 
-    this.collectionsRoom.close();
-    this.serverSocket.close();
+      this.collectionsRoom.close();
+    }
 
     this.resetBlobs();
   }
@@ -307,9 +347,12 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  onLogoutMessageReceived() {
+  onLogoutMessageReceived(reason) {
     log.debug('DataService: onLogoutMessageReceived()');
-    this.toolService.logout.next();
+    if (reason === 'token expired') {
+      this.toolService.logout.next(this.socketId);
+      this.loggedOutByServer.next();
+    }
   }
 
 
@@ -447,6 +490,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
   getRollingCollection(collectionId: string): void {
+    log.debug('DataService: getRollingCollection(): joining room with id:', collectionId);
     // uses socket.io
     this.collectionsRoom.emit('join', { collectionId: collectionId, sessionId: this.clientSessionId });
   }
@@ -693,7 +737,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   handleError(error: HttpErrorResponse): any {
     if (error.status === 401) {
-      this.toolService.logout.next();
+      this.toolService.logout.next(this.socketId);
       // return Promise.reject(error.message || error);
     }
     else {

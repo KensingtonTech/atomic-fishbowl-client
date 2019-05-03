@@ -1,7 +1,6 @@
-﻿import { Component, ChangeDetectorRef, ElementRef, Input, Output, OnInit, OnDestroy, EventEmitter, ViewChild, SimpleChanges, Renderer2 } from '@angular/core';
+﻿import { Component, ChangeDetectorRef, ElementRef, Input, Output, OnInit, OnDestroy, EventEmitter, ViewChild, NgZone, Renderer2 } from '@angular/core';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { HostListener } from '@angular/core';
 import { ModalService } from './modal.service';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -40,11 +39,13 @@ declare var log: Logger;
 
 export class ModalComponent implements OnInit, OnDestroy {
 
-  constructor(  private modalService: ModalService,
+  constructor(
+    private modalService: ModalService,
     private el: ElementRef,
     private changeDetectionRef: ChangeDetectorRef,
     private renderer: Renderer2,
-    private sanitizer: DomSanitizer) { }
+    private sanitizer: DomSanitizer,
+    private zone: NgZone ) { }
 
   @ViewChild('modalRoot') modalRoot: ElementRef;
 
@@ -64,16 +65,19 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   public enabledTrigger = 'disabled';
   // public enabledTrigger = 'initial';
-
-
-  @HostListener('window:keydown', ['$event']) onEscape(event: KeyboardEvent ) {
-    // log.debug("keyup event:", event);
-    event.stopPropagation();
-    if (event.key === 'Escape' && this.enabledTrigger === 'enabled' && this.escapeEnabled === true) {
-      this.close();
+  private isOpen = false;
+  private _isFront = false;
+  set isFront(isFront) {
+    log.debug('ModalComponent: isFront(): id:', this.id);
+    log.debug('ModalComponent: isFront(): isFront:', isFront);
+    this._isFront = isFront;
+    if (isFront) {
+      this.zone.runOutsideAngular( () => document.addEventListener('keydown', this.onKeyPressed ));
+    }
+    else {
+      document.removeEventListener('keydown', this.onKeyPressed );
     }
   }
-
 
 
   ngOnInit(): void {
@@ -103,6 +107,7 @@ export class ModalComponent implements OnInit, OnDestroy {
       this.el.nativeElement.removeEventListener('click', this.onClickOutside);
     }
     document.body.removeChild(this.el.nativeElement);
+    document.removeEventListener('keydown', this.onKeyPressed );
   }
 
 
@@ -126,6 +131,7 @@ export class ModalComponent implements OnInit, OnDestroy {
       this.el.nativeElement.addEventListener('click', this.onClickOutside);
     }
     this.enabledTrigger = 'enabled';
+    this.isOpen = true;
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -140,6 +146,8 @@ export class ModalComponent implements OnInit, OnDestroy {
     if (this.closeOnClickOutside) {
       this.el.nativeElement.removeEventListener('click', this.onClickOutside);
     }
+    this.isOpen = false;
+    document.removeEventListener('keydown', this.onKeyPressed );
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -147,7 +155,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
 
   onAnimationDone(event) {
-    log.debug('ModalComponent: onAnimationDone(): event:', event);
+    // log.debug('ModalComponent: onAnimationDone(): event:', event);
     if (event.toState === 'disabled') {
       this.el.nativeElement.style['display'] = 'none'; // this must stay on the host element or it will block the ui
     }
@@ -158,5 +166,19 @@ export class ModalComponent implements OnInit, OnDestroy {
   bypassStyleSanitizer(value): SafeStyle {
     return this.sanitizer.bypassSecurityTrustStyle(value);
   }
+
+
+
+  onKeyPressed = (event: KeyboardEvent) => {
+    log.debug('ModalComponent: onKeyPressed(): id:', this.id);
+    log.debug('ModalComponent: onKeyPressed(): event:', event);
+    if (event.key === 'Escape' && this.enabledTrigger === 'enabled' && this.escapeEnabled === true) {
+      this.modalService.close(this.id);
+    }
+  }
+
+
+
+
 
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
@@ -15,6 +15,7 @@ interface FeedStatus {
 
 @Component({
   selector: 'feeds',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feeds.component.html',
   styles: [`
 
@@ -89,31 +90,25 @@ export class FeedsComponent implements OnInit, OnDestroy {
   private feedStatusInterval: number;
 
   // Subscriptions
-  private feedsChangedSubscription: Subscription;
-  private feedsOpenedSubscription: Subscription;
-  private tabContainerClosedSubscription: Subscription;
-  private feedStatusChangedSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
 
   ngOnInit(): void {
 
-    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds) => this.onFeedsChanged(feeds) );
+    this.subscriptions.add(this.dataService.feedsChanged.subscribe( (feeds) => this.onFeedsChanged(feeds) ));
 
-    this.feedsOpenedSubscription = this.toolService.feedsOpened.subscribe( () => this.onOpen() );
+    this.subscriptions.add(this.toolService.feedsOpened.subscribe( () => this.onOpen() ));
 
-    this.tabContainerClosedSubscription = this.toolService.tabContainerClosed.subscribe( () => this.onClose() );
+    this.subscriptions.add(this.toolService.tabContainerClosed.subscribe( () => this.onClose() ));
 
-    this.feedStatusChangedSubscription = this.dataService.feedStatusChanged.subscribe( feedStatus => this.onFeedStatusChanged(feedStatus) );
+    this.subscriptions.add(this.dataService.feedStatusChanged.subscribe( feedStatus => this.onFeedStatusChanged(feedStatus) ));
   }
 
 
 
   ngOnDestroy(): void {
-    this.feedsChangedSubscription.unsubscribe();
-    this.feedsOpenedSubscription.unsubscribe();
-    this.tabContainerClosedSubscription.unsubscribe();
-    this.feedStatusChangedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 
@@ -124,6 +119,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
     }
     this.feedStatus = feedStatus;
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -143,6 +139,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
     this.feeds = tempFeeds;
     this.filterChanged();
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -199,6 +196,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
       this.displayedFeeds = tempFeeds;
     }
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -207,6 +205,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
     this.filterText = '';
     this.filterChanged();
     this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 

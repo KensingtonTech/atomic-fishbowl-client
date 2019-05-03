@@ -23,7 +23,7 @@ declare var log: Logger;
 
     <div *ngIf="serverReachable" style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden;">
 
-      <login-form *ngIf="!loggedIn && credentialsChecked"></login-form>
+      <login-form *ngIf="credentialsChecked && !loggedIn"></login-form>
 
       <ng-container *ngIf="loggedIn">
         <router-outlet></router-outlet>
@@ -33,6 +33,7 @@ declare var log: Logger;
     </div>
 
     <serverdown-modal></serverdown-modal>
+    <logged-out-notify-modal></logged-out-notify-modal>
   </ng-container>
 
 </ng-container>
@@ -53,11 +54,9 @@ export class AppComponent implements OnInit, OnDestroy {
   public credentialsChecked = false;
   public isMobile = false;
   public eulaAccepted = false;
-  private pingInterval: any;
 
   // Subscriptions
-  private loggedInChangedSubscription: Subscription;
-  private eulaAcceptedSubscription: Subscription;
+  private subscriptions: Subscription = new Subscription;
 
 
 
@@ -68,19 +67,33 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loggedInChangedSubscription = this.authService.loggedInChanged.subscribe( loggedIn => this.onLoginChanged(loggedIn) );
+    this.subscriptions.add( this.authService.loggedInChanged.subscribe( loggedIn => this.onLoginChanged(loggedIn) ) );
 
     if (this.toolService.getPreference('eulaAccepted') !== null ) {
       this.eulaAccepted = this.toolService.getPreference('eulaAccepted');
     }
+
     if (this.eulaAccepted) {
-      this.startPing();
+      // this.startPing();
+      this.subscriptions.add(this.dataService.socketConnected.subscribe( status => this.onSocketConnected(status) ));
+    }
+    else {
+      this.subscriptions.add(this.toolService.eulaAccepted.subscribe( () => {
+        this.eulaAccepted = true;
+        // this.startPing();
+        this.subscriptions.add(this.dataService.socketConnected.subscribe( status => this.onSocketConnected(status) ));
+      } ) );
     }
 
-    this.eulaAcceptedSubscription = this.toolService.eulaAccepted.subscribe( () => {
-      this.eulaAccepted = true;
-      this.startPing();
-    } );
+    this.subscriptions.add(this.dataService.loggedOutByServer.subscribe( () => this.modalService.open(this.toolService.loggedOutModalId)));
+
+    this.zone.runOutsideAngular( () => setTimeout( () => {
+      // display server unreachable modal if socket doesn't connect right away
+      if (!this.serverReachable) {
+        this.modalService.open(this.toolService.serverDownModalId);
+      }
+    }, 500) );
+
 
   }
 
@@ -93,7 +106,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!loggedIn) {
       this.zone.runOutsideAngular( () => setTimeout( () => {
         // wrapped in setTimeout to allow components to be destroyed before invalidating their inputs
-        this.dataService.stop();
+        // this.dataService.stop();
         this.toolService.stop();
       }, 0) );
     }
@@ -101,7 +114,40 @@ export class AppComponent implements OnInit, OnDestroy {
 
 
 
-  startPing() {
+  async onSocketConnected(status) {
+    log.debug('AppComponent: onSocketConnected(): status:', status);
+    let { connected, socketId} = status;
+
+    if (connected !== null && connected) {
+      this.serverReachable = true;
+      this.modalService.close(this.toolService.serverDownModalId);
+    }
+    else if (connected !== null && !connected) {
+      this.serverReachable = false;
+      this.modalService.open(this.toolService.serverDownModalId);
+      this.toolService.stop();
+    }
+
+    if (connected && socketId) {
+      await this.checkLoggedInState(socketId);
+    }
+    this.changeDetectorRef.detectChanges();
+
+  }
+
+
+
+  async checkLoggedInState(socketId) {
+
+    await this.authService.checkCredentials(socketId);
+    // login state will change via loggedInChangedSubscription
+    this.credentialsChecked = true;
+
+  }
+
+
+
+  /*startPing() {
     log.debug('AppComponent: startPing()');
     // run initial ping to see if server is reachable
     this.dataService.ping()
@@ -134,13 +180,12 @@ export class AppComponent implements OnInit, OnDestroy {
         });
       }, 10000)
     );
-  }
+  }*/
 
 
 
   public ngOnDestroy(): void {
-    this.loggedInChangedSubscription.unsubscribe();
-    this.eulaAcceptedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

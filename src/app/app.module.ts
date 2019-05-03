@@ -91,6 +91,8 @@ import { SessionWidgetComponent } from './viewers/meta-widget.component';
 import { ContentCountWidgetComponent } from './viewers/content-count-widget.component';
 import { NewEditUserModalComponent } from './new-edit-user.modal.component';
 import { NewEditNwServiceModalComponent } from './new-edit-nw-service.component';
+import { LoggedOutNotifyModalComponent } from './logged-out-notify-modal.component';
+import { CustomScrollPanelComponent } from './scrollpanel/scrollpanel';
 
 // Other
 // import 'hammerjs'; // required for Material gesture support
@@ -192,7 +194,9 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   ContentViewerComponent,
                   ContentCountWidgetComponent,
                   NewEditUserModalComponent,
-                  NewEditNwServiceModalComponent
+                  NewEditNwServiceModalComponent,
+                  LoggedOutNotifyModalComponent,
+                  CustomScrollPanelComponent
                 ],
   providers:    [ DataService,
                   AuthenticationService,

@@ -153,16 +153,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   // Subscriptions
-  private preferencesChangedSubscription: Subscription;
-  private useCasesChangedSubscription: Subscription;
-  private addNwCollectionNextSubscription: Subscription;
-  private editNwCollectionNextSubscription: Subscription;
-  private feedsChangedSubscription: Subscription;
-  private executeCollectionOnEditSubscription: Subscription;
-  private reOpenTabsModalSubscription: Subscription;
-  private collectionsChangedSubscription: Subscription;
-  private addNwAdhocCollectionNextSubscription: Subscription;
-  private apiServersChangedSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
 
@@ -179,28 +170,28 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.queryListOptions.push(option);
     }
 
-    this.reOpenTabsModalSubscription = this.toolService.reOpenTabsModal.subscribe( (TorF) => this.reOpenTabsModal = TorF );
+    this.subscriptions.add(this.toolService.reOpenTabsModal.subscribe( (TorF) => this.reOpenTabsModal = TorF ));
 
     // Preferences changed subscription
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
+    this.subscriptions.add(this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) ));
 
-    this.useCasesChangedSubscription = this.dataService.useCasesChanged.subscribe( (o: any) => this.onUseCasesChanged(o) );
+    this.subscriptions.add(this.dataService.useCasesChanged.subscribe( (o: any) => this.onUseCasesChanged(o) ));
 
     // Add collection next subscription
-    this.addNwCollectionNextSubscription = this.toolService.addNwCollectionNext.subscribe( () => this.onAddCollection() );
+    this.subscriptions.add(this.toolService.addNwCollectionNext.subscribe( () => this.onAddCollection() ));
 
     // Edit collection next subscription
-    this.editNwCollectionNextSubscription = this.toolService.editNwCollectionNext.subscribe( (collection: Collection) => this.onEditCollection(collection) );
+    this.subscriptions.add(this.toolService.editNwCollectionNext.subscribe( (collection: Collection) => this.onEditCollection(collection) ));
 
-    this.feedsChangedSubscription = this.dataService.feedsChanged.subscribe( (feeds: Feed[]) => this.onFeedsChanged(feeds) );
+    this.subscriptions.add(this.dataService.feedsChanged.subscribe( (feeds: Feed[]) => this.onFeedsChanged(feeds) ));
 
-    this.executeCollectionOnEditSubscription = this.toolService.executeCollectionOnEdit.subscribe( TorF => this.executeCollectionOnEdit = TorF);
+    this.subscriptions.add(this.toolService.executeCollectionOnEdit.subscribe( TorF => this.executeCollectionOnEdit = TorF));
 
-    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) );
+    this.subscriptions.add(this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) ));
 
-    this.addNwAdhocCollectionNextSubscription = this.toolService.addNwAdhocCollectionNext.subscribe( (params: any) => this.onAdhocCollection(params) );
+    this.subscriptions.add(this.toolService.addNwAdhocCollectionNext.subscribe( (params: any) => this.onAdhocCollection(params) ));
 
-    this.apiServersChangedSubscription = this.dataService.nwServersChanged.subscribe( (apiServers: NwServers) => this.onApiServersChanged(apiServers) );
+    this.subscriptions.add(this.dataService.nwServersChanged.subscribe( (apiServers: NwServers) => this.onApiServersChanged(apiServers) ));
 
     this.timeframes.forEach(timeframe => {
       let item: SelectItem = { label: timeframe, value: timeframe};
@@ -212,16 +203,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   public ngOnDestroy() {
-    this.preferencesChangedSubscription.unsubscribe();
-    this.useCasesChangedSubscription.unsubscribe();
-    this.addNwCollectionNextSubscription.unsubscribe();
-    this.editNwCollectionNextSubscription.unsubscribe();
-    this.reOpenTabsModalSubscription.unsubscribe();
-    this.feedsChangedSubscription.unsubscribe();
-    this.collectionsChangedSubscription.unsubscribe();
-    this.addNwAdhocCollectionNextSubscription.unsubscribe();
-    this.apiServersChangedSubscription.unsubscribe();
-    this.executeCollectionOnEditSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

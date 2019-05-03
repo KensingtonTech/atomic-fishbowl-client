@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
@@ -15,6 +15,7 @@ declare var log: Logger;
 
 @Component({
   selector: 'collections',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './collections.component.html',
   styles: [`
 
@@ -200,87 +201,55 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
   // Subscriptions
-  private getCollectionDataAgainSubscription: Subscription;
-  private collectionsChangedSubscription: Subscription;
-  private deleteCollectionConfirmedSubscription: Subscription;
-  private executeAddCollectionSubscription: Subscription;
-  private executeEditCollectionSubscription: Subscription;
-  private collectionsOpenedSubscription: Subscription;
-  private preferencesChangedSubscription: Subscription;
-  private dragulaDroppedSubscription: Subscription;
-  private nwServersChangedSubscription: Subscription;
-  private saServersChangedSubscription: Subscription;
-  private licensingChangedSubscription: Subscription;
-  private selectedCollectionChangedSubscription: Subscription;
-  private dragStartSubscription: Subscription;
-  private dragEndSubscription: Subscription;
-  private noopCollectionSubscription: Subscription;
+  private subscriptions = new Subscription;
+
+
 
   ngOnInit(): void {
-    this.getCollectionDataAgainSubscription = this.toolService.getCollectionDataAgain.subscribe( () => this.onGetCollectionDataAgain() );
+    this.subscriptions.add(this.toolService.getCollectionDataAgain.subscribe( () => this.onGetCollectionDataAgain() ));
 
-    this.collectionsChangedSubscription = this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) );
+    this.subscriptions.add(this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) ));
 
-    this.deleteCollectionConfirmedSubscription = this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.onDeleteConfirmed(collectionId) );
+    this.subscriptions.add(this.toolService.deleteCollectionConfirmed.subscribe( (collectionId: string) => this.onDeleteConfirmed(collectionId) ));
 
-    this.executeAddCollectionSubscription = this.toolService.executeAddCollection.subscribe( (collection: Collection) => {
-      this.editing = false;
-      this.onCollectionExecuted(collection);
-    });
+    this.subscriptions.add(this.toolService.executeAddCollection.subscribe( (collection: Collection) => this.onExecuteAddCollection(collection) ));
 
-    this.executeEditCollectionSubscription = this.toolService.executeEditCollection.subscribe( (collection: Collection) => {
-      this.editing = true;
-      this.onCollectionExecuted(collection);
-    });
+    this.subscriptions.add(this.toolService.executeEditCollection.subscribe( (collection: Collection) => this.onExecuteEditCollection(collection) ));
 
-    this.collectionsOpenedSubscription = this.toolService.collectionsOpened.subscribe( () => this.onOpen() );
+    this.subscriptions.add(this.toolService.collectionsOpened.subscribe( () => this.onOpen() ));
 
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => {
+    this.subscriptions.add(this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => {
       log.debug('CollectionsComponent: ngOnInit: prefs observable:', prefs);
       if (Object.keys(prefs).length !== 0) {
         this.preferences = prefs;
       }
-     } );
+     } ));
 
-     this.nwServersChangedSubscription = this.dataService.nwServersChanged.subscribe( apiServers => this.onNwServersChanged(apiServers) );
-     this.saServersChangedSubscription = this.dataService.saServersChanged.subscribe( apiServers => this.onSaServersChanged(apiServers) );
+     this.subscriptions.add(this.dataService.nwServersChanged.subscribe( apiServers => this.onNwServersChanged(apiServers) ));
+     this.subscriptions.add(this.dataService.saServersChanged.subscribe( apiServers => this.onSaServersChanged(apiServers) ));
 
-     this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) );
+     this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) ));
 
-     this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) );
+     this.subscriptions.add(this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) ));
 
-     this.noopCollectionSubscription = this.dataService.noopCollection.subscribe( () => {
+     this.subscriptions.add(this.dataService.noopCollection.subscribe( () => {
       this.selectedCollection = null;
       this.changeDetectionRef.markForCheck();
       this.changeDetectionRef.detectChanges();
-     } );
+     } ));
 
     // dragula
     // this.dragulaDroppedSubscription = this.dragulaService.dropModel('first-bag').subscribe( ({name, el, target, source, sibling, sourceModel, targetModel, item}) => this.onDragulaDrop(name, el, target, source, sibling, sourceModel, targetModel, item) );
-    this.dragulaDroppedSubscription = this.dragulaService.drop('first-bag').subscribe( ({ name, el, target, source, sibling }) => this.onDragulaDrop(name, el, target, source, sibling) );
-    this.dragStartSubscription = this.dragulaService.drag('first-bag').subscribe( () => this.isDragging = true );
-    this.dragEndSubscription = this.dragulaService.dragend('first-bag').subscribe( () => this.isDragging = false );
+    this.subscriptions.add(this.dragulaService.drop('first-bag').subscribe( ({ name, el, target, source, sibling }) => this.onDragulaDrop(name, el, target, source, sibling) ));
+    this.subscriptions.add(this.dragulaService.drag('first-bag').subscribe( () => this.isDragging = true ));
+    this.subscriptions.add(this.dragulaService.dragend('first-bag').subscribe( () => this.isDragging = false ));
 
   }
 
 
 
   ngOnDestroy(): void {
-    this.getCollectionDataAgainSubscription.unsubscribe();
-    this.collectionsChangedSubscription.unsubscribe();
-    this.deleteCollectionConfirmedSubscription.unsubscribe();
-    this.executeAddCollectionSubscription.unsubscribe();
-    this.executeEditCollectionSubscription.unsubscribe();
-    this.collectionsOpenedSubscription.unsubscribe();
-    this.preferencesChangedSubscription.unsubscribe();
-    this.dragulaDroppedSubscription.unsubscribe();
-    this.nwServersChangedSubscription.unsubscribe();
-    this.saServersChangedSubscription.unsubscribe();
-    this.licensingChangedSubscription.unsubscribe();
-    this.selectedCollectionChangedSubscription.unsubscribe();
-    this.dragStartSubscription.unsubscribe();
-    this.dragEndSubscription.unsubscribe();
-    this.noopCollectionSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
     this.dragulaService.destroy('first-bag');
   }
 
@@ -343,6 +312,18 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
 
     // we have collections - yay
+
+    if (this.selectedCollection) {
+      let selectedCollectionId = this.selectedCollection.id;
+      if (selectedCollectionId in collections &&
+        ( !('modifier' in this.selectedCollection) && 'modifier' in collections[selectedCollectionId] ) || // edited for the first time
+        ( 'modifier' in this.selectedCollection && this.selectedCollection.modifier && this.selectedCollection.modifier.timestamp !== collections[selectedCollectionId].modifier.timestamp ) // edited a subsequent time, and the timstamp changed
+      ) {
+        // initial state - created but not modifier
+        // edited state - created exists, as does modifier
+        this.dataService.selectedCollectionChanged.next(collections[selectedCollectionId]);
+      }
+    }
 
     Object.keys(collections).forEach( (id) => {
       // only keep collections for which the preferences have its service enabled
@@ -572,24 +553,47 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
+  onExecuteAddCollection(collection) {
+    log.debug('CollectionsComponent: onExectuteAddCollection()');
+    this.editing = false;
+    this.onCollectionExecuted(collection);
+  }
+
+
+
+
+  onExecuteEditCollection(collection) {
+    log.debug('CollectionsComponent: onExectuteEditCollection()');
+    this.editing = true;
+    this.onCollectionEdited(collection);
+  }
+
+
+
   onCollectionExecuted(collection: Collection): void {
-    // only runs when we click a collection, add a new collection, or edit an existing collection
-    if (!this.editing && this.toolService.selectedCollection && this.toolService.selectedCollection.id === collection.id) {
-      log.debug('CollectionsComponent: onCollectionExecuted(): immediately returning.  Collection', collection);
+    // only runs when we click a collection, add a new collection
+    if (this.toolService.selectedCollection && this.toolService.selectedCollection.id === collection.id) {
+      // user clicked on collection that was already selected, so just close the modal
+      log.debug('CollectionsComponent: onCollectionExecuted(): collection was already selected - just closing modal.  collection:', collection);
       this.modalService.close(this.toolService.tabContainerModalId);
       return;
     }
     log.debug('CollectionsComponent: onCollectionExecuted():', collection.id, collection);
-    if (this.editing && (!this.toolService.selectedCollection || this.toolService.selectedCollection.id !== collection.id)) {
-      // do nothing if we're just editing a collection we're not presently connected to or if no collection is selected
-      this.editing = false; // just resets this value for the next run
-      return;
-    }
     this.editing = false; // just resets this value for the next run
     this.toolService.selectedCollection = collection;
     this.connectToCollection(collection);
     this.modalService.close(this.toolService.tabContainerModalId);
+  }
 
+
+
+  onCollectionEdited(collection: Collection) {
+    log.debug('CollectionsComponent: onCollectionEdited():', collection.id, collection);
+    if (this.toolService.selectedCollection && this.toolService.selectedCollection.id === collection.id) {
+      this.toolService.selectedCollection = collection;
+    }
+      // do nothing if we're just editing a collection we're not presently connected to or if no collection is selected
+    this.editing = false; // just resets this value for the next run
   }
 
 

@@ -1,14 +1,12 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit, OnChanges, AfterViewInit, Inject, forwardRef, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit, OnChanges, AfterViewInit, Inject, forwardRef, ViewChild, ElementRef, NgZone, SimpleChanges } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { Content } from 'types/content';
 import { Subscription } from 'rxjs';
-import { ClassicGridComponent } from './classic-grid.component';
 import { Logger } from 'loglevel';
 import { trigger, state, style, transition, animate, useAnimation } from '@angular/animations';
 import { zoomIn, zoomOut } from 'ng-animate';
 import { Session } from 'types/session';
 import { DataService } from 'services/data.service';
-import { AuthenticationService } from 'services/authentication.service';
 import * as utils from '../utils';
 declare var log: Logger;
 
@@ -16,9 +14,10 @@ declare var log: Logger;
   selector: 'classic-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<!--[@zoom]="animationState"-->
-<!--@zoom-->
-<div class="thumbnail-container" [hidden]="hide" [@zoom]="animationState" [class.hidden]="hide" [class.visible]="!hide">
+<!-- [@zoom]="animationState" -->
+<!-- @zoom -->
+<!-- (@zoom.done)="onAnimationComplete($event)" -->
+<div class="thumbnail-container" [@zoom]="animationState">
 
   <img #image class="thumbnail" [src]="imgSource" [hidden]="showHighRes && highResLoaded" (load)="onLowResLoaded()" (error)="onLowResError()" [ngClass]="loadedContentClass" draggable="false" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
 
@@ -35,22 +34,21 @@ declare var log: Logger;
       // transition('* => zoomIn', animate(0) ),
       // transition('initial => start', animate(0) ),
       transition('initial => zoomIn', [style({ visibility: 'visible' }), useAnimation(zoomIn, { params: { timing: 1 } } )]),
-      transition('zoomOut => zoomIn', [style({ display: 'inline' }), useAnimation(zoomIn, { params: { timing: 1 } } )]),
+      transition('zoomOut => zoomIn', [style({ display: 'block' }), useAnimation(zoomIn, { params: { timing: 1 } } )]),
       transition('* => zoomOut', useAnimation(zoomOut, { params: { timing: 1 } } ) ),
       // transition(':enter', useAnimation(zoomIn, { params: { timing: .75 } } )),
-      transition(':leave', useAnimation(zoomOut, { params: { timing: 1 } } ) )
+      // transition(':leave', useAnimation(zoomOut, { params: { timing: 1 } } ) )
     ])
   ]
 })
 
-export class ClassicTileComponent implements OnInit, AfterViewInit, OnChanges {
+export class ClassicTileComponent implements OnInit, OnChanges {
 
   constructor(private changeDetectionRef: ChangeDetectorRef,
               public dataService: DataService,
               private toolService: ToolService,
-              @Inject(forwardRef(() => ClassicGridComponent)) private parent: ClassicGridComponent,
               private zone: NgZone,
-              private authService: AuthenticationService ) {}
+              private el: ElementRef ) {}
 
   public utils = utils;
 
@@ -58,27 +56,20 @@ export class ClassicTileComponent implements OnInit, AfterViewInit, OnChanges {
   @ViewChild('highResImage') highResImageRef: ElementRef;
 
   @Input() content: Content;
-  @Input() sessionId: number;
-  @Input() serviceType: string; // 'nw' or 'sa'
   @Input() collectionId: string = null;
-  @Input() loadHighRes = false; // this triggers initial loading of the high-res image (not the displaying of it)
+  @Input() loadHighRes = false; // this triggers initial loading of the high-res image (not the displaying of it - bound from the parent's loadAllHighResImages
   @Input() showHighRes = false; // this triggers the displaying of high-res images
   @Input() hide = false;
-  public session: Session;
   public imgSource = '';
   public highResImgSource = '';
   public contentClass = '';
   public loadedContentClass: string; // this will hold the value of contentClass after the low-res image has loaded.  This will allow the border to only load afterwards
-  public animationState = 'initial';
+  public animationState = 'initial'; // initial, zoomIn, zoomOut
   public highResLoaded = false;  // tracks whether the high-res image has finished loading
-
-  private showHighResSessionsSubscription: Subscription;
 
 
 
   ngOnInit(): void {
-    this.session = this.parent.sessions[this.sessionId];
-
     let endFunc: Function;
 
     switch (this.content.contentType) {
@@ -129,13 +120,7 @@ export class ClassicTileComponent implements OnInit, AfterViewInit, OnChanges {
 
 
 
-  async ngAfterViewInit() {
-    // this.changeDetectionRef.detach();
-  }
-
-
-
-  ngOnChanges(values: any): void {
+  ngOnChanges(values: SimpleChanges): void {
     // log.debug('ClassicTileComponent: onChanges():', values);
     let isFirstChanges = true;
     Object.keys(values).forEach( key => {
@@ -147,6 +132,14 @@ export class ClassicTileComponent implements OnInit, AfterViewInit, OnChanges {
     if (isFirstChanges) {
       return;
     }
+    if ('hide' in values && values.hide.currentValue === true) {
+      this.el.nativeElement.classList.add('hidden');
+      // this.animationState = 'zoomOut';
+    }
+    if ('hide' in values && values.hide.currentValue === false) {
+      this.el.nativeElement.classList.remove('hidden');
+      // this.animationState = 'zoomIn';
+    }
     /*if ('showHighRes' in values && values.showHighRes.currentValue !== values.showHighRes.previousValue) {
       log.debug('ClassicTileComponent: onChanges(): showHighRes changing.  New value:', values.showHighRes.currentValue);
     }*/
@@ -156,18 +149,17 @@ export class ClassicTileComponent implements OnInit, AfterViewInit, OnChanges {
 
 
 
-  async onLowResError() {
+  onLowResError() {
     // show an error image here
     log.debug('ClassicTileComponent: onLowResError()');
     this.imgSource = '/resources/error_icon.png';
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
-    await this.authService.checkCredentials(false); // check credentials and logout if not logged in if we start getting errors due to auth, since we can't catch the error code
+    // this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.detectChanges();
   }
 
 
 
-  async onLowResLoaded() {
+  onLowResLoaded() {
     // log.debug('ClassicTileComponent: onLowResLoaded():');
     // this.changeDetectionRef.reattach();
     // this.animationState = 'start';
@@ -175,8 +167,8 @@ export class ClassicTileComponent implements OnInit, AfterViewInit, OnChanges {
     // this.changeDetectionRef.detectChanges();
     this.animationState = 'zoomIn';
     this.loadedContentClass = this.contentClass;
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
+    // this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.detectChanges();
     // this.zone.runOutsideAngular( () => setTimeout( () => this.changeDetectionRef.detach(), 0) );
   }
 
@@ -186,20 +178,29 @@ export class ClassicTileComponent implements OnInit, AfterViewInit, OnChanges {
     // log.debug('ClassicTileComponent: onHighResLoaded():');
     this.highResLoaded = true;
     // this.changeDetectionRef.reattach();
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
+    // this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.detectChanges();
     // this.zone.runOutsideAngular( () => setTimeout( () => this.changeDetectionRef.detach(), 0) );
   }
 
 
 
-  async onHighResError() {
+  onHighResError() {
     // show an error image here
-    log.debug('ClassicTileComponent: onHighResError()');
+    log.debug('ClassicTileComponent: onHighResError(): content id:', this.content.id);
+    log.debug('ClassicTileComponent: onHighResError(): highResImgSource:', this.highResImgSource);
     this.highResImgSource = '/resources/error_icon.png';
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
-    await this.authService.checkCredentials(false); // check credentials and logout if not logged in if we start getting errors due to auth, since we can't catch the error code
+    // this.changeDetectionRef.markForCheck();
+    // this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  onAnimationComplete(event) {
+    log.debug('ClassicTileComponent: onAnimationComplete():');
+    if (this.animationState === 'zoomOut') {
+      this.el.nativeElement.classList.add('hidden');
+    }
   }
 
 

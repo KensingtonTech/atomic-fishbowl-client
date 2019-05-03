@@ -77,17 +77,16 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   @ViewChild('emptyRow') private emptyRowTemplateRef;
 
   // Subscriptions
-  private confirmUserDeleteSubscription: Subscription;
-  private usersUpdatedSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
 
   ngOnInit(): void {
     log.debug('ManageUsersModalComponent: ngOnInit');
 
-    this.confirmUserDeleteSubscription = this.toolService.confirmUserDelete.subscribe( (id: string) => { this.onDeleteUserConfirmed(id); } );
+    this.subscriptions.add(this.toolService.confirmUserDelete.subscribe( (id: string) => { this.onDeleteUserConfirmed(id); } ));
 
-    this.usersUpdatedSubscription = this.dataService.usersChanged.subscribe( users => this.onUsersChanged(users) );
+    this.subscriptions.add(this.dataService.usersChanged.subscribe( users => this.onUsersChanged(users) ));
 
     this.changeDetectionRef.markForCheck();
   }
@@ -95,8 +94,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
 
   public ngOnDestroy() {
-    this.confirmUserDeleteSubscription.unsubscribe();
-    this.usersUpdatedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

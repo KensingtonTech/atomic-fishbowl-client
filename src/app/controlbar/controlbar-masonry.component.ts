@@ -52,17 +52,17 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   public showMeta = true;
   public routerDropdownOpen = false;
 
-  private scrollToBottomStoppedSubscription: Subscription;
+  private subscriptions = new Subscription;
 
   ngOnInit(): void {
     log.debug('MasonryControlBarComponent: OnInit');
 
-    this.scrollToBottomStoppedSubscription = this.toolService.scrollToBottomStopped.subscribe( () => {
+    this.subscriptions.add(this.toolService.scrollToBottomStopped.subscribe( () => {
       log.debug('MasonryControlBarComponent: scrollToBottomStoppedSubscription: scrollToBottomStopped');
       this.scrollStarted = false;
       this.changeDetectionRef.markForCheck();
       this.changeDetectionRef.detectChanges();
-    });
+    }));
 
     this.showMeta = this.toolService.showMasonryTextAreaState;
   }
@@ -70,13 +70,15 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy(): void {
-    this.scrollToBottomStoppedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 
 
   scrollToBottom(): void {
     this.scrollStarted = true;
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
     this.toolService.scrollToBottom.next();
   }
 
@@ -84,6 +86,8 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
   stopScrollToBottom(): void {
     this.scrollStarted = false;
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
     this.toolService.stopScrollToBottom.next();
   }
 
@@ -100,6 +104,8 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
   hideMetaFunction(): void {
     this.showMeta = false;
     this.toolService.showMasonryTextArea.next(false);
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
     this.zone.runOutsideAngular( () => setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10) );
   }
 

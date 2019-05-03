@@ -19,7 +19,7 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
 
   private defaultView = 'masonryGrid';
 
-  private routeParametersSubscription: Subscription;
+  private subscriptions = new Subscription;
 
   ngOnInit(): void {
     // https://localhost/adhoc;query=abcd
@@ -27,12 +27,12 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
     // https://localhost/adhoc?query=abcd
     // https://localhost?query=abcd&something=somethingelse
     log.debug('DefaultRouteComponent: ngOnInit()');
-    this.routeParametersSubscription = this.route.queryParamMap.subscribe( params => this.onRouteParameters(params) );
+    this.subscriptions.add(this.route.queryParamMap.subscribe( params => this.onRouteParameters(params) ));
     // log.debug('DefaultRouteComponent: ngOnInit(): params:', this.route.snapshot.queryParams);
   }
 
   ngOnDestroy(): void {
-    this.routeParametersSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   private onRouteParameters(p: any): void {

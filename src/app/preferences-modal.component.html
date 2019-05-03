@@ -298,7 +298,7 @@
 
     <div class="okayButtons" style="margin-top: 0.263157895em;">
       <div style="float: right;">
-        <p-button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="submit" label="OK"></p-button>&nbsp;<p-button type="button" (onClick)="close()" label="Cancel"></p-button>
+        <p-button [disabled]="!preferencesModel.serviceTypes.nw && !preferencesModel.serviceTypes.sa" type="button" label="OK" (onClick)="onSubmitPreferences()"></p-button>&nbsp;<p-button type="button" (onClick)="close()" label="Cancel"></p-button>
       </div>
     </div>
 

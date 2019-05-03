@@ -1,6 +1,7 @@
 import { Component, ElementRef, Renderer2, OnInit, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { AuthenticationService } from 'services/authentication.service';
 import { User } from 'types/user';
+import { DataService } from './services/data.service';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -73,6 +74,7 @@ export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('userName') userNameRef: QueryList<any>;
 
   constructor(private authService: AuthenticationService,
+              private dataService: DataService,
               private elRef: ElementRef,
               private renderer: Renderer2,
               private changeDetectionRef: ChangeDetectorRef ) {}
@@ -95,7 +97,7 @@ export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
   public login(): void {
     this.loginSubmitted = true;
     this.errorMsg = '';
-    this.authService.login(this.user)
+    this.authService.login(this.user, this.dataService.socketId)
                     .then( (res: boolean) => {
                       this.loginSubmitted = false;
                       if (!res) { this.errorMsg = 'Login failed'; }

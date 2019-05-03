@@ -93,7 +93,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
   public autoScrollSpeed = 0;
 
   // Subscriptions
-  private preferencesChangedSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
 
@@ -109,7 +109,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
       this.defaultSaQueriesOptions.push(option);
     }
 
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (preferences: Preferences) => this.onPreferencesChanged(preferences) );
+    this.subscriptions.add(this.dataService.preferencesChanged.subscribe( (preferences: Preferences) => this.onPreferencesChanged(preferences) ));
 
     this.masonryColumnWidth = this.toolService.getPreference('masonryColumnWidth') || 350;
 
@@ -122,7 +122,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy(): void {
-    this.preferencesChangedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

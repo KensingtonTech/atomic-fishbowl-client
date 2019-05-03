@@ -17,7 +17,7 @@ export class ToolService {
   public urlParametersLoaded = false;
   public lastRoute: string = null;
 
-  ////////////  SUBSCRIPTIONS ////////////
+  ////////////  OBSERVABLES ////////////
 
   // Device Number
   public deviceNumber: BehaviorSubject<any> = new BehaviorSubject<any>(0);
@@ -112,6 +112,7 @@ export class ToolService {
   public manageeUsersModalId = 'manage-users-modal';
   public newEditUserModalId = 'new-edit-user-modal';
   public newEditNwServiceModalId = 'new-edit-nw-server-modal';
+  public loggedOutModalId = 'logged-out-notify-modal';
 
 
 

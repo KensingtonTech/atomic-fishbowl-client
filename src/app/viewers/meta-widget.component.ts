@@ -127,20 +127,18 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
   public enabledMeta: any;
 
   // Subscriptions
-  private preferencesChangedSubscription: Subscription;
-  private deviceNumberSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
   ngOnInit(): void {
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
-    this.deviceNumberSubscription = this.toolService.deviceNumber.subscribe( (event) => this.onDeviceNumberChanged(event) );
+    this.subscriptions.add(this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) ));
+    this.subscriptions.add(this.toolService.deviceNumber.subscribe( (event) => this.onDeviceNumberChanged(event) ));
   }
 
 
 
   ngOnDestroy() {
-    this.preferencesChangedSubscription.unsubscribe();
-    this.deviceNumberSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
 

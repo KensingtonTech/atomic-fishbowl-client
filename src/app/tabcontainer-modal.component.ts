@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from 'services/tool.service';
 import { Logger } from 'loglevel';
@@ -7,6 +7,7 @@ declare var log: Logger;
 
 @Component({
   selector: 'tab-container-modal',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 <modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="true" modalClass="tab-container-modal" bodyClass="tab-container-modal-body" bodyStyle="background-color: white;">
 
@@ -36,6 +37,7 @@ declare var log: Logger;
 export class TabContainerComponent {
 
   constructor(private modalService: ModalService,
+              private changeDetectionRef: ChangeDetectorRef,
               private toolService: ToolService ) {}
 
   @ViewChild(CollectionsComponent) CollectionsComponent;
@@ -44,9 +46,12 @@ export class TabContainerComponent {
   public selectedTabIndex = 0;
 
 
+
   onClose(): void {
     this.CollectionsComponent.onClose();
   }
+
+
 
   onOpen(): void {
     if (this.selectedTabIndex === 0) {
@@ -56,6 +61,8 @@ export class TabContainerComponent {
       this.toolService.feedsOpened.next();
     }
   }
+
+
 
   onTabChange(event): void {
     // log.debug('TabContainerComponent: onTabChange(): event:', event);
@@ -69,7 +76,11 @@ export class TabContainerComponent {
       this.toolService.feedsOpened.next();
       this.CollectionsComponent.onClose();
     }
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
+
+
 
   public closeModal(): void {
     this.modalService.close(this.id);

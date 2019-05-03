@@ -21,6 +21,7 @@ import { Sessions, Session } from 'types/session';
 import { AbstractGrid } from '../abstract-grid.class';
 import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
 import { SessionsAvailable } from 'types/sessions-available';
+// import { wrapGrid } from 'animate-css-grid';
 declare var log: Logger;
 declare var imagesLoaded;
 
@@ -33,13 +34,13 @@ declare var imagesLoaded;
   template: `
 <div #classicGridElement class="classic-grid-element" (window:resize)="onWindowResize()" style="height: 100%; width: 100%; overflow: hidden;">
 
-  <pan-zoom *ngIf="content && sessionsDefined && displayedContent && !destroyView && highResSessions" [config]="panzoomConfig">
+  <pan-zoom *ngIf="content && displayedContent && !destroyView && highResSessions" [config]="panzoomConfig">
 
-    <div class="bg noselect gridItems" #gridItems style="position: relative;" [style.width.px]="canvasWidth">
+    <div class="bg noselect gridItems classic-grid-container" #gridItems style="position: relative;" [style.width.px]="canvasWidth">
 
       <!--@zoomInOutParent-->
 
-      <classic-tile @zoomInOutParent *ngFor="let item of content; index as i;" [collectionId]="collectionId" [content]="item" [sessionId]="item.session" [attr.sessionId]="item.session" [attr.id]="item.id" [serviceType]="selectedCollectionServiceType" [loadHighRes]="loadAllHighResImages" [showHighRes]="highResSessions[i]" [hide]="!displayedContent[i]" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)">
+      <classic-tile @zoomInOutParent *ngFor="let item of content; index as i;" [collectionId]="collectionId" [content]="item" [attr.sessionId]="item.session" [attr.id]="item.id" [loadHighRes]="loadAllHighResImages" [showHighRes]="highResSessions[i]" [hide]="!displayedContent[i]" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)">
       </classic-tile>
 
     </div>
@@ -123,7 +124,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   public selectedCollectionType: string = null;
   public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
   private collectionId: string = null;
-  public sessionsDefined = false;
   public collectionDeletedUser = ''; // holds the username of the user who deletes a collection
   private collectionState = ''; // initial, building, rolling, etc
   public destroyView = true;
@@ -195,43 +195,13 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
   // Subscription holders
-  private collectionDeletedSubscription: Subscription;
-  private selectedCollectionChangedSubscription: Subscription;
-  private collectionStateChangedSubscription: Subscription;
-  private sessionsReplacedSubscription: Subscription;
-  private sessionPublishedSubscription: Subscription;
-  private contentReplacedSubscription: Subscription;
-  private contentPublishedSubscription: Subscription;
-  private searchReplacedSubscription: Subscription;
-  private searchPublishedSubscription: Subscription;
-  private sessionsPurgedSubscription: Subscription;
-  private modelChangedSubscription: Subscription;
-  private apiSubscription: Subscription;
-  private onSplashScreenAtStartupClosedSubscription: Subscription;
-  private monitoringCollectionPauseSubscription: Subscription;
-  private preferencesChangedSubscription: Subscription;
-  private licensingChangedSubscription: Subscription;
+  private subscriptions = new Subscription;
 
 
 
   ngOnDestroy(): void {
     log.debug('ClassicGridComponent: ngOnDestroy()');
-    this.collectionDeletedSubscription.unsubscribe();
-    this.selectedCollectionChangedSubscription.unsubscribe();
-    this.collectionStateChangedSubscription.unsubscribe();
-    this.sessionsReplacedSubscription.unsubscribe();
-    this.sessionPublishedSubscription.unsubscribe();
-    this.contentReplacedSubscription.unsubscribe();
-    this.contentPublishedSubscription.unsubscribe();
-    this.searchReplacedSubscription.unsubscribe();
-    this.searchPublishedSubscription.unsubscribe();
-    this.sessionsPurgedSubscription.unsubscribe();
-    this.modelChangedSubscription.unsubscribe();
-    this.apiSubscription.unsubscribe();
-    this.onSplashScreenAtStartupClosedSubscription.unsubscribe();
-    this.monitoringCollectionPauseSubscription.unsubscribe();
-    this.preferencesChangedSubscription.unsubscribe();
-    this.licensingChangedSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
     if (this.imagesLoaded) {
       this.imagesLoaded.off( 'always', this.onImagesLoaded );
     }
@@ -283,17 +253,17 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.toolService.lastRoute = 'classicGrid';
     this.toolService.setPreference('lastRoute', 'classicGrid');
 
-    this.licensingChangedSubscription = this.dataService.licensingChanged.subscribe( license =>  this.licenseChangedFunction(license) );
+    this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.licenseChangedFunction(license) ));
 
     // New startup code
-    this.onSplashScreenAtStartupClosedSubscription = this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
+    this.subscriptions.add(this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
       if (!this.license.valid) {
         this.modalService.open(this.toolService.licenseExpiredModalId);
       }
       else if (!this.toolService.queryParams) {
         this.modalService.open(this.toolService.tabContainerModalId);
       }
-    });
+    }));
 
     // log.debug('splashLoaded:', this.toolService.splashLoaded);
 
@@ -323,39 +293,39 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // End new startup code
 
     // pan-zoom
-    this.modelChangedSubscription = this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => this.onModelChanged(model) );
-    this.apiSubscription = this.panzoomConfig.api.subscribe( (api: PanZoomAPI) => this.onGotNewPanzoomApi(api) );
+    this.subscriptions.add(this.panzoomConfig.modelChanged.subscribe( (model: PanZoomModel) => this.onModelChanged(model) ));
+    this.subscriptions.add(this.panzoomConfig.api.subscribe( (api: PanZoomAPI) => this.onGotNewPanzoomApi(api) ));
 
 
     // Take subscriptions
 
-    this.collectionDeletedSubscription = this.dataService.collectionDeleted.subscribe( (details: CollectionDeletedDetails) => this.onCollectionDeleted(details) );
+    this.subscriptions.add(this.dataService.collectionDeleted.subscribe( (details: CollectionDeletedDetails) => this.onCollectionDeleted(details) ));
 
-    this.selectedCollectionChangedSubscription = this.dataService.selectedCollectionChanged.subscribe( (collection: any) => this.onSelectedCollectionChanged(collection) );
+    this.subscriptions.add(this.dataService.selectedCollectionChanged.subscribe( (collection: any) => this.onSelectedCollectionChanged(collection) ));
 
-    this.collectionStateChangedSubscription = this.dataService.collectionStateChanged.subscribe( (collection: any) => this.onCollectionStateChanged(collection) );
+    this.subscriptions.add(this.dataService.collectionStateChanged.subscribe( (collection: any) => this.onCollectionStateChanged(collection) ));
 
-    this.sessionsReplacedSubscription = this.dataService.sessionsReplaced.subscribe( (s: any) => this.onSessionsReplaced(s) );
+    this.subscriptions.add(this.dataService.sessionsReplaced.subscribe( (s: any) => this.onSessionsReplaced(s) ));
 
-    this.sessionPublishedSubscription = this.dataService.sessionPublished.subscribe( (s: any) => this.onSessionPublished(s) );
+    this.subscriptions.add(this.dataService.sessionPublished.subscribe( (s: any) => this.onSessionPublished(s) ));
 
-    this.contentReplacedSubscription = this.dataService.contentReplaced.subscribe( (i: any) => this.onContentReplaced(i) );
+    this.subscriptions.add(this.dataService.contentReplaced.subscribe( (i: any) => this.onContentReplaced(i) ));
 
-    this.contentPublishedSubscription = this.dataService.contentPublished.subscribe( (newContent: any) => this.onContentPublished(newContent) );
+    this.subscriptions.add(this.dataService.contentPublished.subscribe( (newContent: any) => this.onContentPublished(newContent) ));
 
-    this.searchReplacedSubscription = this.dataService.searchReplaced.subscribe( (s: Search[]) => this.onSearchReplaced(s) );
+    this.subscriptions.add(this.dataService.searchReplaced.subscribe( (s: Search[]) => this.onSearchReplaced(s) ));
 
 
-    this.searchPublishedSubscription = this.dataService.searchPublished.subscribe( (s: Search[]) => this.onSearchPublished(s) );
+    this.subscriptions.add(this.dataService.searchPublished.subscribe( (s: Search[]) => this.onSearchPublished(s) ));
 
-    this.sessionsPurgedSubscription = this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) => this.onSessionsPurged(sessionsToPurge) );
+    this.subscriptions.add(this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) => this.onSessionsPurged(sessionsToPurge) ));
 
-    this.monitoringCollectionPauseSubscription = this.dataService.monitoringCollectionPause.subscribe( (paused) => {
+    this.subscriptions.add(this.dataService.monitoringCollectionPause.subscribe( (paused) => {
       this.pauseMonitoring = paused;
       this.changeDetectionRef.detectChanges();
-    } );
+    } ));
 
-    this.preferencesChangedSubscription = this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) );
+    this.subscriptions.add(this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) ));
 
     this.zone.runOutsideAngular( () => this.classicGridElement.nativeElement.addEventListener('wheel', this.onWheel, { passive: true } ) );
 
@@ -564,7 +534,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // this triggers whenever we select a new collection - it's job is to reset all collection state
     log.debug('ClassicGridComponent: onSelectedCollectionChanged(): selectedCollectionChanged:', collection);
     this.destroyView = true;
-    this.sessionsDefined = false;
     this.displayedContent = [];
     this.highResSessions = [];
     this.search = [];
@@ -593,7 +562,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // when a different collection is selected - this is when the actual sessions gets pushed out from the server.
     // This happens after onSelectedCollectionChanged, but before onContentReplaced() and onSearchReplaced()
     log.debug('ClassicGridComponent: onSessionsReplaced(): sessionsReplaced:', sessions);
-    this.sessionsDefined = true;
     this.sessions = sessions;
   }
 
@@ -620,7 +588,8 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.sessionWidgetDecider();
     // this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
     this.changeDetectionRef.detectChanges();
-    this.imagesLoaded = this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, this.onImagesLoaded ) );
+    // this.zone.runOutsideAngular( () => wrapGrid(this.gridItems.nativeElement) );
+    // this.imagesLoaded = this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, this.onImagesLoaded ) );
   }
 
 
@@ -638,7 +607,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // when an individual session is pushed from a building collection (or monitoring or rolling).  This should always precede the onContentPublished() event for the same session
     log.debug('ClassicGridComponent: onSessionPublished(): sessionPublished', session);
     let sessionId = session.id;
-    this.sessionsDefined = true;
     this.sessions[sessionId] = session;
   }
 
@@ -667,7 +635,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // if (this.searchBarOpen) { this.onSearchTermsTyped( { searchTerms: this.lastSearchTerm } ); }
     this.onSearchTermsTyped( { searchTerms: this.lastSearchTerm } );
     this.changeDetectionRef.detectChanges();
-    this.imagesLoaded = this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, this.onImagesLoaded ) );
+    // this.imagesLoaded = this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, this.onImagesLoaded ) );
     this.sessionWidgetDecider();
   }
 
@@ -711,7 +679,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.collectionState = collectionState;
     if (collectionState === 'monitoring')  {
       this.destroyView = true;
-      this.sessionsDefined = false;
       this.search = [];
       this.sessions = {};
       this.content = [];
@@ -720,6 +687,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.highResSessions = [];
       this.loadAllHighResImages = false;
       this.resetContentCount();
+      this.changeDetectionRef.detectChanges();
       this.destroyView = false;
       this.changeDetectionRef.detectChanges();
     }
@@ -744,7 +712,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   noopCollection() {
     log.debug('ClassicGridComponent: noopCollection()');
     this.destroyView = true;
-    this.sessionsDefined = false;
     this.displayedContent = [];
     this.highResSessions = [];
     this.search = [];
@@ -831,40 +798,37 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
 
-    let idsWeWant: number[] = [];
+    let contentIdsidsWeWant: string[] = [];
     let tempDisplayedContent: boolean[] = [];
-    let fromArchivesOnly = false;
+    let fromArchivesOnly = mask.showFromArchivesOnly ? true : false;
 
-    if (mask.showFromArchivesOnly) {
-      fromArchivesOnly = true;
-    }
     if (mask.showImage) {
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('image', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('image', fromArchivesOnly));
     }
     if (mask.showPdf) {
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('pdf', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('pdf', fromArchivesOnly));
     }
     if (mask.showWord) {
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('word', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('word', fromArchivesOnly));
     }
     if (mask.showExcel) {
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('excel', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('excel', fromArchivesOnly));
     }
     if (mask.showPowerpoint) {
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('powerpoint', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('powerpoint', fromArchivesOnly));
     }
     if (mask.showHash) {
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('hash', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('hash', fromArchivesOnly));
     }
     if (mask.showDodgy && !fromArchivesOnly) {
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('unsupportedZipEntry', fromArchivesOnly));
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('encryptedZipEntry', fromArchivesOnly));
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('encryptedRarEntry', fromArchivesOnly));
-      idsWeWant = idsWeWant.concat(this.getContentIdsByType('encryptedRarTable', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('unsupportedZipEntry', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('encryptedZipEntry', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('encryptedRarEntry', fromArchivesOnly));
+      contentIdsidsWeWant = contentIdsidsWeWant.concat(this.getContentIdsByType('encryptedRarTable', fromArchivesOnly));
     }
 
     this.content.forEach( (item, i) => {
-      if (idsWeWant.includes(item.session)) {
+      if (contentIdsidsWeWant.includes(item.id)) {
         tempDisplayedContent.push(true);
       }
       else {
@@ -1157,14 +1121,14 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  private getContentIdsByType(type: string, fromArchiveOnly: boolean): number[] {
-    let temp: number[] = [];
+  private getContentIdsByType(type: string, fromArchiveOnly: boolean): string[] {
+    let temp: string[] = [];
     this.content.forEach( (item: Content, i) => {
       if (!fromArchiveOnly && ( item.contentType === type || ('contentSubType' in item && item.contentSubType === type) ) ) {
-        temp.push(item.session);
+        temp.push(item.id);
       }
       else if (fromArchiveOnly && item.fromArchive && ( item.contentType === type || ('contentSubType' in item && item.contentSubType === type) ) ) {
-        temp.push(item.session);
+        temp.push(item.id);
       }
     });
     return temp;
@@ -1240,9 +1204,11 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   onImagesLoaded = () => {
     log.debug('ClassicGridComponent: onImagesLoaded()');
-    this.loadAllHighResImages = true;
-    this.changeDetectionRef.detectChanges();
+    // this.loadAllHighResImages = true;
     this.imagesLoaded.off( 'always', this.onImagesLoaded );
+    this.imagesLoaded = null;
+    this.changeDetectionRef.detectChanges();
+    // this.zone.runOutsideAngular( () => wrapGrid(this.gridItems.nativeElement) ); // massive penalty on load - app freezes for seconds
   }
 
 
