@@ -44,7 +44,6 @@
               "node_modules/moment/min/moment.min.js",
               "node_modules/screenfull/dist/screenfull.js",
               "node_modules/loglevel/dist/loglevel.min.js",
-              "node_modules/mathjs/dist/math.min.js",
               "src/resources/scroller/Animate.js",
               "src/resources/scroller/Scroller.js"
             ]
@@ -102,8 +101,7 @@
               "node_modules/jsencrypt/bin/jsencrypt.min.js",
               "node_modules/moment/min/moment.min.js",
               "node_modules/screenfull/dist/screenfull.js",
-              "node_modules/loglevel/dist/loglevel.min.js",
-              "node_modules/mathjs/dist/math.min.js"
+              "node_modules/loglevel/dist/loglevel.min.js"
             ],
             "styles": [
               "node_modules/primeicons/primeicons.css",

@@ -68,6 +68,8 @@ body {
   min-width: 1024px;
 
 
+  /*
+  // comment out for production
   @media #{$mq-medium} {
     // 1024
     // font-size: $base-font-size * 1.2;
@@ -109,6 +111,7 @@ body {
     // font-size: $base-font-size * 2;
     background-color: black;
   }
+  */
 
 }
 
@@ -494,9 +497,10 @@ classic-session-popup {
         // right: 0.684210526em; // 13px
       }
 
+      /*
       .bullseye {
         // right: 2.368421053em; // 45px
-      }
+      }*/
 
       .metalabel {
         color: rgb(118,143,181);
@@ -724,11 +728,13 @@ control-bar-masonry {
     margin-right: .2em;
   }
 
+  /*
   span.fa-desktop {
     // slightly shrink the monitor icon
     // font-size: 1.8em;
     // padding: .2em;
   }
+  */
 
 }
 
@@ -1197,9 +1203,11 @@ modal .content-details-modal-body {
 
   @include primeStyle(.85em);
 
+  /*
   p-dropdown {
     // vertical-align: top;
   }
+  */
 
   .ui-dropdown {
     min-width: 4.5em;

@@ -11,7 +11,8 @@
     "buildprod": "cp -f node_modules/pdfjs-dist/build/pdf.worker.min.js src/resources/ && cp -f node_modules/isotope-layout/dist/isotope.pkgd.min.js src/resources/ && ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "fixpdf": "cd node_modules/pdfjs-dist/web && cp pdf_viewer.js pdf_viewer.js.orig && gsed -i'' -e 's/var elt = views\\[index\\].div;/var elt = views[index-1].div;/g' pdf_viewer.js"
   },
   "private": true,
   "dependencies": {
@@ -35,7 +36,6 @@
     "jquery": "^3.3.1",
     "jsencrypt": "^2.3.1",
     "loglevel": "^1.4.1",
-    "mathjs": "^3.16.5",
     "moment": "^2.18.1",
     "ng-animate": "^0.3.4",
     "ng2-dragula": "^2.1.1",

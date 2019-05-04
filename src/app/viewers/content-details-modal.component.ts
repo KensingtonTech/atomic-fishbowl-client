@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnChanges, OnDestroy, Input, Renderer2, SimpleChanges, Inject, forwardRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnChanges, OnDestroy, Input, Renderer2, SimpleChanges, Inject, forwardRef, NgZone } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from '../modal/modal.service';
@@ -9,6 +9,7 @@ import { AbstractGrid } from '../abstract-grid.class';
 import { SessionsAvailable } from 'types/sessions-available';
 import * as utils from '../utils';
 import { Logger } from 'loglevel';
+import { Subscription} from 'rxjs';
 declare var log: Logger;
 
 (<any>window).pdfWorkerSrc = '/resources/pdf.worker.min.js';
@@ -157,6 +158,7 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
               private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef,
               private renderer: Renderer2,
+              private zone: NgZone,
               @Inject(forwardRef(() => AbstractGrid )) private parent: AbstractGrid ) {}
 
   @Input() serviceType: string; // 'nw' or 'sa'
@@ -172,6 +174,7 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
   public isOpen = false;
   private removeKeyupFunc: any;
   public iconClass = '';
+  private subscriptions = new Subscription;
 
   // pdf / office - specific
   public pdfFile: string;
@@ -215,6 +218,7 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
     if (this.removeKeyupFunc) {
       this.removeKeyupFunc();
     }
+    this.subscriptions.unsubscribe();
   }
 
 

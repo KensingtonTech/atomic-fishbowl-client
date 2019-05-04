@@ -26,13 +26,13 @@ declare var log: Logger;
 
           <div class="spacer">
             <mat-form-field class="full-width">
-              <input matInput size="80" color="accent" #userName [(ngModel)]="user.username" id="user" type="text" [ngModelOptions]="{standalone: true}" placeholder="Username" autocomplete="username">
+              <input matInput size="80" color="accent" #userName [(ngModel)]="username" id="user" type="text" [ngModelOptions]="{standalone: true}" placeholder="Username" autocomplete="username">
             </mat-form-field>
           </div>
 
           <div>
             <mat-form-field class="full-width">
-              <input matInput size="80" [(ngModel)]="user.password" id="password" type="password" [ngModelOptions]="{standalone: true}" placeholder="Password" autocomplete="current-password">
+              <input matInput size="80" [(ngModel)]="password" id="password" type="password" [ngModelOptions]="{standalone: true}" placeholder="Password" autocomplete="current-password">
             </mat-form-field>
           </div>
 
@@ -40,7 +40,7 @@ declare var log: Logger;
 
         <div>
           <mat-card-actions align="start">
-            <button mat-raised-button color="accent" (click)="login()" class="btn waves-effect waves-light" type="submit" [disabled]="user.username.length === 0 || user.password.length === 0 || loginSubmitted" name="action">Login</button>&nbsp;&nbsp;<span>{{errorMsg}}</span>
+            <button mat-raised-button color="accent" (click)="login()" class="btn waves-effect waves-light" type="submit" [disabled]="username.length === 0 || password.length === 0 || loginSubmitted" name="action">Login</button>&nbsp;&nbsp;<span>{{errorMsg}}</span>
           </mat-card-actions>
         </div>
 
@@ -69,7 +69,8 @@ styles: [`
 
 export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  public user: User = { username: '', password: '' };
+  public username = '';
+  public password = '';
   public errorMsg = '';
   @ViewChildren('userName') userNameRef: QueryList<any>;
 
@@ -97,7 +98,8 @@ export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
   public login(): void {
     this.loginSubmitted = true;
     this.errorMsg = '';
-    this.authService.login(this.user, this.dataService.socketId)
+    let user: User = { username: this.username, password: this.password};
+    this.authService.login(user, this.dataService.socketId)
                     .then( (res: boolean) => {
                       this.loginSubmitted = false;
                       if (!res) { this.errorMsg = 'Login failed'; }

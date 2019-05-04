@@ -82,7 +82,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
       this.serverSocket.on('connect', () => {
         log.debug('Socket.io connected to server');
-        this.socketConnected.next({ connected: true, socketId: this.serverSocket.id });
+        this.zone.run( () => this.socketConnected.next({ connected: true, socketId: this.serverSocket.id }));
         this.socketId = this.serverSocket.id;
         log.debug('DataService: socketId:', this.socketId);
       });
@@ -101,7 +101,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
         }*/
         // server should never forcefully disconnect under the new protocol
         // if (reason === 'ping timeout') {
-          this.socketConnected.next({ connected: false, socketId: null });
+          this.zone.run( () => this.socketConnected.next({ connected: false, socketId: null }));
           this.onSocketDowngrade();
         // }
       } );
@@ -119,33 +119,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.encryptor = new JSEncrypt();
 
     this.zone.runOutsideAngular( () => {
-
-      /*if (!this.serverSocket) {
-        this.serverSocket = io();
-      }
-      else {
-        this.serverSocket.open();
-      }*/
-      // socket will always be connected now
-
-
-      // Subscribe to socket events
-      /*this.serverSocket.on('disconnect', reason => {
-        log.debug('serverSocket was disconnected with reason:', reason);
-        if (reason === 'io server disconnect') {
-          // the server disconnected us forcefully.  maybe due to logout or token timeout
-          // start trying to reconnect
-          // this will repeat until successful
-          this.serverSocket.open();
-        }
-        if (reason === 'ping timeout') {
-          this.socketConnected.next(false);
-        }
-      } );*/
-
-      // this.serverSocket.on('connect', socket => {
-        // log.debug('Socket.io connected to server' );
-        // this.socketConnected.next(true);
 
         if (!this.collectionsRoom) {
           this.collectionsRoom = io('/collections' );
@@ -350,8 +323,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
   onLogoutMessageReceived(reason) {
     log.debug('DataService: onLogoutMessageReceived()');
     if (reason === 'token expired') {
-      this.toolService.logout.next(this.socketId);
-      this.loggedOutByServer.next();
+      this.zone.run( () => this.toolService.logout.next(this.socketId));
+      this.loggedOutByServer.next(); // open the modal to tell user they've been loged out due to token expiry
     }
   }
 

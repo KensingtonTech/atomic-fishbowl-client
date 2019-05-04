@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, ErrorHandler } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
@@ -7,6 +7,9 @@ import { RouterModule } from '@angular/router';
 import { ModalModule } from './modal/modal.module';
 import { Ng2PanZoomModule } from 'ng2-panzoom';
 import { IsotopeModule } from './isotope/isotope.module';
+
+// Global Error Handler
+// import { ErrorHandlerGlobal } from './error-handler-global';
 
 // PrimeNG
 import { CalendarModule } from 'primeng/calendar';
@@ -198,7 +201,10 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   LoggedOutNotifyModalComponent,
                   CustomScrollPanelComponent
                 ],
-  providers:    [ DataService,
+  providers:    [ /*{ provide: ErrorHandler,
+                    useClass: ErrorHandlerGlobal
+                  },*/
+                  DataService,
                   AuthenticationService,
                   ToolService
                 ],

@@ -119,7 +119,7 @@ export class RouterDropdownComponent implements OnInit {
       this.selectedRoute = e;
       this.selectionExpanded = false;
       // execute route
-      this.zone.run( () => this.router.navigate([e.link]));
+      this.router.navigate([e.link]);
       this.changeDetectorRef.markForCheck();
       this.toolService.loadCollectionOnRouteChange = true;
     }

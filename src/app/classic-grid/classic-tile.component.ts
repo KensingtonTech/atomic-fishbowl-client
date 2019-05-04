@@ -1,7 +1,6 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit, OnChanges, AfterViewInit, Inject, forwardRef, ViewChild, ElementRef, NgZone, SimpleChanges } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit, OnChanges, ViewChild, ElementRef, NgZone, SimpleChanges } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { Content } from 'types/content';
-import { Subscription } from 'rxjs';
 import { Logger } from 'loglevel';
 import { trigger, state, style, transition, animate, useAnimation } from '@angular/animations';
 import { zoomIn, zoomOut } from 'ng-animate';
@@ -153,8 +152,8 @@ export class ClassicTileComponent implements OnInit, OnChanges {
     // show an error image here
     log.debug('ClassicTileComponent: onLowResError()');
     this.imgSource = '/resources/error_icon.png';
-    // this.changeDetectionRef.markForCheck();
-    // this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -167,8 +166,8 @@ export class ClassicTileComponent implements OnInit, OnChanges {
     // this.changeDetectionRef.detectChanges();
     this.animationState = 'zoomIn';
     this.loadedContentClass = this.contentClass;
-    // this.changeDetectionRef.markForCheck();
-    // this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
     // this.zone.runOutsideAngular( () => setTimeout( () => this.changeDetectionRef.detach(), 0) );
   }
 
@@ -178,8 +177,8 @@ export class ClassicTileComponent implements OnInit, OnChanges {
     // log.debug('ClassicTileComponent: onHighResLoaded():');
     this.highResLoaded = true;
     // this.changeDetectionRef.reattach();
-    // this.changeDetectionRef.markForCheck();
-    // this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
     // this.zone.runOutsideAngular( () => setTimeout( () => this.changeDetectionRef.detach(), 0) );
   }
 
@@ -190,8 +189,8 @@ export class ClassicTileComponent implements OnInit, OnChanges {
     log.debug('ClassicTileComponent: onHighResError(): content id:', this.content.id);
     log.debug('ClassicTileComponent: onHighResError(): highResImgSource:', this.highResImgSource);
     this.highResImgSource = '/resources/error_icon.png';
-    // this.changeDetectionRef.markForCheck();
-    // this.changeDetectionRef.detectChanges();
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -202,8 +201,6 @@ export class ClassicTileComponent implements OnInit, OnChanges {
       this.el.nativeElement.classList.add('hidden');
     }
   }
-
-
 
 
 }
