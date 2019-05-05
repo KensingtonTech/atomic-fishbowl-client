@@ -21,7 +21,7 @@ import { AbstractGrid } from '../abstract-grid.class';
 import { Session, Sessions } from 'types/session';
 import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
 import { SessionsAvailable } from 'types/sessions-available';
-import ResizeObserver from 'resize-observer-polyfill';
+import ResizeObserverPolyfill from '@juggle/resize-observer';
 import 'imagesloaded';
 declare var log: Logger;
 declare var $: any;
@@ -53,8 +53,6 @@ declare var Scroller: any;
 
   <!-- content count -->
   <content-count-widget *ngIf="selectedCollectionType" [contentCount]="contentCount" style="margin-top: auto; margin-bottom: auto;"></content-count-widget>
-
-
 
 </div>
 
@@ -212,7 +210,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   get scrollTop() {
     return this._scrollTop;
   }
-  private resizeObserver: ResizeObserver;
+  private resizeObserver: any;
   private resizeId: any;
   private lineHeight: number; // we store the height of a single line relative to the container so we can use it when user hits up/down arrows
   public scrollbarMoved = new Subject<number>();
@@ -383,8 +381,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       if (this.autoScrollStarted) {
         let topLeftTileId = this.getTopLeftTileInViewportId();
         log.debug('topLeftTileId:', topLeftTileId);
-        this.stopScrollerAnimation();
-        this.autoScrollAnimationPaused = true;
+        this.pauseScrollerAnimation();
       }
     }));
 
@@ -428,13 +425,20 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     window.dispatchEvent(new Event('resize'));
 
+    log.debug('MasonryGridComponent: ngAfterViewInit(): creating scroller');
     this.scroller = new Scroller( this.render, this.scrollerOptions );
     this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
     // log.debug('MasonryGridComponent: ngAfterViewInit(): scroller:', this.scroller);
     this.isotopeContentRef.nativeElement.style['transform-origin'] = 'left-top';
     this.scrollContainerRef.nativeElement.addEventListener('wheel', this.onMouseWheel, { passive: true });
+
+    log.debug('MasonryGridComponent: ngAfterViewInit(): creating ResizeObserver');
+    const ResizeObserver: any = (<any>window).ResizeObserver || ResizeObserverPolyfill;
     this.resizeObserver = new ResizeObserver( entries => this.onContentHeightChanged(entries) );
-    this.resizeObserver.observe(this.isotopeContentRef.nativeElement);
+    log.debug('MasonryGridComponent: ngAfterViewInit(): now observing');
+    this.zone.runOutsideAngular( () => this.resizeObserver.observe(this.isotopeContentRef.nativeElement) );
+    log.debug('MasonryGridComponent: ngAfterViewInit(): observation in progress');
+
 
     if (this.toolService.loadCollectionOnRouteChange) {
       log.debug('MasonryGridComponent: ngAfterViewInit(): getting collection data again on toolService.loadCollectionOnRouteChange');
@@ -445,6 +449,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.lineHeight = utils.convertEmRelativeToElement(1, this.scrollContainerRef.nativeElement);
 
     this.zone.runOutsideAngular( () => document.addEventListener('keydown', this.onKeyPressed ));
+
+    log.debug('MasonryGridComponent: ngAfterViewInit(): finished ngAfterViewInit()');
 
   }
 
@@ -606,8 +612,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: onWindowResize()');
 
     if (this.autoScrollStarted) {
-      this.stopScrollerAnimation();
-      this.autoScrollAnimationPaused = true;
+      this.pauseScrollerAnimation();
     }
 
     if (this.resizeId) {
@@ -954,8 +959,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
 
     if (this.autoScrollStarted) {
-      this.stopScrollerAnimation();
-      this.autoScrollAnimationPaused = true;
+      this.pauseScrollerAnimation();
     }
     let searchRemoved = this.purgeSessions(sessionsToPurge);
 
@@ -1013,31 +1017,22 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   startScrollerAnimation(): void {
     if (this.autoScrollAnimationRunning) {
-      log.debug('MasonryGridComponent: startScrollerAnimation(): animation is in progress.  Returning');
+      log.debug('MasonryGridComponent: startScrollerAnimation(): scroll animation is already in progress.  Returning');
       // is animation actually running?
       return;
     }
 
-    // Note to self: attempts to get scrollTop through listening to scroll event were unsuccessful.  The event doesn't actually contain the scroll position
+    log.debug('MasonryGridComponent: startScrollerAnimation(): scroll animation isn\'t running right now');
+    // log.debug('MasonryGridComponent: startScrollerAnimation(): scrollContentHeight:', this.scrollContentHeight);
 
-    log.debug('MasonryGridComponent: startScrollerAnimation(): autoScroller animation isn\'t running right now');
-
-    // Add a new animation to the animation queue
-
-    let scrollContentHeight = this.scrollContentHeight; // offset tall the content is
-    log.debug('MasonryGridComponent: startScrollerAnimation(): scrollContentHeight:', scrollContentHeight);
-
-    let scrollTop = this.scrollTop;
-
-    let distanceToScroll = Math.round(scrollContentHeight) - this.scrollContainerHeight - scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
+    let distanceToScroll = Math.round(this.scrollContentHeight) - this.scrollContainerHeight - this.scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
     log.debug('MasonryGridComponent: startScrollerAnimation(): distanceToScroll:', distanceToScroll);
 
-    // let duration = this.scrollDuration(scrollContentHeight, scrollTop);
     let duration = (distanceToScroll / this.pixelsPerSecond) * 1000;
     log.debug('MasonryGridComponent: startScrollerAnimation(): duration:', duration);
 
-    if (duration <= 1) {
-      log.debug('MasonryGridComponent: startScrollerAnimation(): the distance and duration is 0.  Not running scroll animation this time');
+    if (distanceToScroll <= 1) {
+      log.debug('MasonryGridComponent: startScrollerAnimation(): scrollbar is at the end.  Not running scroll animation this time');
       if (this.selectedCollectionType === 'fixed') {
         log.debug('MasonryGridComponent: startScrollerAnimation(): this is a fixed collection.  Fully stopping autoscroller');
         this.toolService.scrollToBottomStopped.next();
@@ -1048,20 +1043,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     log.debug('MasonryGridComponent: startScrollerAnimation(): Starting scroller animation');
 
+    log.debug('autoScrollAnimationRunning = true');
     this.autoScrollAnimationRunning = true;
 
-    let containerBox = this.scrollContainerRef.nativeElement.getBoundingClientRect();
-
-    this.scroller.setScrollTop(this.scrollTop);
-
-    this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
-
-    // this.scroller.setPosition(containerBox.left + this.scrollContainerRef.nativeElement.clientLeft, containerBox.top + this.scrollContainerRef.nativeElement.clientTop);
-    // this.scroller.setPosition(containerBox.left + this.scrollContainerRef.nativeElement.clientLeft, this.scrollTop);
-
-
     this.scroller.options.animationDuration = duration;
-
+    this.scroller.setScrollTop(this.scrollTop);
+    this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
     this.zone.runOutsideAngular( () => {
       this.scroller.scrollBy(0, distanceToScroll, true, true, () => this.onAutoScrollAnimationComplete());
     });
@@ -1093,27 +1080,22 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
 
-    let scrollContentHeight = this.scrollContentHeight;
-
-    let scrollTop = this.scrollContainerRef.nativeElement.scrollTop; // scrollTop is how far the scrollbars are from the top of the container.  this triggers a reflow.  we need a better way to get this.
-
-    let scrollContainerHeight = this.scrollContainerHeight;
-
-    let distanceToScroll = scrollContentHeight - scrollContainerHeight - scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
-    log.debug('MasonryGridComponent: onAutoScrollAnimationComplete(): distanceToScroll', distanceToScroll);
+    log.debug('autoScrollAnimationRunning = false');
     this.autoScrollAnimationRunning = false;
+
+    let distanceToScroll = this.scrollContentHeight - this.scrollContainerHeight - this.scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
+    log.debug('MasonryGridComponent: onAutoScrollAnimationComplete(): distanceToScroll', distanceToScroll);
 
     if (distanceToScroll <= 1) {
       // the scrollbar has reached the end
       log.debug('MasonryGridComponent: onAutoScrollAnimationComplete(): scrollbar has reached the end');
       if (this.selectedCollectionType === 'fixed' && this.collectionState !== 'building') {
-        log.debug('this is a fixed collection.  fully stopping autoscroller');
+        log.debug('MasonryGridComponent: onAutoScrollAnimationComplete(): this is a non-building fixed collection - fully stopping autoscroller');
         this.toolService.scrollToBottomStopped.next();
         this.autoScrollStarted = false;
       }
       return;
     }
-
 
     log.debug('MasonryGridComponent: onAutoScrollAnimationComplete(): scrollbar is not at the end.  restarting animation:');
     this.startScrollerAnimation();
@@ -1124,14 +1106,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   onLayoutComplete(height: number): void {
     // this gets called when Isotope finishes a layout operation.  This means that the window height may have potentially grown or shrunk
-    // this is debounced to 100 ms
     // log.debug('MasonryGridComponent: onLayoutComplete(): height:', height);
-    log.debug('MasonryGridComponent: onLayoutComplete()');
-    // log.debug('MasonryGridComponent: onLayoutComplete(): height:', height);
-    // this.scrollContentHeight = height;
-
 
     if (this.initialLayoutInProgress) {
+      log.debug('MasonryGridComponent: onLayoutComplete()');
       this.initialLayoutInProgress = false;
 
       if (this.publishedContentQueueing) {
@@ -1146,45 +1124,49 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
         }, 0);
       }
     }
-
-    let unpauseFunc = () => {
-      log.debug('MasonryGridComponent: onLayoutComplete(): unpausing scroller animation');
-      this.autoScrollAnimationPaused = false;
-      this.startScrollerAnimation();
-    };
-
-    if (this.autoScrollStarted && this.autoScrollAnimationPaused && !this.autoScrollRestartTimeout) {
-      log.debug('MasonryGridComponent: onLayoutComplete(): Stopping autoscroller via setTimeout()');
-      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( unpauseFunc, 25 ) );
-      return;
-    }
-    else if (this.autoScrollStarted && this.autoScrollAnimationPaused && this.autoScrollRestartTimeout) {
-      clearTimeout(this.autoScrollRestartTimeout);
-      log.debug('MasonryGridComponent: onLayoutComplete(): retrying setTimeout() to unpause scroller animation');
-      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( unpauseFunc, 25 ) );
-      return;
-    }
-
-    if (!this.autoScrollAnimationPaused && this.autoScrollStarted && !this.autoScrollAnimationRunning) {
-      this.startScrollerAnimation();
-    }
-    else {
-      log.debug('MasonryGridComponent: onLayoutComplete(): not starting autoscroller this time');
-      log.debug(`MasonryGridComponent: onLayoutComplete(): autoScrollAnimationPaused: ${this.autoScrollAnimationPaused} autoScrollStarted: ${this.autoScrollStarted} autoScrollAnimationRunning: ${this.autoScrollAnimationRunning}`);
-    }
   }
 
 
 
-  onContentHeightChanged(entries: ResizeObserverEntry[]) {
+  onContentHeightChanged(entries: any[]) { // ResizeObserverEntry[]
     log.debug('MasonryGridComponent: onContentHeightChanged(): entry 0 contentRect:', entries[0].contentRect);
     let height = entries[0].contentRect.height;
+    let lastScrollContentHeight = this.scrollContentHeight;
     this.scrollContentHeight = height;
     if (this.scrollTop > this.scrollContentHeight - this.scrollContainerHeight && this.scrollContentHeight > this.scrollContainerHeight) {
+      // there must've been a purge - keep scrollTop in bounds
       log.debug('MasonryGridComponent: onContentHeightChanged(): keeping scrollTop in bounds');
-      // keep scrollTop in bounds
       this.render(0, this.scrollContentHeight - this.scrollContainerHeight, 1);
     }
+
+    if (this.autoScrollStarted && this.autoScrollAnimationPaused && !this.autoScrollRestartTimeout) {
+      // scroller is paused and no existing setTimeout
+      log.debug('MasonryGridComponent: onContentHeightChanged(): Stopping autoscroller via setTimeout()');
+      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( this.unpauseScrollerAnimation, 25 ) );
+      return;
+    }
+    else if (this.autoScrollStarted && this.autoScrollAnimationPaused && this.autoScrollRestartTimeout) {
+      // scroller is paused and there is an existing setTimeout - we've received several purges in a row
+      clearTimeout(this.autoScrollRestartTimeout);
+      log.debug('MasonryGridComponent: onContentHeightChanged(): retrying setTimeout() to unpause scroller animation');
+      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( this.unpauseScrollerAnimation, 25 ) );
+      return;
+    }
+
+    if (!this.autoScrollAnimationPaused && this.autoScrollStarted && !this.autoScrollAnimationRunning) {
+      // autoscroll is started, it isn't paused, and animation isn't actually running
+      log.debug('MasonryGridComponent: onContentHeightChanged(): starting autoscroller');
+      this.startScrollerAnimation();
+    }
+    else if (this.autoScrollStarted && this.autoScrollAnimationRunning) {
+      log.debug('MasonryGridComponent: onContentHeightChanged(): autoscroll animation is already in progress.  not starting autoscroller this time');
+    }
+    else {
+      // autoscroll is stopped, so do nothing
+      log.debug('MasonryGridComponent: onContentHeightChanged(): not starting autoscroller this time');
+      log.debug(`MasonryGridComponent: onContentHeightChanged(): autoScrollAnimationPaused: ${this.autoScrollAnimationPaused} autoScrollStarted: ${this.autoScrollStarted} autoScrollAnimationRunning: ${this.autoScrollAnimationRunning}`);
+    }
+
   }
 
 
@@ -1202,8 +1184,25 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     if (this.scroller) {
       this.scroller.stop();
     }
+    log.debug('autoScrollAnimationRunning = false');
     this.autoScrollAnimationRunning = false;
     // this.toolService.scrollToBottomStopped.next(); // sometimes we need to use this method without triggering an end to the controlbar
+  }
+
+
+
+  pauseScrollerAnimation(): void {
+    log.debug('MasonryGridComponent: pauseScrollerAnimation(): Pausing scroller animation');
+    this.stopScrollerAnimation();
+    this.autoScrollAnimationPaused = true;
+  }
+
+
+
+  unpauseScrollerAnimation = () => {
+    log.debug('MasonryGridComponent: unpauseScrollerAnimation(): Unpausing scroller animation');
+    this.autoScrollAnimationPaused = false;
+    this.startScrollerAnimation();
   }
 
 
