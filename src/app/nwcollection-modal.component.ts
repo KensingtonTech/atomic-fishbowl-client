@@ -412,6 +412,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   public close(): void {
     log.debug('NwCollectionModalComponent: close()');
     this.modalService.close(this.id);
+    if (this.okButtonText === 'Save') {
+      this.modalService.open(this.toolService.tabContainerModalId);
+    }
   }
 
 

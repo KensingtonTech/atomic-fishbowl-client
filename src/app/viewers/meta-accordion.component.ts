@@ -1,5 +1,6 @@
 import { Component, ChangeDetectorRef, Input, ChangeDetectionStrategy, ViewChild, ElementRef, ViewChildren, QueryList, OnChanges, SimpleChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
+import * as utils from '../utils';
 import { Logger } from 'loglevel';
 declare var log: Logger;
 
@@ -69,9 +70,10 @@ export class MetaAccordionComponent implements OnChanges {
 
   constructor ( private changeDetectionRef: ChangeDetectorRef ) {}
 
-  @Input() public items: string[] = [];
-  @Input() public key: string;
-  @Input() public enabled = false;
+  @Input() items: string[] = [];
+  @Input() key: string;
+  @Input() enabled = false;
+  @Input() expandAll = false;
 
   @ViewChild('slider') sliderRef: ElementRef;
   @ViewChild('firstListItem') firstListItem: ElementRef;
@@ -82,26 +84,80 @@ export class MetaAccordionComponent implements OnChanges {
   public expanded = false;
   public firstItem: string;
   public mouseDownTime: number;
+  private overrideExpandAll = false;
 
 
 
   ngOnChanges(values: SimpleChanges) {
-    if (this.items.length === 0 || !('items' in values)) {
+    // log.debug('MetaAccordionComponent: ngOnChanges(): values:', values);
+    if (this.items.length === 0 || ( !('items' in values) && !('expandAll' in values) ) ) {
       this.changeDetectionRef.markForCheck();
       return;
     }
-    let items = values.items.currentValue.slice(0);
+
+    let items;
+    if ('items' in values) {
+      items = values.items.currentValue.slice(0);
+    }
+    else {
+      items = [ this.firstItem ].concat(this.additionalDisplayedItems);
+    }
+
+    if ('expandAll' in values) {
+      // reset expanded and overrideExpandAll
+      // we need this to occur regardless of items length
+      if (this.expandAll) {
+        this.expanded = true;
+        this.overrideExpandAll = false;
+      }
+      else if (!this.expandAll) {
+        this.expanded = false;
+        this.overrideExpandAll = false;
+      }
+    }
+
+    // now set the collapsed State
     if (items.length === 1) {
+      // one item
       this.collapsedState = 'initial';
     }
-    if (items.length > 1 && !this.expanded) {
-      this.collapsedState = 'collapsed';
+    else if ('expandAll' in values) {
+      // more than one item and user just toggled expand / collapse
+      if (this.expandAll) {
+        this.collapsedState = 'expanded';
+      }
+      else if (!this.expandAll) {
+        this.collapsedState = 'collapsed';
+      }
     }
-    if (items.length > 1 && this.expanded) {
-      this.collapsedState = 'expanded';
+    else if (!('expandAll' in values)) {
+      // more than one item and user didn't just toggle expand / collapse, but it still might already be expanded
+      // we may have changed sessions and just got new meta
+      if ('items' in values) {
+        // we just got new meta
+        if (this.expandAll) {
+          // we are in an expandAll state
+          if (!this.overrideExpandAll) {
+            this.collapsedState = 'expanded';
+          }
+          else {
+            this.collapsedState = 'collapsed';
+          }
+        }
+        else if (!this.expandAll) {
+          // we're not in an expandAll state, i.e. we're collapsed
+          if (this.expanded) {
+            this.collapsedState = 'expanded';
+          }
+          else if (!this.expanded) {
+            this.collapsedState = 'collapsed';
+          }
+        }
+      }
     }
     this.firstItem = items.shift();
     this.additionalDisplayedItems = items;
+
     this.changeDetectionRef.markForCheck();
   }
 
@@ -129,6 +185,12 @@ export class MetaAccordionComponent implements OnChanges {
     }
     this.collapsedState = this.collapsedState === 'collapsed' ? 'expanded' : 'collapsed';
     this.expanded = !this.expanded;
+    if (this.expandAll && !this.expanded) {
+      this.overrideExpandAll = true;
+    }
+    else {
+      this.overrideExpandAll = false;
+    }
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }

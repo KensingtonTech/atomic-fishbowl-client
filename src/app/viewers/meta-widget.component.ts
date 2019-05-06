@@ -23,6 +23,9 @@ declare var log: Logger;
     <div class="iconsAlignTop noselect" style="position: absolute; width: 100%; height: 2em;">
       <span style="float: right;">
 
+        <!-- expand all / collapse all -->
+        <span (click)="onExpandCollapseClicked()" style="color: white; line-height: 2em; font-weight: bold;">{{!expandAll ? 'Expand' : 'Collapse'}}</span>&nbsp;
+
         <!-- netwitness bullseye -->
         <a *ngIf="serviceType == 'nw' && preferences.nw.url && deviceNumber && sessionId" target="_blank" href="{{preferences.nw.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO"><i class="fa fa-bullseye fa-2x fa-fw verticalTop" style="color: red;"></i></a>
 
@@ -64,7 +67,7 @@ declare var log: Logger;
             <td *ngIf="!showAll || (showAll && checkForKeyInMeta(key))" class="metalabel">{{key}}</td>
             <td>
               <!-- only show the accordion if we have meta for its key -->
-              <meta-accordion *ngIf="checkForKeyInMeta(key)" class="metavalue" [items]="meta[key]" [key]="key" [enabled]="enabledMeta[key]"></meta-accordion>
+              <meta-accordion *ngIf="checkForKeyInMeta(key)" class="metavalue" [items]="meta[key]" [key]="key" [enabled]="enabledMeta[key]" [expandAll]="expandAll"></meta-accordion>
 
               <!-- if we're showing preferred meta and we don't have meta for a key, show the red no meta icon -->
               <i *ngIf="!showAll && !checkForKeyInMeta(key)" class="fa fa-ban" style="color: red;"></i>
@@ -125,6 +128,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
   public preferenceKeysObj = {};
   public displayedKeys: string[];
   public enabledMeta: any;
+  public expandAll = false;
 
   // Subscriptions
   private subscriptions = new Subscription;
@@ -323,6 +327,14 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
     // log.debug('ClassicSessionPopupComponent: saUrlGetter(): struct:', struct);
 
     return this.preferences.sa.url + '/deepsee/index#' + encoded;
+  }
+
+
+
+  onExpandCollapseClicked() {
+    this.expandAll = !this.expandAll;
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 }
