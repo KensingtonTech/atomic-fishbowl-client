@@ -1116,7 +1116,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     if (this.unpauseAfterResize) {
       this.unpauseAfterResize = false;
-      this.unpauseAfterResizeTimeout = this.zone.runOutsideAngular( () => setTimeout( this.unpauseScrollerAnimation, 100 ) );
+      this.unpauseAfterResizeTimeout = this.zone.runOutsideAngular( () => setTimeout( () => {
+        this.unpauseAfterResizeTimeout = null;
+        this.unpauseScrollerAnimation();
+      }, 100 ) );
     }
   }
 
@@ -1136,7 +1139,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     if (this.unpauseAfterResizeTimeout) {
       clearTimeout(this.unpauseAfterResizeTimeout);
       this.unpauseAfterResizeTimeout = null;
-      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( this.unpauseScrollerAnimation, 25 ) );
+      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( () => {
+        this.unpauseAfterResizeTimeout = null;
+        this.unpauseScrollerAnimation();
+      }, 25 ) );
     }
     else if (this.autoScrollStarted && this.autoScrollAnimationPaused && !this.autoScrollRestartTimeout) {
       // scroller is paused and no existing setTimeout
