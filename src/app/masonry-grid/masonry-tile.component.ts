@@ -1,6 +1,5 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges, ElementRef, NgZone, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectionStrategy, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { ToolService } from 'services/tool.service';
-import { Subscription } from 'rxjs';
 import { MasonryGridComponent } from './masonry-grid.component';
 import { IsotopeBrickDirective } from '../isotope/isotope-brick.directive';
 import * as utils from '../utils';
@@ -188,7 +187,7 @@ interface TableEntry {
   `
 })
 
-export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
+export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
 
   constructor(  private toolService: ToolService,
                 private changeDetectionRef: ChangeDetectorRef,
@@ -209,23 +208,20 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
   @Input() serviceType: string; // 'nw' or 'sa'
   @Input() collectionId: string = null;
   @Input() margin: number;
+  @Input() displayTextArea = true;
 
   public session; // holds meta, among other things
-  public displayTextArea = true;
   private masonryMeta = [];
   public imageSource: string;
   public extraClass: string;
   public textAreaList: string[] = [];
   public textAreaTableItems: TableEntry[] = [];
   public loadImage = false;
-  private subscriptions = new Subscription;
 
 
 
   ngOnInit(): void {
     // log.debug('MasonryTileComponent: ngOnInit()');
-    this.displayTextArea = this.toolService.showMasonryTextAreaState;
-    this.subscriptions.add(this.toolService.showMasonryTextArea.subscribe( (TorF) => this.onToggleTextArea(TorF) ));
 
     let parentSession = this.parent.sessions[this.sessionId];
 
@@ -366,12 +362,6 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
 
 
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
-
-
-
   ngOnChanges(values): void {
     // log.debug('MasonryTileComponent: ngOnChanges(): values:', values);
     this.updateMasonryMeta();
@@ -403,13 +393,6 @@ export class MasonryTileComponent implements OnInit, OnDestroy, AfterViewInit, O
     this.zone.runOutsideAngular( () => {
       this.el.nativeElement.dispatchEvent(event);
     });
-  }
-
-
-
-  onToggleTextArea(TorF): void {
-    this.displayTextArea = TorF;
-    this.changeDetectionRef.detectChanges();
   }
 
 

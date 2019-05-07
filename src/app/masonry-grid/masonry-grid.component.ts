@@ -66,7 +66,7 @@ declare var Scroller: any;
 
       <ng-container *ngIf="content && hasSessions() && masonryKeys">
 
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [attr.fromArchive]="item.fromArchive" [content]="item" [attr.sessionId]="item.session" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id" [margin]="tileMargin" (click)="onTileClicked($event)"></masonry-tile>
+        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [attr.fromArchive]="item.fromArchive" [content]="item" [attr.sessionId]="item.session" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id" [margin]="tileMargin" (click)="onTileClicked($event)" [displayTextArea]="showTextArea"></masonry-tile>
 
       </ng-container>
 
@@ -217,6 +217,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   public scrollTopChanged = new Subject<number>();
   public containerHeightChanged = new Subject<number>();
   public contentHeightChanged = new Subject<number>();
+  private unpauseAfterResize = false;
+  private unpauseAfterResizeTimeout;
 
   // session viewer
   public selectedSession: Session;
@@ -233,6 +235,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private queryParams: any;
   private urlParametersLoaded = false;
 
+  // Text Area
+  public showTextArea = true;
 
   // Subscription holders
   private subscriptions = new Subscription;
@@ -366,8 +370,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     this.subscriptions.add(this.isotopeConfig.layoutComplete.subscribe( (height) => this.onLayoutComplete(height) ));
 
-    this.subscriptions.add(this.toolService.refreshMasonryLayout.subscribe( () => this.onRefreshMasonryLayout() ));
-
     this.subscriptions.add(this.toolService.masonryColumnWidthChanged.subscribe( (width: number) => this.onMasonryColumnWidthChanged(width) ));
 
     this.subscriptions.add(this.toolService.masonryAutoscrollSpeedChanged.subscribe( (autoScrollSpeed: number) => this.onAutoscrollSpeedChanged(autoScrollSpeed) ));
@@ -377,13 +379,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.changeDetectionRef.detectChanges();
     } ));
 
-    this.subscriptions.add(this.toolService.showMasonryTextArea.subscribe( shown => {
-      if (this.autoScrollStarted) {
-        let topLeftTileId = this.getTopLeftTileInViewportId();
-        log.debug('topLeftTileId:', topLeftTileId);
-        this.pauseScrollerAnimation();
-      }
-    }));
+    this.subscriptions.add(this.toolService.showMasonryTextArea.subscribe( shown => this.onTextAreaToggled(shown) ));
 
     this.subscriptions.add(this.isotopeConfig.api.subscribe( api => this.isotopeApi = api ));
 
@@ -600,19 +596,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onRefreshMasonryLayout(): void {
-    if (this.isotopeInitialized) {
-      this.isotopeApi.layout();
-    }
-  }
-
-
-
   onWindowResize = (event) => {
     log.debug('MasonryGridComponent: onWindowResize()');
 
     if (this.autoScrollStarted) {
       this.pauseScrollerAnimation();
+      this.unpauseAfterResize = true;
     }
 
     if (this.resizeId) {
@@ -1124,6 +1113,11 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
         }, 0);
       }
     }
+
+    if (this.unpauseAfterResize) {
+      this.unpauseAfterResize = false;
+      this.unpauseAfterResizeTimeout = this.zone.runOutsideAngular( () => setTimeout( this.unpauseScrollerAnimation, 100 ) );
+    }
   }
 
 
@@ -1139,7 +1133,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.render(0, this.scrollContentHeight - this.scrollContainerHeight, 1);
     }
 
-    if (this.autoScrollStarted && this.autoScrollAnimationPaused && !this.autoScrollRestartTimeout) {
+    if (this.unpauseAfterResizeTimeout) {
+      clearTimeout(this.unpauseAfterResizeTimeout);
+      this.unpauseAfterResizeTimeout = null;
+      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( this.unpauseScrollerAnimation, 25 ) );
+    }
+    else if (this.autoScrollStarted && this.autoScrollAnimationPaused && !this.autoScrollRestartTimeout) {
       // scroller is paused and no existing setTimeout
       log.debug('MasonryGridComponent: onContentHeightChanged(): Stopping autoscroller via setTimeout()');
       this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( this.unpauseScrollerAnimation, 25 ) );
@@ -1614,6 +1613,22 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
     this.render(0, scrollTop, 1);
+  }
+
+
+
+  onTextAreaToggled(shown) {
+    log.debug('MasonryGridComponent: onTextAreaToggled(): shown', shown);
+    this.showTextArea = shown;
+    if (this.autoScrollStarted) {
+      // let topLeftTileId = this.getTopLeftTileInViewportId();
+      // log.debug('topLeftTileId:', topLeftTileId);
+      this.stopAutoScroll();
+    }
+    this.changeDetectionRef.detectChanges();
+    if (this.isotopeInitialized) {
+      this.isotopeApi.layout();
+    }
   }
 
 

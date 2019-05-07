@@ -29,9 +29,7 @@ export class ToolService {
   public scrollToBottomStopped: Subject<any> = new Subject<any>(); // this notifies that scrolling has finished in the view
 
   // Masonry
-  public showMasonryTextArea: Subject<boolean> = new Subject<boolean>();
-  public showMasonryTextAreaState = true;
-  public refreshMasonryLayout: Subject<void> = new Subject<void>();
+  public showMasonryTextArea: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   public masonryColumnWidthChanged: Subject<number> = new Subject<number>();
   public masonryAutoscrollSpeedChanged: Subject<number> = new Subject<number>();
 
@@ -119,12 +117,6 @@ export class ToolService {
 
   constructor() {
     log.debug('ToolService: constructor()');
-    this.showMasonryTextAreaState = this.getPreference('showMeta') == null ? true : this.getPreference('showMeta'); // sets to true if null
-
-    this.showMasonryTextArea.subscribe( (show) => {
-      this.showMasonryTextAreaState = show;
-      this.setPreference('showMeta', show);
-    });
 
     this.lastRoute = this.getPreference('lastRoute');
   }

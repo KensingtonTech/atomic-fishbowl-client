@@ -64,7 +64,9 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
       this.changeDetectionRef.detectChanges();
     }));
 
-    this.showMeta = this.toolService.showMasonryTextAreaState;
+    let showMeta = this.toolService.getPreference('showMeta');
+    this.showMeta =  showMeta === null ? true : showMeta;
+    this.toolService.showMasonryTextArea.next(showMeta);
   }
 
 
@@ -95,18 +97,20 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
   showMetaFunction(): void {
     this.showMeta = true;
+    this.toolService.setPreference('showMeta', true);
     this.toolService.showMasonryTextArea.next(true);
-    this.zone.runOutsideAngular( () => setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10) );
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 
 
   hideMetaFunction(): void {
     this.showMeta = false;
+    this.toolService.setPreference('showMeta', false);
     this.toolService.showMasonryTextArea.next(false);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
-    this.zone.runOutsideAngular( () => setTimeout( () => { this.toolService.refreshMasonryLayout.next(); }, 10) );
   }
 
 
