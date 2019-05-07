@@ -43,12 +43,9 @@ declare var Scroller: any;
   <control-bar-masonry fxFlexOffset="1.052631579em"></control-bar-masonry>
 
   <!-- pause / resume buttons for monitoring collections -->
-  <!-- position: absolute; left: 1.315789474em;-->
   <div *ngIf="selectedCollectionType == 'monitoring'" fxFlexOffset="2em" style="color: white;">
-
     <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
     <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
-
   </div>
 
   <!-- content count -->
@@ -852,7 +849,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.addWithLayout = true;
     }
 
-
     newContent.forEach(content => {
       this.content.push(content);
       let contentId = content.id;
@@ -890,16 +886,19 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       if (this.isotopeInitialized) {
         this.isotopeApi.destroyMe();
       }
-      this.resetScroll();
-      this.scrollContentHeight = 0;
       this.search = [];
       this.sessions = {};
       this.content = [];
       this.contentObj = {};
       this.resetContentCount();
+      this.pauseScrollerAnimation();
+      this.scrollContentHeight = 0;
+      this.resetScroll();
       this.changeDetectionRef.detectChanges();
-      this.scrollContainerHeight = this.scrollContainerRef.nativeElement.clientHeight;
-      if (this.autoScrollStarted) { this.restartAutoScroll(); }
+      this.isotopeApi.initializeMe();
+      if (this.autoScrollStarted) {
+        this.restartAutoScroll();
+      }
     }
   }
 
@@ -1239,14 +1238,14 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
   suspendMonitoring(): void {
-    // this.pauseMonitoring = true;
+    // this.pauseMonitoring = true; // pauseMonitoring will be updated after server push
     this.dataService.pauseMonitoringCollection();
   }
 
 
 
   resumeMonitoring(): void {
-    // this.pauseMonitoring = false;
+    // this.pauseMonitoring = false; // this.pauseMonitoring = true; // pauseMonitoring will be updated after server push
     // We must now check whether our collection has disconnected, and if not - call unpauseMonitoringCollection.  If so, call getRollingCollection
     this.dataService.unpauseMonitoringCollection();
   }
@@ -1599,6 +1598,9 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // log.debug('MasonryGridComponent: onTileClicked(): event:', event);
     if (event.target.tagName === 'IMG') {
       // set session and open session viewer
+      if (this.selectedCollectionType === 'monitoring' && !this.pauseMonitoring) {
+        this.suspendMonitoring();
+      }
       let sessionId = event.currentTarget.getAttribute('sessionId');
       let contentId = event.currentTarget.getAttribute('id');
       this.selectedSession = this.sessions[sessionId];

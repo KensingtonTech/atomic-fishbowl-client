@@ -1189,14 +1189,14 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
   private suspendMonitoring(): void {
-    // this.pauseMonitoring = true;
+    // this.pauseMonitoring = true; // pauseMonitoring will be updated after server push
     this.dataService.pauseMonitoringCollection();
   }
 
 
 
   private resumeMonitoring(): void {
-    // this.pauseMonitoring = false;
+    // this.pauseMonitoring = false; // pauseMonitoring will be updated after server push
     this.dataService.unpauseMonitoringCollection();
   }
 
@@ -1239,6 +1239,9 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
       if (event.target.tagName === 'IMG') {
         // set session and open session viewer
+        if (this.selectedCollectionType === 'monitoring' && !this.pauseMonitoring) {
+          this.suspendMonitoring();
+        }
         let sessionId = event.currentTarget.getAttribute('sessionId');
         let contentId = event.currentTarget.getAttribute('id');
         this.selectedSession = this.sessions[sessionId];
