@@ -92,19 +92,24 @@ export class ClassicTileComponent implements OnInit, OnChanges {
         break;
       case 'encryptedZipEntry':
         this.imgSource = `/resources/zip_icon_locked.png`;
+        this.highResImgSource = `/resources/zip_icon_locked.png`;
         break;
       case 'unsupportedZipEntry':
         this.imgSource = `/resources/zip_icon_unknown.png`;
+        this.highResImgSource = `/resources/zip_icon_unknown.png`;
         break;
       case 'encryptedRarEntry':
         this.imgSource = `/resources/rar_icon_locked.png`;
+        this.highResImgSource = `/resources/rar_icon_locked.png`;
         break;
       case 'encryptedRarTable':
         this.imgSource = `/resources/rar_icon_locked.png`;
+        this.highResImgSource = `/resources/rar_icon_locked.png`;
         this.contentClass = '';
         break;
       case 'hash':
         this.imgSource = `/resources/${this.content.hashType}_hash_icon.png`;
+        this.highResImgSource = `/resources/${this.content.hashType}_hash_icon.png`;
         break;
     }
     this.zone.runOutsideAngular( () => setTimeout( () => {
