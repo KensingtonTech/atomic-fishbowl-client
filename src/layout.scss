@@ -568,10 +568,13 @@ body masonry-grid-view {
       grid-auto-rows: auto;
       grid-row-gap: .3em;
 
+      max-height: 100%;
+
+      /*
       // @media #{$mq-medium} {
         // 1024 - purple
         max-height: 43em;
-        margin-bottom: 1em;
+        // margin-bottom: 1em;
       // }
       @media #{$mq-large} {
         // 1366 - green
@@ -593,6 +596,7 @@ body masonry-grid-view {
         // 3840 - black
         max-height: 73em;
       }
+      */
   
     }
 

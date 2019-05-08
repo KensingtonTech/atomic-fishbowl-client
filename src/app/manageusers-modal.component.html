@@ -1,6 +1,6 @@
 <modal id="{{id}}" (opened)="onOpen()" (closed)="onClosed()" background="true" modalClass="manage-users-modal" bodyClass="mat-app-background manage-users-modal-body" bodyStyle="background-color: initial; padding: 0; border-radius: initial; box-sizing: border-box;">
 
-  <div style="position: relative; background-color: rgba(255,255,255,0.8); padding: .5em; border-radius: 0.526315789em; max-height: 100%; overflow: hidden; box-sizing: border-box;">
+  <div class="user-table-container" style="position: relative; background-color: rgba(255,255,255,0.8); padding: .5em; border-radius: 0.526315789em; height: 100%; overflow: hidden; box-sizing: border-box;">
 
     <div fxLayout="row" style="width: 100%;">
       <h3 style="margin-top: 0; margin-bottom: 0.526315789em; margin-right: auto;">Manage Users</h3>
@@ -9,37 +9,39 @@
       <div (click)="close()" class="fa fa-times-circle-o fa-2x" style="vertical-align: top;"></div>
     </div>
 
-    <div #userTable class="user-table" style="position: relative; top: 1em; overflow-y: auto; width: 100%;">
+    <div class="user-table-parent" style="position: absolute; top: 2.5em; bottom: 0; left: 0; right: 0;">
+      <div #userTable class="user-table" style="position: absolute; top: 0; left: 0; left: 0; right: 0; overflow-y: auto;">
 
-      <div class="header cell">Enabled</div>
-      <div class="header">&nbsp;&nbsp;&nbsp;&nbsp;Actions&nbsp;&nbsp;&nbsp;&nbsp;</div>
-      <div class="header cell">User</div>
-      <div class="header cell">Full Name</div>
-      <div class="header cell">Email</div>
+        <div class="header cell">Enabled</div>
+        <div class="header">&nbsp;&nbsp;&nbsp;&nbsp;Actions&nbsp;&nbsp;&nbsp;&nbsp;</div>
+        <div class="header cell">User</div>
+        <div class="header cell">Full Name</div>
+        <div class="header cell">Email</div>
 
-      <ng-container *ngFor="let user of users; index as i; odd as odd">
+        <ng-container *ngFor="let user of users; index as i; odd as odd">
 
-        <!-- enabled / disabled -->
-        <div class="cell center" [class.evenRow]="!odd" [class.oddRow]="odd">
-          <span [class.fa-ban]="!user.enabled" [class.fa-check]="user.enabled" class="fa"></span>
-        </div>
+          <!-- enabled / disabled -->
+          <div class="cell center" [class.evenRow]="!odd" [class.oddRow]="odd">
+            <span [class.fa-ban]="!user.enabled" [class.fa-check]="user.enabled" class="fa"></span>
+          </div>
 
-        <!-- actions -->
-        <div class="center" [class.evenRow]="!odd" [class.oddRow]="odd">
-          <span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>
-        </div>
-        
-        <!-- username -->
-        <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.username}}</div>
+          <!-- actions -->
+          <div class="center" [class.evenRow]="!odd" [class.oddRow]="odd">
+            <span class="fa fa-trash" (click)="onDeleteUserClicked(user)"></span>&nbsp;&nbsp;<span class="fa fa-pencil" (click)="onEditUserClicked(user)"></span>
+          </div>
+          
+          <!-- username -->
+          <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.username}}</div>
 
-        <!-- full name -->
-        <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.fullname}}</div>
+          <!-- full name -->
+          <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.fullname}}</div>
 
-        <!-- email -->
-        <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.email}}</div>
+          <!-- email -->
+          <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd">{{user.email}}</div>
 
-      </ng-container>
+        </ng-container>
 
+      </div>
     </div>
 
   </div>
