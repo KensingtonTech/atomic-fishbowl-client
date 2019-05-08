@@ -335,7 +335,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onNameChanged(name, detectChanges = true): void {
+  onDistillationChecked() {
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  public onNameChanged(name: string): void {
     // log.debug(`NwCollectionModalComponent: onNameChanged(): name: "${name}"`);
 
     if (name.length === 0) {
@@ -348,10 +355,6 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     else {
       this.nameValid = false;
       this.nameInvalidMessage = 'A collection with this name already exists';
-    }
-    if (detectChanges) {
-      this.changeDetectionRef.markForCheck();
-      this.changeDetectionRef.detectChanges();
     }
   }
 
@@ -381,6 +384,13 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     else {
       this.displayCustomTimeframeSelector = false;
     }
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
+  }
+
+
+
+  public timeframeClicked() {
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -844,7 +854,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.name = 'Adhoc investigation for ' + params['side'] + ' AD User ' + params['adUser'] + ' at ' + now;
     }
 
-    this.onNameChanged(this.name); // runs change detection
+    this.onNameChanged(this.name);
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
     this.nameBoxRef.first.nativeElement.focus();
 
     // Use case
@@ -911,6 +923,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.name = collection.name;
     this.origName = collection.name;
     this.onNameChanged(collection.name); // runs change detection
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
     this.type = collection.type;
     this.contentLimit = collection.contentLimit;
     this.onlyContentFromArchives = collection.onlyContentFromArchives || false;
@@ -1166,6 +1180,13 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       return;
     }
     this.toolService.setPreference('defaultNwService', this.selectedApiServer.id);
+  }
+
+
+
+  onTabClicked() {
+    this.changeDetectionRef.markForCheck();
+    this.changeDetectionRef.detectChanges();
   }
 
 }

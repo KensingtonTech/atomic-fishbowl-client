@@ -170,8 +170,8 @@ export class ModalComponent implements OnInit, OnDestroy {
 
 
   onKeyPressed = (event: KeyboardEvent) => {
-    log.debug('ModalComponent: onKeyPressed(): id:', this.id);
-    log.debug('ModalComponent: onKeyPressed(): event:', event);
+    // log.debug('ModalComponent: onKeyPressed(): id:', this.id);
+    // log.debug('ModalComponent: onKeyPressed(): event:', event);
     if (event.key === 'Escape' && this.enabledTrigger === 'enabled' && this.escapeEnabled === true) {
       this.modalService.close(this.id);
     }

@@ -1032,6 +1032,10 @@ body .nwCollectionModalBody {
     font-size: .8em;
   }
 
+  textarea {
+    font-size: .8em;
+  }
+
   .ui-radiobutton-box.ui-state-active {
     background-color: rgb(59, 153, 252);
   }
@@ -1121,8 +1125,8 @@ body .ui-widget.hashingTooltip {
 }
 
 .nwCollectionPanelHeader {
-  // font-size: .75em;
   font-size: .75em;
+  outline: none;
 }
 
 

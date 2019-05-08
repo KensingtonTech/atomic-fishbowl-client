@@ -19,6 +19,7 @@
             </td>
             <td>
               <label *ngIf="!nameValid" for="nwNameBox" style="color: red;">{{nameInvalidMessage}}<br></label>
+              <!-- (ngModelChange)="onNameChanged()" -->
               <input pInputText #nwNameBox id="nwNameBox" type="text" name="name" (ngModelChange)="onNameChanged($event)" [(ngModel)]="name" style="width: 100%;" autocomplete="off" required>
             </td>
           </tr>
@@ -42,7 +43,7 @@
               <b>Timeframe</b>
             </td>
             <td>
-              <p-dropdown name="timeFrame" [options]="timeframeOptions" [style]="{'width': '6.578947368em'}" [(ngModel)]="selectedTimeframe" (onChange)="timeframeSelected($event)" styleClass="noselect" panelStyleClass="noselect"></p-dropdown>
+              <p-dropdown name="timeFrame" [options]="timeframeOptions" [style]="{'width': '6.578947368em'}" [(ngModel)]="selectedTimeframe" (onChange)="timeframeSelected($event)" (click)="timeframeClicked()" styleClass="noselect" panelStyleClass="noselect"></p-dropdown>
             </td>
           </tr>
           <!--ROLLING HOURS SELECTOR-->
@@ -58,14 +59,14 @@
           <tr *ngIf="displayCustomTimeframeSelector && type == 'fixed'">
             <td><i>From</i>
             </td>
-            <td><p-calendar name="time1" showTime="showTime" showIcon="true" [(ngModel)]="timeBegin" inputStyleClass="ourFont"></p-calendar>
+            <td><p-calendar name="time1" showTime="showTime" showIcon="true" [(ngModel)]="timeBegin" inputStyleClass="ourFont" [selectOtherMonths]="true"></p-calendar>
             </td>
           </tr>
           <!--CALENDAR FROM TO FIXED COLLECTIONS-->
           <tr *ngIf="displayCustomTimeframeSelector && type == 'fixed'">
             <td><i>To</i>
             </td>
-            <td><p-calendar name="time2" showTime="showTime" showIcon="true" [(ngModel)]="timeEnd" inputStyleClass="ourFont"></p-calendar>
+            <td><p-calendar name="time2" showTime="showTime" showIcon="true" [(ngModel)]="timeEnd" inputStyleClass="ourFont" [selectOtherMonths]="true"></p-calendar>
             </td>
           </tr>
           <!--CONTENT LIMIT-->
@@ -166,9 +167,9 @@
               <span class="fa fa-info-circle fa-fw" pTooltip="Distillation filters collections based on either keywords (text) or regular expressions (Regex) contained within text extracted from its documents.  Only PDF and Office documents that match these will be added to the collection." tooltipPosition="right" escape="false" tooltipStyleClass="nwCollectionTooltip"></span>
             </td>
             <td>
-                <p-checkbox [(ngModel)]="distillationEnabled" binary="true" name="distillationEnabled" [disabled]="showUseCaseValues"></p-checkbox>&nbsp;
+                <p-checkbox [(ngModel)]="distillationEnabled" (ngModelChange)="onDistillationChecked()" binary="true" name="distillationEnabled" [disabled]="showUseCaseValues"></p-checkbox>&nbsp;
                 <span>Text</span>&nbsp;&nbsp;
-                <p-checkbox [(ngModel)]="regexDistillationEnabled" binary="true" name="regexDistillationEnabled" [disabled]="showUseCaseValues"></p-checkbox>&nbsp;
+                <p-checkbox [(ngModel)]="regexDistillationEnabled" (ngModelChange)="onDistillationChecked()" binary="true" name="regexDistillationEnabled" [disabled]="showUseCaseValues"></p-checkbox>&nbsp;
                 <span>Regex</span>
             </td>
           </tr>
@@ -230,11 +231,11 @@
 
 
         <!-- Tab Container -->
-        <p-tabView >
+        <p-tabView (onChange)="onTabClicked()">
 
 
             <!--SELECT A NETWITNESS SERVICE BOX-->
-            <p-tabPanel header="Connection" headerStyleClass="nwCollectionPanelHeader">  
+            <p-tabPanel header="Connection" headerStyleClass="nwCollectionPanelHeader noselect">  
               <div *ngIf="apiServers" style="position: relative; margin-top: 0.789473684em; height: auto; overflow: visible;">
                   <h4 style="margin-top: 0; margin-bottom: 0.263157895em;">Select a NetWitness Service</h4> 
           
@@ -258,7 +259,7 @@
 
 
             <!--MINIMUM IMAGE DIMENSIONS-->
-            <p-tabPanel *ngIf="imagesEnabled" header="Images"  headerStyleClass="nwCollectionPanelHeader">
+            <p-tabPanel *ngIf="imagesEnabled" header="Images"  headerStyleClass="nwCollectionPanelHeader noselect">
                 <table style="width: 100%;">
                     <tr>
                       <td class="column1">
@@ -273,7 +274,7 @@
 
 
             <!--TEXT DISTILLATION-->
-            <p-tabPanel *ngIf="distillationEnabled && (pdfsEnabled || officeEnabled)" header="Text Distill" headerStyleClass="nwCollectionPanelHeader">
+            <p-tabPanel *ngIf="distillationEnabled && (pdfsEnabled || officeEnabled)" header="Text Distill" headerStyleClass="nwCollectionPanelHeader noselect">
                 <div style="display: flex; height: 100%;">
                   <div style="flex: 0 0 auto; margin-right: 0.263157895em;">
                     <b>Search Terms</b><br><br>
@@ -293,7 +294,7 @@
             
 
             <!--REGEX DISTILLATION-->
-            <p-tabPanel *ngIf="regexDistillationEnabled && (pdfsEnabled || officeEnabled)" header="Regex Distill" headerStyleClass="nwCollectionPanelHeader">
+            <p-tabPanel *ngIf="regexDistillationEnabled && (pdfsEnabled || officeEnabled)" header="Regex Distill" headerStyleClass="nwCollectionPanelHeader noselect">
               <div style="display: flex; height: 100%;">
                 <div style="flex: 0 0 auto; margin-right: 0.263157895em;">
                   <b>Regex Terms</b><span class="fa fa-info-circle fa-fw" #regexInfoIcon escape="false" [pTooltip]="regexDistillationTooltipText" tooltipPosition="bottom" tooltipStyleClass="nwCollectionRegexTooltip"></span><br><br>
@@ -317,7 +318,7 @@
 
 
             <!--SHA1-->
-            <p-tabPanel *ngIf="sha1Enabled && !showUseCaseValues && hashesEnabled && hashingMode === hashingModes.manual" header="SHA1" headerStyleClass="nwCollectionPanelHeader">
+            <p-tabPanel *ngIf="sha1Enabled && !showUseCaseValues && hashesEnabled && hashingMode === hashingModes.manual" header="SHA1" headerStyleClass="nwCollectionPanelHeader noselect">
               <div style="display: flex; height: 100%;">
 
                 <div style="flex: 0 0 auto; margin-right: 0.263157895em;">
@@ -335,7 +336,7 @@
 
 
             <!--SHA256-->
-            <p-tabPanel *ngIf="sha256Enabled && !showUseCaseValues && hashesEnabled && hashingMode === hashingModes.manual" header="SHA256" headerStyleClass="nwCollectionPanelHeader">
+            <p-tabPanel *ngIf="sha256Enabled && !showUseCaseValues && hashesEnabled && hashingMode === hashingModes.manual" header="SHA256" headerStyleClass="nwCollectionPanelHeader noselect">
               <div style="display: flex; height: 100%;">
 
                 <div style="flex: 0 0 auto; margin-right: 0.263157895em;">
@@ -352,7 +353,7 @@
 
 
             <!--MD5-->
-            <p-tabPanel *ngIf="md5Enabled && !showUseCaseValues && hashesEnabled && hashingMode === hashingModes.manual" header="MD5" headerStyleClass="nwCollectionPanelHeader">
+            <p-tabPanel *ngIf="md5Enabled && !showUseCaseValues && hashesEnabled && hashingMode === hashingModes.manual" header="MD5" headerStyleClass="nwCollectionPanelHeader noselect">
               <div style="display: flex; height: 100%;">
 
                 <div style="flex: 0 0 auto; margin-right: 0.263157895em;">
