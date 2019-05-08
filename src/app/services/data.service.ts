@@ -118,7 +118,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
     this.encryptor = new JSEncrypt();
 
-    this.zone.runOutsideAngular( () => {
+    // this.zone.runOutsideAngular( () => { // no need to run outside the zone as it's already outside the zone
 
         if (!this.collectionsRoom) {
           this.collectionsRoom = io('/collections' );
@@ -133,7 +133,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
             this.collectionsRoom.open();
           }
         } );
-        this.collectionsRoom.on('state', (state) => this.collectionStateChanged.next(state) );
+        this.collectionsRoom.on('state', this.zone.run( () => (state) => this.collectionStateChanged.next(state) ) );
         this.collectionsRoom.on('purge', (collectionPurge) => this.sessionsPurged.next(collectionPurge) );
         this.collectionsRoom.on('clear', () => {
           this.sessionsReplaced.next( {} );
@@ -173,19 +173,19 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
       this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
       this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
-      this.serverSocket.on('nwservers', apiServers => this.onNwServersUpdate(apiServers) );
-      this.serverSocket.on('saservers', apiServers => this.onSaServersUpdate(apiServers) );
-      this.serverSocket.on('feeds', feeds => this.onFeedsUpdate(feeds) );
-      this.serverSocket.on('feedStatus', feedStatus => this.onFeedStatusUpdate(feedStatus) );
-      this.serverSocket.on('users', users => this.onUsersUpdate(users) );
-      this.serverSocket.on('useCases', useCases => this.onUseCasesUpdate(useCases) );
-      this.serverSocket.on('license', license => this.onLicenseChanged(license) );
-      this.serverSocket.on('logout', (reason => this.onLogoutMessageReceived(reason) ) ); // TODO: triggered by the socket when our validity expires
+      this.serverSocket.on('nwservers', apiServers => this.zone.run( () => this.onNwServersUpdate(apiServers) ) );
+      this.serverSocket.on('saservers', apiServers => this.zone.run( () => this.onSaServersUpdate(apiServers) ) );
+      this.serverSocket.on('feeds', feeds => this.zone.run( () => this.onFeedsUpdate(feeds) ) );
+      this.serverSocket.on('feedStatus', feedStatus => this.zone.run( () => this.onFeedStatusUpdate(feedStatus) ) );
+      this.serverSocket.on('users', users => this.zone.run( () => this.onUsersUpdate(users) ) );
+      this.serverSocket.on('useCases', useCases => this.zone.run( () => this.onUseCasesUpdate(useCases) ) );
+      this.serverSocket.on('license', license => this.zone.run( () => this.onLicenseChanged(license) ) );
+      this.serverSocket.on('logout', (reason => this.zone.run( () => this.onLogoutMessageReceived(reason) ) ) ); // TODO: triggered by the socket when our validity expires
       this.serverSocket.on('collectionDeleted', (details: CollectionDeletedDetails) => this.collectionDeleted.next(details) );
 
       // instruct server to send data
       this.serverSocket.emit('clientReady');
-    });
+    // });
 
   }
 
@@ -323,7 +323,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   onLogoutMessageReceived(reason) {
     log.debug('DataService: onLogoutMessageReceived()');
     if (reason === 'token expired') {
-      this.zone.run( () => this.toolService.logout.next(this.socketId));
+      this.toolService.logout.next(this.socketId);
       this.loggedOutByServer.next(); // open the modal to tell user they've been loged out due to token expiry
     }
   }
