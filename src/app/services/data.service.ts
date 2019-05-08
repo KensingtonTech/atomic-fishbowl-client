@@ -334,8 +334,8 @@ export class DataService { // Manages NwSession objects and also Image objects i
   testNwServer( server: any ): Promise<any> {
     return this.http
                 .post(this.apiUrl + '/nwserver/test', server )
-                .toPromise()
-                .catch(e => this.handleError(e));
+                .toPromise();
+                // .catch(e => this.handleError(e)); // we don't want to logout if server throws a 401, as the server will mimic whatever code NW returns with
   }
 
 
@@ -710,7 +710,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   handleError(error: HttpErrorResponse): any {
     if (error.status === 401) {
-      this.toolService.logout.next(this.socketId);
+      this.zone.run( () => this.toolService.logout.next(this.socketId) );
       // return Promise.reject(error.message || error);
     }
     else {
