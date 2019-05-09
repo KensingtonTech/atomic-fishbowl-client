@@ -69,20 +69,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add( this.authService.loggedInChanged.subscribe( loggedIn => this.onLoginChanged(loggedIn) ) );
 
-    if (this.toolService.getPreference('eulaAccepted') !== null ) {
-      this.eulaAccepted = this.toolService.getPreference('eulaAccepted');
+    let eulaAccepted = this.toolService.getPreference('eulaAccepted');
+    if (eulaAccepted !== null ) {
+      this.eulaAccepted = eulaAccepted;
     }
+    log.debug('AppComponent: ngOnInit(): eulaAccepted:', this.eulaAccepted);
 
     if (this.eulaAccepted) {
-      // this.startPing();
       this.subscriptions.add(this.dataService.socketConnected.subscribe( status => this.onSocketConnected(status) ));
     }
     else {
-      this.subscriptions.add(this.toolService.eulaAccepted.subscribe( () => {
-        this.eulaAccepted = true;
-        // this.startPing();
-        this.subscriptions.add(this.dataService.socketConnected.subscribe( status => this.onSocketConnected(status) ));
-      } ) );
+      this.subscriptions.add(this.toolService.eulaAccepted.subscribe( () => this.onEulaAccepted() ) );
     }
 
     this.subscriptions.add(this.dataService.loggedOutByServer.subscribe( () => this.modalService.open(this.toolService.loggedOutModalId)));
@@ -95,6 +92,14 @@ export class AppComponent implements OnInit, OnDestroy {
     }, 500) );
 
 
+  }
+
+
+
+  onEulaAccepted() {
+    log.debug('AppComponent: onEulaAccepted()');
+    this.eulaAccepted = true;
+    this.subscriptions.add(this.dataService.socketConnected.subscribe( status => this.onSocketConnected(status) ));
   }
 
 
@@ -144,43 +149,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.credentialsChecked = true;
 
   }
-
-
-
-  /*startPing() {
-    log.debug('AppComponent: startPing()');
-    // run initial ping to see if server is reachable
-    this.dataService.ping()
-    .then( () => {
-      this.serverReachable = true;
-    })
-    .then( () => this.authService.checkCredentials() )
-    .then( () => {
-      this.credentialsChecked = true;
-    } )
-    .catch( () => {
-      this.serverReachable = false;
-      this.modalService.open(this.toolService.serverDownModalId);
-    });
-
-    // schedule a ping every 10 seconds and display error modal if it becomes unreachable
-    this.pingInterval = this.zone.runOutsideAngular( () =>
-      setInterval( () => {
-        this.dataService.ping()
-        .then( () => {
-          this.modalService.close(this.toolService.serverDownModalId);
-          this.serverReachable = true;
-          if (!this.credentialsChecked) {
-            this.authService.checkCredentials();
-          }
-        })
-        .catch( () => {
-          this.serverReachable = false;
-          this.modalService.open(this.toolService.serverDownModalId);
-        });
-      }, 10000)
-    );
-  }*/
 
 
 
