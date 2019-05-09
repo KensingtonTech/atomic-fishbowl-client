@@ -66,7 +66,7 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
     let showMeta = this.toolService.getPreference('showMeta');
     this.showMeta =  showMeta === null ? true : showMeta;
-    this.toolService.showMasonryTextArea.next(showMeta);
+    this.toolService.showMasonryTextArea.next(this.showMeta);
   }
 
 
