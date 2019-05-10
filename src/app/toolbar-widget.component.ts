@@ -483,15 +483,18 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
 
   toggleSearch(): void {
+    // log.debug('ToolbarWidgetComponent: toggleSearch()');
     this.showSearch = !this.showSearch;
     this.parent.onSearchBarOpen(this.showSearch);
-    if (!this.showSearch) {  // search bar is closed
+    if (!this.showSearch) {
+      // search bar is closed
       this.oldSearchTerms = this.searchTerms;
       this.searchTerms = ''; // set the search terms back to nothing when closing the search bar
       this.searchTermsUpdate();
       this.parent.onMaskChanged(this.maskState);
     }
-    else { // search bar is open
+    else {
+      // search bar is open
       if (this.oldSearchTerms) {
         this.searchTerms = this.oldSearchTerms;
         this.searchTermsUpdate();

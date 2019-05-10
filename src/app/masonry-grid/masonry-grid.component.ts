@@ -723,6 +723,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
   onSearchTermsTyped(event: any): void {
+    // called directly from toolbar
     if (this.autoScrollStarted) {
       this.stopAutoScroll();
     }
@@ -1131,8 +1132,13 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.scrollContentHeight = height;
     if (this.scrollTop > this.scrollContentHeight - this.scrollContainerHeight && this.scrollContentHeight > this.scrollContainerHeight) {
       // there must've been a purge - keep scrollTop in bounds
-      log.debug('MasonryGridComponent: onContentHeightChanged(): keeping scrollTop in bounds');
+      log.debug('MasonryGridComponent: onContentHeightChanged(): keeping scrollTop in bounds 1');
       this.render(0, this.scrollContentHeight - this.scrollContainerHeight, 1);
+    }
+    else if (this.scrollContentHeight < this.scrollContainerHeight && this.scrollTop > 0) {
+      // most likely a search term changed
+      log.debug('MasonryGridComponent: onContentHeightChanged(): keeping scrollTop in bounds 2');
+      this.render(0, 0, 1);
     }
 
     if (this.unpauseAfterResizeTimeout) {
@@ -1347,10 +1353,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   searchTermsChanged(e: any): void {
     // log.debug('MasonryGridComponent: searchTermsChanged(): e:', e);
     let searchTerms = e.searchTerms;
-    // if ( this.lastSearchTerm === searchTerms ) { return; }
     this.lastSearchTerm = searchTerms;
     let matchedIds = [];
-
 
     if (searchTerms === '') {
       this.maskChanged(this.lastMask);

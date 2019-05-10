@@ -965,14 +965,13 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.onUseCaseChanged();
     }
 
-    // TODO: add logic for when server has been deleted
     if (collection.nwserver in this.apiServers) {
       log.debug(`NwCollectionModalComponent: onEditCollectionNext(): Collection's nwserver ${collection.nwserver} is defined`);
       let firstApiServerId = collection.nwserver;
       this.selectedApiServer = this.apiServers[firstApiServerId];
     }
     else {
-      log.debug(`NwCollectionModalComponent: onEditCollectionNext(): Collection's nwserver ${collection.nwserver} is not currently defined`);
+      log.debug(`NwCollectionModalComponent: onEditCollectionNext(): Collection's nwserver ${collection.nwserver} is not currently defined.  It must've been deleted.`);
       this.selectedApiServer = null;
     }
 
