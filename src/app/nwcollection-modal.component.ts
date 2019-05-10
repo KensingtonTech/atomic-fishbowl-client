@@ -178,10 +178,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.dataService.useCasesChanged.subscribe( (o: any) => this.onUseCasesChanged(o) ));
 
     // Add collection next subscription
-    this.subscriptions.add(this.toolService.addNwCollectionNext.subscribe( () => this.onAddCollection() ));
+    this.subscriptions.add(this.toolService.addNwCollectionNext.subscribe( () => this.onAddCollectionNext() ));
 
     // Edit collection next subscription
-    this.subscriptions.add(this.toolService.editNwCollectionNext.subscribe( (collection: Collection) => this.onEditCollection(collection) ));
+    this.subscriptions.add(this.toolService.editNwCollectionNext.subscribe( (collection: Collection) => this.onEditCollectionNext(collection) ));
 
     this.subscriptions.add(this.dataService.feedsChanged.subscribe( (feeds: Feed[]) => this.onFeedsChanged(feeds) ));
 
@@ -189,7 +189,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(this.dataService.collectionsChanged.subscribe( (collections: any) => this.onCollectionsChanged(collections) ));
 
-    this.subscriptions.add(this.toolService.addNwAdhocCollectionNext.subscribe( (params: any) => this.onAdhocCollection(params) ));
+    this.subscriptions.add(this.toolService.addNwAdhocCollectionNext.subscribe( (params: any) => this.onAdhocCollectionNext(params) ));
 
     this.subscriptions.add(this.dataService.nwServersChanged.subscribe( (apiServers: NwServers) => this.onApiServersChanged(apiServers) ));
 
@@ -202,7 +202,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 
@@ -342,7 +342,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onNameChanged(name: string): void {
+  onNameChanged(name: string): void {
     // log.debug(`NwCollectionModalComponent: onNameChanged(): name: "${name}"`);
 
     if (name.length === 0) {
@@ -360,7 +360,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onQuerySelected(detectChanges = true): void {
+  onQuerySelected(detectChanges = true): void {
     // log.debug('NwCollectionModalComponent: onQuerySelected(): e', e);
     if (this.selectedQuery === 'Default Query') {
       this.queryInputText = this.defaultCollectionQuery;
@@ -376,7 +376,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public timeframeSelected(e: any): void {
+  timeframeSelected(e: any): void {
     if (this.selectedTimeframe === 'Custom') {
       // display custom timeframe selector
       this.displayCustomTimeframeSelector = true;
@@ -390,14 +390,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public timeframeClicked() {
+  timeframeClicked() {
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
 
 
 
-  public onAddNwServiceClicked(): void {
+  onAddNwServiceClicked(): void {
     this.addingService = true; // set mode to adding
     this.changeDetectionRef.detectChanges();
     this.modalService.open(this.toolService.newEditNwServiceModalId);
@@ -405,7 +405,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onClose(): void {
+  onClose(): void {
     log.debug('NwCollectionModalComponent: onClose()');
     if (this.mode === this.modes.editRolling || this.mode === this.modes.editFixed) {
       this.name = '';
@@ -419,7 +419,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public close(): void {
+  close(): void {
     log.debug('NwCollectionModalComponent: close()');
     this.modalService.close(this.id);
     if (this.okButtonText === 'Save') {
@@ -429,7 +429,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onCollectionSubmit(f: NgForm): void {
+  onCollectionSubmit(f: NgForm): void {
     // log.debug('NwCollectionModalComponent: onCollectionSubmit()');
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
@@ -628,14 +628,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onOpen(): void {
+  onOpen(): void {
     // log.debug('NwCollectionModalComponent: onOpen()');
   }
 
 
 
 
-  public onSelectedTypesChanged(): void {
+  onSelectedTypesChanged(): void {
     log.debug('NwCollectionModalComponent: onSelectedTypesChanged()');
     let v = this.selectedContentTypes;
     let imagesEnabled = false;
@@ -684,14 +684,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onClearTypesSelected(): void {
+  onClearTypesSelected(): void {
     this.selectedContentTypes = [];
     this.onSelectedTypesChanged(); // runs change detection
   }
 
 
 
-  public onAllTypesSelected() {
+  onAllTypesSelected() {
     let vals = [];
     for (let i = 0; i < this.contentTypes.length; i++) {
       vals.push( this.contentTypes[i].value );
@@ -702,7 +702,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onUseCaseChanged(): void {
+  onUseCaseChanged(): void {
     log.debug('NwCollectionModalComponent: onUseCaseChanged()');
     // log.debug('NwCollectionModalComponent: onUseCaseChanged: selectedUseCase:', this.selectedUseCase );
 
@@ -758,7 +758,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onUseCaseBoundChanged(): void {
+  onUseCaseBoundChanged(): void {
     log.debug('NwCollectionModalComponent: onUseCaseBoundChanged()');
 
     if (this.type === 'fixed') {
@@ -803,8 +803,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  private onAddCollection(): void {
-    log.debug('NwCollectionModalComponent: onAddCollection()');
+  private onAddCollectionNext(): void {
+    log.debug('NwCollectionModalComponent: onAddCollectionNext()');
     this.hashFeedId = null;
     this.mode = this.modes.add;
     this.okButtonText = 'Execute';
@@ -816,17 +816,17 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     if (Object.keys(this.apiServers).length !== 0) {
       let firstApiServerId = Object.keys(this.apiServers)[0];
       this.selectedApiServer = this.apiServers[firstApiServerId];
+      log.debug('NwCollectionModalComponent: onAddCollectionNext(): selectedApiServer.id', this.selectedApiServer.id);
     }
-    log.debug('NwCollectionModalComponent: onAddCollection(): selectedApiServer.id', this.selectedApiServer.id);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
 
 
 
-  private onAdhocCollection(params: any): void {
+  private onAdhocCollectionNext(params: any): void {
 
-    log.debug('NwCollectionModalComponent: onAdhocCollection(): params:', params);
+    log.debug('NwCollectionModalComponent: onAdhocCollectionNext(): params:', params);
 
     this.okButtonText = 'Execute';
 
@@ -881,7 +881,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       let firstApiServerId = Object.keys(this.apiServers)[0];
       this.selectedApiServer = this.apiServers[firstApiServerId];
     }
-    log.debug('NwCollectionModalComponent: onAdhocCollection(): selectedApiServer.id', this.selectedApiServer.id);
+    log.debug('NwCollectionModalComponent: onAdhocCollectionNext(): selectedApiServer.id', this.selectedApiServer.id);
     this.modalService.open(this.id);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
@@ -889,9 +889,9 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  private onEditCollection(collection: Collection): void {
+  private onEditCollectionNext(collection: Collection): void {
     // Called when we receive an edit signal from toolbar
-    log.debug('NwCollectionModalComponent: onEditCollection(): collection:', collection);
+    log.debug('NwCollectionModalComponent: onEditCollectionNext(): collection:', collection);
     this.collection = collection;
 
     if (collection.type === 'fixed') {
@@ -967,12 +967,12 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     // TODO: add logic for when server has been deleted
     if (collection.nwserver in this.apiServers) {
-      log.debug(`Collection's nwserver ${collection.nwserver} is defined`);
+      log.debug(`NwCollectionModalComponent: onEditCollectionNext(): Collection's nwserver ${collection.nwserver} is defined`);
       let firstApiServerId = collection.nwserver;
       this.selectedApiServer = this.apiServers[firstApiServerId];
     }
     else {
-      log.debug(`Collection's nwserver ${collection.nwserver} is not currently defined`);
+      log.debug(`NwCollectionModalComponent: onEditCollectionNext(): Collection's nwserver ${collection.nwserver} is not currently defined`);
       this.selectedApiServer = null;
     }
 
@@ -1093,14 +1093,14 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onDeleteApiServerClicked(): void {
+  onDeleteApiServerClicked(): void {
     log.debug('NwCollectionModalComponent: onDeleteApiServerClicked(): selectedApiServer.id', this.selectedApiServer.id);
     this.modalService.open(this.toolService.confirmNwServerDeleteModalId);
   }
 
 
 
-  public apiServerSelectionValid(): boolean {
+  apiServerSelectionValid(): boolean {
     // log.debug('NwCollectionModalComponent: apiServerFormValid()');
     // log.debug('this.selectedApiServer.id:', this.selectedApiServer.id);
     // log.debug('this.apiServers:', this.apiServers);
@@ -1121,7 +1121,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onTestApiServerClicked(): void {
+  onTestApiServerClicked(): void {
     if (this.testInProgress) {
       return;
     }
@@ -1158,7 +1158,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onEditApiServerClicked(): void {
+  onEditApiServerClicked(): void {
     log.debug('NwCollectionModalComponent: onEditApiServerClicked()');
     this.addingService = false; // set mode to editing
     this.changeDetectionRef.detectChanges();
