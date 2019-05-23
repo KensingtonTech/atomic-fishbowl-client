@@ -828,13 +828,13 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     log.debug('NwCollectionModalComponent: onAdhocCollectionNext(): params:', params);
 
-    this.okButtonText = 'Execute';
-
-    this.adhocParams = params;
-
     if (Object.keys(params).length === 0) {
       return;
     }
+
+    this.okButtonText = 'Execute';
+
+    this.adhocParams = params;
 
     this.hashFeedId = null;
     this.mode = this.modes.adhoc;
@@ -880,8 +880,8 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     if (Object.keys(this.apiServers).length !== 0) {
       let firstApiServerId = Object.keys(this.apiServers)[0];
       this.selectedApiServer = this.apiServers[firstApiServerId];
+      log.debug('NwCollectionModalComponent: onAdhocCollectionNext(): selectedApiServer.id', this.selectedApiServer.id);
     }
-    log.debug('NwCollectionModalComponent: onAdhocCollectionNext(): selectedApiServer.id', this.selectedApiServer.id);
     this.modalService.open(this.id);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();

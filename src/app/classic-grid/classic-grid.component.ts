@@ -181,11 +181,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   // images loaded
   private imagesLoaded: any; // handler to imagesLoaded instance, assigned later
 
-  // routing
-  private urlParametersLoaded = false;
-  private selectedSessionId: number = null;
-  private queryParams: any;
-
   // license
   public license: License;
   private licenseChangedFunction = this.onLicenseChangedInitial;
@@ -205,6 +200,8 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     if (this.imagesLoaded) {
       this.imagesLoaded.off( 'always', this.onImagesLoaded );
     }
+    this.toolService.addNwAdhocCollectionNext.next({});
+    this.toolService.addSaAdhocCollectionNext.next({});
   }
 
 
@@ -220,35 +217,8 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  parseQueryParams(params: any): void {
-    if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) ) ) {
-
-      if (params['op'] !== 'adhoc') {
-        return;
-      }
-
-      if (params['service'] !== 'nw' && params['service'] !== 'sa') {
-        return;
-      }
-
-      if ('ip' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
-        return;
-      }
-
-      if ('host' in params && 'ip' in params) {
-        // you can't have both ip and host
-        return;
-      }
-
-      this.toolService.urlParametersLoaded = true;
-      this.toolService.queryParams = params;
-
-    }
-  }
-
-
-
   ngOnInit(): void {
+    // https://localhost?op=adhoc&service=nw&ip=184.105.132.210&side=dst
     log.debug('ClassicGridComponent: ngOnInit()');
     this.toolService.lastRoute = 'classicGrid';
     this.toolService.setPreference('lastRoute', 'classicGrid');
@@ -260,31 +230,18 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       if (!this.license.valid) {
         this.modalService.open(this.toolService.licenseExpiredModalId);
       }
-      else if (!this.toolService.queryParams) {
+      else if (!this.toolService.urlParametersLoaded) {
         this.modalService.open(this.toolService.tabContainerModalId);
       }
     }));
 
-    // log.debug('splashLoaded:', this.toolService.splashLoaded);
-
-    this.queryParams = this.route.snapshot.queryParams || null;
-
-    if (Object.keys(this.queryParams).length !== 0) {
-      // enter this block when first navigating to this page with custom url parameters
-      this.parseQueryParams(this.queryParams);
-      // the above function will store any query parameters in toolService.
-      // we then must re-navigate to this page to clear the url bar query parameters
-      log.debug('ClassicGridComponent: redirecting to .');
-      this.router.navigate(['.'], { queryParams: {} } );
-    }
-
-    else if (this.toolService.queryParams) {
+    if (this.toolService.urlParametersLoaded) {
       // if we have query parameters, load the appropriate ad hoc modal
       this.toolService.splashLoaded = true; // we don't want the splash to load if the user navigates to a different view
       if (this.toolService.queryParams['service'] === 'nw') {
         this.toolService.addNwAdhocCollectionNext.next(this.toolService.queryParams);
       }
-      if (this.toolService.queryParams['service'] === 'sa') {
+      else if (this.toolService.queryParams['service'] === 'sa') {
         this.toolService.addSaAdhocCollectionNext.next(this.toolService.queryParams);
       }
       this.toolService.queryParams = null;
@@ -334,7 +291,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
   ngAfterViewInit(): void {
-    let toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
+    // https://localhost?op=adhoc&service=nw&ip=184.105.132.210&side=dst
     this.resetZoomToFit();
     if (this.toolService.loadCollectionOnRouteChange) {
       log.debug('ClassicGridComponent: ngAfterViewInit(): getting collection data again on toolService.loadCollectionOnRouteChange');
@@ -347,9 +304,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       y: window.innerHeight / 2
     };
     this.wheelPoint = utils.deepCopy(this.center);
-    if ( !this.toolService.splashLoaded && (
-      (!this.queryParams  && !this.toolService.urlParametersLoaded)
-      || ( !this.toolService.urlParametersLoaded && this.queryParams && Object.keys(this.queryParams).length === 0 ) ) ) {
+    if ( !this.toolService.splashLoaded && !this.toolService.urlParametersLoaded) {
         // only load the splash screen if we don't have ad hoc query parameters
         log.debug('ClassicGridComponent: ngAfterViewInit(): loading the splash screen');
         this.modalService.open(this.toolService.splashScreenModalId);
@@ -359,7 +314,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       if (!this.license.valid) {
         this.modalService.open(this.toolService.licenseExpiredModalId);
       }
-      else {
+      else if (this.toolService.urlParametersLoaded) {
         this.modalService.open(this.toolService.tabContainerModalId);
       }
     }

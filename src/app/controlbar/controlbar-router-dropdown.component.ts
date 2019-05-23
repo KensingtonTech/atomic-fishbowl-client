@@ -72,7 +72,7 @@ export class RouterDropdownComponent implements OnInit {
     let optionToSplice: RouterOption = null;
     for (let i = 0; i < this.routerOptions.length; i++) {
       let option = this.routerOptions[i];
-      if (option.name === this.selectedRoute.name) {
+      if (this.selectedRoute.name.startsWith(option.name)) {
         optionToSplice = this.routerOptions[i];
         this.routerOptions.splice(i, 1);
         this.routerOptions.push(optionToSplice);
@@ -84,8 +84,10 @@ export class RouterDropdownComponent implements OnInit {
 
   getSelectedRoute(): any {
     let route = this.router.url;
+    console.log('router:', this.router);
+    log.debug(`RouterDropdownComponent: getSelectedRoute(): route ${route}`);
     for ( let i = 0; i < this.routerOptions.length; i++ ) {
-      if (this.routerOptions[i].link === route) {
+      if (route.startsWith(this.routerOptions[i].link)) {
         return this.routerOptions[i];
       }
     }

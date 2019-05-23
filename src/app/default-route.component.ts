@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router, Params } from '@angular/router';
 import { ToolService } from 'services/tool.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription} from 'rxjs';
 import { Logger } from 'loglevel';
 declare var log: Logger;
@@ -12,14 +12,22 @@ declare var log: Logger;
 
 export class DefaultRouteComponent implements OnInit, OnDestroy {
 
+  // the job of this service is to decide which application route to take (i.e. /masonryGrid or /classicGrid) if no route is specified
+  // it will redirect the browser to the appropriate route
+  // it will pass along all url parameters to the route it decides to take
+
   constructor(
     private toolService: ToolService,
     private route: ActivatedRoute,
     private router: Router ) {}
 
-  private defaultView = 'masonryGrid';
+
+
+  private defaultRoute = 'masonryGrid';
 
   private subscriptions = new Subscription;
+
+
 
   ngOnInit(): void {
     // https://localhost/adhoc;query=abcd
@@ -27,41 +35,34 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
     // https://localhost/adhoc?query=abcd
     // https://localhost?query=abcd&something=somethingelse
     log.debug('DefaultRouteComponent: ngOnInit()');
-    this.subscriptions.add(this.route.queryParamMap.subscribe( params => this.onRouteParameters(params) ));
+    this.subscriptions.add(this.route.queryParams.subscribe( (params: Params ) => this.onRouteParameters(params) ));
     // log.debug('DefaultRouteComponent: ngOnInit(): params:', this.route.snapshot.queryParams);
   }
 
+
+
   ngOnDestroy(): void {
+    log.debug('DefaultRouteComponent: ngOnDestroy()');
     this.subscriptions.unsubscribe();
   }
 
-  private onRouteParameters(p: any): void {
-    log.debug('DefaultRouteComponent: onRouteParameters(): params:', p);
-
-    let params = {};
-
-    if (Object.keys(p.params).length !== 0) {
-      params = p.params;
-    }
 
 
-
-    /*let view = this.toolService.getPreference('defaultView');
-    if (view) {
-      log.debug('DefaultRouteComponent: onRouteParameters(): routing to defaultView preference ' + view + ' with query params:', params);
-      this.router.navigate([view], { queryParams: params, queryParamsHandling: 'merge' } );
-    }*/
+  private onRouteParameters(params: Params): void {
+    log.debug('DefaultRouteComponent: onRouteParameters(): params:', params);
 
     if (this.toolService.lastRoute) {
       log.debug('DefaultRouteComponent: routing to lastRoute ' + this.toolService.lastRoute + ' with query params:', params);
-      this.router.navigate([this.toolService.lastRoute], { queryParams: params, queryParamsHandling: 'merge' });
+      // this.router.navigate([this.toolService.lastRoute], { queryParams: params, queryParamsHandling: 'merge' });
+      this.router.navigate([this.toolService.lastRoute]);
       return;
     }
 
     else {
       // default route
-      log.debug('DefaultRouteComponent: onRouteParameters(): routing to default route ' + this.defaultView + ' with query params:', params);
-      this.router.navigate([this.defaultView], { queryParams: params, queryParamsHandling: 'merge' } );
+      log.debug('DefaultRouteComponent: onRouteParameters(): routing to default route ' + this.defaultRoute + ' with query params:', params);
+      // this.router.navigate([this.defaultRoute], { queryParams: params, queryParamsHandling: 'merge' } );
+      this.router.navigate([this.defaultRoute]);
     }
 
   }

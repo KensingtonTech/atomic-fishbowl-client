@@ -137,7 +137,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   RouterModule.forRoot([
                     {
                       path: '',
-                      component: DefaultRouteComponent
+                      component: DefaultRouteComponent // if no path is specified, then this component will decide which path to take
                     },
                     {
                       path: 'masonryGrid',

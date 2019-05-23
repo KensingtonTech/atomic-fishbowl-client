@@ -25,7 +25,7 @@ declare var log: Logger;
 
       <login-form *ngIf="credentialsChecked && !loggedIn"></login-form>
 
-      <ng-container *ngIf="loggedIn">
+      <ng-container *ngIf="loggedIn && socketUpgraded">
         <router-outlet></router-outlet>
         <img class="noselect" src="/resources/logo.png" style="position: absolute; left: 0.526315789em; bottom: 0.789473684em;">
       </ng-container>
@@ -54,6 +54,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public credentialsChecked = false;
   public isMobile = false;
   public eulaAccepted = false;
+  public socketUpgraded = false;
 
   // Subscriptions
   private subscriptions: Subscription = new Subscription;
@@ -83,6 +84,8 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     this.subscriptions.add(this.dataService.loggedOutByServer.subscribe( () => this.modalService.open(this.toolService.loggedOutModalId)));
+
+    this.subscriptions.add(this.dataService.socketUpgraded.subscribe( socketUpgraded => this.onSocketUpgraded(socketUpgraded) ) );
 
     this.zone.runOutsideAngular( () => setTimeout( () => {
       // display server unreachable modal if socket doesn't connect right away
@@ -115,6 +118,14 @@ export class AppComponent implements OnInit, OnDestroy {
         this.toolService.stop();
       }, 0) );
     }
+  }
+
+
+
+  onSocketUpgraded(socketUpgraded: boolean) {
+    log.debug('AppComponent: onSocketUpgraded(): socketUpgraded:', socketUpgraded);
+    this.socketUpgraded = socketUpgraded;
+    this.changeDetectorRef.detectChanges();
   }
 
 

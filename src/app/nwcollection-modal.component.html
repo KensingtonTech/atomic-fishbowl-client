@@ -127,7 +127,7 @@
               </div>
               <!--QUERY TEXT INPUT BOX-->
               <div>
-                  <label *ngIf="mode === modes.adhoc" for="query">Your investigation target will be automatically added to the query when you execute</label>
+                  <label *ngIf="mode === modes.adhoc" for="query">The target of your search will be automatically added to the query upon execution</label>
                   <input pInputText type="text" name="query" id="query" [(ngModel)]="queryInputText" style="width: 100%; box-sizing: border-box;" value="vis.level exists" autocomplete="off" required [disabled]="showUseCaseValues">
               </div>
             </td>

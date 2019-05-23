@@ -24,34 +24,35 @@ export class DataService { // Manages NwSession objects and also Image objects i
   private collectionsRoom: any;
 
   // Observables
-  public contentPublished: Subject<any> = new Subject<any>();
-  public sessionPublished: Subject<any> = new Subject<any>();
-  public selectedCollectionChanged: Subject<any> = new Subject<any>();
-  public collectionStateChanged: Subject<any> = new Subject<any>();
-  public sessionsReplaced: Subject<any> = new Subject<any>();
-  public contentReplaced: Subject<any> = new Subject<any>();
-  public searchReplaced: Subject<any> = new Subject<any>();
-  public searchPublished: Subject<any> = new Subject<any>();
-  public errorPublished: Subject<any> = new Subject<any>();
-  public sessionsPurged: Subject<any> = new Subject<any>();
-  public queryResultsCountUpdated: Subject<any> = new Subject<any>();
-  public collectionDeleted: Subject<CollectionDeletedDetails> = new Subject<CollectionDeletedDetails>();
-  public noopCollection: Subject<void> = new Subject<void>(); // this is used when the license expires
-  public workerProgress: Subject<any> = new Subject<any>();
-  public monitoringCollectionPause: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public contentPublished = new Subject<any>();
+  public sessionPublished = new Subject<any>();
+  public selectedCollectionChanged = new Subject<any>();
+  public collectionStateChanged = new Subject<any>();
+  public sessionsReplaced = new Subject<any>();
+  public contentReplaced = new Subject<any>();
+  public searchReplaced = new Subject<any>();
+  public searchPublished = new Subject<any>();
+  public errorPublished = new Subject<any>();
+  public sessionsPurged = new Subject<any>();
+  public queryResultsCountUpdated = new Subject<any>();
+  public collectionDeleted = new Subject<CollectionDeletedDetails>();
+  public noopCollection = new Subject<void>(); // this is used when the license expires
+  public workerProgress = new Subject<any>();
+  public monitoringCollectionPause = new BehaviorSubject<boolean>(false);
 
-  public collectionsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public preferencesChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public nwServersChanged: BehaviorSubject<any> = new BehaviorSubject<NwServers>({});
-  public saServersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public feedsChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public feedStatusChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public usersChanged: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public serverVersionChanged: BehaviorSubject<string> = new BehaviorSubject<string>(null);
-  public useCasesChanged: BehaviorSubject<object> = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
-  public licensingChanged: BehaviorSubject<License> = new BehaviorSubject<License>(null);
-  public loggedOutByServer: Subject<void> = new Subject<void>();
-  public socketConnected: BehaviorSubject<any> = new BehaviorSubject<any>({connected: null, socketId: null});
+  public collectionsChanged = new BehaviorSubject<any>({});
+  public preferencesChanged = new BehaviorSubject<any>({});
+  public nwServersChanged = new BehaviorSubject<NwServers>({});
+  public saServersChanged = new BehaviorSubject<any>({});
+  public feedsChanged = new BehaviorSubject<any>({});
+  public feedStatusChanged = new BehaviorSubject<any>({});
+  public usersChanged = new BehaviorSubject<any>({});
+  public serverVersionChanged = new BehaviorSubject<string>(null);
+  public useCasesChanged = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+  public licensingChanged = new BehaviorSubject<License>(null);
+  public loggedOutByServer = new Subject<void>();
+  public socketConnected = new BehaviorSubject<any>({connected: null, socketId: null});
+  public socketUpgraded = new BehaviorSubject<boolean>(false);
 
 
   // Properties
@@ -81,7 +82,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.serverSocket = io();
 
       this.serverSocket.on('connect', () => {
-        log.debug('Socket.io connected to server');
+        log.debug('DataService: Socket.io connected to server');
         this.zone.run( () => this.socketConnected.next({ connected: true, socketId: this.serverSocket.id }));
         this.socketId = this.serverSocket.id;
         log.debug('DataService: socketId:', this.socketId);
@@ -92,7 +93,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.serverSocket.on('socketDowngrade',  () => this.onSocketDowngrade() );
 
       this.serverSocket.on('disconnect', reason => {
-        log.debug('serverSocket was disconnected with reason:', reason);
+        log.debug('DataService: serverSocket was disconnected with reason:', reason);
         /*if (reason === 'io server disconnect') {
           // the server disconnected us forcefully.  maybe due to logout or token timeout
           // start trying to reconnect
@@ -127,7 +128,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
           this.collectionsRoom.open();
         }
         // Subscribe to collection socket events
-        this.collectionsRoom.on('connect', roomsocket => log.debug('Socket.io collectionsRoom connected to server' ));
+        this.collectionsRoom.on('connect', roomsocket => log.debug('DataService: Socket.io collectionsRoom connected to server' ));
         this.collectionsRoom.on('disconnect', reason => {
           if (reason === 'io server disconnect') {
             this.collectionsRoom.open();
@@ -240,6 +241,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
     }
 
     this.resetBlobs();
+    this.socketUpgraded.next(false);
   }
 
 
@@ -316,6 +318,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   onLicenseChanged(license) {
     log.debug('DataService: onLicenseChanged(): license:', license);
     this.licensingChanged.next(license);
+    this.socketUpgraded.next(true); // we trigger this here as the license is the final thing the server emits after upgrading the socket.  We know that everything is done at this point
   }
 
 

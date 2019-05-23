@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
+import { ActivatedRoute, Router, Params } from '@angular/router';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { Collection } from 'types/collection';
 import { Feed } from 'types/feed';
 import { Logger } from 'loglevel';
+import { Subscription} from 'rxjs';
 declare var log: Logger;
 
 @Injectable()
@@ -13,80 +15,80 @@ export class ToolService {
   public splashLoaded = false;
   public firstLoad = true;
   public loadCollectionOnRouteChange = false; // this may be set before switching routes to instruct the new view to load a particular collcetion
-  public queryParams: any = null;
+  public queryParams: Params = null;
   public urlParametersLoaded = false;
   public lastRoute: string = null;
 
   ////////////  OBSERVABLES ////////////
 
   // Device Number
-  public deviceNumber: BehaviorSubject<any> = new BehaviorSubject<any>(0);
+  public deviceNumber = new BehaviorSubject<any>(0);
 
   // Scrolling
-  public scrollToBottom: Subject<any> = new Subject<any>();
-  public stopScrollToBottom: Subject<any> = new Subject<any>(); // commands the view to stop scrolling
-  public scrollToBottomRunning: Subject<any> = new Subject<any>(); // this notifies that scrolling has been started by the view
-  public scrollToBottomStopped: Subject<any> = new Subject<any>(); // this notifies that scrolling has finished in the view
+  public scrollToBottom = new Subject<any>();
+  public stopScrollToBottom = new Subject<any>(); // commands the view to stop scrolling
+  public scrollToBottomRunning = new Subject<any>(); // this notifies that scrolling has been started by the view
+  public scrollToBottomStopped = new Subject<any>(); // this notifies that scrolling has finished in the view
 
   // Masonry
-  public showMasonryTextArea: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
-  public masonryColumnWidthChanged: Subject<number> = new Subject<number>();
-  public masonryAutoscrollSpeedChanged: Subject<number> = new Subject<number>();
+  public showMasonryTextArea = new BehaviorSubject<boolean>(true);
+  public masonryColumnWidthChanged = new Subject<number>();
+  public masonryAutoscrollSpeedChanged = new Subject<number>();
 
   // Users
-  public confirmUserDelete: Subject<any> = new Subject<any>();
+  public confirmUserDelete = new Subject<any>();
 
   // Authentication
-  public logout: Subject<any> = new Subject<any>();
+  public logout = new Subject<any>();
 
   // Misc
-  public fileToDownload: Subject<any> = new Subject<any>();
-  public confirmDownloadFile: Subject<any> = new Subject<any>();
-  public clientSessionId: Subject<any> = new Subject<any>();
-  public onSplashScreenAtStartupClosed: Subject<void> = new Subject<void>();
-  public eulaAccepted: Subject<void> = new Subject<void>();
+  public fileToDownload = new Subject<any>();
+  public confirmDownloadFile = new Subject<any>();
+  public clientSessionId = new Subject<any>();
+  public onSplashScreenAtStartupClosed = new Subject<void>();
+  public eulaAccepted = new Subject<void>();
 
   // NW and SA Servers
-  public saServerToDelete: Subject<any> = new Subject<any>();
-  public confirmNwServerDelete: Subject<string> = new Subject<string>();
-  public confirmSaServerDelete: Subject<string> = new Subject<string>();
+  public saServerToDelete = new Subject<any>();
+  public confirmNwServerDelete = new Subject<string>();
+  public confirmSaServerDelete = new Subject<string>();
 
 
   // collections //
-  public getCollectionDataAgain: Subject<any> = new Subject<any>();
   public selectedCollection: Collection;
-  public deleteCollectionNext: Subject<Collection> = new Subject<Collection>();
-  public deleteCollectionConfirmed: Subject<string> = new Subject<string>();
-  public executeCollectionOnEdit: Subject<boolean> = new Subject<boolean>();
-  public executeAddCollection: Subject<any> = new Subject<any>();
-  public executeEditCollection: Subject<any> = new Subject<any>();
+  public getCollectionDataAgain = new Subject<any>();
+  public deleteCollectionNext = new Subject<Collection>();
+  public deleteCollectionConfirmed = new Subject<string>();
+  public executeCollectionOnEdit = new Subject<boolean>();
+  public executeAddCollection = new Subject<any>();
+  public executeEditCollection = new Subject<any>();
 
   // communicates to collection dialogs that when they open, they should be in 'adhoc' mode
-  public addNwAdhocCollectionNext: BehaviorSubject<any> = new BehaviorSubject<any>({});
-  public addSaAdhocCollectionNext: BehaviorSubject<any> = new BehaviorSubject<any>({});
+  public addNwAdhocCollectionNext = new BehaviorSubject<Params>({});
+  public addSaAdhocCollectionNext = new BehaviorSubject<Params>({});
 
   // communicates to collection dialogs that when they open, they should be in 'add' mode
-  public addNwCollectionNext: Subject<void> = new Subject<void>();
-  public addSaCollectionNext: Subject<void> = new Subject<void>();
+  public addNwCollectionNext = new Subject<void>();
+  public addSaCollectionNext = new Subject<void>();
 
   // communicates to collection dialogs that when they open, they should be in 'edit' mode
-  public editNwCollectionNext: Subject<Collection> = new Subject<Collection>();
-  public editSaCollectionNext: Subject<Collection> = new Subject<Collection>();
+  public editNwCollectionNext = new Subject<Collection>();
+  public editSaCollectionNext = new Subject<Collection>();
 
 
 
   // feeds
-  public addFeedNext: Subject<void> = new Subject<void>();
-  public editFeedNext: Subject<Feed> = new Subject<Feed>();
-  public deleteFeedNext: Subject<Feed> = new Subject<Feed>();
+  public addFeedNext = new Subject<void>();
+  public editFeedNext = new Subject<Feed>();
+  public deleteFeedNext = new Subject<Feed>();
 
 
 
   // Tab Container
-  public collectionsOpened: Subject<void> = new Subject<void>();
-  public feedsOpened: Subject<void> = new Subject<void>();
-  public tabContainerClosed: Subject<void> = new Subject<void>();
-  public reOpenTabsModal: Subject<boolean> = new Subject<boolean>();
+  public collectionsOpened = new Subject<void>();
+  public feedsOpened = new Subject<void>();
+  public tabContainerClosed = new Subject<void>();
+  public reOpenTabsModal = new Subject<boolean>();
 
 
 
@@ -112,13 +114,61 @@ export class ToolService {
   public newEditNwServiceModalId = 'new-edit-nw-server-modal';
   public loggedOutModalId = 'logged-out-notify-modal';
 
+  private subscriptions = new Subscription;
 
 
 
-  constructor() {
+
+  constructor(private route: ActivatedRoute,
+              private router: Router) {
     log.debug('ToolService: constructor()');
 
     this.lastRoute = this.getPreference('lastRoute');
+    this.subscriptions.add(this.route.queryParams.subscribe( (params: Params ) => this.onRouteParameters(params) ));
+  }
+
+
+
+  private onRouteParameters(params: Params): void {
+    log.debug('ToolService: onRouteParameters(): params:', params);
+    if (Object.keys(params).length !== 0) {
+      this.parseUriParams(params);
+    }
+  }
+
+
+
+  parseUriParams(params: Params): void {
+    if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) || ( 'adUser' in params && 'side' in params) ) ) {
+
+      if (params.op !== 'adhoc') {
+        return;
+      }
+
+      // if (params['service'] !== 'nw' && params['service'] !== 'sa') {
+      if ( !['nw', 'sa'].includes(params.service) ) {
+        return;
+      }
+
+      // if ('ip' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
+      if ('ip' in params && !['src', 'dst'].includes(params.side)) {
+        return;
+      }
+
+      // if ('adUser' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
+      if ('adUser' in params && !['src', 'dst'].includes(params.side)) {
+        return;
+      }
+
+      if ('host' in params && 'ip' in params) {
+        // you can't have both ip and host
+        return;
+      }
+
+      this.urlParametersLoaded = true;
+      this.queryParams = params;
+
+    }
   }
 
 

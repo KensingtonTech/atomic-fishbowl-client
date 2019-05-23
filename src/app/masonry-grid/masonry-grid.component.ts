@@ -228,10 +228,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   public license: License;
   private licenseChangedFunction = this.onLicenseChangedInitial;
 
-  // routing
-  private queryParams: any;
-  private urlParametersLoaded = false;
-
   // Text Area
   public showTextArea = true;
 
@@ -242,7 +238,14 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
+    if (this.resizeId) {
+      clearTimeout(this.resizeId);
+    }
     window.removeEventListener('resize', this.onWindowResize );
+    if (this.unpauseAfterResizeTimeout) {
+      clearTimeout(this.unpauseAfterResizeTimeout);
+    }
+
     this.subscriptions.unsubscribe();
     this.scrollContainerRef.nativeElement.removeEventListener('wheel', this.onMouseWheel);
     if (this.autoScrollAnimationRunning) {
@@ -252,38 +255,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.resizeObserver.disconnect();
     }
     document.removeEventListener('keydown', this.onKeyPressed );
-  }
-
-
-
-  parseQueryParams(params: any): void {
-    if ( 'op' in params && 'service' in params && ( 'host' in params || ( 'ip' in params && 'side' in params) || ( 'adUser' in params && 'side' in params) ) ) {
-
-      if (params['op'] !== 'adhoc') {
-        return;
-      }
-
-      if (params['service'] !== 'nw' && params['service'] !== 'sa') {
-        return;
-      }
-
-      if ('ip' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
-        return;
-      }
-
-      if ('adUser' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
-        return;
-      }
-
-      if ('host' in params && 'ip' in params) {
-        // you can't have both ip and host
-        return;
-      }
-
-      this.toolService.urlParametersLoaded = true;
-      this.toolService.queryParams = params;
-
-    }
+    this.toolService.addNwAdhocCollectionNext.next({});
+    this.toolService.addSaAdhocCollectionNext.next({});
   }
 
 
@@ -304,29 +277,19 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       if (!this.license.valid) {
         this.modalService.open(this.toolService.licenseExpiredModalId);
       }
-      else if (!this.toolService.queryParams) {
+      else if (!this.toolService.urlParametersLoaded) {
         // only show the collections tab container if the user hasn't passed in custom url params, like when drilling from an investigation
         this.modalService.open(this.toolService.tabContainerModalId);
       }
     }));
 
-    this.queryParams = this.route.snapshot.queryParams || null;
-
-    if (Object.keys(this.queryParams).length !== 0) {
-      // enter this block when first navigating to this page with custom url parameters
-      this.parseQueryParams(this.queryParams);
-      // the above function will store any query parameters in toolService.
-      // we then must re-navigate to this page to clear the url bar query parameters
-      this.router.navigate(['.'], { queryParams: {} } );
-    }
-
-    else if (this.toolService.queryParams) {
+    if (this.toolService.urlParametersLoaded) {
       // if we have query parameters, load the appropriate ad hoc modal
       this.toolService.splashLoaded = true; // we don't want the splash to load if the user navigates to a different view
       if (this.toolService.queryParams['service'] === 'nw') {
         this.toolService.addNwAdhocCollectionNext.next(this.toolService.queryParams);
       }
-      if (this.toolService.queryParams['service'] === 'sa') {
+      else if (this.toolService.queryParams['service'] === 'sa') {
         this.toolService.addSaAdhocCollectionNext.next(this.toolService.queryParams);
       }
       this.toolService.queryParams = null;
@@ -389,6 +352,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
   ngAfterViewInit() {
+    // https://localhost?op=adhoc&service=nw&ip=184.105.132.210&side=dst
+
     this.zone.runOutsideAngular( () => window.addEventListener('resize', this.onWindowResize ) );
 
     let toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
@@ -396,9 +361,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // console.log('toolbarHeight:', this.toolbarHeight);
     // this.changeDetectionRef.detectChanges();
 
-    if ( !this.toolService.splashLoaded && (
-      (!this.queryParams  && !this.toolService.urlParametersLoaded)
-      || ( !this.toolService.urlParametersLoaded && this.queryParams && Object.keys(this.queryParams).length === 0 ) ) ) {
+    if ( !this.toolService.splashLoaded && !this.toolService.urlParametersLoaded ) {
         // only load the splash screen if we don't have ad hoc query parameters
         log.debug('MasonryGridComponent: ngAfterViewInit(): loading the splash screen');
         this.modalService.open(this.toolService.splashScreenModalId);
@@ -408,12 +371,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       if (!this.license.valid) {
         this.modalService.open(this.toolService.licenseExpiredModalId);
       }
-      else {
+      else if (this.toolService.urlParametersLoaded) {
         this.modalService.open(this.toolService.tabContainerModalId);
       }
     }
     else {
-      log.debug('MasonryGridComponent: ngAfterViewInit(): not loading the splash screen - this should mean that we\'re just witching views');
+      log.debug('MasonryGridComponent: ngAfterViewInit(): not loading the splash screen - this should mean that we\'re just witching views or we\'re in ad hoc mode');
     }
 
     window.dispatchEvent(new Event('resize'));
