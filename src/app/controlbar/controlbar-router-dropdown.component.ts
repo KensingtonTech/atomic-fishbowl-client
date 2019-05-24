@@ -84,7 +84,6 @@ export class RouterDropdownComponent implements OnInit {
 
   getSelectedRoute(): any {
     let route = this.router.url;
-    console.log('router:', this.router);
     log.debug(`RouterDropdownComponent: getSelectedRoute(): route ${route}`);
     for ( let i = 0; i < this.routerOptions.length; i++ ) {
       if (route.startsWith(this.routerOptions[i].link)) {
