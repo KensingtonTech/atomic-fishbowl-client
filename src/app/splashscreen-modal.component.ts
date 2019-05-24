@@ -25,6 +25,11 @@ declare var log: Logger;
 
   </div>
 
+  <ng-container *ngIf="!firstLoad">
+    <div style="margin-top: 1em; margin-bottom: 1em; border-top: 2px solid grey;"></div>
+    <a href="/resources/nw-investigation-context-menu.zip" style="color: white; text-decoration: underline;">Install NetWitness Investigation Context Menu Definitions</a>
+  </ng-container>
+
 </modal>
 `
 })
