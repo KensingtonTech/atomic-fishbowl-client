@@ -15,8 +15,8 @@ declare var log: Logger;
   <div *ngIf="serverVersion">
     <span *ngIf="!firstLoad" (click)="closeModal()" class="fa fa-times-circle-o fa-2x" style="float: right;"></span>
     <h1 align="left">Atomic Fishbowl</h1>
-    <div>Client Version&nbsp;&nbsp;{{version}}</div>
-    <div *ngIf="serverVersion">Server Version {{serverVersion}}</div>
+    <div><span style="font-weight: bold;">Client Version:&nbsp;&nbsp;&nbsp;</span>{{version}}</div>
+    <div *ngIf="serverVersion"><span style="font-weight: bold;">Server Version:&nbsp;&nbsp;</span>{{serverVersion}}</div>
     <p align="center" style="margin: 2em 0;">
       <img src="resources/logo-medium.png">
     </p>
@@ -54,7 +54,7 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     log.debug('SplashScreenModalComponent: ngOnInit()');
 
-    this.version = `${buildProperties.major}.${buildProperties.minor}.${buildProperties.patch}.${buildProperties.build}-${buildProperties.level}`;
+    this.version = `${buildProperties.major}.${buildProperties.minor}.${buildProperties.patch}-${buildProperties.level} Build ${buildProperties.build}`;
 
     this.subscriptions.add(this.dataService.serverVersionChanged.subscribe( version => this.onServerVersionChanged(version) ));
 
