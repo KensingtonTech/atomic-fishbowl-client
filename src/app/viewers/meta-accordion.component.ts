@@ -75,8 +75,8 @@ export class MetaAccordionComponent implements OnChanges {
   @Input() enabled = false;
   @Input() expandAll = false;
 
-  @ViewChild('slider') sliderRef: ElementRef;
-  @ViewChild('firstListItem') firstListItem: ElementRef;
+  @ViewChild('slider', { static: true }) sliderRef: ElementRef;
+  @ViewChild('firstListItem', { static: true }) firstListItem: ElementRef;
   @ViewChildren('itemList') itemList: QueryList<ElementRef>;
 
   public additionalDisplayedItems: string[] = [];

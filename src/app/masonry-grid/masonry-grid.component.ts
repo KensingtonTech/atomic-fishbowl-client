@@ -110,8 +110,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
                 private zone: NgZone,
                 private renderer: Renderer2 ) {}
 
-  @ViewChild('scrollContainer') private scrollContainerRef: ElementRef;
-  @ViewChild('isotopeContent') private isotopeContentRef: ElementRef;
+  @ViewChild('scrollContainer', { static: true }) private scrollContainerRef: ElementRef;
+  @ViewChild('isotopeContent', { static: false }) private isotopeContentRef: ElementRef;
 
 
   // high-level session, content, and search data pushed from server

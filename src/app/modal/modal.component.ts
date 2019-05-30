@@ -47,7 +47,7 @@ export class ModalComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private zone: NgZone ) { }
 
-  @ViewChild('modalRoot') modalRoot: ElementRef;
+  @VViewChild('modalRoot', { static: true })modalRoot: ElementRef;
 
   @Input() id: string;
   @Input() closeOnClickOutside = false;

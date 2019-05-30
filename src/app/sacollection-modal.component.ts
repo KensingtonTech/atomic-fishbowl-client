@@ -102,8 +102,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone) {}
 
-  @ViewChild('addCollectionForm') public addCollectionForm: NgForm;
-  @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
+  @ViewChild('addCollectionForm', { static: true }) public addCollectionForm: NgForm;
+  @ViewChild('addServiceBox', { static: false }) addServiceBoxRef: ElementRef;
   @ViewChildren('saNameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
   public id = this.toolService.saCollectionModalId;

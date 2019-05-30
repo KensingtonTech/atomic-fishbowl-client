@@ -84,8 +84,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
                 dragulaService.createGroup('first-bag', this.dragulaOptions);
               }
 
-  @ViewChild(Menu) collectionMaskMenuComponent;
-  @ViewChild('collectionsTable') private collectionsTableRef: ElementRef;
+  @ViewChild(Menu, { static: false }) collectionMaskMenuComponent;
+  @ViewChild('collectionsTable', { static: false }) private collectionsTableRef: ElementRef;
 
   private dragulaOptions: any = {
     copy: true,

@@ -42,13 +42,13 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
   _contentHeight = 0;
 
-  @ViewChild('container') containerRef: ElementRef;
+  @ViewChild('container', { static: true }) containerRef: ElementRef;
 
   // @ViewChild('content') contentRef: ElementRef;
 
   // @ViewChild('xBar') xBarRef: ElementRef;
 
-  @ViewChild('yBar') yBarRef: ElementRef;
+  @ViewChild('yBar', { static: true }) yBarRef: ElementRef;
 
   scrollYRatio: number;
 

@@ -40,7 +40,7 @@ export class TabContainerComponent {
               private changeDetectionRef: ChangeDetectorRef,
               private toolService: ToolService ) {}
 
-  @ViewChild(CollectionsComponent) CollectionsComponent;
+  @ViewChild(CollectionsComponent, { static: true }) CollectionsComponent;
 
   public id = this.toolService.tabContainerModalId;
   public selectedTabIndex = 0;

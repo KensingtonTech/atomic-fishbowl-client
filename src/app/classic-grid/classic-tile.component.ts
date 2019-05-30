@@ -51,8 +51,8 @@ export class ClassicTileComponent implements OnInit, OnChanges {
 
   public utils = utils;
 
-  @ViewChild('image') imageRef: ElementRef;
-  @ViewChild('highResImage') highResImageRef: ElementRef;
+  @ViewChild('image', { static: true }) imageRef: ElementRef;
+  @ViewChild('highResImage', { static: false }) highResImageRef: ElementRef;
 
   @Input() content: Content;
   @Input() collectionId: string = null;

@@ -125,7 +125,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
   @Input() selectedApiServer: NwServer; // the service we are editing (if we're editing)
   @Output() newApiServer: EventEmitter<NwServer> = new EventEmitter<NwServer>();
 
-  @ViewChild('hostName') hostNameRef: ElementRef;
+  @ViewChild('hostName', { static: true }) hostNameRef: ElementRef;
 
   public apiServerButtonText = 'Save'; // or 'Update'
   public passwordRequired = true;

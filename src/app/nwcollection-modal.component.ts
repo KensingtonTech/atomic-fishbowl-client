@@ -36,7 +36,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone) {}
 
-  @ViewChild('addCollectionForm') public addCollectionForm: NgForm;
+  @ViewChild('addCollectionForm', { static: true }) public addCollectionForm: NgForm;
   @ViewChildren('nwNameBox') nameBoxRef: QueryList<any>;
 
   public id = this.toolService.nwCollectionModalId;
