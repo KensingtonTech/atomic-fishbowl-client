@@ -107,7 +107,7 @@ declare var log: Logger;
 
 })
 
-export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
+export class MetaWidgetComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(private dataService: DataService,
               private changeDetectionRef: ChangeDetectorRef,
@@ -148,7 +148,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
 
 
   ngOnChanges(values: any): void {
-    log.debug('SessionWidgetComponent ngOnChanges(): values', values);
+    log.debug('MetaWidgetComponent ngOnChanges(): values', values);
     if ( 'serviceType' in values
         && this.preferences
         && ( ( values.serviceType.firstChange && values.serviceType.currentValue )
@@ -163,16 +163,19 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
       this.displayedKeys = this.getCombinedMetaKeys();
       this.buildEnabledMeta();
     }
-    log.debug('SessionWidgetComponent ngOnChanges(): values', values);
+    log.debug('MetaWidgetComponent ngOnChanges(): values', values);
     this.changeDetectionRef.markForCheck();
   }
 
 
 
   onPreferencesChanged(prefs: Preferences): void {
-    log.debug('SessionWidgetComponent: onPreferencesChanged(): preferences:', prefs);
+    if (!prefs || Object.keys(prefs).length === 0) {
+      return;
+    }
+    log.debug('MetaWidgetComponent: onPreferencesChanged(): preferences:', prefs);
     if (!this.serviceType) {
-      log.debug('SessionWidgetComponent: onPreferencesChanged(): did not have serviceType.  Returning');
+      log.debug('MetaWidgetComponent: onPreferencesChanged(): did not have serviceType.  Returning');
       return;
     }
     this.preferences = prefs;
@@ -194,7 +197,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
 
   onDeviceNumberChanged(event) {
     this.deviceNumber = event.deviceNumber;
-    log.debug('SessionWidgetComponent: onDeviceNumberChanged(): deviceNumber:', this.deviceNumber);
+    log.debug('MetaWidgetComponent: onDeviceNumberChanged(): deviceNumber:', this.deviceNumber);
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -219,7 +222,7 @@ export class SessionWidgetComponent implements OnInit, OnChanges, OnDestroy {
 
 
   getMetaForKey(key: string): string[] {
-    // log.debug('SessionWidgetComponent: getMetaForKey()', this.meta[k]);
+    // log.debug('MetaWidgetComponent: getMetaForKey()', this.meta[k]);
     // returns all meta values for a specific meta key as an array
     return this.meta[key];
   }

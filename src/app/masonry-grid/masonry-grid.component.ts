@@ -616,6 +616,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   onPreferencesChanged(prefs: Preferences): void {
 
+    if (!prefs || Object.keys(prefs).length === 0) {
+      return;
+    }
+
     log.debug('MasonryGridComponent: onPreferencesChanged()');
 
     let callLayout = false;

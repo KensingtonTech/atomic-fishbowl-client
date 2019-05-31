@@ -94,7 +94,7 @@ import { EulaComponent } from './eula.component';
 import { LicensingPreferencesComponent } from './licensing-preferences';
 import { LicenseExpiredModalComponent } from './license-expired-modal.component';
 import { ContentViewerComponent } from './viewers/content-viewer.component';
-import { SessionWidgetComponent } from './viewers/meta-widget.component';
+import { MetaWidgetComponent } from './viewers/meta-widget.component';
 import { ContentCountWidgetComponent } from './viewers/content-count-widget.component';
 import { NewEditUserModalComponent } from './new-edit-user.modal.component';
 import { NewEditNwServiceModalComponent } from './new-edit-nw-service.component';
@@ -184,7 +184,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   DeleteUserConfirmModalComponent,
                   ServerDownModalComponent,
                   // DownloadFileConfirmModalComponent,
-                  SessionWidgetComponent,
+                  MetaWidgetComponent,
                   DeleteNwServerConfirmModalComponent,
                   CollectionsComponent,
                   FeedsComponent,
