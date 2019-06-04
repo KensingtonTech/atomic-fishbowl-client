@@ -43,9 +43,7 @@
               "node_modules/jsencrypt/bin/jsencrypt.min.js",
               "node_modules/moment/min/moment.min.js",
               "node_modules/screenfull/dist/screenfull.js",
-              "node_modules/loglevel/dist/loglevel.min.js",
-              "src/resources/scroller/Animate.js",
-              "src/resources/scroller/Scroller.js"
+              "node_modules/loglevel/dist/loglevel.min.js"
             ]
           },
           "configurations": {

@@ -23,9 +23,11 @@ import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
 import { SessionsAvailable } from 'types/sessions-available';
 import ResizeObserverPolyfill from '@juggle/resize-observer';
 import 'imagesloaded';
+import { Scroller } from '../scroller/scroller';
+
 declare var log: Logger;
 declare var $: any;
-declare var Scroller: any;
+// declare var Scroller: any;
 
 
 @Component({
@@ -164,7 +166,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private searchBarOpen = false;
 
   // scrolling
-  private pixelsPerSecond = this.toolService.getPreference('autoScrollSpeed') || 200; // the scroll speed.  the default is 200 pixels per second
+    private pixelsPerSecond = this.toolService.getPreference('autoScrollSpeed') || 200; // the scroll speed.  the default is 200 pixels per second
   private autoScrollStarted = false; // the state of the autoscroll control button.  From the user perspective, is the process running?
   private autoScrollAnimationRunning = false; // is the scroll animation actually running?  It may be paused programatically from time to time to do things like purging
   private autoScrollAnimationPaused = false; // if true, when onLayoutComplete() runs, it will cause the autoscroller to unpause if it was previously running.  always combined with stopScrollerAnimation()
@@ -198,7 +200,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     zooming: false,
     easing: false
   };
-  private scroller: any;
+  private scroller: Scroller;
   public _scrollTop = 0;
   set scrollTop(scrollTop) {
     this._scrollTop = scrollTop;
@@ -382,7 +384,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     window.dispatchEvent(new Event('resize'));
 
     log.debug('MasonryGridComponent: ngAfterViewInit(): creating scroller');
-    this.scroller = new Scroller( this.render, this.scrollerOptions );
+    this.scroller = new Scroller( this.render, this.scrollerOptions, this.zone );
     this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
     // log.debug('MasonryGridComponent: ngAfterViewInit(): scroller:', this.scroller);
     this.isotopeContentRef.nativeElement.style['transform-origin'] = 'left-top';
