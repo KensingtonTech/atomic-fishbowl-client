@@ -19,6 +19,13 @@ import { ScrollerAnimate } from './animate';
 // Easing Equations (c) 2003 Robert Penner, all rights reserved.
 // Open source under the BSD License.
 
+// Rewritten for TypeScript by Kensington Technology Associates
+// Copyright 2019, Kensington Technology Associates.
+// Licensed under the MIT License.
+// https://raw.github.com/zynga/scroller/master/MIT-LICENSE.txt
+
+
+
 /**
  * @param pos {Number} position between 0 (start of effect) and 1 (end of effect)
 **/
@@ -53,11 +60,8 @@ function NOOP() {}
 export class Scroller {
 
   /**
-   * A pure logic 'component' for 'virtual' scrolling/zooming.
+   * A pure logic typescript 'component' for 'virtual' scrolling/zooming.
    */
-  // Scroller = function(callback, options) {
-
-
 
   constructor(callback, options, zone) {
     this.__renderCallback = callback;
@@ -146,8 +150,6 @@ export class Scroller {
   };
 
 
-
-  // members = {
 
   /*
   ---------------------------------------------------------------------------
@@ -328,7 +330,6 @@ export class Scroller {
    * @param contentWidth {Integer ? null} Outer width of inner element
    * @param contentHeight {Integer ? null} Outer height of inner element
    */
-  // setDimensions: function(clientWidth, clientHeight, contentWidth, contentHeight) {
   setDimensions(clientWidth, clientHeight, contentWidth, contentHeight) {
 
     // Only update values which are defined
@@ -364,7 +365,6 @@ export class Scroller {
    * @param left {Integer ? 0} Left position of outer element
    * @param top {Integer ? 0} Top position of outer element
    */
-  // setPosition: function(left, top) {
   setPosition(left, top) {
     this.__clientLeft = left || 0;
     this.__clientTop = top || 0;
@@ -379,7 +379,6 @@ export class Scroller {
    * @param width {Integer} Snapping width
    * @param height {Integer} Snapping height
    */
-  // setSnapSize: function(width, height) {
   setSnapSize(width, height) {
     this.__snapWidth = width;
     this.__snapHeight = height;
@@ -397,7 +396,6 @@ export class Scroller {
    * @param deactivateCallback {Function} Callback to execute on deactivation. This is for signalling the user about the refresh being cancelled.
    * @param startCallback {Function} Callback to execute to start the real async refresh action. Call {@link #finishPullToRefresh} after finish of refresh.
    */
-  // activatePullToRefresh: function(height, activateCallback, deactivateCallback, startCallback) {
   activatePullToRefresh(height, activateCallback, deactivateCallback, startCallback) {
     this.__refreshHeight = height;
     this.__refreshActivate = activateCallback;
@@ -410,7 +408,6 @@ export class Scroller {
   /**
    * Starts pull-to-refresh manually.
    */
-  // triggerPullToRefresh: function() {
   triggerPullToRefresh() {
     // Use publish instead of scrollTo to allow scrolling to out of boundary position
     // We don't need to normalize scrollLeft, zoomLevel, etc. here because we only y-scrolling when pull-to-refresh is enabled
@@ -426,7 +423,6 @@ export class Scroller {
   /**
    * Signalizes that pull-to-refresh is finished.
    */
-  // finishPullToRefresh: function() {
   finishPullToRefresh() {
     this.__refreshActive = false;
     if (this.__refreshDeactivate) {
@@ -443,7 +439,6 @@ export class Scroller {
    *
    * @return {Map} `left` and `top` scroll position and `zoom` level
    */
-  // getValues: function() {
   getValues() {
     return {
       left: this.__scrollLeft,
@@ -458,7 +453,6 @@ export class Scroller {
    *
    * @return {Map} `left` and `top` maximum scroll values
    */
-  // getScrollMax: function() {
   getScrollMax() {
     return {
       left: this.__maxScrollLeft,
@@ -478,7 +472,6 @@ export class Scroller {
    * @param originTop {Number ? null} Zoom in at given top coordinate
    * @param callback {Function ? null} A callback that gets fired when the zoom is complete.
    */
-  // zoomTo: function(level, animate, originLeft, originTop, callback) {
   zoomTo(level, animate, originLeft, originTop, callback = null) {
     if (!this.options.zooming) {
       throw new Error('Zooming is not enabled!');
@@ -491,7 +484,6 @@ export class Scroller {
 
     // Stop deceleration
     if (this.__isDecelerating) {
-      // coreAnimate.effect.Animate.stop(this.__isDecelerating);
       this.__animator.stop(this.__animationId);
       this.__isDecelerating = false;
     }
@@ -548,7 +540,6 @@ export class Scroller {
    * @param originTop {Number ? 0} Zoom in at given top coordinate
    * @param callback {Function ? null} A callback that gets fired when the zoom is complete.
    */
-  // zoomBy: function(factor, animate, originLeft, originTop, callback) {
   zoomBy(factor, animate, originLeft, originTop, callback) {
     this.zoomTo(this.__zoomLevel * factor, animate, originLeft, originTop, callback);
 
@@ -564,12 +555,10 @@ export class Scroller {
    * @param animate {Boolean?false} Whether the scrolling should happen using an animation
    * @param zoom {Number?null} Zoom level to go to
    */
-  // scrollTo: function(left, top, animate, zoom) {
   scrollTo(left, top, animate, zoom: number = null) {
 
     // Stop deceleration
     if (this.__isDecelerating) {
-      // coreAnimate.effect.Animate.stop(this.__isDecelerating);
       this.__animator.stop(this.__animationId);
       this.__isDecelerating = false;
     }
@@ -661,7 +650,6 @@ export class Scroller {
    * @param top {Number ? 0} Scroll y-axis by given offset
    * @param animate {Boolean ? false} Whether to animate the given change
    */
-  // scrollBy: function(left, top, animate, startNew = false, callback = null) {
   scrollBy(left, top, animate, startNew = false, callback = null) {
     this.__scrollCompleteCallback = NOOP;
     if (callback) {
@@ -687,9 +675,7 @@ export class Scroller {
   /**
    * Stop an in-progress animation
    */
-  // stop: function() {
   stop() {
-    // coreAnimate.effect.Animate.stopCurrent();
     this.__animator.stopCurrent();
   }
 
@@ -709,15 +695,12 @@ export class Scroller {
    * @param top {Number} Top scroll position
    * @param animate {Boolean?false} Whether animation should be used to move to the new coordinates
    */
-  // __publish: function(left, top, zoom, animate) {
   __publish(left, top, zoom, animate = null) {
     // Remember whether we had an animation, then we try to continue based on the current "drive" of the animation
     let wasAnimating = this.__isAnimating;
     if (wasAnimating) {
-      // coreAnimate.effect.Animate.stop(wasAnimating);
       this.__animator.stop(this.__animationId);
       this.__isAnimating = false;
-      // this.__animationId = null;
     }
 
     if (animate && this.options.animating) {
@@ -737,7 +720,6 @@ export class Scroller {
       let diffTop = top - oldTop;
       let diffZoom = zoom - oldZoom;
 
-      // let step = function(percentComplete, now, render) {
       let step = (percentComplete, now, render) => {
 
         if (render) {
@@ -755,18 +737,14 @@ export class Scroller {
         }
       };
 
-      // let verify = function(id) {
       let verify = (id) => {
-        // return this.__isAnimating === id;
         return this.__animationId === id;
       };
 
-      // let completed = function(renderedFramesPerSecond, animationId, wasFinished) {
       let completed = (renderedFramesPerSecond, animationId, wasFinished) => {
         // console.log('completed: wasFinished:', wasFinished);
         if (animationId === this.__isAnimating) {
           this.__isAnimating = false;
-          // this.__animationId = null;
         }
         if (this.__didDecelerationComplete || wasFinished) {
           if (this.__scrollCompleteCallback !== NOOP) {
@@ -792,7 +770,6 @@ export class Scroller {
       if (this.options.easing) {
         easingFunc = wasAnimating ? easeOutCubic : easeInOutCubic;
       }
-      // this.__isAnimating = coreAnimate.effect.Animate.start(step, verify, completed, this.options.animationDuration, easingFunc);
       this.__animationId = this.__animator.start(step, verify, completed, this.options.animationDuration, easingFunc);
       this.__isAnimating = this.__animationId !== null ? true : false;
 
@@ -828,7 +805,6 @@ export class Scroller {
   /**
    * Recomputes scroll minimum values based on client dimensions and content dimensions.
    */
-  // __computeScrollMax: function(zoomLevel) {
   __computeScrollMax(zoomLevel = null) {
     if (zoomLevel === null) {
       zoomLevel = this.__zoomLevel;
@@ -851,7 +827,6 @@ export class Scroller {
    * Called when a touch sequence end and the speed of the finger was high enough
    * to switch into deceleration mode.
    */
-  // __startDeceleration: function(timeStamp) {
   __startDeceleration(timeStamp) {
     if (this.options.paging) {
 
@@ -878,7 +853,6 @@ export class Scroller {
     }
 
     // Wrap class method
-    // var step = function(percent, now, render) {
     let step = (percent, now, render) => {
       this.__stepThroughDeceleration(render);
     };
@@ -888,7 +862,6 @@ export class Scroller {
 
     // Detect whether it's still worth to continue animating steps
     // If we are already slow enough to not being user perceivable anymore, we stop the whole process here.
-    // var verify = function() {
     let verify = () => {
       let shouldContinue = Math.abs(this.__decelerationVelocityX) >= minVelocityToKeepDecelerating || Math.abs(this.__decelerationVelocityY) >= minVelocityToKeepDecelerating;
       if (!shouldContinue) {
@@ -897,7 +870,6 @@ export class Scroller {
       return shouldContinue;
     };
 
-    // var completed = function(renderedFramesPerSecond, animationId, wasFinished) {
     let completed = (renderedFramesPerSecond, animationId, wasFinished) => {
       this.__isDecelerating = false;
       if (this.__didDecelerationComplete) {
@@ -909,7 +881,6 @@ export class Scroller {
     };
 
     // Start animation and switch on flag
-    // this.__isDecelerating = coreAnimate.effect.Animate.start(step, verify, completed);
     this.__isDecelerating = this.__animator.start(step, verify, completed) !== null ? true : false;
   }
 
@@ -920,7 +891,6 @@ export class Scroller {
    *
    * @param inMemory {Boolean?false} Whether to not render the current step, but keep it in memory only. Used internally only!
    */
-  // __stepThroughDeceleration: function(render) {
   __stepThroughDeceleration(render) {
     //
     // COMPUTE NEXT SCROLL POSITION
@@ -1077,7 +1047,8 @@ export class Scroller {
 
     // Stop deceleration
     if (this.__isDecelerating) {
-      coreAnimate.effect.Animate.stop(this.__isDecelerating);
+      // coreAnimate.effect.Animate.stop(this.__isDecelerating);
+      this.__animator.stop(this.__animationId);
       this.__isDecelerating = false;
       this.__interruptedAnimation = true;
     }

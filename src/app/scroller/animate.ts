@@ -13,30 +13,9 @@ export class ScrollerAnimate {
 
   constructor(zone) {
     this.zone = zone;
-    // this.animationFrameFunc = window.requestAnimationFrame;
     this.zone.runOutsideAngular( () => this.animationFrameFunc = window.requestAnimationFrame );
   }
 
-  // effect : {};
-  /*coreAnimate = {
-    effect: {}
-  };*/
-
-  /**
-   * A requestAnimationFrame wrapper / polyfill.
-   *
-   * @param callback {Function} The callback to be invoked before the next repaint.
-   * @param root {HTMLElement} The root element for the repaint
-   */
-  /*
-  requestAnimationFrame = (function() {
-
-    return function(callback, root) {
-      requestAnimationFrame(callback, root);
-    };
-
-  })();
-  */
 
 
   /**
@@ -60,7 +39,6 @@ export class ScrollerAnimate {
    *
    * @return {Boolean} Whether the animation was stopped (aka, was running before)
    */
-  // stopCurrent: function() {
   stopCurrent(): boolean {
     let id = this.counter - 1;
     let cleared = this.running[id] != null;
@@ -78,7 +56,6 @@ export class ScrollerAnimate {
    * @param id {Integer} Unique animation ID
    * @return {Boolean} Whether the animation is still running
    */
-  // isRunning: function(id) {
   isRunning(id): boolean {
     return this.running[id] !== null;
   }
@@ -99,7 +76,6 @@ export class ScrollerAnimate {
    *   Signature of the method should be `function(percent) { return modifiedValue; }`
    * @return {Integer} Identifier of animation. Can be used to stop it any time.
    */
-  // start: function(stepCallback, verifyCallback, completedCallback, duration, easingMethod, root) {
   start(stepCallback, verifyCallback, completedCallback, duration = null, easingMethod = null): number {
 
     let start = performance.now();
@@ -107,10 +83,6 @@ export class ScrollerAnimate {
     let percent = 0;
     let dropCounter = 0;
     let id = this.counter++;
-
-    /*if (!root) {
-      root = document.body;
-    }*/
 
     // Compacting running db automatically every few new animations
     if (id % 20 === 0) {
@@ -123,7 +95,6 @@ export class ScrollerAnimate {
     }
 
     // This is the internal step method which is called every few milliseconds
-    // let step = function(virtual) {
     let step = virtual => {
 
       // Normalize virtual value
@@ -173,7 +144,6 @@ export class ScrollerAnimate {
       }
       else if (render) {
         lastFrame = now;
-        // coreAnimate.effect.Animate.requestAnimationFrame(step, root);
         this.animationFrameFunc(step);
       }
     };
@@ -182,7 +152,6 @@ export class ScrollerAnimate {
     this.running[id] = true;
 
     // Init first step
-    // coreAnimate.effect.Animate.requestAnimationFrame(step, root);
     this.animationFrameFunc(step);
 
     // Return unique animation ID
@@ -190,4 +159,3 @@ export class ScrollerAnimate {
   }
 
 }
-
