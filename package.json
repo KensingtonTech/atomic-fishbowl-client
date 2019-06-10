@@ -12,7 +12,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "fixpdf": "cd node_modules/pdfjs-dist/web && cp pdf_viewer.js pdf_viewer.js.orig && sed -i'' -e 's/var elt = views\\[index\\].div;/var elt = views[index-1].div;/g' pdf_viewer.js",
+    "copypdf": "cp -f node_modules/pdfjs-dist/build/pdf.worker.min.js src/resources",
+    "fixpdf": "#DO_NOT_USE cd node_modules/pdfjs-dist/web && cp pdf_viewer.js pdf_viewer.js.orig && sed -i'' -e 's/var elt = views\\[index\\].div;/var elt = views[index-1].div;/g' pdf_viewer.js",
     "zipnwcontext": "cd src/nw-context-menu && zip ../resources/nw-investigation-context-menu.zip nw-investigation-*.json 'AFB-NW Context Menu Integration Guide.pdf'",
     "bumppatch": "npm --no-git-tag-version version patch && npm run writeBuildProperties",
     "writeBuildProperties": "./writeBuildProperties.sh"
@@ -55,8 +56,8 @@
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.800.0",
-    "@angular/cli": "~8.0.0",
+    "@angular-devkit/build-angular": "~0.800.2",
+    "@angular/cli": "~8.0.2",
     "@angular/compiler-cli": "^8.0.0",
     "@angular/language-service": "^8.0.0",
     "@types/imagesloaded": "^4.1.1",

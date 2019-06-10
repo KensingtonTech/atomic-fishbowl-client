@@ -45,7 +45,7 @@ build:
 EOF
 
 npm install
-npm run fixpdf
+npm run copypdf
 
 echo "\$forceDebugBuild = $forceDebugBuild"
 
