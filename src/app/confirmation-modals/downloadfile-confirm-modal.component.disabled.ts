@@ -3,8 +3,6 @@ import { ModalService } from '../modal/modal.service';
 import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import * as utils from '../utils';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 @Component({
   selector: 'downloadfile-confirm-modal',

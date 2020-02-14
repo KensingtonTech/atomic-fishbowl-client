@@ -5,10 +5,8 @@ import { AuthenticationService } from 'services/authentication.service';
 import { ModalService } from './modal/modal.service';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from 'types/user';
-import { ErrorStateMatcher } from '@angular/material/core';
 import * as validators from './validators';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'new-edit-user-modal',

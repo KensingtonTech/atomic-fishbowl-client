@@ -1,11 +1,10 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultNwQueries } from './default-nw-queries';
-import { Query } from 'types/query';
 import { ContentTypes } from 'types/contenttypes';
 import { UseCase } from 'types/usecase';
 import { SelectItem } from 'primeng/components/common/selectitem';
@@ -16,10 +15,9 @@ import { CollectionMeta } from 'types/collection-meta';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import * as utils from './utils';
-import { Logger } from 'loglevel';
 import { COLLECTION_MODES, HASHING_MODES } from 'types/add-collection-modes';
-declare var log: Logger;
-declare var moment;
+import * as moment from 'moment';
+import * as log from 'loglevel';
 
 
 @Component({

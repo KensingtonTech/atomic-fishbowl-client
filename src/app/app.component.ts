@@ -4,8 +4,7 @@ import { AuthenticationService } from 'services/authentication.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription} from 'rxjs';
 import { ToolService } from 'services/tool.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 
 @Component({

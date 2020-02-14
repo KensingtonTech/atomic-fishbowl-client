@@ -3,11 +3,10 @@ import { ActivatedRoute, Router, Params } from '@angular/router';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { Collection } from 'types/collection';
 import { Feed } from 'types/feed';
-import { Logger } from 'loglevel';
 import { Subscription} from 'rxjs';
-declare var log: Logger;
+import * as log from 'loglevel';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 
 export class ToolService {
 

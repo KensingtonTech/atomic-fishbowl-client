@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { Subject, BehaviorSubject, Subscription } from 'rxjs';
+import { Subject, BehaviorSubject } from 'rxjs';
 import { HttpHeaders, HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { NwServer } from 'types/nwserver';
 import { SaServer } from 'types/saserver';
@@ -9,14 +9,12 @@ import { Preferences } from 'types/preferences';
 import { License } from 'types/license';
 import { NwServers } from 'types/nwserver';
 import * as io from 'socket.io-client';
-import { Logger } from 'loglevel';
+import * as log from 'loglevel';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
 import { BlobTable } from 'types/blobtable';
-import * as utils from '../utils';
-declare var JSEncrypt: any;
-declare var log: Logger;
+import { JSEncrypt } from 'jsencrypt';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 
 export class DataService { // Manages NwSession objects and also Image objects in grid and the image's association with Session objects.  Adds more objects as they're added
 

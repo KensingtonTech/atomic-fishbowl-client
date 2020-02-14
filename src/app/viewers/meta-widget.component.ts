@@ -2,12 +2,11 @@ import { Component, ChangeDetectorRef, OnInit, ChangeDetectionStrategy, OnDestro
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
-import { Logger } from 'loglevel';
 import { Preferences } from 'types/preferences';
 import { Meta } from 'types/meta';
 import { Session } from 'types/session';
 import * as utils from '../utils';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component( {
   selector: 'meta-widget',

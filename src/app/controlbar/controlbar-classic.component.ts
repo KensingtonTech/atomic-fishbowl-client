@@ -1,8 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input, ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { PanZoomAPI } from 'ng2-panzoom';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'control-bar-classic',

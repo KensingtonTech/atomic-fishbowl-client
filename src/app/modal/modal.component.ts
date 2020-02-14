@@ -2,8 +2,7 @@
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { ModalService } from './modal.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'modal',

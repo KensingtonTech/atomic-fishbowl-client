@@ -30,6 +30,12 @@
       ],
       "services/*": [
         "src/app/services/*"
+      ],
+      "jquery": [
+        "node_modules/jquery/dist/jquery.slim.min.js"
+      ],
+      "jsencrypt": [
+        "node_modules/jsencrypt/bin/jsencrypt.min.js"
       ]
     }
   },

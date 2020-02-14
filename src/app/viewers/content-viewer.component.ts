@@ -1,8 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnChanges, Input, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { Content } from 'types/content';
 import * as utils from '../utils';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 @Component({
   selector: 'content-viewer',

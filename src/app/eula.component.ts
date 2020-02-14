@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { EulaHtml } from './eula';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 @Component({
   selector: 'eula',

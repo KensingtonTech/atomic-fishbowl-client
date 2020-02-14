@@ -1,8 +1,7 @@
 import { Component, ChangeDetectorRef, OnInit, ElementRef, Output, EventEmitter, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToolService } from 'services/tool.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 interface RouterOption {
   name: string;

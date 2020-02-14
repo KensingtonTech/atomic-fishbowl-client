@@ -1,11 +1,10 @@
 import { Directive, OnInit, OnChanges, Input, ElementRef, NgZone, Renderer2, OnDestroy, ViewChildren, QueryList } from '@angular/core';
 import { IsotopeConfig } from './isotope-config';
 import { IsotopeAPI } from './isotope-api';
-import { Logger } from 'loglevel';
-
+import $ from 'jquery';
+import * as log from 'loglevel';
 // import { IsotopeBrickDirective } from './isotope-brick.directive';
-declare var log: Logger;
-declare var $: any;
+// declare var $: any;
 // import * as Isotope from 'isotope-layout'; // we're not using typescript / webpack loading as doing so breaks layout when using aot compilation.  We instead use a <script> tag in index.html to load it from /resources.  it sucks but until aot is fixed, we have to use it
 declare var Isotope;
 

@@ -1,7 +1,5 @@
 import { Component, OnInit, OnChanges, ElementRef, Input } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 @Component( {
   selector: 'classic-session-popup',

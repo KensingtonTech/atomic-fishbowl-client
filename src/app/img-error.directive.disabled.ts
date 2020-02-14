@@ -1,7 +1,6 @@
 import { Directive, OnInit, ElementRef, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { AuthenticationService } from 'services/authentication.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 // A directive that catches errors on image load
 

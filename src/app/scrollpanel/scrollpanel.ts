@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, OnDestroy, ElementRef, NgZone, ViewChild } from '@angular/core';
+import { Component, Input, AfterViewInit, OnDestroy, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { Subscription, Subject } from 'rxjs';
 
 @Component({
@@ -8,17 +8,6 @@ import { Subscription, Subject } from 'rxjs';
   <div #yBar class="ui-scrollpanel-bar ui-scrollpanel-bar-y"></div>
 </div>
 `
-    /*template: `
-<div #container [ngClass]="'ui-scrollpanel ui-widget ui-widget-content ui-corner-all'" [ngStyle]="style" [class]="styleClass">
-  <div class="ui-scrollpanel-wrapper">
-    <div #content class="ui-scrollpanel-content">
-      <ng-content></ng-content>
-    </div>
-  </div>
-  <div #xBar class="ui-scrollpanel-bar ui-scrollpanel-bar-x"></div>
-  <div #yBar class="ui-scrollpanel-bar ui-scrollpanel-bar-y"></div>
-</div>
-`*/
 })
 
 

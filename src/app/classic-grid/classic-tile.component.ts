@@ -1,13 +1,11 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit, OnChanges, ViewChild, ElementRef, NgZone, SimpleChanges } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { Content } from 'types/content';
-import { Logger } from 'loglevel';
 import { trigger, state, style, transition, animate, useAnimation } from '@angular/animations';
 import { zoomIn, zoomOut } from 'ng-animate';
-import { Session } from 'types/session';
 import { DataService } from 'services/data.service';
 import * as utils from '../utils';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'classic-tile',

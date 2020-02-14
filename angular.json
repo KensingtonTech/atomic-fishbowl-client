@@ -38,12 +38,7 @@
               "src/layout.scss"
             ],
             "scripts": [
-              "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/imagesloaded/imagesloaded.pkgd.min.js",
-              "node_modules/jsencrypt/bin/jsencrypt.min.js",
-              "node_modules/moment/min/moment.min.js",
-              "node_modules/screenfull/dist/screenfull.js",
-              "node_modules/loglevel/dist/loglevel.min.js"
+              "node_modules/jsencrypt/bin/jsencrypt.min.js"
             ]
           },
           "configurations": {
@@ -93,13 +88,7 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.spec.json",
             "scripts": [
-              "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/velocity-animate/velocity.min.js",
-              "node_modules/imagesloaded/imagesloaded.pkgd.min.js",
-              "node_modules/jsencrypt/bin/jsencrypt.min.js",
-              "node_modules/moment/min/moment.min.js",
-              "node_modules/screenfull/dist/screenfull.js",
-              "node_modules/loglevel/dist/loglevel.min.js"
+              "node_modules/jsencrypt/bin/jsencrypt.min.js"
             ],
             "styles": [
               "node_modules/primeicons/primeicons.css",

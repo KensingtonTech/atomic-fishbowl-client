@@ -3,8 +3,7 @@ import { ModalService } from '../modal/modal.service';
 import { Subscription } from 'rxjs';
 import { ToolService } from 'services/tool.service';
 import { Collection } from 'types/collection';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'delete-collection-confirm-modal',

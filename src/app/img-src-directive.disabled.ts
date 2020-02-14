@@ -1,7 +1,5 @@
 import { Directive, Input, ElementRef, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { DataService } from 'services/data.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 // A directive that loads images from the dataService and thus makes load errors catch-able
 

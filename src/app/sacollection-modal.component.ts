@@ -5,7 +5,6 @@ import { ModalService } from './modal/modal.service';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
 import { defaultSaQueries } from './default-sa-queries';
-import { Query } from 'types/query';
 import { ContentTypes } from 'types/contenttypes';
 import { UseCase } from 'types/usecase';
 import { SelectItem } from 'primeng/components/common/selectitem';
@@ -16,9 +15,8 @@ import { CollectionMeta } from 'types/collection-meta';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import * as utils from './utils';
-import { Logger } from 'loglevel';
-declare var moment;
-declare var log: Logger;
+import * as moment from 'moment';
+import * as log from 'loglevel';
 
 @Component({
   selector: 'sa-collection-modal',

@@ -1,8 +1,8 @@
 import { Injectable, ErrorHandler, Injector } from '@angular/core';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
+
 export class ErrorHandlerGlobal implements ErrorHandler {
   // https://medium.com/@amcdnl/global-error-handling-with-angular2-6b992bdfb59c
 

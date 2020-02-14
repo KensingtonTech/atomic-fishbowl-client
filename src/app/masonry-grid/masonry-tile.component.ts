@@ -2,11 +2,9 @@ import { Component, OnInit, AfterViewInit, ChangeDetectionStrategy, Input, Injec
 import { ToolService } from 'services/tool.service';
 import { MasonryGridComponent } from './masonry-grid.component';
 import { IsotopeBrickDirective } from '../isotope/isotope-brick.directive';
-import * as utils from '../utils';
-import { Logger } from 'loglevel';
 import { DataService } from 'services/data.service';
-import { Meta } from 'types/meta';
-declare var log: Logger;
+import * as log from 'loglevel';
+import * as utils from '../utils';
 
 interface MasonryKey {
   key: string;

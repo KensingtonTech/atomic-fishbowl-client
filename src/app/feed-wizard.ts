@@ -7,8 +7,7 @@ import { Feed, FeedSchedule } from 'types/feed';
 import { UUID } from 'angular2-uuid';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import * as utils from './utils';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 interface ColumnId {
   'id': string;

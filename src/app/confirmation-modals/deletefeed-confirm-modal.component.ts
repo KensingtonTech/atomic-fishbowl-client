@@ -4,8 +4,7 @@ import { ToolService } from 'services/tool.service';
 import { DataService } from 'services/data.service';
 import { Subscription } from 'rxjs';
 import { Feed } from 'types/feed';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'confirm-feed-delete-modal',

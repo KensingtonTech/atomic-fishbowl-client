@@ -7,8 +7,7 @@ import { SelectItem } from 'primeng/components/common/selectitem';
 import { Preferences } from 'types/preferences';
 import { Subscription } from 'rxjs';
 import { ToolService } from 'services/tool.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'preferences-modal',

@@ -2,12 +2,10 @@ import { Component, OnInit, ChangeDetectionStrategy, EventEmitter, ViewChild, Ch
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
-import { User } from 'types/user';
 import { NgForm } from '@angular/forms';
 import { UUID } from 'angular2-uuid';
-import { Logger } from 'loglevel';
-import { NwServer, NwServers } from 'types/nwserver';
-declare var log: Logger;
+import { NwServer } from 'types/nwserver';
+import * as log from 'loglevel';
 
 @Component({
   selector: 'new-edit-nw-service-modal',
