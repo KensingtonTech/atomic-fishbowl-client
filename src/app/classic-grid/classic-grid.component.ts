@@ -104,7 +104,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
                 private zone: NgZone ) {}
 
   @ViewChild('classicGridElement', { static: true }) private classicGridElement: ElementRef;
-  @ViewChild('gridItems', { static: false }) public gridItems: ElementRef;
+  @ViewChild('gridItems') public gridItems: ElementRef;
 
   // preferences
   public preferences: Preferences;

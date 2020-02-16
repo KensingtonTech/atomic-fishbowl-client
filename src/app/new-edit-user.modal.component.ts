@@ -170,8 +170,8 @@ export class NewEditUserModalComponent implements OnInit {
   @Input() editingUser: User; // the user we are editing (if we're editing)
   @Input() users: User[];
 
-  @ViewChild('userInAdd', { static: false }) userInAddRef: ElementRef; // used to focus input on element
-  @ViewChild('userInEdit', { static: false }) userInEditRef: ElementRef; // used to focus input on element
+  @ViewChild('userInAdd') userInAddRef: ElementRef; // used to focus input on element
+  @ViewChild('userInEdit') userInEditRef: ElementRef; // used to focus input on element
 
   public id = this.toolService.newEditUserModalId;
 

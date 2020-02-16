@@ -73,7 +73,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
   public utils = utils;
 
   @ViewChild('userTable', { static: true }) private userTableRef: ElementRef;
-  @ViewChild('emptyRow', { static: false }) private emptyRowTemplateRef;
+  @ViewChild('emptyRow') private emptyRowTemplateRef;
 
   // Subscriptions
   private subscriptions = new Subscription;

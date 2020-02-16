@@ -197,7 +197,7 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
 
   public utils = utils;
 
-  @ViewChild('image', { static: false }) public imageRef: ElementRef;
+  @ViewChild('image') public imageRef: ElementRef;
 
   @Input() content: any;
   @Input() sessionId: number;
