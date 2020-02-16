@@ -4,7 +4,7 @@ import { ToolService } from 'services/tool.service';
 import { ModalService } from '../modal/modal.service';
 import { Content } from 'types/content';
 import { Session } from 'types/session';
-import { SelectItem } from 'primeng/components/common/selectitem';
+import { SelectItem } from 'primeng/api/selectitem';
 import { AbstractGrid } from '../abstract-grid.class';
 import { SessionsAvailable } from 'types/sessions-available';
 import { Subscription} from 'rxjs';

@@ -7,7 +7,7 @@ import { UUID } from 'angular2-uuid';
 import { defaultSaQueries } from './default-sa-queries';
 import { ContentTypes } from 'types/contenttypes';
 import { UseCase } from 'types/usecase';
-import { SelectItem } from 'primeng/components/common/selectitem';
+import { SelectItem } from 'primeng/api/selectitem';
 import { Subscription } from 'rxjs';
 import { SaServer } from 'types/saserver';
 import { Feed } from 'types/feed';

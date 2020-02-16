@@ -3,7 +3,7 @@ import { DataService } from 'services/data.service';
 import { ModalService } from './modal/modal.service';
 import { defaultNwQueries } from './default-nw-queries';
 import { defaultSaQueries } from './default-sa-queries';
-import { SelectItem } from 'primeng/components/common/selectitem';
+import { SelectItem } from 'primeng/api/selectitem';
 import { Preferences } from 'types/preferences';
 import { Subscription } from 'rxjs';
 import { ToolService } from 'services/tool.service';

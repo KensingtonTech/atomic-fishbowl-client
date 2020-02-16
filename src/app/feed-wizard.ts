@@ -5,7 +5,7 @@ import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
 import { Feed, FeedSchedule } from 'types/feed';
 import { UUID } from 'angular2-uuid';
-import { SelectItem } from 'primeng/components/common/selectitem';
+import { SelectItem } from 'primeng/api/selectitem';
 import * as utils from './utils';
 import * as log from 'loglevel';
 

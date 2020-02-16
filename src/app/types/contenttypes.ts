@@ -1,4 +1,4 @@
-import { SelectItem } from 'primeng/components/common/selectitem';
+import { SelectItem } from 'primeng/api/selectitem';
 
 export const ContentTypes: SelectItem[] = [
   { label: `PDF's`, value: 'pdfs' },
