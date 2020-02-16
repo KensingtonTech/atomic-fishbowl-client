@@ -1,7 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { Logger } from 'loglevel';
 import { ToolService } from 'services/tool.service';
-declare var log: Logger;
 
 @Component({
   selector: 'serverdown-modal',

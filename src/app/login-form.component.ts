@@ -2,8 +2,6 @@ import { Component, ElementRef, Renderer2, OnInit, ViewChildren, QueryList, Afte
 import { AuthenticationService } from 'services/authentication.service';
 import { User } from 'types/user';
 import { DataService } from './services/data.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 @Component({
     selector: 'login-form',

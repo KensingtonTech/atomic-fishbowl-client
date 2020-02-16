@@ -1,10 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { ModalService } from '../modal/modal.service';
 import { ToolService } from 'services/tool.service';
-import { Subscription } from 'rxjs';
 import { User } from 'types/user';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 @Component({
   selector: 'confirm-user-delete-modal',

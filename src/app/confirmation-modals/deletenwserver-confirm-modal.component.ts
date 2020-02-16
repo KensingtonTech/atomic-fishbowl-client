@@ -1,11 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { ModalService } from '../modal/modal.service';
 import { ToolService } from 'services/tool.service';
-import { Subscription } from 'rxjs';
 import { NwServer } from 'types/nwserver';
 import { DataService } from 'services/data.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'confirm-nwserver-delete-modal',

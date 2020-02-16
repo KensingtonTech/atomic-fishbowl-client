@@ -59,14 +59,14 @@
           <tr *ngIf="displayCustomTimeframeSelector && type == 'fixed'">
             <td><i>From</i>
             </td>
-            <td><p-calendar name="time1" showTime="showTime" showIcon="true" [(ngModel)]="timeBegin" inputStyleClass="ourFont" [selectOtherMonths]="true"></p-calendar>
+            <td><p-calendar name="time1" showTime="showTime" showIcon="true" [(ngModel)]="timeBegin" inputStyleClass="ourFont" [selectOtherMonths]="true" appendTo="body"></p-calendar>
             </td>
           </tr>
           <!--CALENDAR FROM TO FIXED COLLECTIONS-->
           <tr *ngIf="displayCustomTimeframeSelector && type == 'fixed'">
             <td><i>To</i>
             </td>
-            <td><p-calendar name="time2" showTime="showTime" showIcon="true" [(ngModel)]="timeEnd" inputStyleClass="ourFont" [selectOtherMonths]="true"></p-calendar>
+            <td><p-calendar name="time2" showTime="showTime" showIcon="true" [(ngModel)]="timeEnd" inputStyleClass="ourFont" [selectOtherMonths]="true" appendTo="body"></p-calendar>
             </td>
           </tr>
           <!--CONTENT LIMIT-->

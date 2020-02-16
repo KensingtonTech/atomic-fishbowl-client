@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from 'services/tool.service';
 

@@ -1,8 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ModalService } from './modal/modal.service';
-import { Logger } from 'loglevel';
 import { ToolService } from 'services/tool.service';
-declare var log: Logger;
 
 @Component({
   selector: 'logged-out-notify-modal',

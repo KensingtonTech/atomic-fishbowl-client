@@ -6,8 +6,7 @@ import { ModalService } from './modal/modal.service';
 import { User } from 'types/user';
 import { Subscription } from 'rxjs';
 import * as utils from './utils';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 
 

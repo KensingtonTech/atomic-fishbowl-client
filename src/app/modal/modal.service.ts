@@ -1,9 +1,8 @@
 ﻿import { ModalComponent } from './modal.component';
 import { Injectable } from '@angular/core';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 
 export class ModalService {
 

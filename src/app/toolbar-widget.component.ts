@@ -8,10 +8,9 @@ import { ContentMask } from 'types/contentmask';
 import { UseCase } from 'types/usecase';
 import { Subscription } from 'rxjs';
 import { License } from 'types/license';
-import { Logger } from 'loglevel';
 import { AbstractGrid } from './abstract-grid.class';
 import * as utils from './utils';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component( {
   selector: 'toolbar-widget',

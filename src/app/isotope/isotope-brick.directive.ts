@@ -1,8 +1,7 @@
-import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, NgZone, Renderer2, OnChanges, SimpleChanges, HostListener } from '@angular/core';
+import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, NgZone, Renderer2, OnChanges, SimpleChanges } from '@angular/core';
 import { IsotopeDirective } from './isotope.directive';
-import 'imagesloaded';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
+
 
 @Directive({
   // tslint:disable-next-line:directive-selector
@@ -22,7 +21,6 @@ export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewIni
   @Input('observeBrickMutations') private enableObserver = false;
 
   private observer: MutationObserver = null;
-  private imgsLoaded: ImagesLoaded.ImagesLoaded = null;
   private loadComplete = false;
 
 
@@ -31,13 +29,7 @@ export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewIni
 
     this.renderer.setStyle(this.el.nativeElement, 'visibility', 'hidden');
     // this.el.nativeElement.parentElement.removeChild(this.el.nativeElement); // will be re-added to DOM later by isotope.directive
-    /*this.ngZone.runOutsideAngular( () => {
-      // we need the image to be completely loaded before it gets laid out by isotope
-      this.imgsLoaded = imagesLoaded(this.el.nativeElement);
-      this.imgsLoaded.on('always', this.onImagesLoadedComplete);
-     });*/
-     // imagesLoaded doesn't work properly with images loaded via blob
-     this.ngZone.runOutsideAngular( () => this.el.nativeElement.addEventListener('onloaded', this.onImagesLoadedComplete ) );
+    this.ngZone.runOutsideAngular( () => this.el.nativeElement.addEventListener('onloaded', this.onImagesLoadedComplete ) );
     if (this.enableObserver) {
       // enable mutation watcher
       log.debug('IsotopeBrickDirective: ngAfterViewInit(): Enabling mutation observer');
@@ -48,9 +40,6 @@ export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewIni
 
   ngOnDestroy(): void {
     // log.debug('IsotopeBrickDirective: ngOnDestroy() removing brick');
-    /*if (!this.loadComplete) {
-      this.imgsLoaded.off('always', this.onImagesLoadedComplete);
-    }*/
     this.isotopeComponent.remove(this.el);
     this.ngZone.runOutsideAngular( () => this.el.nativeElement.removeEventListener('onloaded', this.onImagesLoadedComplete ) );
     if (this.observer) {
@@ -71,7 +60,6 @@ export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewIni
   onImagesLoadedComplete = () => {
     // log.debug('IsotopeBrickDirective: onImagesLoadedComplete(): proceeding to add brick to Isotope');
     this.isotopeComponent.addBrick(this.el);
-    // this.imgsLoaded.off('always', this.onImagesLoadedComplete);
     this.loadComplete = true;
   }
 

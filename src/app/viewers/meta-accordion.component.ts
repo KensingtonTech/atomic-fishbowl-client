@@ -1,8 +1,5 @@
 import { Component, ChangeDetectorRef, Input, ChangeDetectionStrategy, ViewChild, ElementRef, ViewChildren, QueryList, OnChanges, SimpleChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import * as utils from '../utils';
-import { Logger } from 'loglevel';
-declare var log: Logger;
 
 @Component({
   selector: 'meta-accordion',

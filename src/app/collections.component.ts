@@ -6,12 +6,12 @@ import { Subscription } from 'rxjs';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import { DragulaService } from 'ng2-dragula';
-import { Logger } from 'loglevel';
 import { License } from 'types/license';
 import { MenuItem } from 'primeng/api';
-import * as utils from './utils';
 import { Menu } from 'primeng/menu';
-declare var log: Logger;
+import * as log from 'loglevel';
+import * as utils from './utils';
+
 
 @Component({
   selector: 'collections',

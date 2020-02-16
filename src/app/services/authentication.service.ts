@@ -4,10 +4,9 @@ import { HttpHeaders, HttpClient, HttpErrorResponse } from '@angular/common/http
 import { User } from 'types/user';
 import { ToolService } from './tool.service';
 import { DataService } from './data.service';
-import { Logger } from 'loglevel';
-declare var log: Logger;
+import * as log from 'loglevel';
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 
 export class AuthenticationService {
 

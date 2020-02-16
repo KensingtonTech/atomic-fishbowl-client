@@ -1,9 +1,8 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { ModalService } from './modal/modal.service';
 import { ToolService } from 'services/tool.service';
-import { Logger } from 'loglevel';
 import { CollectionsComponent } from './collections.component';
-declare var log: Logger;
+import * as log from 'loglevel';
 
 @Component({
   selector: 'tab-container-modal',

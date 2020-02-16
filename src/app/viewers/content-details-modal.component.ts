@@ -7,10 +7,9 @@ import { Session } from 'types/session';
 import { SelectItem } from 'primeng/components/common/selectitem';
 import { AbstractGrid } from '../abstract-grid.class';
 import { SessionsAvailable } from 'types/sessions-available';
-import * as utils from '../utils';
-import { Logger } from 'loglevel';
 import { Subscription} from 'rxjs';
-declare var log: Logger;
+import * as log from 'loglevel';
+import * as utils from '../utils';
 
 (<any>window).pdfWorkerSrc = '/resources/pdf.worker.min.js';
 

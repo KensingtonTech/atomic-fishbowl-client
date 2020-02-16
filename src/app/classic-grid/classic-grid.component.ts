@@ -12,19 +12,15 @@ import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import { Search } from 'types/search';
 import { License } from 'types/license';
-import * as utils from '../utils';
-import { Logger } from 'loglevel';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
-import { trigger, state, style, animate, transition, query, animateChild } from '@angular/animations';
+import { trigger, state, transition, query, animateChild } from '@angular/animations';
 import { Point } from 'types/point';
 import { Sessions, Session } from 'types/session';
 import { AbstractGrid } from '../abstract-grid.class';
 import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
 import { SessionsAvailable } from 'types/sessions-available';
-// import { wrapGrid } from 'animate-css-grid';
-declare var log: Logger;
-declare var imagesLoaded;
-
+import * as log from 'loglevel';
+import * as utils from '../utils';
 
 
 @Component({
@@ -178,9 +174,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   // monitoring collections
   public pauseMonitoring = false;
 
-  // images loaded
-  private imagesLoaded: any; // handler to imagesLoaded instance, assigned later
-
   // license
   public license: License;
   private licenseChangedFunction = this.onLicenseChangedInitial;
@@ -197,9 +190,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   ngOnDestroy(): void {
     log.debug('ClassicGridComponent: ngOnDestroy()');
     this.subscriptions.unsubscribe();
-    if (this.imagesLoaded) {
-      this.imagesLoaded.off( 'always', this.onImagesLoaded );
-    }
     this.toolService.addNwAdhocCollectionNext.next({});
     this.toolService.addSaAdhocCollectionNext.next({});
   }
@@ -544,7 +534,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // this.panZoomAPI.zoomToFit( {x: 0, y: 0, width: this.canvasWidth, height: this.initialZoomHeight });
     this.changeDetectionRef.detectChanges();
     // this.zone.runOutsideAngular( () => wrapGrid(this.gridItems.nativeElement) );
-    // this.imagesLoaded = this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, this.onImagesLoaded ) );
   }
 
 
@@ -590,7 +579,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     // if (this.searchBarOpen) { this.onSearchTermsTyped( { searchTerms: this.lastSearchTerm } ); }
     this.onSearchTermsTyped( { searchTerms: this.lastSearchTerm } );
     this.changeDetectionRef.detectChanges();
-    // this.imagesLoaded = this.zone.runOutsideAngular( () => imagesLoaded(this.gridItems.nativeElement, this.onImagesLoaded ) );
     this.sessionWidgetDecider();
   }
 
@@ -1153,17 +1141,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private resumeMonitoring(): void {
     // this.pauseMonitoring = false; // pauseMonitoring will be updated after server push
     this.dataService.unpauseMonitoringCollection();
-  }
-
-
-
-  onImagesLoaded = () => {
-    log.debug('ClassicGridComponent: onImagesLoaded()');
-    // this.loadAllHighResImages = true;
-    this.imagesLoaded.off( 'always', this.onImagesLoaded );
-    this.imagesLoaded = null;
-    this.changeDetectionRef.detectChanges();
-    // this.zone.runOutsideAngular( () => wrapGrid(this.gridItems.nativeElement) ); // massive penalty on load - app freezes for seconds
   }
 
 

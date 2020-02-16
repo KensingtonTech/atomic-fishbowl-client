@@ -10,24 +10,20 @@ import { IsotopeAPI } from '../isotope/isotope-api';
 import { ContentMask } from 'types/contentmask';
 import { Search } from 'types/search';
 import { Subscription, Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import { License } from 'types/license';
 import * as utils from '../utils';
-import { Logger } from 'loglevel';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
 import { AbstractGrid } from '../abstract-grid.class';
 import { Session, Sessions } from 'types/session';
 import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
 import { SessionsAvailable } from 'types/sessions-available';
 import ResizeObserverPolyfill from '@juggle/resize-observer';
-import 'imagesloaded';
+import * as imagesLoaded from 'imagesloaded';
 import { Scroller } from '../scroller/scroller';
-
-declare var log: Logger;
-declare var $: any;
-// declare var Scroller: any;
+import * as log from 'loglevel';
+import $ from 'jquery';
 
 
 @Component({
