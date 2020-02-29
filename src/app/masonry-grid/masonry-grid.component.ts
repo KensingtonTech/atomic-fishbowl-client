@@ -19,11 +19,18 @@ import { AbstractGrid } from '../abstract-grid.class';
 import { Session, Sessions } from 'types/session';
 import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
 import { SessionsAvailable } from 'types/sessions-available';
-import ResizeObserverPolyfill from '@juggle/resize-observer';
 import * as imagesLoaded from 'imagesloaded';
 import { Scroller } from '../scroller/scroller';
 import * as log from 'loglevel';
 import $ from 'jquery';
+(async () => {
+  if (!('ResizeObserver' in window)) {
+    // Load polyfill asynchronously, only if required.
+    log.debug('Loading ResizeObserver polyfill');
+    const module = await import('@juggle/resize-observer');
+    (<any>window).ResizeObserver = module.ResizeObserver;
+  }
+})();
 
 
 @Component({
@@ -387,8 +394,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.scrollContainerRef.nativeElement.addEventListener('wheel', this.onMouseWheel, { passive: true });
 
     log.debug('MasonryGridComponent: ngAfterViewInit(): creating ResizeObserver');
-    const ResizeObserver: any = (<any>window).ResizeObserver || ResizeObserverPolyfill;
-    this.resizeObserver = new ResizeObserver( entries => this.onContentHeightChanged(entries) );
+    this.resizeObserver = new (<any>window).ResizeObserver( entries => this.onContentHeightChanged(entries) );
     log.debug('MasonryGridComponent: ngAfterViewInit(): now observing');
     this.zone.runOutsideAngular( () => this.resizeObserver.observe(this.isotopeContentRef.nativeElement) );
     log.debug('MasonryGridComponent: ngAfterViewInit(): observation in progress');
@@ -1092,8 +1098,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   onContentHeightChanged(entries: any[]) { // ResizeObserverEntry[]
     log.debug('MasonryGridComponent: onContentHeightChanged(): entry 0 contentRect:', entries[0].contentRect);
-    let height = entries[0].contentRect.height;
-    let lastScrollContentHeight = this.scrollContentHeight;
+    const height = entries[0].contentRect.height;
     this.scrollContentHeight = height;
     if (this.scrollTop > this.scrollContentHeight - this.scrollContainerHeight && this.scrollContentHeight > this.scrollContainerHeight) {
       // there must've been a purge - keep scrollTop in bounds

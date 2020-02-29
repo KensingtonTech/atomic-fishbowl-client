@@ -12,7 +12,7 @@ import * as io from 'socket.io-client';
 import * as log from 'loglevel';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
 import { BlobTable } from 'types/blobtable';
-import { JSEncrypt } from 'jsencrypt';
+import * as JSEncrypt from 'jsencrypt';
 
 @Injectable({providedIn: 'root'})
 
@@ -56,7 +56,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   // Properties
   apiUrl = '/api';
   clientSessionId: number;
-  encryptor: any;
+  encryptor: JSEncrypt.JSEncrypt;
   private pubKey: string;
   private authenticated = false;
   private blobTable: BlobTable = {};
@@ -115,7 +115,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
     // Run by authentication service after successful credentials check
     log.debug('DataService: onSocketUpgrade()');
 
-    this.encryptor = new JSEncrypt();
+    this.encryptor = new JSEncrypt.JSEncrypt();
 
     // this.zone.runOutsideAngular( () => { // no need to run outside the zone as it's already outside the zone
 
