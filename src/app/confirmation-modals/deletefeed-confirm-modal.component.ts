@@ -39,9 +39,9 @@ export class DeleteFeedConfirmModalComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private dataService: DataService  ) {}
 
-  public id = this.toolService.confirmDeleteFeedModalId;
-  public feed: Feed;
-  public error = '';
+  id = this.toolService.confirmDeleteFeedModalId;
+  feed: Feed;
+  error = '';
   private subscriptions = new Subscription;
 
   ngOnInit(): void {

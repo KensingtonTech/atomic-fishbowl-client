@@ -11,9 +11,9 @@ export class ClickOutsideDirective {
 
     private classesToFind = 5;
 
-    @Output() public clickOutside = new EventEmitter();
+    @Output() clickOutside = new EventEmitter();
 
-    @HostListener('document:click', ['$event']) public onClick(event: any) {
+    @HostListener('document:click', ['$event']) onClick(event: any) {
         log.debug('ClickOutsideDirective: onClick(): event.target:', event.target);
         let targetElement: Element = event.target;
         let classList = targetElement.classList;

@@ -10,9 +10,9 @@ import * as log from 'loglevel';
 
 export class AuthenticationService {
 
-  public loggedInChanged: Subject<boolean> = new Subject<boolean>();
-  public loggedInUser: User;
-  public clientSessionId: number;
+  loggedInChanged: Subject<boolean> = new Subject<boolean>();
+  loggedInUser: User;
+  clientSessionId: number;
   private loggedIn = false;
 
 

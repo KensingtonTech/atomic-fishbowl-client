@@ -98,8 +98,8 @@ export class ContentViewerComponent implements OnChanges {
   @Input() content: Content;
   @Input() collectionId: string;
 
-  public utils = utils;
-  public imageError = false;
+  utils = utils;
+  imageError = false;
 
   onImageError() {
     this.imageError = true;

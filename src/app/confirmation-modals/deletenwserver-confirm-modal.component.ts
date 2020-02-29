@@ -38,8 +38,8 @@ export class DeleteNwServerConfirmModalComponent {
               private dataService: DataService ) {}
 
   @Input() serverToDelete: NwServer;
-  public id = this.toolService.confirmNwServerDeleteModalId;
-  public error = '';
+  id = this.toolService.confirmNwServerDeleteModalId;
+  error = '';
 
 
   confirmDelete(): void {

@@ -67,9 +67,9 @@ styles: [`
 
 export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  public username = '';
-  public password = '';
-  public errorMsg = '';
+  username = '';
+  password = '';
+  errorMsg = '';
   @ViewChildren('userName') userNameRef: QueryList<any>;
 
   constructor(private authService: AuthenticationService,
@@ -78,7 +78,7 @@ export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
               private renderer: Renderer2,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
-  public loginSubmitted = false;
+  loginSubmitted = false;
 
   ngOnInit(): void {
     this.renderer.setStyle(this.elRef.nativeElement.ownerDocument.body, 'background-color', 'white');
@@ -93,7 +93,7 @@ export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
     this.changeDetectionRef.detectChanges();
   }
 
-  public login(): void {
+  login(): void {
     this.loginSubmitted = true;
     this.errorMsg = '';
     let user: User = { username: this.username, password: this.password};

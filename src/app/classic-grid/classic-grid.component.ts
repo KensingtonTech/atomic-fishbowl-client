@@ -104,28 +104,28 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
                 private zone: NgZone ) {}
 
   @ViewChild('classicGridElement', { static: true }) private classicGridElement: ElementRef;
-  @ViewChild('gridItems') public gridItems: ElementRef;
+  @ViewChild('gridItems') gridItems: ElementRef;
 
   // preferences
-  public preferences: Preferences;
+  preferences: Preferences;
 
   // high-level session, content, and search data pushed from server
-  public content: Content[] = [];
-  public contentObj: Contents = {}; // contains every item of content, indexed by its content id
-  public contentCount = new ContentCount;
+  content: Content[] = [];
+  contentObj: Contents = {}; // contains every item of content, indexed by its content id
+  contentCount = new ContentCount;
   private search: Search[] = [];
-  public sessions: Sessions;
+  sessions: Sessions;
 
   // collection information
-  public selectedCollectionType: string = null;
-  public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
-  private collectionId: string = null;
-  public collectionDeletedUser = ''; // holds the username of the user who deletes a collection
+  selectedCollectionType: string = null;
+  selectedCollectionServiceType: string = null; // 'nw' or 'sa'
+  collectionId: string = null;
+  collectionDeletedUser = ''; // holds the username of the user who deletes a collection
   private collectionState = ''; // initial, building, rolling, etc
-  public destroyView = true;
+  destroyView = true;
 
   // pan-zoom
-  public panzoomConfig = new PanZoomConfig({
+  panzoomConfig = new PanZoomConfig({
     zoomLevels: 10,
     scalePerZoomLevel: 2.0,
     zoomStepDuration: 0.2,
@@ -135,25 +135,25 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private panzoomModel: PanZoomModel;
   private lastPanzoomModel: PanZoomModel;
   private panZoomAPI: PanZoomAPI;
-  public canvasWidth = 2400;
-  public initialZoomHeight: number = null; // set in resetZoomToFit()
-  public initialZoomWidth = this.canvasWidth;
+  canvasWidth = 2400;
+  initialZoomHeight: number = null; // set in resetZoomToFit()
+  initialZoomWidth = this.canvasWidth;
 
   // session viewer
-  public selectedSession: Session;
-  public selectedContent: Content;
+  selectedSession: Session;
+  selectedContent: Content;
   private selectedContentId: string = null;
-  public sessionsAvailable: SessionsAvailable = { previous: false, next: false };
+  sessionsAvailable: SessionsAvailable = { previous: false, next: false };
   private selectedContentType: string = null;
 
   // session widget and high-res sessions
   private transitionZoomLevel = 3.9;
-  public sessionWidgetEnabled = false;
-  public popUpSession: any;
-  public hoveredContentSession: number;
-  public highResSessions: boolean[] = [];
+  sessionWidgetEnabled = false;
+  popUpSession: any;
+  hoveredContentSession: number;
+  highResSessions: boolean[] = [];
   private previousFocusedElement: Node;
-  public loadAllHighResImages = false;
+  loadAllHighResImages = false;
   private tooFarOutForHighRes = true;
   private center: Point = null;
   private wheelPoint: Point = {
@@ -165,17 +165,17 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private mouseDownData: any = {}; // prevent opening session viewer modal if dragging the view
 
   // search and filtering
-  public displayedContent: boolean[] = []; // now changing to be 1:1 with this.content, with every member as boolean
+  displayedContent: boolean[] = []; // now changing to be 1:1 with this.content, with every member as boolean
   private caseSensitiveSearch = false;
   private lastSearchTerm = '';
   private lastMask = new ContentMask;
   private searchBarOpen = false;
 
   // monitoring collections
-  public pauseMonitoring = false;
+  pauseMonitoring = false;
 
   // license
-  public license: License;
+  license: License;
   private licenseChangedFunction = this.onLicenseChangedInitial;
 
 
@@ -693,7 +693,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  public onWindowResize(): void {
+  onWindowResize(): void {
     log.debug('ClassicGridComponent: onWindowResize()');
     this.center = {
       x: window.innerWidth / 2,
@@ -1131,14 +1131,14 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  private suspendMonitoring(): void {
+  suspendMonitoring(): void {
     // this.pauseMonitoring = true; // pauseMonitoring will be updated after server push
     this.dataService.pauseMonitoringCollection();
   }
 
 
 
-  private resumeMonitoring(): void {
+  resumeMonitoring(): void {
     // this.pauseMonitoring = false; // pauseMonitoring will be updated after server push
     this.dataService.unpauseMonitoringCollection();
   }

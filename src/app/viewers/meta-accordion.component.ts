@@ -76,11 +76,11 @@ export class MetaAccordionComponent implements OnChanges {
   @ViewChild('firstListItem', { static: true }) firstListItem: ElementRef;
   @ViewChildren('itemList') itemList: QueryList<ElementRef>;
 
-  public additionalDisplayedItems: string[] = [];
-  public collapsedState = 'initial'; // only controls the animation.  use to track whether it was previously expanded
-  public expanded = false;
-  public firstItem: string;
-  public mouseDownTime: number;
+  additionalDisplayedItems: string[] = [];
+  collapsedState = 'initial'; // only controls the animation.  use to track whether it was previously expanded
+  expanded = false;
+  firstItem: string;
+  mouseDownTime: number;
   private overrideExpandAll = false;
 
 

@@ -25,9 +25,9 @@ export class ClassicSessionPopupComponent implements OnInit, OnChanges {
 
   constructor( private el: ElementRef ) {}
 
-  @Input() public enabled: boolean;
+  @Input() enabled: boolean;
 
-  public enabledTrigger = 'disabled';
+  enabledTrigger = 'disabled';
 
 
 

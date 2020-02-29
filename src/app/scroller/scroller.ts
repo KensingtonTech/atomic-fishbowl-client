@@ -96,7 +96,7 @@ export class Scroller {
 
   private __scrollCompleteCallback = NOOP; // this takes precedence over options.scrollingComplete.  It can be set by the scrollBy()
 
-  public options = {
+  options = {
 
     /** Enable scrolling on x-axis */
     scrollingX: true,

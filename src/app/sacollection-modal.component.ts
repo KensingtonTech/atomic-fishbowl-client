@@ -100,109 +100,109 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone) {}
 
-  @ViewChild('addCollectionForm', { static: true }) public addCollectionForm: NgForm;
+  @ViewChild('addCollectionForm', { static: true }) addCollectionForm: NgForm;
   @ViewChild('addServiceBox') addServiceBoxRef: ElementRef;
   @ViewChildren('saNameBox') nameBoxRef: QueryList<any>;
   @ViewChildren('hostName') hostNameRef: QueryList<any>;
-  public id = this.toolService.saCollectionModalId;
-  private hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
+  id = this.toolService.saCollectionModalId;
+  hashTooltip = 'This is used to find suspicious executables that match a certain hash pattern.  It presently works with Windows and Mac executables.  It also supports executables contained within ZIP or RAR archives.  This will not limit the display of other types of content pulled in from the query.  If found, a tile will be displayed with the hash value and an optional friendly name which can be specified by using CSV syntax of hashValue,friendlyIdentifier';
 
-  public mode = 'add'; // can be add, editRolling, editFixed, or adhoc
-  public apiServerMode = 'add'; // can be add or edit
-  public formDisabled = false;
+  mode = 'add'; // can be add, editRolling, editFixed, or adhoc
+  apiServerMode = 'add'; // can be add or edit
+  formDisabled = false;
   private defaultCollectionQuery = '';
   private defaultCollectionType = 'rolling';
-  public contentTypes = ContentTypes;
+  contentTypes = ContentTypes;
   private defaultUseCaseBinding = 'bound';
-  public showUseCaseValues = false; // used to switch input controls to readonly mode.  true = readonly mode
-  public collection: any;
-  public testError = '';
-  public timeBegin: Date = new Date();
-  public timeEnd: Date = new Date();
+  showUseCaseValues = false; // used to switch input controls to readonly mode.  true = readonly mode
+  collection: any;
+  testError = '';
+  timeBegin: Date = new Date();
+  timeEnd: Date = new Date();
 
-  public name: string = null;
-  public type = this.defaultCollectionType;
-  public lastHours = 1;
-  public selectedUseCase = null;
-  public useCaseBinding = this.defaultUseCaseBinding;
-  public selectedContentTypes = [];
-  public contentLimit = null;
-  public minX = null;
-  public minY = null;
-  public distillationEnabled = false;
-  public distillationTerms = '';
-  public regexDistillationEnabled = false;
-  public regexDistillationTerms = '';
-  public sha1Enabled = false;
-  public sha1Hashes = '';
-  public sha256Enabled = false;
-  public sha256Hashes = '';
-  public md5Enabled = false;
-  public md5Hashes = '';
+  name: string = null;
+  type = this.defaultCollectionType;
+  lastHours = 1;
+  selectedUseCase = null;
+  useCaseBinding = this.defaultUseCaseBinding;
+  selectedContentTypes = [];
+  contentLimit = null;
+  minX = null;
+  minY = null;
+  distillationEnabled = false;
+  distillationTerms = '';
+  regexDistillationEnabled = false;
+  regexDistillationTerms = '';
+  sha1Enabled = false;
+  sha1Hashes = '';
+  sha256Enabled = false;
+  sha256Hashes = '';
+  md5Enabled = false;
+  md5Hashes = '';
 
 
 
-  public queryInputText = '';
-  public selectedApiServer = '';
-  public apiServers: any = {};
-  public apiServersOptions: SelectItem[];
+  queryInputText = '';
+  selectedApiServer = '';
+  apiServers: any = {};
+  apiServersOptions: SelectItem[];
 
-  public serviceFormModel = {
+  serviceFormModel = {
     hostname: '',
     restPort: 443,
     ssl: true,
     user: '',
     password: ''
   };
-  public queryList = defaultSaQueries;
+  queryList = defaultSaQueries;
   private queryListObj = {};
-  public queryListOptions: SelectItem[] = [];
+  queryListOptions: SelectItem[] = [];
 
-  public selectedQuery = this.queryList[2].text;
+  selectedQuery = this.queryList[2].text;
   private preferences: any;
-  private timeframes: any = ['Last 5 Minutes', 'Last 10 Minutes', 'Last 15 Minutes', 'Last 30 Minutes', 'Last Hour', 'Last 3 Hours', 'Last 6 Hours', 'Last 12 Hours', 'Last 24 Hours', 'Last 48 Hours', 'Last 5 Days (120 Hours)', 'Today', 'Yesterday', 'This Week', 'Last Week', 'Custom'];
-  private selectedTimeframe = 'Last Hour';
-  public displayCustomTimeframeSelector = false;
+  timeframes: any = ['Last 5 Minutes', 'Last 10 Minutes', 'Last 15 Minutes', 'Last 30 Minutes', 'Last Hour', 'Last 3 Hours', 'Last 6 Hours', 'Last 12 Hours', 'Last 24 Hours', 'Last 48 Hours', 'Last 5 Days (120 Hours)', 'Today', 'Yesterday', 'This Week', 'Last Week', 'Custom'];
+  selectedTimeframe = 'Last Hour';
+  displayCustomTimeframeSelector = false;
   private firstRun = true;
 
   // Subscriptions
   private subscriptions = new Subscription;
 
 
-  public useCases: UseCase[];
-  public useCasesObj = {};
-  public useCaseOptions: SelectItem[] = [];
-  public displayUseCaseDescription = false;
-  public useCaseDescription = '';
+  useCases: UseCase[];
+  useCasesObj = {};
+  useCaseOptions: SelectItem[] = [];
+  displayUseCaseDescription = false;
+  useCaseDescription = '';
 
-  public imagesEnabled = false;
-  public pdfsEnabled = false;
-  public officeEnabled = false;
-  public dodgyArchivesEnabled = false;
-  public hashesEnabled = false;
+  imagesEnabled = false;
+  pdfsEnabled = false;
+  officeEnabled = false;
+  dodgyArchivesEnabled = false;
+  hashesEnabled = false;
 
   private editingCollectionId: string;
   private editingApiServerId: string;
   private editingCreator: CollectionMeta;
-  public showApiServiceBox = false;
-  public apiServerButtonText = 'Save'; // or 'Update'
-  public thumbClass = '';
-  public thumbClassInForm = '';
-  public passwordRequired = true;
-  public testErrorInForm = '';
-  public disableBindingControls = false;
-  public testInProgress = false;
+  showApiServiceBox = false;
+  apiServerButtonText = 'Save'; // or 'Update'
+  thumbClass = '';
+  thumbClassInForm = '';
+  passwordRequired = true;
+  testErrorInForm = '';
+  disableBindingControls = false;
+  testInProgress = false;
   private reOpenTabsModal = false;
 
   private feeds = {};
-  public hashingMode = 'feed';
-  public feedOptions: SelectItem[] = [];
-  private selectedFeed: Feed;
+  hashingMode = 'feed';
+  feedOptions: SelectItem[] = [];
+  selectedFeed: Feed;
   private hashFeedId: string;
 
   private executeCollectionOnEdit = false;
 
-  public nameValid = false;
+  nameValid = false;
   private collectionNames = {};
   private origName: string = null;
 
@@ -210,10 +210,10 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
   private newApiServer: SaServer = null;
 
-  public onlyContentFromArchives = false;
+  onlyContentFromArchives = false;
 
-  public jsonValidationMessage = 'Validation required';
-  public jsonValid = false;
+  jsonValidationMessage = 'Validation required';
+  jsonValid = false;
 
 
 
@@ -255,7 +255,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 
@@ -384,7 +384,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onNameChanged(name): void {
+  onNameChanged(name): void {
     // log.debug('SaCollectionModalComponent: onNameChanged()');
 
     if (!(name in this.collectionNames) || (this.mode === 'editRolling' && name === this.origName))  {
@@ -397,7 +397,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onQuerySelected(): void {
+  onQuerySelected(): void {
     // log.debug('SaCollectionModalComponent: querySelected(): e', e);
     if (this.selectedQuery === 'Preset Query') {
       this.queryInputText = this.defaultCollectionQuery;
@@ -418,7 +418,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public timeframeSelected(e: any): void {
+  timeframeSelected(e: any): void {
     if (this.selectedTimeframe === 'Custom') {
       // display custom timeframe selector
       this.displayCustomTimeframeSelector = true;
@@ -430,7 +430,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public displayServiceAddBox(): void {
+  displayServiceAddBox(): void {
     if (this.formDisabled) {
       return;
     }
@@ -446,7 +446,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public hideServiceAddBox(): void {
+  hideServiceAddBox(): void {
     this.showApiServiceBox = false;
     this.serviceFormModel.hostname = '';
     this.serviceFormModel.restPort = 443;
@@ -459,7 +459,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onClose(): void {
+  onClose(): void {
     log.debug('SaCollectionModalComponent: onClose()');
     if (this.mode === 'editRolling' || this.mode === 'editFixed') {
       this.name = '';
@@ -471,7 +471,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public close(): void {
+  close(): void {
     log.debug('SaCollectionModalComponent: close()');
     this.modalService.close(this.id);
   }
@@ -512,7 +512,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public deleteApiServer(): void {
+  deleteApiServer(): void {
     log.debug('SaCollectionModalComponent: deleteApiServer(): this.selectedApiServer', this.selectedApiServer);
     if (this.formDisabled) {
       return;
@@ -523,7 +523,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onCollectionSubmit(f: NgForm): void {
+  onCollectionSubmit(f: NgForm): void {
     // log.debug('SaCollectionModalComponent: submitForAdd()');
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
@@ -712,7 +712,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public addApiServerSubmit(f: NgForm): void {
+  addApiServerSubmit(f: NgForm): void {
     // log.debug("SaCollectionModalComponent: addApiServerSubmit(): f:", f);
     this.hideServiceAddBox();
     let encPassword = this.dataService.encryptor.encrypt(f.value.password);
@@ -758,13 +758,13 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onOpen(): void {
+  onOpen(): void {
     // log.debug('SaCollectionModalComponent: onOpen()');
   }
 
 
 
-  public onSelectedTypesChanged(): void {
+  onSelectedTypesChanged(): void {
     log.debug('SaCollectionModalComponent: onSelectedTypesChanged()');
     let v = this.selectedContentTypes;
     let imagesEnabled = false;
@@ -813,7 +813,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onClearTypesSelected(): void {
+  onClearTypesSelected(): void {
     this.selectedContentTypes = [];
     this.onSelectedTypesChanged();
     this.changeDetectionRef.markForCheck();
@@ -821,7 +821,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onAllTypesSelected() {
+  onAllTypesSelected() {
     let vals = [];
     for (let i = 0; i < this.contentTypes.length; i++) {
       vals.push( this.contentTypes[i].value );
@@ -833,7 +833,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onUseCaseChanged(): void {
+  onUseCaseChanged(): void {
     log.debug('SaCollectionModalComponent: onUseCaseChanged()');
     // log.debug('SaCollectionModalComponent: onUseCaseChanged: selectedUseCase:', this.selectedUseCase );
 
@@ -893,7 +893,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onUseCaseBoundChanged(): void {
+  onUseCaseBoundChanged(): void {
     log.debug('SaCollectionModalComponent: onUseCaseBoundChanged()');
 
     if (this.type === 'fixed') {
@@ -1139,7 +1139,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public apiServerFormValid(): boolean {
+  apiServerFormValid(): boolean {
     // log.debug('SaCollectionModalComponent: apiServerFormValid()');
     // log.debug('this.selectedApiServer:', this.selectedApiServer);
     // log.debug('this.apiServers:', this.apiServers);
@@ -1157,7 +1157,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public addServiceFormValid(form: NgForm): boolean {
+  addServiceFormValid(form: NgForm): boolean {
     // log.debug('SaCollectionModalComponent: addServiceFormValid()');
 
     if (this.apiServerMode === 'add' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort) { // && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber
@@ -1171,13 +1171,13 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  public onApiServerChanged(): void {
+  onApiServerChanged(): void {
     log.debug(`SaCollectionModalComponent: onApiServerChanged(): selectedApiServer: ${this.selectedApiServer}`);
   }
 
 
 
-  public testApiServer(): void {
+  testApiServer(): void {
     if (this.testInProgress) {
       return;
     }
@@ -1258,7 +1258,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  public editApiServer(): void {
+  editApiServer(): void {
     log.debug('SaCollectionModalComponent: editApiServer()');
     if (this.formDisabled) {
       return;

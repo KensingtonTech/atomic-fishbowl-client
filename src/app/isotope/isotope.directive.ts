@@ -26,7 +26,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
   @Input() filter = '*';
   @Input() addWithLayout = false; // controls whether layout will be called when adding items.  layout must be invoked manually at the end if true
   private api: IsotopeAPI;
-  public isotope: any = null;
+  isotope: any = null;
   private isDestroyed = false;
   private removeTimer: any = null;
 
@@ -95,7 +95,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
-  public initializeMe(): void {
+  initializeMe(): void {
     // Initialize Isotope
     if (this.isotope) {
       log.error('IsotopeDirective: initializeMe(): isotope is already initialized');
@@ -113,7 +113,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
-  public destroyMe(): void {
+  destroyMe(): void {
     // this is used because onDestroy() is called after the bricks get removed.  We want to enhance performance by not allowing all the isotope remove operations to take place, and instead just destroy Isotope altogether.
     log.debug('IsotopeDirective: destroyMe():  Killing Isotope');
     if (this.isotope) {
@@ -126,7 +126,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
-  public layout(refreshConfig = false) {
+  layout(refreshConfig = false) {
     log.debug('IsotopeDirective: layout()');
 
     if (!this.isotope) {
@@ -173,7 +173,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
-  public unhideAll() {
+  unhideAll() {
     for ( let i = 0; i < this.el.nativeElement.children.length; i++) {
       let element = this.el.nativeElement.children[i];
       element.style.visibility = 'visible';
@@ -182,7 +182,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
-  public addBrick(element: ElementRef) {
+  addBrick(element: ElementRef) {
     // log.debug('IsotopeDirective: addBrick()');
 
     this.ngZone.runOutsideAngular( () => {
@@ -205,7 +205,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
 
 
-  public remove(element: ElementRef) {
+  remove(element: ElementRef) {
     // log.debug('IsotopeDirective: remove()');
 
     // Tell Isotope that a child brick has been removed

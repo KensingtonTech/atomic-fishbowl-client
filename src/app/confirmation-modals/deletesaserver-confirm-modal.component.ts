@@ -29,16 +29,16 @@ export class DeleteSaServerConfirmModalComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private dataService: DataService ) {}
 
-  public id = this.toolService.confirmSaServerDeleteModalId;
-  public apiServer: SaServer;
-  public error: string = null;
+  id = this.toolService.confirmSaServerDeleteModalId;
+  apiServer: SaServer;
+  error: string = null;
   private subscriptions = new Subscription;
 
   ngOnInit(): void {
     this.subscriptions.add(this.toolService.saServerToDelete.subscribe( (server: SaServer) => { this.apiServer = server; }));
   }
 
-  public ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 

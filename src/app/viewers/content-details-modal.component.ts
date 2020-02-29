@@ -166,23 +166,23 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
   @Input() content: Content;
   @Input() sessionsAvailable: SessionsAvailable;
 
-  public id = this.toolService.contentDetailsModalId;
+  id = this.toolService.contentDetailsModalId;
 
-  public utils = utils;
-  public sessionId: number;
-  public isOpen = false;
+  utils = utils;
+  sessionId: number;
+  isOpen = false;
   private removeKeyupFunc: any;
-  public iconClass = '';
+  iconClass = '';
   private subscriptions = new Subscription;
 
   // pdf / office - specific
-  public pdfFile: string;
-  public page = 1;
-  public selectedPage = 1;
-  public numPages: number;
-  public rotation = 0;
-  public pdfZoom = this.toolService.getPreference('pdfZoomlevel') || .5;
-  public zoomLevels: SelectItem[] = [
+  pdfFile: string;
+  page = 1;
+  selectedPage = 1;
+  numPages: number;
+  rotation = 0;
+  pdfZoom = this.toolService.getPreference('pdfZoomlevel') || .5;
+  zoomLevels: SelectItem[] = [
                         {label: '25%', value: .25},
                         {label: '50%', value: .5},
                         {label: '75%', value: .75},

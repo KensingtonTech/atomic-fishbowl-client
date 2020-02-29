@@ -20,6 +20,6 @@ export class ServerDownModalComponent {
 
   constructor( private toolService: ToolService ) {}
 
-  public id = this.toolService.serverDownModalId; // = 'serverdown-modal'
+  id = this.toolService.serverDownModalId; // = 'serverdown-modal'
 
 }

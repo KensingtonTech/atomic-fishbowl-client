@@ -130,32 +130,32 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   @Input() contentCount: ContentCount;
 
   private selectedCollectionId: string;
-  public selectedCollection: Collection;
+  selectedCollection: Collection;
 
-  public showSearch = false;
-  private searchTerms: string;
-  private showImages = true;
+  showSearch = false;
+  searchTerms: string;
+  showImages = true;
   private maskState: ContentMask = { showPdf: true, showWord: true, showExcel: true, showPowerpoint: true, showImage: true, showHash: true, showDodgy: true, showFromArchivesOnly: false };
-  private showPdfs = true;
-  private showWord = true;
-  private showExcel = true;
-  private showPowerpoint = true;
-  private showHashes = true;
-  private showDodgyArchives = true;
-  private showFromArchivesOnly = false;
+  showPdfs = true;
+  showWord = true;
+  showExcel = true;
+  showPowerpoint = true;
+  showHashes = true;
+  showDodgyArchives = true;
+  showFromArchivesOnly = false;
   private oldSearchTerms: string;
-  private caseSensitive = false;
-  public queryingIcon = false;
-  public spinnerIcon = false;
-  public errorIcon = false;
-  public errorMessage = '';
-  public queryResultsCount = 0;
+  caseSensitive = false;
+  queryingIcon = false;
+  spinnerIcon = false;
+  errorIcon = false;
+  errorMessage = '';
+  queryResultsCount = 0;
   private useCases: UseCase[] = [];
   private useCasesObj = {};
-  public workerProgress: number = null;
-  public workerLabel: string = null;
-  public infoTooltipText = '';
-  public license: License;
+  workerProgress: number = null;
+  workerLabel: string = null;
+  infoTooltipText = '';
+  license: License;
 
 
   // Subscriptions
@@ -187,7 +187,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
 
 
-  public ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 

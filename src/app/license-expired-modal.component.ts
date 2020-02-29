@@ -23,7 +23,7 @@ export class LicenseExpiredModalComponent {
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  public id = this.toolService.licenseExpiredModalId;
+  id = this.toolService.licenseExpiredModalId;
 
 
 

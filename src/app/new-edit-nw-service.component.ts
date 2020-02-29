@@ -117,7 +117,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone ) {}
 
-  public id = this.toolService.newEditNwServiceModalId;
+  id = this.toolService.newEditNwServiceModalId;
 
   @Input() addingService = true; // if true, we're adding a service.  If false, we're editing a service
   @Input() selectedApiServer: NwServer; // the service we are editing (if we're editing)
@@ -125,12 +125,12 @@ export class NewEditNwServiceModalComponent implements OnInit {
 
   @ViewChild('hostName', { static: true }) hostNameRef: ElementRef;
 
-  public apiServerButtonText = 'Save'; // or 'Update'
-  public passwordRequired = true;
-  public thumbClass = '';
-  public testError = '';
-  public testInProgress = false;
-  public serviceFormModel = {
+  apiServerButtonText = 'Save'; // or 'Update'
+  passwordRequired = true;
+  thumbClass = '';
+  testError = '';
+  testInProgress = false;
+  serviceFormModel = {
     hostname: '',
     restPort: 50103,
     ssl: false,
@@ -206,7 +206,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
 
 
 
-  public addServiceFormValid(form: NgForm): boolean {
+  addServiceFormValid(form: NgForm): boolean {
     // log.debug('NewEditNwServiceModalComponent: addServiceFormValid()');
 
     if (this.addingService && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber) {
@@ -321,7 +321,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
 
 
 
-  public resetForm(): void {
+  resetForm(): void {
     this.serviceFormModel.hostname = '';
     this.serviceFormModel.restPort = 50103;
     this.serviceFormModel.ssl = false;

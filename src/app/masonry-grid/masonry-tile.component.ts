@@ -195,9 +195,9 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
                 private isotopeBrick: IsotopeBrickDirective,
                 @Inject(forwardRef(() => MasonryGridComponent)) private parent: MasonryGridComponent ) {}
 
-  public utils = utils;
+  utils = utils;
 
-  @ViewChild('image') public imageRef: ElementRef;
+  @ViewChild('image') imageRef: ElementRef;
 
   @Input() content: any;
   @Input() sessionId: number;
@@ -208,13 +208,13 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() margin: number;
   @Input() displayTextArea = true;
 
-  public session; // holds meta, among other things
-  private masonryMeta = [];
-  public imageSource: string;
-  public extraClass: string;
-  public textAreaList: string[] = [];
-  public textAreaTableItems: TableEntry[] = [];
-  public loadImage = false;
+  session; // holds meta, among other things
+  masonryMeta = [];
+  imageSource: string;
+  extraClass: string;
+  textAreaList: string[] = [];
+  textAreaTableItems: TableEntry[] = [];
+  loadImage = false;
 
 
 

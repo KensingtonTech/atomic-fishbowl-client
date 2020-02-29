@@ -24,7 +24,7 @@ export class LoggedOutNotifyModalComponent {
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  public id = this.toolService.loggedOutModalId;
+  id = this.toolService.loggedOutModalId;
 
   onOpen(): void {}
 

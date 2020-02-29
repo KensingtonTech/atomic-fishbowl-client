@@ -47,9 +47,9 @@ export class MasonryControlBarComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone) {}
 
-  public scrollStarted = false;
-  public showMeta = true;
-  public routerDropdownOpen = false;
+  scrollStarted = false;
+  showMeta = true;
+  routerDropdownOpen = false;
 
   private subscriptions = new Subscription;
 

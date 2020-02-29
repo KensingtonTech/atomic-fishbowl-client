@@ -32,7 +32,7 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
   @Input() initialZoomHeight: number;
   @Input() panzoomConfig: any;
   private panZoomAPI: PanZoomAPI;
-  public routerDropdownOpen = false;
+  routerDropdownOpen = false;
   private subscriptions = new Subscription;
 
   ngOnInit(): void {

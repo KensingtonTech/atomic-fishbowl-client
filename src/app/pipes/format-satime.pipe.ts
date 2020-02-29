@@ -5,7 +5,7 @@ import * as moment from 'moment';
 
 export class FormatSaTimePipe implements PipeTransform {
 
-  transform(value: string[] | string, args: string): any {
+  transform(value: string[] | string, args?: string): any {
     // log.debug('FormatSaTimePipe: transform(): value:', value);
     let v = null;
     if (typeof value === 'string') {

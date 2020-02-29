@@ -24,7 +24,7 @@ export class DeleteUserConfirmModalComponent {
               private toolService: ToolService ) {}
 
   @Input() user: User;
-  public id = this.toolService.confirmUserDeleteModalId;
+  id = this.toolService.confirmUserDeleteModalId;
 
   confirmDelete(): void {
     this.toolService.confirmUserDelete.next(this.user.id);

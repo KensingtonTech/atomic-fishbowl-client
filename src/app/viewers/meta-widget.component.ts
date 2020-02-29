@@ -118,16 +118,16 @@ export class MetaWidgetComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enableCloseButton = false;
   @Output() closeButtonClicked: EventEmitter<void> = new EventEmitter<void>();
 
-  public sessionId: number;
-  public meta: Meta;
-  public showAll = false;
-  public deviceNumber: number;
-  private preferences: Preferences;
-  public preferenceKeys: string[] =  [];
-  public preferenceKeysObj = {};
-  public displayedKeys: string[];
-  public enabledMeta: any;
-  public expandAll = false;
+  sessionId: number;
+  meta: Meta;
+  showAll = false;
+  deviceNumber: number;
+  preferences: Preferences;
+  preferenceKeys: string[] =  [];
+  preferenceKeysObj = {};
+  displayedKeys: string[];
+  enabledMeta: any;
+  expandAll = false;
 
   // Subscriptions
   private subscriptions = new Subscription;

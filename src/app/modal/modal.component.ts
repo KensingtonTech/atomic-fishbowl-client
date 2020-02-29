@@ -62,8 +62,8 @@ export class ModalComponent implements OnInit, OnDestroy {
   @Output() opened: EventEmitter<void> = new EventEmitter<void>();
   @Output() closed: EventEmitter<void> = new EventEmitter<void>();
 
-  public enabledTrigger = 'disabled';
-  // public enabledTrigger = 'initial';
+  enabledTrigger = 'disabled';
+  // enabledTrigger = 'initial';
   private isOpen = false;
   private _isFront = false;
   set isFront(isFront) {

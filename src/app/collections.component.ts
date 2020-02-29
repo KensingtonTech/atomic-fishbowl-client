@@ -157,22 +157,22 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
   };
 
-  public firstRun = true;
-  public collections: Collection[] = [];
-  public origCollections = {};
-  public displayedCollections: Collection[];
-  public selectedCollection: Collection;
-  public nwServers: any = {};
-  public saServers: any = {};
-  private utils = utils;
-  public filterText = '';
-  public preferences: Preferences = null;
-  public filterEnabled = false;
+  firstRun = true;
+  collections: Collection[] = [];
+  origCollections = {};
+  displayedCollections: Collection[];
+  selectedCollection: Collection;
+  nwServers: any = {};
+  saServers: any = {};
+  utils = utils;
+  filterText = '';
+  preferences: Preferences = null;
+  filterEnabled = false;
   private editing = false;
-  public license: License;
+  license: License;
   private uncheckedClass = 'fa fa-square-o';
   private checkedClass = 'fa fa-check-square-o';
-  public filterMenuItems: MenuItem[] = [
+  filterMenuItems: MenuItem[] = [
     {
       label: 'Fixed',
       icon: this.checkedClass,
@@ -189,12 +189,12 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       command: () => this.toggleTypeFilter('monitoring')
     }
   ];
-  public showFixed = true;
-  public showRolling = true;
-  public showMonitoring = true;
-  public showMenu = false;
+  showFixed = true;
+  showRolling = true;
+  showMonitoring = true;
+  showMenu = false;
   private lastEvent: MouseEvent; // this holds the last mouse event which we can use to hide the menu later on, as the component requires an event
-  public isDragging = false;
+  isDragging = false;
   private dragulaInstance: any;
   private droppedTargetCollectionId: string;
 
@@ -435,11 +435,11 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  public onOpen(): void {}
+  onOpen(): void {}
 
 
 
-  public getNwServerString(id: string): string {
+  getNwServerString(id: string): string {
     if (id in this.nwServers) {
       return this.nwServers[id].host + ':' + this.nwServers[id].port;
     }
@@ -450,7 +450,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  public getSaServerString(id: string): string {
+  getSaServerString(id: string): string {
     if (id in this.saServers) {
       return this.saServers[id].host + ':' + this.saServers[id].port;
     }
@@ -461,7 +461,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  public nwServerExists(id: string): boolean {
+  nwServerExists(id: string): boolean {
     if (id in this.nwServers) {
       return true;
     }
@@ -472,7 +472,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  public saServerExists(id: string): boolean {
+  saServerExists(id: string): boolean {
     if (id in this.saServers) {
       return true;
     }
@@ -636,7 +636,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
 
 
-  public filterChanged(): void {
+  filterChanged(): void {
     log.debug('CollectionsComponent: filterChanged(): filterText:', this.filterText);
 
     if (this.filterText === '') {

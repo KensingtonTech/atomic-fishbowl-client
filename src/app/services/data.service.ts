@@ -22,45 +22,45 @@ export class DataService { // Manages NwSession objects and also Image objects i
   private collectionsRoom: any;
 
   // Observables
-  public contentPublished = new Subject<any>();
-  public sessionPublished = new Subject<any>();
-  public selectedCollectionChanged = new Subject<any>();
-  public collectionStateChanged = new Subject<any>();
-  public sessionsReplaced = new Subject<any>();
-  public contentReplaced = new Subject<any>();
-  public searchReplaced = new Subject<any>();
-  public searchPublished = new Subject<any>();
-  public errorPublished = new Subject<any>();
-  public sessionsPurged = new Subject<any>();
-  public queryResultsCountUpdated = new Subject<any>();
-  public collectionDeleted = new Subject<CollectionDeletedDetails>();
-  public noopCollection = new Subject<void>(); // this is used when the license expires
-  public workerProgress = new Subject<any>();
-  public monitoringCollectionPause = new BehaviorSubject<boolean>(false);
+  contentPublished = new Subject<any>();
+  sessionPublished = new Subject<any>();
+  selectedCollectionChanged = new Subject<any>();
+  collectionStateChanged = new Subject<any>();
+  sessionsReplaced = new Subject<any>();
+  contentReplaced = new Subject<any>();
+  searchReplaced = new Subject<any>();
+  searchPublished = new Subject<any>();
+  errorPublished = new Subject<any>();
+  sessionsPurged = new Subject<any>();
+  queryResultsCountUpdated = new Subject<any>();
+  collectionDeleted = new Subject<CollectionDeletedDetails>();
+  noopCollection = new Subject<void>(); // this is used when the license expires
+  workerProgress = new Subject<any>();
+  monitoringCollectionPause = new BehaviorSubject<boolean>(false);
 
-  public collectionsChanged = new BehaviorSubject<any>({});
-  public preferencesChanged = new BehaviorSubject<any>({});
-  public nwServersChanged = new BehaviorSubject<NwServers>({});
-  public saServersChanged = new BehaviorSubject<any>({});
-  public feedsChanged = new BehaviorSubject<any>({});
-  public feedStatusChanged = new BehaviorSubject<any>({});
-  public usersChanged = new BehaviorSubject<any>({});
-  public serverVersionChanged = new BehaviorSubject<string>(null);
-  public useCasesChanged = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
-  public licensingChanged = new BehaviorSubject<License>(null);
-  public loggedOutByServer = new Subject<void>();
-  public socketConnected = new BehaviorSubject<any>({connected: null, socketId: null});
-  public socketUpgraded = new BehaviorSubject<boolean>(false);
+  collectionsChanged = new BehaviorSubject<any>({});
+  preferencesChanged = new BehaviorSubject<any>({});
+  nwServersChanged = new BehaviorSubject<NwServers>({});
+  saServersChanged = new BehaviorSubject<any>({});
+  feedsChanged = new BehaviorSubject<any>({});
+  feedStatusChanged = new BehaviorSubject<any>({});
+  usersChanged = new BehaviorSubject<any>({});
+  serverVersionChanged = new BehaviorSubject<string>(null);
+  useCasesChanged = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+  licensingChanged = new BehaviorSubject<License>(null);
+  loggedOutByServer = new Subject<void>();
+  socketConnected = new BehaviorSubject<any>({connected: null, socketId: null});
+  socketUpgraded = new BehaviorSubject<boolean>(false);
 
 
   // Properties
-  public apiUrl = '/api';
-  public clientSessionId: number;
-  public encryptor: any;
+  apiUrl = '/api';
+  clientSessionId: number;
+  encryptor: any;
   private pubKey: string;
   private authenticated = false;
   private blobTable: BlobTable = {};
-  public socketId;
+  socketId;
 
 
 
@@ -111,7 +111,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  public onSocketUpgrade() {
+  onSocketUpgrade() {
     // Run by authentication service after successful credentials check
     log.debug('DataService: onSocketUpgrade()');
 
@@ -190,8 +190,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  // public stop() {
-  public onSocketDowngrade() {
+  onSocketDowngrade() {
     log.debug('DataService: onSocketDowngrade()');
 
     // clear application state to prevent prying

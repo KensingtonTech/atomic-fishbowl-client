@@ -31,16 +31,16 @@ export class DownloadFileConfirmModalComponent implements OnInit, OnDestroy {
   constructor(private modalService: ModalService,
               private toolService: ToolService ) {}
 
-  public utils = utils;
-  public id = this.toolService.confirmDownloadFileModalId;
-  public file: string;
+  utils = utils;
+  id = this.toolService.confirmDownloadFileModalId;
+  file: string;
   private subscriptions = new Subscription;
 
   ngOnInit(): void {
     this.subscriptions.add(this.toolService.fileToDownload.subscribe( (f: string) => { this.file = f; }));
   }
 
-  public ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 

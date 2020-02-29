@@ -41,8 +41,8 @@ export class TabContainerComponent {
 
   @ViewChild(CollectionsComponent, { static: true }) CollectionsComponent;
 
-  public id = this.toolService.tabContainerModalId;
-  public selectedTabIndex = 0;
+  id = this.toolService.tabContainerModalId;
+  selectedTabIndex = 0;
 
 
 
@@ -81,7 +81,7 @@ export class TabContainerComponent {
 
 
 
-  public closeModal(): void {
+  closeModal(): void {
     this.modalService.close(this.id);
   }
 

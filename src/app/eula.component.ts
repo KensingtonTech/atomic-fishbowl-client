@@ -22,7 +22,7 @@ export class EulaComponent {
 
   constructor(private toolService: ToolService) {}
 
-  public eula = EulaHtml;
+  eula = EulaHtml;
 
   onAccept(): void {
     this.toolService.setPreference('eulaAccepted', true);

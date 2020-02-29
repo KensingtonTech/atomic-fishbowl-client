@@ -6,7 +6,7 @@ import * as moment from 'moment';
 
 export class FormatTimePipe implements PipeTransform {
 
-  transform(value: any, args: string): any {
+  transform(value: any, args?: string): any {
     // log.debug('FormatTimePipe: transform(): value:', value);
     if (!value) {
       return undefined;

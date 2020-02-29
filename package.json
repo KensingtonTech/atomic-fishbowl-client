@@ -16,8 +16,7 @@
     "fixpdf": "#DO_NOT_USE cd node_modules/pdfjs-dist/web && cp pdf_viewer.js pdf_viewer.js.orig && sed -i'' -e 's/var elt = views\\[index\\].div;/var elt = views[index-1].div;/g' pdf_viewer.js",
     "zipnwcontext": "cd src/nw-context-menu && zip ../resources/nw-investigation-context-menu.zip nw-investigation-*.json 'AFB-NW Context Menu Integration Guide.pdf'",
     "bumppatch": "npm --no-git-tag-version version patch && npm run writeBuildProperties",
-    "writeBuildProperties": "./writeBuildProperties.sh",
-    "postinstall": "ngcc --properties es2015 browser module main --first-only --create-ivy-entry-points"
+    "writeBuildProperties": "./writeBuildProperties.sh"
   },
   "private": true,
   "dependencies": {

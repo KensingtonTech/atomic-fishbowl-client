@@ -26,7 +26,7 @@ export class CollectionDeletedNotifyModalComponent {
               private toolService: ToolService ) {}
 
   @Input() user: string = null;
-  public id = this.toolService.collectionDeletedModalId;
+  id = this.toolService.collectionDeletedModalId;
 
   onOpen(): void {}
 

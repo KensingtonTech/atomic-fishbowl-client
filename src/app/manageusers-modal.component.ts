@@ -63,14 +63,14 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone ) {}
 
-  public id = this.toolService.manageeUsersModalId;
-  public editingUser: User;
-  public addingUser = true; // controls the mode of the add/edit modal (i.e. either adding or editing mode).  if true, we're adding a user.  If false, we're editing a user
-  public users: User[];
-  public errorDefined = false;
-  public errorMessage: string;
-  public userToDelete: User;
-  public utils = utils;
+  id = this.toolService.manageeUsersModalId;
+  editingUser: User;
+  addingUser = true; // controls the mode of the add/edit modal (i.e. either adding or editing mode).  if true, we're adding a user.  If false, we're editing a user
+  users: User[];
+  errorDefined = false;
+  errorMessage: string;
+  userToDelete: User;
+  utils = utils;
 
   @ViewChild('userTable', { static: true }) private userTableRef: ElementRef;
   @ViewChild('emptyRow') private emptyRowTemplateRef;
@@ -92,7 +92,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
 
 
-  public ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
 

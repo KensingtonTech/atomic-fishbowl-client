@@ -11,107 +11,107 @@ import * as log from 'loglevel';
 export class ToolService {
 
   // properties
-  public splashLoaded = false;
-  public firstLoad = true;
-  public loadCollectionOnRouteChange = false; // this may be set before switching routes to instruct the new view to load a particular collcetion
-  public queryParams: Params = null;
-  public urlParametersLoaded = false;
-  public lastRoute: string = null;
+  splashLoaded = false;
+  firstLoad = true;
+  loadCollectionOnRouteChange = false; // this may be set before switching routes to instruct the new view to load a particular collcetion
+  queryParams: Params = null;
+  urlParametersLoaded = false;
+  lastRoute: string = null;
 
   ////////////  OBSERVABLES ////////////
 
   // Device Number
-  public deviceNumber = new BehaviorSubject<any>(0);
+  deviceNumber = new BehaviorSubject<any>(0);
 
   // Scrolling
-  public scrollToBottom = new Subject<any>();
-  public stopScrollToBottom = new Subject<any>(); // commands the view to stop scrolling
-  public scrollToBottomRunning = new Subject<any>(); // this notifies that scrolling has been started by the view
-  public scrollToBottomStopped = new Subject<any>(); // this notifies that scrolling has finished in the view
+  scrollToBottom = new Subject<any>();
+  stopScrollToBottom = new Subject<any>(); // commands the view to stop scrolling
+  scrollToBottomRunning = new Subject<any>(); // this notifies that scrolling has been started by the view
+  scrollToBottomStopped = new Subject<any>(); // this notifies that scrolling has finished in the view
 
   // Masonry
-  public showMasonryTextArea = new BehaviorSubject<boolean>(true);
-  public masonryColumnWidthChanged = new Subject<number>();
-  public masonryAutoscrollSpeedChanged = new Subject<number>();
+  showMasonryTextArea = new BehaviorSubject<boolean>(true);
+  masonryColumnWidthChanged = new Subject<number>();
+  masonryAutoscrollSpeedChanged = new Subject<number>();
 
   // Users
-  public confirmUserDelete = new Subject<any>();
+  confirmUserDelete = new Subject<any>();
 
   // Authentication
-  public logout = new Subject<any>();
+  logout = new Subject<any>();
 
   // Misc
-  public fileToDownload = new Subject<any>();
-  public confirmDownloadFile = new Subject<any>();
-  public clientSessionId = new Subject<any>();
-  public onSplashScreenAtStartupClosed = new Subject<void>();
-  public eulaAccepted = new Subject<void>();
+  fileToDownload = new Subject<any>();
+  confirmDownloadFile = new Subject<any>();
+  clientSessionId = new Subject<any>();
+  onSplashScreenAtStartupClosed = new Subject<void>();
+  eulaAccepted = new Subject<void>();
 
   // NW and SA Servers
-  public saServerToDelete = new Subject<any>();
-  public confirmNwServerDelete = new Subject<string>();
-  public confirmSaServerDelete = new Subject<string>();
+  saServerToDelete = new Subject<any>();
+  confirmNwServerDelete = new Subject<string>();
+  confirmSaServerDelete = new Subject<string>();
 
 
   // collections //
-  public selectedCollection: Collection;
-  public getCollectionDataAgain = new Subject<any>();
-  public deleteCollectionNext = new Subject<Collection>();
-  public deleteCollectionConfirmed = new Subject<string>();
-  public executeCollectionOnEdit = new Subject<boolean>();
-  public executeAddCollection = new Subject<any>();
-  public executeEditCollection = new Subject<any>();
+  selectedCollection: Collection;
+  getCollectionDataAgain = new Subject<any>();
+  deleteCollectionNext = new Subject<Collection>();
+  deleteCollectionConfirmed = new Subject<string>();
+  executeCollectionOnEdit = new Subject<boolean>();
+  executeAddCollection = new Subject<any>();
+  executeEditCollection = new Subject<any>();
 
   // communicates to collection dialogs that when they open, they should be in 'adhoc' mode
-  public addNwAdhocCollectionNext = new BehaviorSubject<Params>({});
-  public addSaAdhocCollectionNext = new BehaviorSubject<Params>({});
+  addNwAdhocCollectionNext = new BehaviorSubject<Params>({});
+  addSaAdhocCollectionNext = new BehaviorSubject<Params>({});
 
   // communicates to collection dialogs that when they open, they should be in 'add' mode
-  public addNwCollectionNext = new Subject<void>();
-  public addSaCollectionNext = new Subject<void>();
+  addNwCollectionNext = new Subject<void>();
+  addSaCollectionNext = new Subject<void>();
 
   // communicates to collection dialogs that when they open, they should be in 'edit' mode
-  public editNwCollectionNext = new Subject<Collection>();
-  public editSaCollectionNext = new Subject<Collection>();
+  editNwCollectionNext = new Subject<Collection>();
+  editSaCollectionNext = new Subject<Collection>();
 
 
 
   // feeds
-  public addFeedNext = new Subject<void>();
-  public editFeedNext = new Subject<Feed>();
-  public deleteFeedNext = new Subject<Feed>();
+  addFeedNext = new Subject<void>();
+  editFeedNext = new Subject<Feed>();
+  deleteFeedNext = new Subject<Feed>();
 
 
 
   // Tab Container
-  public collectionsOpened = new Subject<void>();
-  public feedsOpened = new Subject<void>();
-  public tabContainerClosed = new Subject<void>();
-  public reOpenTabsModal = new Subject<boolean>();
+  collectionsOpened = new Subject<void>();
+  feedsOpened = new Subject<void>();
+  tabContainerClosed = new Subject<void>();
+  reOpenTabsModal = new Subject<boolean>();
 
 
 
   // Modal ID's
-  public collectionDeletedModalId = 'collection-deleted-notify-modal';
-  public contentDetailsModalId = 'content-details-modal';
-  public confirmDeleteFeedModalId = 'confirm-delete-feed-modal';
-  public feedWizardModalId = 'feed-wizard-modal';
-  public licenseExpiredModalId = 'license-expired-modal';
-  public nwCollectionModalId = 'nw-collection-modal';
-  public saCollectionModalId = 'sa-collection-modal';
-  public tabContainerModalId = 'tab-container-modal';
-  public splashScreenModalId = 'splash-screen-modal';
-  public serverDownModalId = 'server-down-modal';
-  public confirmCollectionDeleteModalId = 'confirm-collection-delete-modal';
-  public confirmUserDeleteModalId = 'confirm-user-delete-modal';
-  public confirmNwServerDeleteModalId = 'confirm-nwserver-delete-modal';
-  public confirmSaServerDeleteModalId = 'confirm-saserver-delete-modal';
-  public confirmDownloadFileModalId = 'confirm-downloadfile-modal';
-  public preferencesModalId = 'preferences-modal';
-  public manageeUsersModalId = 'manage-users-modal';
-  public newEditUserModalId = 'new-edit-user-modal';
-  public newEditNwServiceModalId = 'new-edit-nw-server-modal';
-  public loggedOutModalId = 'logged-out-notify-modal';
+  collectionDeletedModalId = 'collection-deleted-notify-modal';
+  contentDetailsModalId = 'content-details-modal';
+  confirmDeleteFeedModalId = 'confirm-delete-feed-modal';
+  feedWizardModalId = 'feed-wizard-modal';
+  licenseExpiredModalId = 'license-expired-modal';
+  nwCollectionModalId = 'nw-collection-modal';
+  saCollectionModalId = 'sa-collection-modal';
+  tabContainerModalId = 'tab-container-modal';
+  splashScreenModalId = 'splash-screen-modal';
+  serverDownModalId = 'server-down-modal';
+  confirmCollectionDeleteModalId = 'confirm-collection-delete-modal';
+  confirmUserDeleteModalId = 'confirm-user-delete-modal';
+  confirmNwServerDeleteModalId = 'confirm-nwserver-delete-modal';
+  confirmSaServerDeleteModalId = 'confirm-saserver-delete-modal';
+  confirmDownloadFileModalId = 'confirm-downloadfile-modal';
+  preferencesModalId = 'preferences-modal';
+  manageeUsersModalId = 'manage-users-modal';
+  newEditUserModalId = 'new-edit-user-modal';
+  newEditNwServiceModalId = 'new-edit-nw-server-modal';
+  loggedOutModalId = 'logged-out-notify-modal';
 
   private subscriptions = new Subscription;
 

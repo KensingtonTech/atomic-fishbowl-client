@@ -47,8 +47,8 @@ export class LicensingPreferencesComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef) { }
 
-  public license: License;
-  public licenseValid: string;
+  license: License;
+  licenseValid: string;
   private subscriptions = new Subscription;
 
 

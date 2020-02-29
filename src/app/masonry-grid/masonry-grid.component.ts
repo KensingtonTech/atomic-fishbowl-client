@@ -114,27 +114,27 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   // high-level session, content, and search data pushed from server
   private search: Search[] = []; // 'search' is an array containing text extracted from PDF's which can be searched
-  public content: Content[] = [];
-  public contentObj: Contents = {}; // contains every item of content, indexed by its content id
-  public sessions: Sessions = {};
-  public contentCount = new ContentCount; // { images: number, pdfs: number, word: number, excel: number, powerpoint: number, dodgyArchives: number, hashes: number, total: number }
+  content: Content[] = [];
+  contentObj: Contents = {}; // contains every item of content, indexed by its content id
+  sessions: Sessions = {};
+  contentCount = new ContentCount; // { images: number, pdfs: number, word: number, excel: number, powerpoint: number, dodgyArchives: number, hashes: number, total: number }
 
   // preferences
-  public preferences: Preferences;
-  public masonryKeys: any = null;
+  preferences: Preferences;
+  masonryKeys: any = null;
 
   // collection information
-  public selectedCollectionType: string = null;
-  public selectedCollectionServiceType: string = null; // 'nw' or 'sa'
-  public collectionId: string = null;
-  public collectionDeletedUser = '';
+  selectedCollectionType: string = null;
+  selectedCollectionServiceType: string = null; // 'nw' or 'sa'
+  collectionId: string = null;
+  collectionDeletedUser = '';
   private collectionState = '';
 
   // masonry and isotope
-  public masonryColumnWidth = this.toolService.getPreference('masonryColumnWidth') || 350; // default is 350
-  public tileMarginEms = 1;  // set the margin for tiles here in ems.  Its px value will be calculated later, and upon window resize
-  public tileMargin = utils.convertEmRelativeToElement(this.tileMarginEms, document.body);
-  public isotopeConfig = new IsotopeConfig({
+  masonryColumnWidth = this.toolService.getPreference('masonryColumnWidth') || 350; // default is 350
+  tileMarginEms = 1;  // set the margin for tiles here in ems.  Its px value will be calculated later, and upon window resize
+  tileMargin = utils.convertEmRelativeToElement(this.tileMarginEms, document.body);
+  isotopeConfig = new IsotopeConfig({
     itemSelector: '.brick',
     resize: false, // we handle this ourselves to prevent change detection on resize
     masonry: {
@@ -147,17 +147,17 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   });
   private isotopeApi: IsotopeAPI;
   private isotopeInitialized = false;
-  public addWithLayoutSetting = false; // isotope will not auto-layout when bricks are added if false
-  public addWithLayout = false; // isotope will not auto-layout when bricks are added if false
+  addWithLayoutSetting = false; // isotope will not auto-layout when bricks are added if false
+  addWithLayout = false; // isotope will not auto-layout when bricks are added if false
   private imgsLoaded: ImagesLoaded.ImagesLoaded = null;
   private initialLayoutInProgress = false; // helps address a race condition where onContentPublished() and/or onSessionsPurged() step on the first layout operation of onContentReplaced, and causes tons of unnecessary layout operations.  Prevents addWithLayout from being set to true until that first layout operation is complete.
   private publishedContentQueueing = false; // instructs onLayoutComplete() to perform an additional operation after the initialLayout operation has completed, and also to switch the layout mode to addWithLayout = true
 
   // search and filtering
-  public filter = '*';
+  filter = '*';
   private caseSensitiveSearch = false;
   private lastSearchTerm = '';
-  private pauseMonitoring = false;
+  pauseMonitoring = false;
   private lastMask = new ContentMask;
   private searchBarOpen = false;
 
@@ -182,7 +182,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   get scrollContentHeight() {
     return this._scrollContentHeight;
   }
-  public toolbarHeight = 0; // not really being used right now but maybe will be some day
+  toolbarHeight = 0; // not really being used right now but maybe will be some day
   private autoScrollRestartTimeout: any; // handle for timer
   private scrollerOptions = {
     scrollingX: false,
@@ -197,7 +197,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     easing: false
   };
   private scroller: Scroller;
-  public _scrollTop = 0;
+  _scrollTop = 0;
   set scrollTop(scrollTop) {
     this._scrollTop = scrollTop;
     this.scrollTopChanged.next(scrollTop);
@@ -208,26 +208,26 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private resizeObserver: any;
   private resizeId: any;
   private lineHeight: number; // we store the height of a single line relative to the container so we can use it when user hits up/down arrows
-  public scrollbarMoved = new Subject<number>();
-  public scrollTopChanged = new Subject<number>();
-  public containerHeightChanged = new Subject<number>();
-  public contentHeightChanged = new Subject<number>();
+  scrollbarMoved = new Subject<number>();
+  scrollTopChanged = new Subject<number>();
+  containerHeightChanged = new Subject<number>();
+  contentHeightChanged = new Subject<number>();
   private unpauseAfterResize = false;
   private unpauseAfterResizeTimeout;
 
   // session viewer
-  public selectedSession: Session;
-  public selectedContent: Content;
+  selectedSession: Session;
+  selectedContent: Content;
   private selectedContentId: string = null;
-  public sessionsAvailable: SessionsAvailable = { previous: false, next: false };
-  public mouseButtonDown = false;
+  sessionsAvailable: SessionsAvailable = { previous: false, next: false };
+  mouseButtonDown = false;
 
   // license
-  public license: License;
+  license: License;
   private licenseChangedFunction = this.onLicenseChangedInitial;
 
   // Text Area
-  public showTextArea = true;
+  showTextArea = true;
 
   // Subscription holders
   private subscriptions = new Subscription;

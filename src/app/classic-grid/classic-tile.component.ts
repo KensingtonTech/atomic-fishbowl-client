@@ -47,7 +47,7 @@ export class ClassicTileComponent implements OnInit, OnChanges {
               private zone: NgZone,
               private el: ElementRef ) {}
 
-  public utils = utils;
+  utils = utils;
 
   @ViewChild('image', { static: true }) imageRef: ElementRef;
   @ViewChild('highResImage') highResImageRef: ElementRef;
@@ -57,12 +57,12 @@ export class ClassicTileComponent implements OnInit, OnChanges {
   @Input() loadHighRes = false; // this triggers initial loading of the high-res image (not the displaying of it - bound from the parent's loadAllHighResImages
   @Input() showHighRes = false; // this triggers the displaying of high-res images
   @Input() hide = false;
-  public imgSource = '';
-  public highResImgSource = '';
-  public contentClass = '';
-  public loadedContentClass: string; // this will hold the value of contentClass after the low-res image has loaded.  This will allow the border to only load afterwards
-  public animationState = 'initial'; // initial, zoomIn, zoomOut
-  public highResLoaded = false;  // tracks whether the high-res image has finished loading
+  imgSource = '';
+  highResImgSource = '';
+  contentClass = '';
+  loadedContentClass: string; // this will hold the value of contentClass after the low-res image has loaded.  This will allow the border to only load afterwards
+  animationState = 'initial'; // initial, zoomIn, zoomOut
+  highResLoaded = false;  // tracks whether the high-res image has finished loading
 
 
 

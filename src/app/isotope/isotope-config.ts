@@ -88,7 +88,7 @@ export class IsotopeConfig {
 
   }
 
-  public copy(): IsotopeConfig {
+  copy(): IsotopeConfig {
     let newOption = new IsotopeConfig();
     if (this.itemSelector) {
       newOption.itemSelector = this.itemSelector;

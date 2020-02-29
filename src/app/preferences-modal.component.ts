@@ -21,13 +21,13 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
               private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef) {}
 
-  public id = this.toolService.preferencesModalId;
+  id = this.toolService.preferencesModalId;
 
-  public defaultNwQueries = defaultNwQueries;
-  public defaultNwQueriesOptions: SelectItem[] = [];
+  defaultNwQueries = defaultNwQueries;
+  defaultNwQueriesOptions: SelectItem[] = [];
 
-  public defaultSaQueries = defaultSaQueries;
-  public defaultSaQueriesOptions: SelectItem[] = [];
+  defaultSaQueries = defaultSaQueries;
+  defaultSaQueriesOptions: SelectItem[] = [];
 
   private defaultMasonryKeys: any = [
                                 { key: 'alias.host', friendly: 'Hostname' },
@@ -36,14 +36,14 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
                                 { key: 'ad.domain.src', friendly: 'AD Domain' }
                               ];
 
-  public displayedNwKeysString: string = null;
-  public masonryNwKeysString: string = null;
-  public displayedSaKeysString: string = null;
-  public masonrySaKeysString: string = null;
+  displayedNwKeysString: string = null;
+  masonryNwKeysString: string = null;
+  displayedSaKeysString: string = null;
+  masonrySaKeysString: string = null;
 
-  public masonryColumnWidth: number;
+  masonryColumnWidth: number;
 
-  public preferencesModel: Preferences = {
+  preferencesModel: Preferences = {
                                     // global
                                     minX: null,
                                     minY: null,
@@ -83,13 +83,13 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
                                     }
                                   };
 
-  public serviceTypeOptions: SelectItem[] = [
+  serviceTypeOptions: SelectItem[] = [
     { label: 'RSA NetWitness', value: 'nw' },
     { label: 'Symantec Security Analytics', value: 'sa' }
   ];
-  public selectedServiceTypes: string[] = [ null, null ]; // just netwitness by default
-  public selectedTabIndex = 0;
-  public autoScrollSpeed = 0;
+  selectedServiceTypes: string[] = [ null, null ]; // just netwitness by default
+  selectedTabIndex = 0;
+  autoScrollSpeed = 0;
 
   // Subscriptions
   private subscriptions = new Subscription;
@@ -283,7 +283,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
 
 
-  public onServiceTypeChanged(): void {
+  onServiceTypeChanged(): void {
     log.debug('PreferencesModalComponent: onServiceTypeChanged()');
     let nw = false;
     let sa = false;

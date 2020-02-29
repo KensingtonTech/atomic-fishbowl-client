@@ -48,12 +48,12 @@ export class AppComponent implements OnInit, OnDestroy {
               private zone: NgZone,
               private changeDetectorRef: ChangeDetectorRef ) { }
 
-  public loggedIn = false;
-  public serverReachable = false;
-  public credentialsChecked = false;
-  public isMobile = false;
-  public eulaAccepted = false;
-  public socketUpgraded = false;
+  loggedIn = false;
+  serverReachable = false;
+  credentialsChecked = false;
+  isMobile = false;
+  eulaAccepted = false;
+  socketUpgraded = false;
 
   // Subscriptions
   private subscriptions: Subscription = new Subscription;
@@ -162,7 +162,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 
 
-  public ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 

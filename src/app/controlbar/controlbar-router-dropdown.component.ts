@@ -38,7 +38,7 @@ export class RouterDropdownComponent implements OnInit {
               private el: ElementRef,
               private zone: NgZone ) { }
 
-  private routerOptions: RouterOption[] = [
+  routerOptions: RouterOption[] = [
                                             {
                                               name: 'masonryGrid',
                                               link: '/masonryGrid',
@@ -54,8 +54,8 @@ export class RouterDropdownComponent implements OnInit {
                                           ];
 
   @Output() isOpen = new EventEmitter<boolean>();
-  public selectedRoute: RouterOption;
-  public selectionExpanded = false;
+  selectedRoute: RouterOption;
+  selectionExpanded = false;
 
 
 

@@ -80,12 +80,12 @@ export class FeedsComponent implements OnInit, OnDestroy {
               private modalService: ModalService,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
-  public feeds: Feed[];
-  public displayedFeeds: Feed[];
-  private utils = utils;
-  public filterText = '';
+  feeds: Feed[];
+  displayedFeeds: Feed[];
+  utils = utils;
+  filterText = '';
   private reOpenTabsModal = false;
-  public feedStatus = {};
+  feedStatus = {};
   private feedStatusInterval: number;
 
   // Subscriptions
@@ -143,11 +143,11 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
 
 
-  public onOpen(): void {}
+  onOpen(): void {}
 
 
 
-  public onClose(): void {}
+  onClose(): void {}
 
 
 
@@ -179,7 +179,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
 
 
-  public filterChanged(): void {
+  filterChanged(): void {
     // log.debug('FeedsComponent: filterChanged(): filterText:', this.filterText);
     if (this.filterText === '') {
       this.displayedFeeds = this.feeds;
@@ -200,7 +200,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
 
 
-  public clearFilter(): void {
+  clearFilter(): void {
     this.filterText = '';
     this.filterChanged();
     this.changeDetectionRef.markForCheck();
@@ -209,7 +209,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
 
 
 
-  public ifStatusExists(id: string): boolean {
+  ifStatusExists(id: string): boolean {
     // log.debug('FeedsComponent: ifStatusExists(): feedStatus:', this.feedStatus);
     if (id in this.feedStatus) {
       return true;

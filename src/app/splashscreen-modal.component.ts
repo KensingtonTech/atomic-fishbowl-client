@@ -41,11 +41,11 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
               private changeDetectionRef: ChangeDetectorRef,
               private zone: NgZone ) {}
 
-  public id = this.toolService.splashScreenModalId;
-  public version: string;
-  public serverVersion: string;
+  id = this.toolService.splashScreenModalId;
+  version: string;
+  serverVersion: string;
   private closeTimeout: any;
-  public firstLoad = this.toolService.firstLoad;
+  firstLoad = this.toolService.firstLoad;
 
   private subscriptions = new Subscription;
 

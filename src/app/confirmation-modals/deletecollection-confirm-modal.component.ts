@@ -29,8 +29,8 @@ export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy 
               private changeDetectionRef: ChangeDetectorRef,
               private toolService: ToolService ) {}
 
-  public id = this.toolService.confirmCollectionDeleteModalId;
-  public collection: Collection;
+  id = this.toolService.confirmCollectionDeleteModalId;
+  collection: Collection;
   private subscriptions = new Subscription;
 
   ngOnInit(): void {

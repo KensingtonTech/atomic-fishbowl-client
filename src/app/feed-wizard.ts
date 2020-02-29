@@ -130,53 +130,53 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
               private modalService: ModalService,
               private changeDetectionRef: ChangeDetectorRef ) {}
 
-  public id = this.toolService.feedWizardModalId;
-  public editing = false; // true = editing, false = adding
-  public feed: Feed; // the feed we're working on
-  public page = 1;
-  public utils = utils;
+  id = this.toolService.feedWizardModalId;
+  editing = false; // true = editing, false = adding
+  feed: Feed; // the feed we're working on
+  page = 1;
+  utils = utils;
 
-  public name = '';
+  name = '';
 
-  public feedTypeOptions: SelectItem[] = [
+  feedTypeOptions: SelectItem[] = [
     { label: 'Manual', value: 'manual' },
     { label: 'Scheduled', value: 'scheduled' }
   ];
-  public type = 'manual'; // manual or scheduled
+  type = 'manual'; // manual or scheduled
 
-  public selectedSchedule = 'hours'; // 'hours', 'minutes', or 'day'
-  public selectedScheduleHours = 1;
-  public selectedScheduleMinutes = 30;
-  public selectedScheduleDays = 1;
-  public url = '';
-  public lastUrl = '';
-  public rawCSV = '';
-  public reOpenTabsModal = false;
-  public delimiter = ',';
-  public lines = [];
-  public hasHeader = true;
-  public columns = 1;
-  public columnNumArr = [];
-  public columnDropPort = {};
+  selectedSchedule = 'hours'; // 'hours', 'minutes', or 'day'
+  selectedScheduleHours = 1;
+  selectedScheduleMinutes = 30;
+  selectedScheduleDays = 1;
+  url = '';
+  lastUrl = '';
+  rawCSV = '';
+  reOpenTabsModal = false;
+  delimiter = ',';
+  lines = [];
+  hasHeader = true;
+  columns = 1;
+  columnNumArr = [];
+  columnDropPort = {};
   private file: File;
-  public filename = '';
-  public label = 'Browse';
-  public error = '';
-  public testError = '';
-  public urlAuthentication = 'disabled';
-  public urlUser = '';
-  public urlPassword = '';
-  public urlVerified = false;
-  public urlTested = false;
-  public csvLoaded = false;
+  filename = '';
+  label = 'Browse';
+  error = '';
+  testError = '';
+  urlAuthentication = 'disabled';
+  urlUser = '';
+  urlPassword = '';
+  urlVerified = false;
+  urlTested = false;
+  csvLoaded = false;
   private editingId: string;
   private fileChanged = false;
   private internalFilename = ''; // used only when editing
-  public authChanged = false; // used only when editing scheduled collections
-  public urlChanged = false;
-  public urlVerifyClicked = false;
+  authChanged = false; // used only when editing scheduled collections
+  urlChanged = false;
+  urlVerifyClicked = false;
 
-  public nameValid = false;
+  nameValid = false;
   private feedNames: any;
 
   private initialColumnIDs: ColumnId[] = [
@@ -185,19 +185,19 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     { id: 'friendly', name: 'Friendly Name'}
   ];
 
-  public availableColumnIDs: ColumnId[] = [
+  availableColumnIDs: ColumnId[] = [
     { id: 'value', name: 'Hash Value'},
     { id: 'type', name: 'Hash Type'},
     { id: 'friendly', name: 'Friendly Name'}
   ];
   draggingColumnID: ColumnId = null;
 
-  public enabledOptions: SelectItem[] = [
+  enabledOptions: SelectItem[] = [
     { label: 'Disabled', value: 'disabled' },
     { label: 'Enabled', value: 'enabled' }
   ];
 
-  public intervalOptions: SelectItem[] = [
+  intervalOptions: SelectItem[] = [
     { label: 'Hours', value: 'hours' },
     { label: 'Minutes', value: 'minutes' },
     { label: 'Days', value: 'day' }
@@ -248,7 +248,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onNameChanged(name): void {
+  onNameChanged(name): void {
     // log.debug('NwCollectionModalComponent: onNameChanged()');
     if (!(name in this.feedNames) || this.editing)  {
       this.nameValid = true;
@@ -261,7 +261,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onOpen(): void {
+  onOpen(): void {
     log.debug('FeedWizardComponent: onOpen()');
     this.page = 1;
     this.error = '';
@@ -372,13 +372,13 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public close() {
+  close() {
     this.modalService.close(this.id);
   }
 
 
 
-  public onClosed(): void {
+  onClosed(): void {
     // add a bit to re-open feeds modal
     if ( this.reOpenTabsModal ) {
       this.modalService.open(this.toolService.tabContainerModalId);
@@ -389,35 +389,35 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public pageOneToPageTwoSubmit(form) {
+  pageOneToPageTwoSubmit(form) {
     this.page = 2;
     this.changeDetectionRef.markForCheck();
   }
 
 
 
-  public pageTwoToPageThreeSubmit(form) {
+  pageTwoToPageThreeSubmit(form) {
     this.page = 3;
     this.changeDetectionRef.markForCheck();
   }
 
 
 
-  public pageTwoToPageOneSubmit() {
+  pageTwoToPageOneSubmit() {
     this.page = 1;
     this.changeDetectionRef.markForCheck();
   }
 
 
 
-  public pageThreeToPageTwoSubmit() {
+  pageThreeToPageTwoSubmit() {
     this.page = 2;
     this.changeDetectionRef.markForCheck();
   }
 
 
 
-  public validateUrlInput(): boolean {
+  validateUrlInput(): boolean {
     // ^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$
     // /^(?:http(s)?:\/\/)[\w.-]+$/
     let re = /^(?:http(s)?:\/\/)[\w.-]+/;
@@ -426,7 +426,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onUrlChange(): void {
+  onUrlChange(): void {
     // log.debug('FeedWizardComponent: onUrlChange()');
     if (this.url !== this.lastUrl) {
       this.lastUrl = this.url;
@@ -439,7 +439,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public verifyUrl(): void {
+  verifyUrl(): void {
     // verify the URL here
     this.urlVerifyClicked = true;
     let host = { url: this.url, authentication: false };
@@ -493,7 +493,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onAuthChanged(): void {
+  onAuthChanged(): void {
     log.debug('FeedWizardComponent: onAuthChanged()');
     this.authChanged = true;
     this.urlVerified = false;
@@ -503,7 +503,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public uploadHandler(event, formRef): void {
+  uploadHandler(event, formRef): void {
     log.debug('FeedWizardComponent: uploadHandler(): event:', event);
     this.fileChanged = true;
     this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
@@ -608,7 +608,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public delimiterChanged(): void {
+  delimiterChanged(): void {
     log.debug('FeedWizardComponent: delimiterChanged()');
     if (this.delimiter) {
       this.parseCSV(this.rawCSV);
@@ -624,8 +624,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onDragStart(event, columnId: ColumnId): void {
-  // public onDragBegin(columnId: ColumnId): void {
+  onDragStart(event, columnId: ColumnId): void {
     // log.debug('FeedWizardComponent: onDragStart(): event:', event);
     log.debug('FeedWizardComponent: onDragStart(): columnId:', columnId);
     this.draggingColumnID = columnId;
@@ -634,8 +633,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onDragEnd(event, columnId: ColumnId): void {
-  // public onDragFinish(columnId: ColumnId): void {
+  onDragEnd(event, columnId: ColumnId): void {
     // log.debug('FeedWizardComponent: onDragEnd(): event:', event);
     log.debug('FeedWizardComponent: onDragEnd(): columnId:', columnId);
     this.draggingColumnID = null;
@@ -644,7 +642,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onDrop(event, index): void {
+  onDrop(event, index): void {
     log.debug('FeedWizardComponent: onDrop(): event:', event);
     log.debug('FeedWizardComponent: onDrop(): index:', index);
     log.debug('FeedWizardComponent: onDrop(): draggingColumnID:', this.draggingColumnID);
@@ -669,7 +667,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public onDeselectColumnId(index): void {
+  onDeselectColumnId(index): void {
     log.debug('FeedWizardComponent: onDeselectColumnId(): index:', index);
     this.columnDropPort[index].enabled = false;
     this.availableColumnIDs.push(this.columnDropPort[index].columnId);
@@ -678,7 +676,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public feedDetailsFormValid(): boolean {
+  feedDetailsFormValid(): boolean {
     let hashValue = true;
     let hashType = true;
     // let friendlyName = true;
@@ -704,7 +702,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public getColumnNumber(type): number {
+  getColumnNumber(type): number {
     for (let key in this.columnDropPort) {
       if (this.columnDropPort.hasOwnProperty(key)) {
         let column = this.columnDropPort[key];
@@ -720,7 +718,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 
-  public finalSubmit(): void {
+  finalSubmit(): void {
     log.debug('FeedWizardComponent: finalSubmit()');
 
     if (this.type === 'manual' && !this.editing) {
