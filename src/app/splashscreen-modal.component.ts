@@ -12,21 +12,74 @@ import * as log from 'loglevel';
 <modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="!firstLoad" bodyClass="splash-body">
 
   <div *ngIf="serverVersion">
-    <span *ngIf="!firstLoad" (click)="closeModal()" class="fa fa-times-circle-o fa-2x" style="float: right;"></span>
-    <h1 align="left">Atomic Fishbowl</h1>
-    <div><span style="font-weight: bold;">Client Version:&nbsp;&nbsp;&nbsp;</span>{{version}}</div>
-    <div *ngIf="serverVersion"><span style="font-weight: bold;">Server Version:&nbsp;&nbsp;</span>{{serverVersion}}</div>
-    <p align="center" style="margin: 2em 0;">
-      <img src="resources/logo-medium.png">
+
+    <span
+      *ngIf="!firstLoad"
+      (click)="closeModal()"
+      class="fa fa-times-circle-o fa-2x"
+      style="float: right;">
+    </span>
+
+    <h1 align="left">
+      Atomic Fishbowl
+    </h1>
+
+    <div>
+
+      <span style="font-weight: bold;">
+        Client Version:&nbsp;&nbsp;&nbsp;
+      </span>
+
+      {{version}}
+
+    </div>
+
+    <div *ngIf="serverVersion">
+
+      <span style="font-weight: bold;">
+        Server Version:&nbsp;&nbsp;
+      </span>
+
+      {{serverVersion}}
+
+    </div>
+
+    <p
+      align="center"
+      style="margin: 2em 0;">
+
+        <img src="resources/logo-medium.png">
+
     </p>
-    <p class="noBottomMargin">Copyright &copy; 2019 Kensington Technology Associates<br>
-    All Rights Reserved</p>
+
+    <p class="noBottomMargin">
+      Copyright &copy; 2020 Kensington Technology Associates
+      <br>All Rights Reserved
+    </p>
 
   </div>
 
   <ng-container *ngIf="!firstLoad">
-    <div style="margin-top: 1em; margin-bottom: 1em; border-top: 2px solid grey;"></div>
-    <a href="/resources/nw-investigation-context-menu.zip" style="color: white; text-decoration: underline;">Install NetWitness Investigation Context Menu Definitions</a>
+
+    <div
+      style="margin-top: 1em; margin-bottom: 1em; border-top: 1.5px solid grey;">
+    </div>
+
+    <i
+      class="fa fa-hand-o-right"
+      style="font-size: 2em;"
+      aria-hidden="true">
+    </i>&nbsp;
+
+    <a
+      href="/resources/nw-investigation-context-menu.zip"
+      style="color: white; text-decoration: underline; font-weight: bold; font-size: 2em;">
+
+        Download Investigation
+        <br>Context Menu Definitions
+
+    </a>
+
   </ng-container>
 
 </modal>
