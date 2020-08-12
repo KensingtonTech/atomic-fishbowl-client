@@ -83,15 +83,15 @@ import { SaCollectionModalComponent } from './sacollection-modal.component';
 import { DeleteSaServerConfirmModalComponent } from './confirmation-modals/deletesaserver-confirm-modal.component';
 import { CollectionDeletedNotifyModalComponent } from './collection-deleted-notify-modal.component';
 import { EulaComponent } from './eula.component';
-import { LicensingPreferencesComponent } from './licensing-preferences';
+import { LicensingPreferencesComponent } from './licensing-preferences.component';
 import { LicenseExpiredModalComponent } from './license-expired-modal.component';
 import { ContentViewerComponent } from './viewers/content-viewer.component';
 import { MetaWidgetComponent } from './viewers/meta-widget.component';
 import { ContentCountWidgetComponent } from './viewers/content-count-widget.component';
-import { NewEditUserModalComponent } from './new-edit-user.modal.component';
+import { NewEditUserModalComponent } from './new-edit-user-modal.component';
 import { NewEditNwServiceModalComponent } from './new-edit-nw-service.component';
 import { LoggedOutNotifyModalComponent } from './logged-out-notify-modal.component';
-import { CustomScrollPanelComponent } from './scrollpanel/scrollpanel';
+import { CustomScrollPanelComponent } from './scrollpanel/scrollpanel.component';
 
 // Other
 // import 'hammerjs'; // required for Material gesture support

@@ -3,8 +3,6 @@ import { IsotopeConfig } from './isotope-config';
 import { IsotopeAPI } from './isotope-api';
 import $ from 'jquery';
 import * as log from 'loglevel';
-// import { IsotopeBrickDirective } from './isotope-brick.directive';
-// declare var $: any;
 // import * as Isotope from 'isotope-layout'; // we're not using typescript / webpack loading as doing so breaks layout when using aot compilation.  We instead use a <script> tag in index.html to load it from /resources.  it sucks but until aot is fixed, we have to use it
 declare var Isotope;
 
@@ -19,8 +17,6 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
                 private ngZone: NgZone,
                 private renderer: Renderer2 ) {}
 
-
-  // @ViewChildren(IsotopeBrickDirective) private bricks: QueryList<IsotopeBrickDirective>;
 
   @Input() config: IsotopeConfig;
   @Input() filter = '*';

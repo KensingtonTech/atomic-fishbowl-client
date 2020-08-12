@@ -6,39 +6,7 @@ import * as log from 'loglevel';
 @Component({
   selector: 'control-bar-masonry',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-<div class="noselect">
-
-  <!-- change route icon -->
-  <div>
-    <router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown>
-
-    <!-- full screen button -->
-    <span *ngIf="!routerDropdownOpen" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></span>
-
-  </div>
-
-
-  <div *ngIf="!routerDropdownOpen" style="margin-top: .4em;">
-
-    <!-- autoscroller start button -->
-    <span *ngIf="!scrollStarted" class="icon fa fa-level-down fa-2x fa-fw" (click)="scrollToBottom()" pTooltip="Start autoscroller"></span>
-
-    <!-- autoscroller stop button -->
-    <span *ngIf="scrollStarted" class="icon fa fa-stop fa-2x fa-fw" (click)="stopScrollToBottom()" pTooltip="Stop autoscroller"></span>
-
-    <!-- show meta -->
-    <span *ngIf="showMeta" class="icon fa fa-comment fa-2x fa-fw" (click)="hideMetaFunction()" pTooltip="Hide Meta"></span>
-
-    <!-- hide meta -->
-    <span *ngIf="!showMeta" class="icon fa fa-comment-o fa-2x fa-fw" (click)="showMetaFunction()" pTooltip="Show Meta"></span>
-
-  </div>
-
-
-</div>
-`,
-  styles: []
+  templateUrl: './controlbar-masonry.component.html'
 })
 
 export class MasonryControlBarComponent implements OnInit, OnDestroy {

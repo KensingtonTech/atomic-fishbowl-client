@@ -4,17 +4,11 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 export class MapValuesPipe implements PipeTransform {
 
-  transform(value: any, args: string[]): any {
+  transform(value: any, args?: string[]): any {
     if (!value) {
       return value;
     }
-    let values = [];
-    for (let key in value) {
-      if (value.hasOwnProperty(key)) {
-        values.push(value[key]);
-      }
-    }
+    const values = Object.values(value).map( v => v );
     return values;
-
   }
 }

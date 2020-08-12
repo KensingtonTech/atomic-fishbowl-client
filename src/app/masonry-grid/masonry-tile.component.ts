@@ -1,7 +1,5 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectionStrategy, Input, Inject, forwardRef, ChangeDetectorRef, OnChanges, ElementRef, NgZone, ViewChild } from '@angular/core';
-import { ToolService } from 'services/tool.service';
 import { MasonryGridComponent } from './masonry-grid.component';
-import { IsotopeBrickDirective } from '../isotope/isotope-brick.directive';
 import { DataService } from 'services/data.service';
 import * as log from 'loglevel';
 import * as utils from '../utils';
@@ -20,179 +18,15 @@ interface TableEntry {
 @Component({
   selector: 'masonry-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-<div class="brickOuterDiv" *ngIf="session" [style.width.px]="masonryColumnWidth" [style.margin.px]="margin">
-
-  <div style="position: relative; min-height: 2.631578947em;">
-
-    <ng-container *ngIf="displayTextArea">
-
-      <!--NetWitness Tile Overlay-->
-      <ng-container *ngIf="serviceType === 'nw'; else saOverlay">
-
-        <!-- time -->
-        <div class="selectable masonryTileTime">
-          {{session.meta['time'] | formatTime}}
-        </div>
-
-        <!-- file icons and session id -->
-        <div class="selectable masonryTileSessionID">
-          <span style="vertical-align: top; color: white; background-color: rgba(0,0,0,0.75);">{{session.id}}</span>
-          <ng-container *ngTemplateOutlet="fileIcons"></ng-container>
-        </div>
-
-        <!-- network info -->
-        <div class="selectable masonryTileNetworkInfo">
-          {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
-        </div>
-
-      </ng-container>
-
-      <!--SA Tile Overlay-->
-      <ng-template #saOverlay>
-        <div class="selectable masonryTileTime">
-          {{session.meta['stop_time'] | formatSaTime}}
-        </div>
-        <div class="selectable masonryTileSessionID">
-          {{session.id}}
-        </div>
-        <div class="selectable masonryTileNetworkInfo">
-          {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
-        </div>
-      </ng-template>
-
-      <ng-template #fileIcons>
-        <!-- file type icon overlay -->
-        <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" class="selectable masonryFileTypeIcon">
-          &nbsp;
-          <!-- file archive icon - must be separate from regular icon -->
-          <ng-container *ngIf="content.fromArchive || content.isArchive"><i class="fa fa-file-archive-o fa-2x"></i></ng-container>
-
-          <!-- regular file type icon -->
-          <i *ngIf="content.contentType == 'pdf' || content.contentType == 'office'" class="fa fa-2x" [class.fa-lock]="['encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarEntry', 'encryptedRarTable'].includes(content.contentType)" [class.fa-file-pdf-o]="content.contentType === 'pdf'" [class.fa-file-word-o]="content.contentType === 'office' && content.contentSubType === 'word'" [class.fa-file-excel-o]="content.contentType === 'office' && content.contentSubType === 'excel'" [class.fa-file-powerpoint-o]="content.contentType === 'office' && content.contentSubType === 'powerpoint'"></i>
-
-        </div>
-      </ng-template>
-
-    </ng-container>
-
-    <!-- the image itself -->
-    <img #image class="separator" (load)="onImageLoaded()" (error)="onImageError()" [ngClass]="extraClass" [src]="imageSource" draggable="false">
-
-  </div>
-
-  <!-- text area -->
-  <!--*ngIf="session && masonryKeys && "-->
-  <div *ngIf="displayTextArea" class="textArea selectable">
-
-    <ul *ngIf="textAreaList.length !== 0" style="list-style-type: none; padding: 0;">
-      <li *ngFor="let text of textAreaList">
-        <b>{{text}}</b>
-      </li>
-    </ul>
-
-    <!--<ul *ngIf="content.contentType !== 'image'" style="list-style-type: none; padding: 0;">
-      <li *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
-        <b>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</b>
-      </li>
-      <li *ngIf="content.contentType == 'unsupportedZipEntry'">
-        <b>Unsupported ZIP format</b>
-      </li>
-      <li *ngIf="content.contentType == 'encryptedRarTable'">
-        <b>RAR archive has an encrypted table</b>
-      </li>
-      <li *ngIf="content.contentType == 'hash'">
-        <b>Found executable matching {{utils.toCaps(content.hashType)}} hash value</b>
-      </li>
-      <li *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-        <b>Found PDF document containing text term</b>
-      </li>
-      <li *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-        <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document containing text term</b>
-      </li>
-      <li *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-        <b>Found PDF document matching Regex term</b>
-      </li>
-      <li *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-        <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
-      </li>
-    </ul>-->
-
-    <table style="width: 100%;">
-      <tr *ngIf="masonryMeta.length === 0">
-        <td colspan="2">
-          <div style="margin-bottom: .5em;">
-            No relevant meta found for this session.
-          </div>
-        </td>
-      </tr>
-      <tr *ngFor="let struct of textAreaTableItems">
-        <td class="column1">{{struct.key}}</td>
-        <td class="value">{{struct.value}}</td>
-      </tr>
-
-      <!--
-      <tr *ngFor="let struct of masonryMeta">
-        <td class="column1">{{struct.friendly}}</td>
-        <td class="value">{{struct.value}}</td>
-      </tr>
-      <tr *ngIf="content.contentType == 'hash'">
-        <td class="column1">{{utils.toCaps(content.hashType)}} Hash:</td>
-        <td class="value">{{content.hashValue}}</td>
-      </tr>
-      <tr *ngIf="content.contentType == 'hash' && content.hashFriendly">
-        <td class="column1">{{utils.toCaps(content.hashType)}} Description:</td>
-        <td class="value">{{content.hashFriendly}}</td>
-      </tr>
-      <tr *ngIf="content.contentType == 'hash'">
-        <td class="column1">Filename:</td>
-        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-      </tr>
-      <tr *ngIf="content.contentType =='pdf' && content.contentFile">
-        <td class="column1">PDF Filename:</td>
-        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-      </tr>
-      <tr *ngIf="content.contentType =='office' && content.contentFile">
-        <td class="column1">Office Filename:</td>
-        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-      </tr>
-      <tr *ngIf="content.isArchive">
-        <td class="column1">Archive File:</td>
-        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-      </tr>
-      <tr *ngIf="content.fromArchive">
-        <td class="column1">Archived Filename:</td>
-        <td class="value">{{utils.pathToFilename(content.archiveFilename)}}</td>
-      </tr>
-      <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
-        <td class="column1">Encrypted File:</td>
-        <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-      </tr>
-      <tr *ngIf="content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-        <td class="column1">Matched Text:</td>
-        <td class="value">{{content.textTermsMatched}}</td>
-      </tr>
-      <tr *ngIf="content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-        <td class="column1">Matched RegEx:</td>
-        <td class="value">{{content.regexTermsMatched}}</td>
-      </tr>
-      -->
-    </table>
-
-  </div>
-
-</div>
-  `
+  templateUrl: './masonry-tile.component.html'
 })
 
 export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
 
-  constructor(  private toolService: ToolService,
-                private changeDetectionRef: ChangeDetectorRef,
+  constructor(  private changeDetectionRef: ChangeDetectorRef,
                 public dataService: DataService,
                 private el: ElementRef,
                 private zone: NgZone,
-                private isotopeBrick: IsotopeBrickDirective,
                 @Inject(forwardRef(() => MasonryGridComponent)) private parent: MasonryGridComponent ) {}
 
   utils = utils;
@@ -385,8 +219,6 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
     this.imageSource = '/resources/error_icon.png';
     this.changeDetectionRef.reattach();
     setTimeout( () => this.changeDetectionRef.detach(), 0);
-    // this.changeDetectionRef.markForCheck();
-    // this.changeDetectionRef.detectChanges();
     let event = new Event('onloaded');
     this.zone.runOutsideAngular( () => {
       this.el.nativeElement.dispatchEvent(event);

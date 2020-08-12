@@ -37,69 +37,11 @@ import $ from 'jquery';
   selector: 'masonry-grid-view',
   providers: [ { provide: AbstractGrid, useExisting: forwardRef(() => MasonryGridComponent ) } ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-
-<toolbar-widget [contentCount]="contentCount"></toolbar-widget>
-
-<!-- left bar -->
-<div class="masonry-left-bar" fxLayout="column" fxLayoutAlign="start center">
-
-  <!-- control bar -->
-  <control-bar-masonry fxFlexOffset="1.052631579em"></control-bar-masonry>
-
-  <!-- pause / resume buttons for monitoring collections -->
-  <div *ngIf="selectedCollectionType == 'monitoring'" fxFlexOffset="2em" style="color: white;">
-    <i *ngIf="!pauseMonitoring" class="fa fa-pause-circle-o fa-4x" (click)="suspendMonitoring()"></i>
-    <i *ngIf="pauseMonitoring" class="fa fa-play-circle-o fa-4x" (click)="resumeMonitoring()"></i>
-  </div>
-
-  <!-- content count -->
-  <content-count-widget *ngIf="selectedCollectionType" [contentCount]="contentCount" style="margin-top: auto; margin-bottom: auto;"></content-count-widget>
-
-</div>
-
-
-<div class="masonryViewport" style="overflow: none;">
-
-  <!-- overflow-y: auto; -->
-  <div #scrollContainer tabindex="-1" class="scrollContainer noselect" style="position: relative; width: 100%; height: 100%; outline: 0; overflow: hidden; transform: translateZ(0);">
-
-    <div isotope #isotopeContent *ngIf="isotopeConfig" tabindex="-1" class="grid" [config]="isotopeConfig" [filter]="filter" [addWithLayout]="addWithLayout" style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; outline: none; overflow-y: visible;">
-
-      <ng-container *ngIf="content && hasSessions() && masonryKeys">
-
-        <masonry-tile *ngFor="let item of content" isotope-brick class="brick" [collectionId]="collectionId" [attr.contentType]="item.contentType" [attr.contentSubType]="item.contentSubType ? item.contentSubType : null" [attr.fromArchive]="item.fromArchive" [content]="item" [attr.sessionId]="item.session" [sessionId]="item.session" [masonryKeys]="masonryKeys" [masonryColumnWidth]="masonryColumnWidth" [serviceType]="selectedCollectionServiceType" [attr.id]="item.id" [margin]="tileMargin" (click)="onTileClicked($event)" [displayTextArea]="showTextArea"></masonry-tile>
-
-      </ng-container>
-
-    </div>
-  </div>
-  <p-scrollPanel-custom [scrollbarMovedSubject]="scrollbarMoved" [scrollTopChangedSubject]="scrollTopChanged" [containerHeightChangedSubject]="containerHeightChanged" [contentHeightChangedSubject]="contentHeightChanged"></p-scrollPanel-custom>
-
-</div>
-
-
-
-<!-- modals -->
-<tab-container-modal></tab-container-modal>
-<splash-screen-modal></splash-screen-modal>
-<preferences-modal></preferences-modal>
-<manage-users-modal></manage-users-modal>
-<collection-deleted-notify-modal [user]="collectionDeletedUser"></collection-deleted-notify-modal>
-<content-details-modal *ngIf="selectedCollectionServiceType" [session]="selectedSession" [content]="selectedContent" [serviceType]="selectedCollectionServiceType" [collectionId]="collectionId" [sessionsAvailable]="sessionsAvailable"></content-details-modal>
-<ng-container *ngIf="preferences && preferences.serviceTypes">
-  <nw-collection-modal *ngIf="preferences.serviceTypes.nw"></nw-collection-modal>
-  <sa-collection-modal *ngIf="preferences.serviceTypes.sa"></sa-collection-modal>
-</ng-container>
-<license-expired-modal></license-expired-modal>
-`,
-
+  templateUrl: './masonry-grid.component.html',
   styles: [`
-
     isotope {
       outline-width: 0;
     }
-
   `]
 })
 

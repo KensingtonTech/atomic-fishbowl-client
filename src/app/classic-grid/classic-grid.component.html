@@ -1,0 +1,134 @@
+<div
+  #classicGridElement
+  class="classic-grid-element"
+  (window:resize)="onWindowResize()"
+  style="height: 100%; width: 100%; overflow: hidden;">
+
+    <pan-zoom
+      *ngIf="content && displayedContent && !destroyView && highResSessions"
+      [config]="panzoomConfig">
+
+        <div
+          class="bg noselect gridItems classic-grid-container"
+          #gridItems style="position: relative;"
+          [style.width.px]="canvasWidth">
+
+            <classic-tile
+              @zoomInOutParent
+              *ngFor="let item of content; index as i;"
+              [collectionId]="collectionId"
+              [content]="item"
+              [attr.sessionId]="item.session"
+              [attr.id]="item.id"
+              [loadHighRes]="loadAllHighResImages"
+              [showHighRes]="highResSessions[i]"
+              [hide]="!displayedContent[i]"
+              (mousedown)="onMouseDown($event)"
+              (mouseup)="onMouseUp($event)">
+            </classic-tile>
+
+        </div>
+
+    </pan-zoom>
+
+</div>
+
+
+
+<div
+  class="classic-left-bar"
+  fxLayout="column"
+  fxLayoutAlign="start start">
+
+    <!-- control bar -->
+    <control-bar-classic
+      *ngIf="panzoomConfig"
+      fxFlexOffset="2em"
+      [panzoomConfig]="panzoomConfig"
+      [initialZoomWidth]="initialZoomWidth"
+      [initialZoomHeight]="initialZoomHeight">
+    </control-bar-classic>
+
+    <!-- pause / resume buttons for monitoring collections -->
+    <div
+      *ngIf="selectedCollectionType == 'monitoring'"
+      class="monitoringBox"
+      fxFlexOffset=".5em"
+      style="color: white;">
+
+      <i
+        *ngIf="!pauseMonitoring"
+        class="fa fa-pause-circle-o fa-4x"
+        (click)="suspendMonitoring()">
+      </i>
+
+      <i
+        *ngIf="pauseMonitoring"
+        class="fa fa-play-circle-o fa-4x"
+        (click)="resumeMonitoring()">
+      </i>
+
+    </div>
+
+    <!-- content count -->
+    <content-count-widget
+      *ngIf="selectedCollectionType"
+      [contentCount]="contentCount">
+    </content-count-widget>
+
+</div>
+
+
+
+<!-- toolbar -->
+<toolbar-widget
+  [contentCount]="contentCount">
+</toolbar-widget>
+
+
+
+<!-- session popup -->
+<classic-session-popup
+  *ngIf="selectedCollectionServiceType"
+  [enabled]="sessionWidgetEnabled"
+  #sessionWidget>
+
+    <meta-widget
+      [session]="popUpSession"
+      [serviceType]="selectedCollectionServiceType"
+      styleClass="popupSessionWidget">
+    </meta-widget>
+
+</classic-session-popup>
+
+
+
+<!-- Modals -->
+<tab-container-modal></tab-container-modal>
+
+<splash-screen-modal></splash-screen-modal>
+
+<preferences-modal></preferences-modal>
+
+<manage-users-modal></manage-users-modal>
+
+<collection-deleted-notify-modal [user]="collectionDeletedUser"></collection-deleted-notify-modal>
+
+<content-details-modal
+  *ngIf="selectedCollectionServiceType"
+  [session]="selectedSession"
+  [content]="selectedContent"
+  [serviceType]="selectedCollectionServiceType"
+  [collectionId]="collectionId"
+  [sessionsAvailable]="sessionsAvailable">
+</content-details-modal>
+
+<ng-container *ngIf="preferences && preferences.serviceTypes">
+
+  <nw-collection-modal *ngIf="preferences.serviceTypes.nw"></nw-collection-modal>
+
+  <sa-collection-modal *ngIf="preferences.serviceTypes.sa"></sa-collection-modal>
+
+</ng-container>
+
+<license-expired-modal></license-expired-modal>

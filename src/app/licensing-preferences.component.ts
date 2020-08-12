@@ -6,28 +6,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'licensing-prefs, licensingprefs',
-  template: `
-
-<table *ngIf="license" style="width: 100%">
-  <tr>
-    <td>
-      <b>License</b>
-    </td>
-    <td>
-      <span [class.licenseValid]="license.valid" [class.licenseInvalid]="!license.valid" style="font-weight: bold;">{{licenseValid}}</span>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <b>Expiry Date</b>
-    </td>
-    <td>
-      <span>{{license.expiryTime | formatTime}}</span>
-    </td>
-  </tr>
-</table>
-
-  `,
+  templateUrl: './licensing-preferences.component.html',
   styles: [`
 
     .licenseInvalid {

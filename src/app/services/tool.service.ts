@@ -195,7 +195,7 @@ export class ToolService {
       return null;
     }
 
-    let numberRegex = /^[\d\.]+$/;
+    const numberRegex = /^[\d\.]+$/;
 
     if ( numberRegex.test(item) ) {
       item = Number(item);

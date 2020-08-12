@@ -6,23 +6,18 @@ import * as moment from 'moment';
 export class FormatSaTimePipe implements PipeTransform {
 
   transform(value: string[] | string, args?: string): any {
-    // log.debug('FormatSaTimePipe: transform(): value:', value);
-    let v = null;
+    let v;
     if (typeof value === 'string') {
       v = parseInt(value.substring(0, value.indexOf(':')), 10);
     }
     else { // array containing a string
       v = parseInt(value[0].substring(0, value[0].indexOf(':')), 10);
     }
-    // log.debug('FormatSaTimePipe: transform(): v:', v);
     if (!v) {
-      return undefined;
+      return;
     }
-    let t = moment(v * 1000);
-    let formatter = 'YYYY/MM/DD HH:mm:ss'; // default formatter
-    if (args) {
-      formatter = args;
-    }
+    const t = moment(v * 1000);
+    const formatter = args !== undefined ? args : 'YYYY/MM/DD HH:mm:ss';
     return t.format(formatter);
   }
 }

@@ -8,19 +8,7 @@ import * as log from 'loglevel';
 @Component({
   selector: 'delete-collection-confirm-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-<modal id="{{id}}" class="delete-collection-confirm-modal" background="true" secondLevel="true" bodyClass="noselect modal-confirm">
-
-  <div>
-    <p>Are you sure you want to delete collection <b>{{collection?.name}}</b> ?</p>
-    <p>This operation cannot be undone.</p>
-  </div>
-  <div style="float: right;">
-    <p-button type="button" (onClick)="deleteConfirmed()" label="Confirm"></p-button>&nbsp;<p-button type="button" (onClick)="cancelDelete()" label="Cancel"></p-button>
-  </div>
-
-</modal>
-`
+  templateUrl: './deletecollection-confirm-modal.component.html'
 })
 
 export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy {

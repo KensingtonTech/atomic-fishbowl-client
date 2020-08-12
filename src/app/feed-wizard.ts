@@ -3,7 +3,7 @@ import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
 import { Subscription } from 'rxjs';
-import { Feed, FeedSchedule } from 'types/feed';
+import { Feed } from 'types/feed';
 import { UUID } from 'angular2-uuid';
 import { SelectItem } from 'primeng/api/selectitem';
 import * as utils from './utils';
@@ -16,7 +16,6 @@ interface ColumnId {
 
 @Component({
   selector: 'feed-wizard-modal',
-  // changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feed-wizard.html',
   styles: [`
 

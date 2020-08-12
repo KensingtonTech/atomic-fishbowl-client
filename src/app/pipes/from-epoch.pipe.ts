@@ -6,9 +6,9 @@ export class FromEpochPipe implements PipeTransform {
 
   transform(value: any, args: string[]): any {
     if (!value) {
-      return undefined;
+      return;
     }
-    let t = new Date(0);
+    const t = new Date(0);
     t.setUTCSeconds(value);
     return t;
   }

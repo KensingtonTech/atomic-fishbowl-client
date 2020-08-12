@@ -7,15 +7,11 @@ import * as moment from 'moment';
 export class FormatTimePipe implements PipeTransform {
 
   transform(value: any, args?: string): any {
-    // log.debug('FormatTimePipe: transform(): value:', value);
     if (!value) {
-      return undefined;
+      return;
     }
-    let t = moment(value * 1000);
-    let formatter = 'YYYY/MM/DD HH:mm:ss'; // default formatter
-    if (typeof args !== 'undefined') {
-      formatter = args;
-    }
+    const t = moment(value * 1000);
+    const formatter = args !== undefined ? args : 'YYYY/MM/DD HH:mm:ss';
     return t.format(formatter);
   }
 }

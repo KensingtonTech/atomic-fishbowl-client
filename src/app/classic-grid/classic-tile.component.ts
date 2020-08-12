@@ -10,32 +10,43 @@ import * as log from 'loglevel';
 @Component({
   selector: 'classic-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-<!-- [@zoom]="animationState" -->
-<!-- @zoom -->
-<!-- (@zoom.done)="onAnimationComplete($event)" -->
-<div class="thumbnail-container" [@zoom]="animationState">
-
-  <img #image class="thumbnail" [src]="imgSource" [hidden]="showHighRes && highResLoaded" (load)="onLowResLoaded()" (error)="onLowResError()" [ngClass]="loadedContentClass" draggable="false" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
-
-  <img #highResImage *ngIf="showHighRes || loadHighRes" [hidden]="!showHighRes || !highResLoaded" [src]="highResImgSource" (load)="onHighResLoaded()" (error)="onHighResError()" class="thumbnail" [ngClass]="loadedContentClass" draggable="false" [attr.sessionId]="content.session" [attr.contentType]="content.contentType" [attr.contentFile]="content.contentFile">
-
-</div>
-`,
+  templateUrl: './classic-tile.component.html',
   animations: [
-    trigger('zoom', [
-      state('initial', style({ visibility: 'hidden' })),
-      // state('start', style({ visibility: 'visible' })),
-      state('zoomIn', style({ visibility: 'visible' }) ),
-      state('zoomOut', style({ display: 'none' }) ),
-      // transition('* => zoomIn', animate(0) ),
-      // transition('initial => start', animate(0) ),
-      transition('initial => zoomIn', [style({ visibility: 'visible' }), useAnimation(zoomIn, { params: { timing: 1 } } )]),
-      transition('zoomOut => zoomIn', [style({ display: 'block' }), useAnimation(zoomIn, { params: { timing: 1 } } )]),
-      transition('* => zoomOut', useAnimation(zoomOut, { params: { timing: 1 } } ) ),
-      // transition(':enter', useAnimation(zoomIn, { params: { timing: .75 } } )),
-      // transition(':leave', useAnimation(zoomOut, { params: { timing: 1 } } ) )
-    ])
+    trigger(
+      'zoom',
+      [
+        state(
+          'initial',
+          style( { visibility: 'hidden' } )
+        ),
+        state(
+          'zoomIn',
+          style( { visibility: 'visible' } )
+        ),
+        state(
+          'zoomOut',
+          style( { display: 'none' } )
+        ),
+        transition(
+          'initial => zoomIn',
+          [
+            style( { visibility: 'visible' } ),
+            useAnimation(zoomIn, { params: { timing: 1 } } )
+          ]
+        ),
+        transition(
+          'zoomOut => zoomIn',
+          [
+            style({ display: 'block' }),
+            useAnimation(zoomIn, { params: { timing: 1 } } )
+          ]
+        ),
+        transition(
+          '* => zoomOut',
+          useAnimation(zoomOut, { params: { timing: 1 } } )
+        ),
+      ]
+    )
   ]
 })
 
@@ -115,9 +126,6 @@ export class ClassicTileComponent implements OnInit, OnChanges {
         endFunc();
       }
     }, 0) );
-    // this.zone.runOutsideAngular( () => this.imageRef.nativeElement.onload(this.onLowResLoaded) );
-    // this.zone.runOutsideAngular( () => this.highResImageRef.nativeElement.addEventListener('onload', this.onHighResLoaded() ) );
-    // this.animationState = 'zoomIn';
   }
 
 
@@ -130,23 +138,15 @@ export class ClassicTileComponent implements OnInit, OnChanges {
         isFirstChanges = false;
       }
     });
-    // if ('showHighRes' in values && values.showHighRes.)
     if (isFirstChanges) {
       return;
     }
     if ('hide' in values && values.hide.currentValue === true) {
       this.el.nativeElement.classList.add('hidden');
-      // this.animationState = 'zoomOut';
     }
     if ('hide' in values && values.hide.currentValue === false) {
       this.el.nativeElement.classList.remove('hidden');
-      // this.animationState = 'zoomIn';
     }
-    /*if ('showHighRes' in values && values.showHighRes.currentValue !== values.showHighRes.previousValue) {
-      log.debug('ClassicTileComponent: onChanges(): showHighRes changing.  New value:', values.showHighRes.currentValue);
-    }*/
-    // this.changeDetectionRef.reattach();
-    // this.zone.runOutsideAngular( () => setTimeout( () => this.changeDetectionRef.detach(), 0) );
   }
 
 
@@ -163,15 +163,10 @@ export class ClassicTileComponent implements OnInit, OnChanges {
 
   onLowResLoaded() {
     // log.debug('ClassicTileComponent: onLowResLoaded():');
-    // this.changeDetectionRef.reattach();
-    // this.animationState = 'start';
-    // this.changeDetectionRef.markForCheck();
-    // this.changeDetectionRef.detectChanges();
     this.animationState = 'zoomIn';
     this.loadedContentClass = this.contentClass;
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
-    // this.zone.runOutsideAngular( () => setTimeout( () => this.changeDetectionRef.detach(), 0) );
   }
 
 
@@ -179,10 +174,8 @@ export class ClassicTileComponent implements OnInit, OnChanges {
   onHighResLoaded() {
     // log.debug('ClassicTileComponent: onHighResLoaded():');
     this.highResLoaded = true;
-    // this.changeDetectionRef.reattach();
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
-    // this.zone.runOutsideAngular( () => setTimeout( () => this.changeDetectionRef.detach(), 0) );
   }
 
 

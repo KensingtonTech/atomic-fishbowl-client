@@ -7,22 +7,7 @@ import * as log from 'loglevel';
 @Component({
   selector: 'tab-container-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-<modal id="{{id}}" (opened)="onOpen()" (closed)="onClose()" [background]="true" modalClass="tab-container-modal" bodyClass="tab-container-modal-body" bodyStyle="background-color: white;">
-
-      <p-tabView [activeIndex]="selectedTabIndex" (onChange)="onTabChange($event)">
-        <p-tabPanel header="Collections" headerStyleClass="noselect nooutline">
-          <collections></collections>
-        </p-tabPanel>
-        <p-tabPanel header="Hash Feeds" headerStyleClass="noselect nooutline">
-          <feeds></feeds>
-        </p-tabPanel>
-      </p-tabView>
-
-      <div (click)="closeModal()" class="fa fa-times-circle-o fa-2x closeButton"></div>
-
-</modal>
-  `,
+  templateUrl: './tabcontainer-modal.component.html',
   styles: [`
 
   .ui-tabview {

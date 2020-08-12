@@ -4,20 +4,7 @@ import { ToolService } from 'services/tool.service';
 
 @Component({
   selector: 'collection-deleted-notify-modal',
-  template: `
-<modal id="{{id}}" class="confirm-feed-delete-modal" background="true" secondLevel="true" bodyClass="noselect modal-confirm">
-  <ng-container *ngIf="user">
-
-    Ever so sorry, but your chosen collection has been deleted by user <b>{{user}}</b><br>
-
-    <div style="float: right; margin-top: 0.789473684em;">
-      <p-button type="button" (onClick)="closeModal()" label="OK"></p-button>
-    </div>
-
-  </ng-container>
-</modal>
-  `,
-  styles: [` `]
+  templateUrl: './collection-deleted-notify-modal.component.html'
 })
 
 export class CollectionDeletedNotifyModalComponent {

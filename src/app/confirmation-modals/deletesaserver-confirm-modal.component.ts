@@ -7,20 +7,7 @@ import { DataService } from 'services/data.service';
 
 @Component({
   selector: 'confirm-saserver-delete-modal',
-  template: `
-<modal id="{{id}}" class="confirm-saserver-delete-modal" (opened)="onOpen()" background="true" secondLevel="true" bodyClass="noselect modal-confirm">
-  <div *ngIf="apiServer" style="text-align: center;">
-    <p>Are you sure you want to delete SA service <b>{{apiServer.friendlyName}}</b> ?</p>
-  </div>
-  <div *ngIf="error">
-    There was an error when deleting the collection: {{error}}
-  </div>
-  <div style="float: right;">
-    <p-button (onClick)="confirmDelete()" label="Confirm"></p-button>
-    <p-button (onClick)="cancelDelete()" label="Cancel"></p-button>
-  </div>
-</modal>
-  `
+  templateUrl: './deletesaserver-confirm-modal.component.html'
 })
 
 export class DeleteSaServerConfirmModalComponent implements OnInit, OnDestroy {

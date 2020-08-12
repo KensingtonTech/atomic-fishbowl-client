@@ -1,0 +1,8 @@
+<div
+  [@faderAnimation]="enabledTrigger"
+  (@faderAnimation.done)="onAnimationDone($event)"
+  (@faderAnimation.start)="onAnimationStart($event)">
+
+    <ng-content></ng-content>
+
+</div>

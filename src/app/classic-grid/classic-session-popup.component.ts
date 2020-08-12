@@ -3,22 +3,17 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 
 @Component( {
   selector: 'classic-session-popup',
-  template: `
-<div [@faderAnimation]="enabledTrigger" (@faderAnimation.done)="onAnimationDone($event)" (@faderAnimation.start)="onAnimationStart($event)">
-
-  <ng-content></ng-content>
-
-</div>
-`,
-
+  templateUrl: './classic-session-popup.component.html',
   animations: [
-    trigger('faderAnimation', [
-      state('disabled', style({ opacity: 0 })),
-      state('enabled',  style({ opacity: 1 })),
-      transition('* => *', animate('.25s'))
-    ])
+    trigger(
+      'faderAnimation',
+      [
+        state('disabled', style({ opacity: 0 })),
+        state('enabled',  style({ opacity: 1 })),
+        transition('* => *', animate('.25s'))
+      ]
+    )
   ]
-
 } )
 
 export class ClassicSessionPopupComponent implements OnInit, OnChanges {

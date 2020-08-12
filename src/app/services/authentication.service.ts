@@ -56,7 +56,7 @@ export class AuthenticationService {
 
   login(user: User, socketId): Promise<boolean> {
     // called by login-form
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.dataService.apiUrl + '/login?socketId=' + socketId, user, { headers } )
                 .toPromise()

@@ -1,0 +1,36 @@
+<div *ngIf="isMobile">
+  So sorry, but mobile devices aren't supported by Atomic Fishbowl.
+</div>
+
+<ng-container *ngIf="!isMobile">
+
+  <eula *ngIf="!eulaAccepted"></eula>
+
+  <ng-container *ngIf="eulaAccepted">
+
+    <div
+      *ngIf="serverReachable"
+      style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden;">
+
+        <login-form *ngIf="credentialsChecked && !loggedIn"></login-form>
+
+        <ng-container *ngIf="loggedIn && socketUpgraded">
+
+          <router-outlet></router-outlet>
+
+          <img
+            class="noselect"
+            src="/resources/logo.png"
+            style="position: absolute; left: 0.526315789em; bottom: 0.789473684em;">
+
+        </ng-container>
+
+    </div>
+
+    <serverdown-modal></serverdown-modal>
+
+    <logged-out-notify-modal></logged-out-notify-modal>
+    
+  </ng-container>
+
+</ng-container>

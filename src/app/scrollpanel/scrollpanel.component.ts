@@ -3,11 +3,7 @@ import { Subscription, Subject } from 'rxjs';
 
 @Component({
     selector: 'p-scrollPanel-custom',
-    template: `
-<div #container [ngClass]="'ui-scrollpanel ui-widget ui-widget-content ui-corner-all'" [ngStyle]="style" [class]="styleClass">
-  <div #yBar class="ui-scrollpanel-bar ui-scrollpanel-bar-y"></div>
-</div>
-`
+    templateUrl: './scrollpanel.component.html'
 })
 
 
@@ -17,8 +13,6 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
   @Input() styleClass: string;
 
-  _scrollTop = 0;
-
   @Input() scrollbarMovedSubject: Subject<number>; // emits
 
   @Input() scrollTopChangedSubject: Subject<number>; // receives
@@ -26,6 +20,8 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
   @Input() containerHeightChangedSubject: Subject<number>; // receives
 
   @Input() contentHeightChangedSubject: Subject<number>; // receives
+
+  _scrollTop = 0;
 
   _containerHeight = 0;
 

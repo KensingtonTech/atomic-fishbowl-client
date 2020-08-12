@@ -1,0 +1,213 @@
+<modal
+  id="{{id}}"
+  (opened)="onOpen()"
+  (closed)="onClosed()"
+  modalClass="content-details-modal"
+  bodyClass="content-details-modal-body"
+  bodyStyle="background-color: rgba(128, 128, 128, .95);">
+
+    <div
+      class="grid-container"
+      style="height: 100%;">
+
+        <!-- Top Bar / Menu Bar -->
+        <div
+          *ngIf="isOpen && content"
+          class="menubar noselect"
+          style="padding: .5em; background-color: rgba(0, 0, 0, .8); color: white;">
+
+            <!-- filename -->
+            <div style="display: inline; float: left; white-space: nowrap; color: white;">
+
+              &nbsp;&nbsp;
+              
+              <span
+                class="fa fa-lg"
+                style="vertical-align: middle;"
+                [ngClass]="iconClass">
+              </span>
+              
+              &nbsp;
+
+              <span class="selectable">
+                {{utils.pathToFilename(content.contentFile)}}
+              </span>
+
+              <!-- disabled download link -->
+              <!--
+              <a
+                (click)="downloadLinkClicked(content.contentFile)"
+                style="display: inline-block; vertical-align: middle;"
+                class="fa fa-arrow-circle-o-down fa-2x"
+                pTooltip="Download Document"
+                showDelay="750">
+              </a>
+              
+              <a
+                style="display: inline-block; vertical-align: middle;"
+                class="fa fa-arrow-circle-o-down fa-2x"
+                pTooltip="Download Document"
+                showDelay="750"
+                href="{{content.contentFile}}">
+              </a>
+              -->
+
+            </div>
+
+
+            <div style="display: inline; float: right;">
+
+              <!-- zoom, rotation, next / previous controls -->
+              <div
+                *ngIf="['pdf', 'office'].includes(content.contentType)"
+                class="noselect"
+                style="display: inline;">
+
+                  <!-- zoom level -->
+                  <span>
+
+                    <b>Zoom&nbsp;</b>
+
+                    <p-dropdown
+                      name="pdfZoomSelector"
+                      [options]="zoomLevels"
+                      [(ngModel)]="pdfZoom"
+                      (click)="onZoomLevelClicked()"
+                      (onChange)="onZoomLevelChange($event)"
+                      [ngModelOptions]="{standalone: true}">
+                    </p-dropdown>
+
+                    &nbsp;&nbsp;
+
+                  </span>
+
+                  <!-- rotate button -->
+                  <span>
+
+                    <i
+                      (click)="rotate()"
+                      class="fa fa-repeat fa-lg"
+                      style="vertical-align: middle;">
+                    </i>
+                    
+                    &nbsp;&nbsp;{{numPages}} pages&nbsp;&nbsp;
+
+                  </span>
+
+              </div>
+
+              <!-- display archive filename, archive icon and archive type -->
+              <div
+                *ngIf="content.fromArchive || content.isArchive"
+                style="display: inline; background-color: rgba(0,0,0,0.75); color: white; border-radius: 0.263157895em; padding: 0.210526316em;">
+
+                  <span
+                    *ngIf="content.isArchive"
+                    class="selectable">
+                      {{utils.pathToFilename(content.contentFile)}}&nbsp;
+                  </span>
+
+                <span
+                  *ngIf="content.fromArchive"
+                  class="selectable">
+                    {{utils.pathToFilename(content.archiveFilename)}}&nbsp;
+                </span>
+
+                <span
+                  *ngIf="['encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarEntry', 'encryptedRarTable'].includes(content.contentType)"
+                  class="fa fa-lock fa-lg">
+                    &nbsp;
+                </span>
+
+                <span class="fa fa-file-archive-o fa-lg">
+                  &nbsp;
+                </span>
+
+                <span class="selectable">
+                  {{content.archiveType | allCaps}}
+                </span>
+                
+                &nbsp;&nbsp;&nbsp;&nbsp;
+
+              </div>
+
+              <!-- next / previous buttons -->
+              <span
+                class="fa fa-arrow-circle-o-left fa-2x enabled"
+                style="vertical-align: bottom;"
+                [class.disabled]="!sessionsAvailable.previous"
+                (click)="onPreviousSessionArrowClicked()"
+                pTooltip="Previous session">
+              </span>
+              
+              &nbsp;&nbsp;
+              
+              <span
+                class="fa fa-arrow-circle-o-right fa-2x enabled"
+                style="vertical-align: bottom;"
+                [class.disabled]="!sessionsAvailable.next"
+                (click)="onNextSessionArrowClicked()"
+                pTooltip="Next session">
+              </span>
+
+              &nbsp;&nbsp;&nbsp;
+
+            </div>
+
+        </div>
+
+        <!-- content viewers -->
+        <div
+          *ngIf="content"
+          class="viewers"
+          style="overflow: auto;">
+
+            <!-- non-pdf / office viewer -->
+            <content-viewer
+              *ngIf="!(['pdf', 'office'].includes(content.contentType)); else pdfViewer"
+              [collectionId]="collectionId"
+              [content]="content">
+            </content-viewer>
+
+            <!-- pdf / office viewer -->
+            <ng-template #pdfViewer>
+
+              <div style="position: relative; width: 100%; height: 100%; overflow-x: auto; overflow-y: auto; white-space: nowrap;">
+
+                <pdf-viewer
+                  [rotation]="rotation"
+                  [src]="pdfFile"
+                  [zoom]="pdfZoom"
+                  [(page)]="selectedPage"
+                  (after-load-complete)="absorbPdfInfo($event)"
+                  [original-size]="false"
+                  [show-all]="true"
+                  (error)="onPdfViewerError($event)"
+                  style="display: block; width: 100%; margin: 0 auto;">
+                </pdf-viewer>
+
+              </div>
+
+            </ng-template>
+
+        </div>
+
+        <!-- meta viewer -->
+        <div
+          class="meta-widget"
+          *ngIf="isOpen"
+          style="padding-left: 0.263157895em; box-sizing: border-box; background-color: rgba(0, 0, 0, .8);">
+
+            <meta-widget
+              [session]="session"
+              [serviceType]="serviceType"
+              styleClass="pdfViewerSessionWidget"
+              [enableCloseButton]="true"
+              (closeButtonClicked)="onCloseClicked()">
+            </meta-widget>
+
+        </div>
+
+    </div>
+
+</modal>

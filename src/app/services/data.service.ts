@@ -351,7 +351,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   addNwServer(nwserver: NwServer): Promise<any> {
     log.debug('DataService: addNwServer()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/nwserver', nwserver, { headers } )
                 .toPromise()
@@ -364,7 +364,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   editNwServer(nwserver: NwServer): Promise<any> {
     log.debug('DataService: editNwServer()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/nwserver/edit', nwserver, { headers } )
                 .toPromise()
@@ -398,7 +398,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
     addSaServer(saserver: SaServer): Promise<any> {
       log.debug('DataService: addSaServer()');
-      let headers = new HttpHeaders().set('Content-Type', 'application/json');
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
       return this.http
                   .post(this.apiUrl + '/saserver', saserver, { headers } )
                   .toPromise()
@@ -411,7 +411,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
     editSaServer(saserver: SaServer): Promise<any> {
       log.debug('DataService: editSaServer()');
-      let headers = new HttpHeaders().set('Content-Type', 'application/json');
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
       return this.http
                   .post(this.apiUrl + '/saserver/edit', saserver, { headers } )
                   .toPromise()
@@ -424,7 +424,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   ///////////////////// PREFERENCES /////////////////////
 
   setPreferences(prefs: any): Promise<void> {
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                     .post(this.apiUrl + '/preferences', prefs, { headers } )
                     .toPromise()
@@ -437,7 +437,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   addCollection(collection: any):  Promise<any> {
     log.debug('DataService: addCollection():', collection.id);
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/collection', collection, { headers } )
                 .toPromise()
@@ -450,7 +450,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   editCollection(collection: any):  Promise<any> {
     log.debug('DataService: editCollection():', collection.id);
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/collection/edit', collection, { headers } )
                 .toPromise()
@@ -523,7 +523,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   addFeedManual(feed: Feed, file: File): Promise<any> {
     log.debug('DataService: addFeedManual()');
-    let formData = new FormData();
+    const formData = new FormData();
     formData.append('model', JSON.stringify(feed));
     formData.append('file', file);
     return this.http
@@ -540,7 +540,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   editFeedWithoutFile(feed: Feed): Promise<any> {
     log.debug('DataService: editFeedWithoutFile()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/feed/edit/withoutfile', feed, { headers } )
                 .toPromise()
@@ -555,7 +555,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   editFeedWithFile(feed: Feed, file: File): Promise<any> {
     log.debug('DataService: editFeedWithFile()');
-    let formData = new FormData();
+    const formData = new FormData();
     formData.append('model', JSON.stringify(feed));
     formData.append('file', file);
     return this.http
@@ -572,7 +572,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   addFeedScheduled(feed: Feed): Promise<any> {
     log.debug('DataService: addFeedScheduled()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/feed/scheduled', feed, { headers } )
                 .toPromise()
@@ -620,7 +620,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   addUser(user: any): Promise<any> {
     log.debug('DataService: addUser()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/user', user, { headers } )
                 .toPromise()
@@ -634,7 +634,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   updateUser(user: any): Promise<any> {
     log.debug('DataService: updateUser()');
-    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
     return this.http
                 .post(this.apiUrl + '/user/edit', user, { headers } )
                 .toPromise()
@@ -666,7 +666,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
           .get(uri, {responseType: 'blob'})
           .toPromise()
           .then( (data: Blob) => {
-            let url = window.URL.createObjectURL(data);
+            const url = window.URL.createObjectURL(data);
             this.blobTable[uri] = url;
             return url;
           })
@@ -678,8 +678,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   resetBlobs() {
     log.debug('DataService: resetBlobs()');
     Object.entries(this.blobTable).forEach( entry => {
-      let origUrl = entry.shift();
-      let blobUri = entry.shift();
+      const blobUri = entry.shift();
       window.URL.revokeObjectURL(blobUri);
     });
     this.blobTable = {};
@@ -689,7 +688,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   removeBlob(origUrl: string) {
     // log.debug('DataService: removeBlob()');
-    let blobUri = this.blobTable[origUrl];
+    const blobUri = this.blobTable[origUrl];
     window.URL.revokeObjectURL(blobUri);
     delete this.blobTable[origUrl];
   }

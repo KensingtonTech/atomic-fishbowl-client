@@ -1,0 +1,32 @@
+<div
+  class="thumbnail-container"
+  [@zoom]="animationState">
+
+    <img
+      #image
+      class="thumbnail"
+      [src]="imgSource"
+      [hidden]="showHighRes && highResLoaded"
+      (load)="onLowResLoaded()"
+      (error)="onLowResError()"
+      [ngClass]="loadedContentClass"
+      draggable="false"
+      [attr.sessionId]="content.session"
+      [attr.contentType]="content.contentType"
+      [attr.contentFile]="content.contentFile">
+
+    <img
+      #highResImage
+      *ngIf="showHighRes || loadHighRes"
+      [hidden]="!showHighRes || !highResLoaded"
+      [src]="highResImgSource"
+      (load)="onHighResLoaded()"
+      (error)="onHighResError()"
+      class="thumbnail"
+      [ngClass]="loadedContentClass"
+      draggable="false"
+      [attr.sessionId]="content.session"
+      [attr.contentType]="content.contentType"
+      [attr.contentFile]="content.contentFile">
+
+</div>

@@ -1,0 +1,71 @@
+<div
+  style="height: auto; overflow: hidden;"
+  (mousedown)="onMouseDown($event)"
+  (mouseup)="onMouseUp($event)">
+
+    <div
+      #slider
+      [@slideInOut]="collapsedState"
+      style="overflow: hidden;">
+      
+        <ul #itemList>
+
+          <!-- first value - this is what is used when there is only one value, or if multiple values, it is the value shown when collapsed -->
+          <li
+            #firstListItem
+            [class.bold]="collapsedState == 'expanded'"
+            class="firstItems wrap"
+            style="display: block;"
+            [class.multipleValues]="additionalDisplayedItems.length !== 0">
+
+              <!-- expansion caret -->
+              <span
+                *ngIf="additionalDisplayedItems.length !== 0"
+                class="fa fa-lg-mod fa-fw noselect"
+                [class.fa-caret-right]="collapsedState == 'collapsed'"
+                [class.fa-caret-down]="collapsedState != 'collapsed'"
+                style="color: white;">
+                  &nbsp;
+              </span>
+
+              <!-- regular meta -->
+              <span
+                *ngIf="key !== 'stop_time' && key != 'start_time'"
+                style="overflow-wrap: break-word;"
+                [class.multiValues]="additionalDisplayedItems.length !== 0 && collapsedState == 'collapsed'">
+                  {{firstItem}}
+              </span>
+
+              <!-- sa time meta -->
+              <span
+                *ngIf="key === 'stop_time' || key === 'start_time'"
+                [class.multiValues]="additionalDisplayedItems.length !== 0 && collapsedState === 'collapsed'">
+                  {{firstItem | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}
+              </span>
+
+          </li>
+          
+          <!-- all other values - for when expanded -->
+          <li
+            *ngFor="let item of additionalDisplayedItems"
+            class="bold wrap">
+            
+              <!-- indent -->
+              <span
+                *ngIf="additionalDisplayedItems.length !== 0"
+                class="fa fa-lg-mod fa-fw">
+                  &nbsp;
+              </span>
+
+              <!-- value -->
+              <span class="expanded">
+                {{item}}
+              </span>
+
+          </li>
+
+        </ul>
+
+    </div>
+
+</div>

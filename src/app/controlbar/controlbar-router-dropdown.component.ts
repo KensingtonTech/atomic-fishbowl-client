@@ -12,22 +12,7 @@ interface RouterOption {
 
 @Component({
   selector: 'router-dropdown',
-  template: `
-<ng-container *ngIf="selectedRoute">
-
-  <!-- collapsed -->
-  <span *ngIf="!selectionExpanded" (click)="expandRouterOptions()" [ngClass]="selectedRoute.class" class="routerIcon"></span>
-
-  <!-- expanded -->
-  <div *ngIf="selectionExpanded" (clickOutside)="collapseRouterOptions()">
-    <div *ngFor="let option of routerOptions" style="margin-bottom: .2em" (click)="routeSelected(option)">
-      <span class="routerIcon {{option.class}}" [class.deselect]="selectedRoute.name == option.name"></span>&nbsp;<span style="color: white; vertical-align: 50%;">{{option.tooltip}}</span>
-    </div>
-  </div>
-
-</ng-container>
-  `,
-  styles: [ ],
+  templateUrl: './controlbar-router-dropdown.component.html'
 })
 
 export class RouterDropdownComponent implements OnInit {

@@ -6,22 +6,7 @@ import * as log from 'loglevel';
 @Component({
   selector: 'control-bar-classic',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-<div class="noselect">
-
-  <router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown>
-
-  <span *ngIf="!routerDropdownOpen" toggleFullscreen class="icon fa fa-desktop fa-2x fa-fw"></span>
-
-  <span *ngIf="!routerDropdownOpen" (click)="zoomToFit()" class="icon fa fa-home fa-2x fa-fw"></span>
-
-  <span *ngIf="!routerDropdownOpen" (click)="zoomOut()" class="icon fa fa-search-minus fa-2x fa-fw"></span>
-
-  <span *ngIf="!routerDropdownOpen" (click)="zoomIn()" class="icon fa fa-search-plus fa-2x fa-fw"></span>
-
-</div>
-`,
-  styles: [ ]
+  templateUrl: './controlbar-classic.component.html'
 })
 
 export class ClassicControlBarComponent implements OnInit, OnDestroy {

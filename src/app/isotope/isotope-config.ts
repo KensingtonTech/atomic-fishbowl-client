@@ -44,49 +44,65 @@ export class IsotopeConfig {
     reloadItems: null
   });
 
-  constructor( options: any = null ) {
+
+
+  constructor( options?: any ) {
 
     if (!options) {
       return;
     }
+
     if ('layoutMode' in options) {
       this.layoutMode = options.layoutMode;
     }
+
     if ('itemSelector' in options) {
       this.itemSelector = options.itemSelector;
     }
+
     if ('masonry' in options) {
       this.masonry = options.masonry;
     }
+
     if ('packery' in options) {
       this.packery = options.packery;
     }
+
     if ('percentPosition' in options) {
       this.percentPosition = options.percentPosition;
     }
+
     if ('stamp' in options) {
       this.stamp = options.stamp;
     }
+
     if ('originLeft' in options) {
       this.originLeft = options.originLeft;
     }
+
     if ('originTop' in options) {
       this.originTop = options.originTop;
     }
+
     if ('containerStyle' in options) {
       this.containerStyle = options.containerStyle;
     }
+
     if ('transitionDuration' in options) {
       this.transitionDuration = options.transitionDuration;
     }
+
     if ('resize' in options) {
       this.resize = options.resize;
     }
+
     if ('initLayout' in options) {
       this.initLayout = options.initLayout;
     }
 
   }
+
+
 
   copy(): IsotopeConfig {
     let newOption = new IsotopeConfig();

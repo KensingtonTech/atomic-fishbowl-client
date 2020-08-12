@@ -6,30 +6,11 @@ import * as log from 'loglevel';
 
 @Component({
   selector: 'modal',
-
-  template:  `
-<!-- (@faderAnimation.done)="onAnimationDone($event)" -->
-<div #modalRoot [@faderAnimation]="enabledTrigger" (@faderAnimation.done)="onAnimationDone($event)">
-
-  <!-- background -->
-  <div *ngIf="background" class="modal-background" [style]="bypassStyleSanitizer(backgroundStyle)" [ngClass]="backgroundClass"></div>
-
-  <!-- modal container - takes the entire page -->
-  <div class="modal" [ngClass]="modalClass">
-
-    <!-- modal body -->
-    <div class="modal-body" [ngClass]="bodyClass" [style]="bypassStyleSanitizer(bodyStyle)">
-      <ng-content></ng-content>
-    </div>
-
-  </div>
-
-</div>`,
-
+  templateUrl: './modal.component.html',
   animations: [
     trigger('faderAnimation', [
-      state('enabled',  style({ opacity: 1, display: 'block' })),
-      state('disabled', style({ opacity: 0, display: 'none' })),
+      state('enabled',  style( { opacity: 1, display: 'block' } )),
+      state('disabled', style( { opacity: 0, display: 'none' } )),
       transition('enabled => disabled', [animate('.25s')]),
       transition('disabled => enabled', [style({display: 'block'}), animate('.25s')])
     ])

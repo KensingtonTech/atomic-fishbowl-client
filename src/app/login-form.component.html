@@ -1,0 +1,93 @@
+<div>
+
+  <mat-card>
+
+    <form #addCollectionForm="ngForm">
+
+      <mat-card-content class="spacer">
+
+        <div class="bigspacer">
+
+          <mat-card-title style="font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;">
+
+            <span>
+
+              <b>Atomic Fishbowl Login</b>
+
+            </span>
+            
+            <img
+              style="width: 4em; float: right;"
+              src="resources/logo-blacktext.png">
+
+          </mat-card-title>
+
+        </div>
+
+        <div class="spacer">
+
+          <mat-form-field class="full-width">
+
+            <input
+              matInput
+              size="80"
+              color="accent"
+              #userName
+              [(ngModel)]="username"
+              id="user"
+              type="text"
+              [ngModelOptions]="{standalone: true}"
+              placeholder="Username"
+              autocomplete="username">
+
+          </mat-form-field>
+
+        </div>
+
+        <div>
+
+          <mat-form-field class="full-width">
+
+            <input
+              matInput size="80"
+              [(ngModel)]="password"
+              id="password"
+              type="password"
+              [ngModelOptions]="{standalone: true}"
+              placeholder="Password"
+              autocomplete="current-password">
+
+          </mat-form-field>
+
+        </div>
+
+      </mat-card-content>
+
+      <div>
+
+        <mat-card-actions align="start">
+
+          <button
+            mat-raised-button
+            color="accent"
+            (click)="login()"
+            class="btn waves-effect waves-light"
+            type="submit"
+            [disabled]="username.length === 0 || password.length === 0 || loginSubmitted"
+            name="action">
+              Login
+          </button>
+          
+          &nbsp;&nbsp;
+          
+          <span>{{errorMsg}}</span>
+
+        </mat-card-actions>
+
+      </div>
+
+    </form>
+
+  </mat-card>
+
+</div>
