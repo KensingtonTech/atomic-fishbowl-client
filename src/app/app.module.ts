@@ -82,8 +82,6 @@ import { SaCollectionModalComponent } from './sacollection-modal.component';
 import { DeleteSaServerConfirmModalComponent } from './confirmation-modals/deletesaserver-confirm-modal.component';
 import { CollectionDeletedNotifyModalComponent } from './collection-deleted-notify-modal.component';
 import { EulaComponent } from './eula.component';
-import { LicensingPreferencesComponent } from './licensing-preferences.component';
-import { LicenseExpiredModalComponent } from './license-expired-modal.component';
 import { ContentViewerComponent } from './viewers/content-viewer.component';
 import { MetaWidgetComponent } from './viewers/meta-widget.component';
 import { ContentCountWidgetComponent } from './viewers/content-count-widget.component';
@@ -184,9 +182,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   DeleteSaServerConfirmModalComponent,
                   CollectionDeletedNotifyModalComponent,
                   EulaComponent,
-                  LicensingPreferencesComponent,
                   BoolToStringPipe,
-                  LicenseExpiredModalComponent,
                   ContentViewerComponent,
                   ContentCountWidgetComponent,
                   NewEditUserModalComponent,

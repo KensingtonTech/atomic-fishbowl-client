@@ -7,7 +7,6 @@ import { ContentCount } from 'types/contentcount';
 import { ContentMask } from 'types/contentmask';
 import { UseCase } from 'types/usecase';
 import { Subscription } from 'rxjs';
-import { License } from 'types/license';
 import { AbstractGrid } from './abstract-grid.class';
 import * as utils from './utils';
 import * as log from 'loglevel';
@@ -56,7 +55,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
   workerProgress: number = null;
   workerLabel: string = null;
   infoTooltipText = '';
-  license: License;
 
 
   // Subscriptions
@@ -81,28 +79,12 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.dataService.noopCollection.subscribe( () => this.onNoop() ));
 
     this.subscriptions.add(this.dataService.workerProgress.subscribe( progress => this.onWorkerProgress(progress) ));
-
-    this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) ));
-
   }
 
 
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-  }
-
-
-
-  onLicenseChanged(license: License) {
-    // log.debug('ToolbarWidgetComponent: onLicenseChanged(): license:', license);
-    if (!license) {
-      return;
-    }
-    this.license = license;
-    // we need to run change detection as updates are out-of-band from the parent
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
   }
 
 
@@ -450,9 +432,6 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
 
   onEditCollectionClick(): void {
     log.debug('CollectionsModalComponent: onEditCollectionClick(): collection:', this.selectedCollection);
-    if (!this.license.valid) {
-      return;
-    }
     if (this.selectedCollection.serviceType === 'nw') {
       this.toolService.editNwCollectionNext.next(this.selectedCollection);
       this.toolService.executeCollectionOnEdit.next(true);

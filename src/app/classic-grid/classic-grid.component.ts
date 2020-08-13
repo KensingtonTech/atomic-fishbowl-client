@@ -10,7 +10,6 @@ import { ContentMask } from 'types/contentmask';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import { Search } from 'types/search';
-import { License } from 'types/license';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
 import { trigger, state, transition, query, animateChild } from '@angular/animations';
 import { Point } from 'types/point';
@@ -121,10 +120,6 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   // monitoring collections
   pauseMonitoring = false;
 
-  // license
-  license: License;
-  private licenseChangedFunction = this.onLicenseChangedInitial;
-
 
 
 
@@ -160,14 +155,9 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.toolService.lastRoute = 'classicGrid';
     this.toolService.setPreference('lastRoute', 'classicGrid');
 
-    this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.licenseChangedFunction(license) ));
-
     // New startup code
     this.subscriptions.add(this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
-      if (!this.license.valid) {
-        this.modalService.open(this.toolService.licenseExpiredModalId);
-      }
-      else if (!this.toolService.urlParametersLoaded) {
+      if (!this.toolService.urlParametersLoaded) {
         this.modalService.open(this.toolService.tabContainerModalId);
       }
     }));
@@ -248,41 +238,12 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
       // open the tab container on subsequent logout/login combos, if a collection wasn't previously selected
-      if (!this.license.valid) {
-        this.modalService.open(this.toolService.licenseExpiredModalId);
-      }
-      else if (this.toolService.urlParametersLoaded) {
+      if (this.toolService.urlParametersLoaded) {
         this.modalService.open(this.toolService.tabContainerModalId);
       }
     }
     else {
       log.debug('ClassicGridComponent: ngAfterViewInit(): not loading the splash screen');
-    }
-  }
-
-
-
-  onLicenseChangedInitial(license: License) {
-    log.debug('ClassicGridComponent: onLicenseChangedInitial(): license:', license);
-    if (!license) {
-      return;
-    }
-    this.license = license;
-    this.licenseChangedFunction = this.onLicenseChangedSubsequent; // change the callback after first load
-  }
-
-
-
-  onLicenseChangedSubsequent(license: License) {
-    log.debug('ClassicGridComponent: onLicenseChangedSubsequent(): license:', license);
-    this.license = license;
-    if (!this.license.valid) {
-      this.modalService.closeAll();
-      if (this.selectedCollectionType !== 'fixed' ||  (this.selectedCollectionType === 'fixed' && !['complete', 'building'].includes(this.collectionState)) ) {
-        this.dataService.noopCollection.next(); // this will clear out the toolbar and all selected collection data
-        this.noopCollection();
-      }
-      this.modalService.open(this.toolService.licenseExpiredModalId);
     }
   }
 

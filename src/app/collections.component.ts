@@ -6,7 +6,6 @@ import { Subscription } from 'rxjs';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import { DragulaService } from 'ng2-dragula';
-import { License } from 'types/license';
 import { MenuItem } from 'primeng/api';
 import { Menu } from 'primeng/menu';
 import * as log from 'loglevel';
@@ -169,7 +168,6 @@ export class CollectionsComponent implements OnInit, OnDestroy {
   preferences: Preferences = null;
   filterEnabled = false;
   private editing = false;
-  license: License;
   private uncheckedClass = 'fa fa-square-o';
   private checkedClass = 'fa fa-check-square-o';
   filterMenuItems: MenuItem[] = [
@@ -228,8 +226,6 @@ export class CollectionsComponent implements OnInit, OnDestroy {
      this.subscriptions.add(this.dataService.nwServersChanged.subscribe( apiServers => this.onNwServersChanged(apiServers) ));
      this.subscriptions.add(this.dataService.saServersChanged.subscribe( apiServers => this.onSaServersChanged(apiServers) ));
 
-     this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.onLicenseChanged(license) ));
-
      this.subscriptions.add(this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) ));
 
      this.subscriptions.add(this.dataService.noopCollection.subscribe( () => {
@@ -260,18 +256,6 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       return;
     }
     this.selectedCollection = utils.deepCopy(collection);
-    this.changeDetectionRef.markForCheck();
-    this.changeDetectionRef.detectChanges();
-  }
-
-
-
-  onLicenseChanged(license: License) {
-    // log.debug('CollectionsComponent: onLicenseChanged(): license:', license);
-    if (!license) {
-      return;
-    }
-    this.license = license;
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
   }
@@ -505,9 +489,6 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
   onEditCollectionClick(collection: Collection): void {
     log.debug('CollectionsComponent: onEditCollectionClick(): collection:', collection);
-    if (!this.license.valid) {
-      return;
-    }
     if (collection.serviceType === 'nw') {
       this.toolService.editNwCollectionNext.next(collection);
       this.toolService.executeCollectionOnEdit.next(false);

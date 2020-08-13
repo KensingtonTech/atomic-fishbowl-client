@@ -12,7 +12,6 @@ import { Search } from 'types/search';
 import { Subscription, Subject } from 'rxjs';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
-import { License } from 'types/license';
 import * as utils from '../utils';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
 import { AbstractGrid } from '../abstract-grid.class';
@@ -168,10 +167,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   sessionsAvailable: SessionsAvailable = { previous: false, next: false };
   mouseButtonDown = false;
 
-  // license
-  license: License;
-  private licenseChangedFunction = this.onLicenseChangedInitial;
-
   // Text Area
   showTextArea = true;
 
@@ -215,13 +210,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: ngOnInit(): toolService.urlParametersLoaded:', this.toolService.urlParametersLoaded);
     log.debug('MasonryGridComponent: ngOnInit(): toolService.queryParams:', this.toolService.queryParams);
 
-    this.subscriptions.add(this.dataService.licensingChanged.subscribe( license =>  this.licenseChangedFunction(license) ));
-
     this.subscriptions.add(this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
-      if (!this.license.valid) {
-        this.modalService.open(this.toolService.licenseExpiredModalId);
-      }
-      else if (!this.toolService.urlParametersLoaded) {
+      if (!this.toolService.urlParametersLoaded) {
         // only show the collections tab container if the user hasn't passed in custom url params, like when drilling from an investigation
         this.modalService.open(this.toolService.tabContainerModalId);
       }
@@ -312,10 +302,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
       // open the tab container on subsequent logout/login combos, if a collection wasn't previously selected
-      if (!this.license.valid) {
-        this.modalService.open(this.toolService.licenseExpiredModalId);
-      }
-      else if (this.toolService.urlParametersLoaded) {
+      if (this.toolService.urlParametersLoaded) {
         this.modalService.open(this.toolService.tabContainerModalId);
       }
     }
@@ -351,34 +338,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     log.debug('MasonryGridComponent: ngAfterViewInit(): finished ngAfterViewInit()');
 
-  }
-
-
-
-  onLicenseChangedInitial(license: License) {
-    // check license validity on first startup
-    log.debug('MasonryGridComponent: onLicenseChangedInitial(): license:', license);
-    if (!license) {
-      return;
-    }
-    this.license = license;
-    this.licenseChangedFunction = this.onLicenseChangedSubsequent; // change the callback after first load
-  }
-
-
-
-  onLicenseChangedSubsequent(license: License) {
-    // check license validity after the first load
-    log.debug('MasonryGridComponent: onLicenseChangedSubsequent(): license:', license);
-    this.license = license;
-    if (!this.license.valid) {
-      this.modalService.closeAll();
-      if (this.selectedCollectionType !== 'fixed' ||  (this.selectedCollectionType === 'fixed' && !['complete', 'building'].includes(this.collectionState)) ) {
-        this.dataService.noopCollection.next(); // this will clear out the toolbar and all selected collection data
-        this.noopCollection();
-      }
-      this.modalService.open(this.toolService.licenseExpiredModalId);
-    }
   }
 
 

@@ -1,6 +1,6 @@
 <!-- Toolbar -->
 <p-toolbar
-  *ngIf="preferences && license"
+  *ngIf="preferences"
   styleClass="collectionsToolbar">
 
     <p-menu
@@ -24,15 +24,13 @@
     <p-button
       *ngIf="preferences.serviceTypes.nw"
       (onClick)="onAddNwCollectionClick()"
-      label="New Collection"
-      [disabled]="!license.valid">
+      label="New Collection">
     </p-button>
 
     <p-button
       *ngIf="preferences.serviceTypes.sa"
       (onClick)="onAddSaCollectionClick()"
-      label="New Collection"
-      [disabled]="!license.valid">
+      label="New Collection">
     </p-button>
 
     &nbsp;&nbsp;
@@ -82,7 +80,7 @@
 
 <!--collections container-->
 <div
-  *ngIf="displayedCollections && displayedCollections.length > 0 && preferences && license"
+  *ngIf="displayedCollections && displayedCollections.length > 0 && preferences"
   style="position: relative; width: 100%; margin-bottom: 1.25em; height: 100%; overflow: auto;">
     
     <div
@@ -142,14 +140,12 @@
                 <span
                   *ngIf="collection.type === 'fixed'"
                   class="fa fa-repeat"
-                  [class.disabled]="!license.valid"
                   (click)="onEditCollectionClick(collection)">
                 </span>
 
                 <span
                   *ngIf="collection.type !== 'fixed'"
                   class="fa fa-pencil"
-                  [class.disabled]="!license.valid"
                   (click)="onEditCollectionClick(collection)">
                 </span>
 
@@ -165,8 +161,7 @@
               [class.oddRow]="odd"
               [attr.collectionId]="collection.id">
 
-                <!-- license is valid -->
-                <ng-container *ngIf="license.valid; else licenseInvalid">
+                <ng-container>
 
                   <!-- drag handle -->
                   <span
@@ -203,49 +198,6 @@
                   </ng-template>
 
                 </ng-container>
-
-
-                <!-- license is invalid -->
-                <ng-template #licenseInvalid>
-
-                  <!-- drag handle -->
-                  <span
-                    [class.disabled]="filterEnabled"
-                    class="fa fa-bars draggable noselect">
-                  </span>
-                  
-                  &nbsp;
-
-                  <!-- selected collection asterisk -->
-                  <span
-                    *ngIf="selectedCollection && collection.id === selectedCollection.id"
-                    style="line-height: .5; font-size: 2em; font-weight: bold; vertical-align: -.35em;">
-                      *&nbsp;
-                  </span>
-
-                  <!-- clickable collection name -->
-                  <ng-container *ngIf="collection.type === 'fixed' && ( collection.state === 'complete' || collection.state === 'building'); else licenseMessage">
-
-                    <span
-                      class="link"
-                      (click)="onCollectionExecuted(collection)">
-                        {{collection.name}}
-                    </span>
-
-                  </ng-container>
-
-                  <!-- un-clickable collection name -->
-                  <ng-template #licenseMessage>
-
-                    <span
-                      pTooltip="The Atomic Fishbowl license has expired.  Only completed or building fixed collections will be available"
-                      class="no-nw-server">
-                        {{collection.name}}
-                    </span>
-
-                  </ng-template>
-
-                </ng-template>
             
             </div>
 
@@ -260,8 +212,7 @@
                 [class.oddRow]="odd"
                 [attr.collectionId]="collection.id">
 
-                  <!-- license is valid -->
-                  <ng-container *ngIf="license.valid; else saLicenseInvalid">
+                  <ng-container>
 
                     <!-- drag handle -->
                     <span
@@ -298,47 +249,6 @@
                     </ng-template>
 
                   </ng-container>
-
-                  <ng-template #saLicenseInvalid>
-
-                    <!-- drag handle -->
-                    <span
-                      [class.disabled]="filterEnabled"
-                      class="fa fa-bars draggable noselect">
-                    </span>
-                    
-                    &nbsp;
-
-                    <!-- selected collection asterisk -->
-                    <span
-                      *ngIf="selectedCollection && collection.id === selectedCollection.id"
-                      style="line-height: .5; font-size: 2em; font-weight: bold; vertical-align: -.35em;">
-                        *&nbsp;
-                    </span>
-
-                    <!-- clickable collection name -->
-                    <ng-container *ngIf="collection.type === 'fixed' && ( collection.state === 'complete' || collection.state === 'building'); else saLicenseMessage">
-
-                      <span
-                        class="link"
-                        (click)="onCollectionExecuted(collection)">
-                          {{collection.name}}
-                      </span>
-
-                    </ng-container>
-
-                    <!-- un-clickable collection name -->
-                    <ng-template #saLicenseMessage>
-
-                      <span
-                        pTooltip="The Atomic Fishbowl license has expired.  Only completed or building fixed collections will be available"
-                        class="no-nw-server">
-                          {{collection.name}}
-                      </span>
-
-                    </ng-template>
-
-                  </ng-template>
 
               </div>
 

@@ -13,7 +13,7 @@
 
   </span>
 
-  <ng-container *ngIf="selectedCollection && license">
+  <ng-container *ngIf="selectedCollection">
 
     &nbsp;&nbsp;&nbsp;
 
@@ -41,14 +41,14 @@
 
     <!-- Edit Icon -->
     <span
-      *ngIf="selectedCollection.type != 'fixed' && license.valid"
+      *ngIf="selectedCollection.type != 'fixed'"
       pTooltip="Edit collection"
       class="fa fa-pencil-square-o fa-lg fa-fw"
       (click)="onEditCollectionClick()">
     </span>
 
     <span
-      *ngIf="selectedCollection.type == 'fixed' && license.valid"
+      *ngIf="selectedCollection.type == 'fixed'"
       pTooltip="Reprocess collection"
       class="fa fa-repeat fa-lg fa-fw"
       (click)="onEditCollectionClick()">
@@ -140,7 +140,7 @@
   <!--Mask & Search Buttons-->
   <span style="float: right;">
 
-    <ng-container *ngIf="selectedCollection && license">
+    <ng-container *ngIf="selectedCollection">
 
       <!-- image mask-->
       <span

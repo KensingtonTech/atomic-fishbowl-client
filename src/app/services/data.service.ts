@@ -6,7 +6,6 @@ import { SaServer } from 'types/saserver';
 import { ToolService } from './tool.service';
 import { Feed } from 'types/feed';
 import { Preferences } from 'types/preferences';
-import { License } from 'types/license';
 import { NwServers } from 'types/nwserver';
 import * as io from 'socket.io-client';
 import * as log from 'loglevel';
@@ -34,7 +33,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
   sessionsPurged = new Subject<any>();
   queryResultsCountUpdated = new Subject<any>();
   collectionDeleted = new Subject<CollectionDeletedDetails>();
-  noopCollection = new Subject<void>(); // this is used when the license expires
+  noopCollection = new Subject<void>();
   workerProgress = new Subject<any>();
   monitoringCollectionPause = new BehaviorSubject<boolean>(false);
 
@@ -47,7 +46,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
   usersChanged = new BehaviorSubject<any>({});
   serverVersionChanged = new BehaviorSubject<string>(null);
   useCasesChanged = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
-  licensingChanged = new BehaviorSubject<License>(null);
   loggedOutByServer = new Subject<void>();
   socketConnected = new BehaviorSubject<any>({connected: null, socketId: null});
   socketUpgraded = new BehaviorSubject<boolean>(false);
@@ -177,7 +175,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
     this.serverSocket.on('feedStatus', feedStatus => this.zone.run( () => this.onFeedStatusUpdate(feedStatus) ) );
     this.serverSocket.on('users', users => this.zone.run( () => this.onUsersUpdate(users) ) );
     this.serverSocket.on('useCases', useCases => this.zone.run( () => this.onUseCasesUpdate(useCases) ) );
-    this.serverSocket.on('license', license => this.zone.run( () => this.onLicenseChanged(license) ) );
+    this.serverSocket.on('initialised', () => this.zone.run( () => this.onClientInitialised() ) );
     this.serverSocket.on('logout', (reason => this.zone.run( () => this.onLogoutMessageReceived(reason) ) ) ); // TODO: triggered by the socket when our validity expires
     this.serverSocket.on('collectionDeleted', (details: CollectionDeletedDetails) => this.collectionDeleted.next(details) );
 
@@ -308,10 +306,9 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  onLicenseChanged(license) {
-    log.debug('DataService: onLicenseChanged(): license:', license);
-    this.licensingChanged.next(license);
-    this.socketUpgraded.next(true); // we trigger this here as the license is the final thing the server emits after upgrading the socket.  We know that everything is done at this point
+  onClientInitialised() {
+    log.debug('DataService: onClientInitialised()');
+    this.socketUpgraded.next(true); // We know that everything is done at this point
   }
 
 

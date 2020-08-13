@@ -96,7 +96,6 @@ export class ToolService {
   contentDetailsModalId = 'content-details-modal';
   confirmDeleteFeedModalId = 'confirm-delete-feed-modal';
   feedWizardModalId = 'feed-wizard-modal';
-  licenseExpiredModalId = 'license-expired-modal';
   nwCollectionModalId = 'nw-collection-modal';
   saCollectionModalId = 'sa-collection-modal';
   tabContainerModalId = 'tab-container-modal';
