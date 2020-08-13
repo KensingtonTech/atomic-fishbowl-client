@@ -4,7 +4,6 @@ import { DataService } from 'services/data.service';
 // A directive that loads images from the dataService and thus makes load errors catch-able
 
 @Directive({
-  // tslint:disable-next-line:directive-selector
   selector: '[imgsrc]'
 })
 

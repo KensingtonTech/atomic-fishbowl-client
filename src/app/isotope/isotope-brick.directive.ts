@@ -4,7 +4,6 @@ import * as log from 'loglevel';
 
 
 @Directive({
-  // tslint:disable-next-line:directive-selector
   selector: '[isotope-brick], isotope-brick'
 })
 

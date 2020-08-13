@@ -118,16 +118,16 @@
       "check-separator",
       "check-type"
     ],
+    "directive-class-suffix": true,
     "directive-selector": [
       true,
       "attribute",
-      "app",
       "camelCase"
     ],
+    "component-class-suffix": true,
     "component-selector": [
       false,
       "element",
-      "app",
       "kebab-case"
     ],
     "no-inputs-metadata-property": true,
@@ -137,8 +137,6 @@
     "no-output-rename": true,
     "use-lifecycle-interface": true,
     "use-pipe-transform-interface": true,
-    "component-class-suffix": true,
-    "directive-class-suffix": true,
     "no-access-missing-member": true,
     "templates-use-public": true,
     "invoke-injectable": true

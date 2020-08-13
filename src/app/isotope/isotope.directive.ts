@@ -7,7 +7,6 @@ import * as log from 'loglevel';
 declare var Isotope;
 
 @Directive({
-  // tslint:disable-next-line:directive-selector
   selector: '[isotope], isotope'
 })
 

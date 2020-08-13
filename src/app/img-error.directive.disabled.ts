@@ -5,7 +5,6 @@ import * as log from 'loglevel';
 // A directive that catches errors on image load
 
 @Directive({
-  // tslint:disable-next-line:directive-selector
   selector: '[imgerror] imgerror [imgerr] imgerr'
 })
 
