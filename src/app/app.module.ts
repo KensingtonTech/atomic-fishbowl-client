@@ -72,7 +72,6 @@ import { SessionDetailsModalComponent } from './viewers/content-details-modal.co
 import { DeleteUserConfirmModalComponent } from './confirmation-modals/deleteuser-confirm-modal.component';
 import { ServerDownModalComponent } from './serverdown-modal.component';
 import { LoginFormComponent } from './login-form.component';
-// import { DownloadFileConfirmModalComponent } from './confirmation-modals/downloadfile-confirm-modal.component';
 import { DeleteNwServerConfirmModalComponent } from './confirmation-modals/deletenwserver-confirm-modal.component';
 import { CollectionsComponent } from './collections.component';
 import { FeedsComponent } from './feeds.component';
@@ -94,7 +93,6 @@ import { LoggedOutNotifyModalComponent } from './logged-out-notify-modal.compone
 import { CustomScrollPanelComponent } from './scrollpanel/scrollpanel.component';
 
 // Other
-// import 'hammerjs'; // required for Material gesture support
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 
@@ -175,7 +173,6 @@ import { FlexLayoutModule } from '@angular/flex-layout';
                   ManageUsersModalComponent,
                   DeleteUserConfirmModalComponent,
                   ServerDownModalComponent,
-                  // DownloadFileConfirmModalComponent,
                   MetaWidgetComponent,
                   DeleteNwServerConfirmModalComponent,
                   CollectionsComponent,

@@ -1,5 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnChanges, OnDestroy, Input, Renderer2, SimpleChanges, Inject, forwardRef, NgZone } from '@angular/core';
-import { DataService } from 'services/data.service';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnChanges, OnDestroy, Input, Renderer2, SimpleChanges, Inject, forwardRef } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from '../modal/modal.service';
 import { Content } from 'types/content';
@@ -65,12 +64,10 @@ export enum KEY_CODE {
 
 export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestroy {
 
-  constructor(private dataService: DataService,
-              private modalService: ModalService,
+  constructor(private modalService: ModalService,
               private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef,
               private renderer: Renderer2,
-              private zone: NgZone,
               @Inject(forwardRef(() => AbstractGrid )) private parent: AbstractGrid ) {}
 
   @Input() serviceType: string; // 'nw' or 'sa'
@@ -157,7 +154,6 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
 
   async onNewContent() {
     log.debug('SessionDetailsModalComponent: onNewContent: content:', this.content);
-    // this.content = content;
     this.page = 1;
 
     switch (this.content.contentType) {
@@ -195,7 +191,7 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
     }
 
     if (['pdf', 'office'].includes(this.content.contentType)) {
-      let pdfFile = 'proxyContentFile' in this.content ? this.content.proxyContentFile : this.content.contentFile;
+      const pdfFile = 'proxyContentFile' in this.content ? this.content.proxyContentFile : this.content.contentFile;
       this.pdfFile = '/collections/' + this.collectionId + '/' + utils.uriEncodeFilename(pdfFile);
     }
     this.changeDetectionRef.markForCheck();

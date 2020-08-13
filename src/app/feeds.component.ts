@@ -84,9 +84,7 @@ export class FeedsComponent implements OnInit, OnDestroy {
   displayedFeeds: Feed[];
   utils = utils;
   filterText = '';
-  private reOpenTabsModal = false;
   feedStatus = {};
-  private feedStatusInterval: number;
 
   // Subscriptions
   private subscriptions = new Subscription;

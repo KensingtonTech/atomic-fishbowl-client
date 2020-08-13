@@ -31,12 +31,12 @@
 
         </h3>
 
-        <fieldset style="border: none; margin: 0; padding: 0;">
+        <form
+          #addCollectionForm="ngForm"
+          (ngSubmit)="onCollectionSubmit(addCollectionForm)"
+          novalidate>
 
-          <form
-            #addCollectionForm="ngForm"
-            (ngSubmit)="onCollectionSubmit(addCollectionForm)"
-            novalidate>
+            <fieldset style="border: none; margin: 0; padding: 0;">
 
               <div>
 
@@ -1122,10 +1122,10 @@
 
                 
               </div>
+              
+            </fieldset>
 
-            </form>
-
-        </fieldset>
+          </form>
 
       </div>
 

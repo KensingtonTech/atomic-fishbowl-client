@@ -43,7 +43,7 @@ export function userExists(control: AbstractControl, users: User[]) {
   // log.debug('userExists:', control);
   if (users) {
     for (let i = 0; i < users.length; i++) {
-      let user = users[i];
+      const user = users[i];
       if ( control.value === user.username ) {
         return { 'userexists': true };
       }
@@ -55,7 +55,7 @@ export function userExists(control: AbstractControl, users: User[]) {
 
 
 export function spaceValidator(control: AbstractControl) {
-  let value = control.value;
+  const value = control.value;
   if ( value.match(/\s/g) ) {
     return { 'spaceexists': true };
   }

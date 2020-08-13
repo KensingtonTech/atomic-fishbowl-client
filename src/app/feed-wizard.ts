@@ -294,7 +294,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.urlVerified = false;
       this.urlTested = false;
       this.draggingColumnID = null;
-      this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
+      this.availableColumnIDs = utils.deepCopy(this.initialColumnIDs);
       this.csvLoaded = false;
     }
     else {
@@ -451,7 +451,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       host['password'] = this.dataService.encryptor.encrypt(this.urlPassword);
     }
 
-    this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
+    this.availableColumnIDs = utils.deepCopy(this.initialColumnIDs);
     this.columnDropPort = {};
     this.columnNumArr = [];
     this.changeDetectionRef.markForCheck();
@@ -505,7 +505,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   uploadHandler(event, formRef): void {
     log.debug('FeedWizardComponent: uploadHandler(): event:', event);
     this.fileChanged = true;
-    this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
+    this.availableColumnIDs = utils.deepCopy(this.initialColumnIDs);
     this.columnDropPort = {};
     this.columnNumArr = [];
 
@@ -611,7 +611,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     log.debug('FeedWizardComponent: delimiterChanged()');
     if (this.delimiter) {
       this.parseCSV(this.rawCSV);
-      this.availableColumnIDs = JSON.parse(JSON.stringify(this.initialColumnIDs));
+      this.availableColumnIDs = utils.deepCopy(this.initialColumnIDs);
     }
     else {
       this.lines = [];

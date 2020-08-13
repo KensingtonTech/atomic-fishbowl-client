@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnInit, ElementRef, Output, EventEmitter, NgZone } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, Output, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToolService } from 'services/tool.service';
 import * as log from 'loglevel';
@@ -19,9 +19,7 @@ export class RouterDropdownComponent implements OnInit {
 
   constructor(private router: Router,
               private toolService: ToolService,
-              private changeDetectorRef: ChangeDetectorRef,
-              private el: ElementRef,
-              private zone: NgZone ) { }
+              private changeDetectorRef: ChangeDetectorRef) {}
 
   routerOptions: RouterOption[] = [
                                             {

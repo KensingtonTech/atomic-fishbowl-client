@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { DataService } from 'services/data.service';
-import { ToolService } from 'services/tool.service';
 import { License } from 'types/license';
 import { Subscription } from 'rxjs';
 
@@ -23,7 +22,6 @@ import { Subscription } from 'rxjs';
 export class LicensingPreferencesComponent implements OnInit, OnDestroy {
 
   constructor(private dataService: DataService,
-              private toolService: ToolService,
               private changeDetectionRef: ChangeDetectorRef) { }
 
   license: License;

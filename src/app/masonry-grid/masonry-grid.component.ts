@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone, forwardRef, Renderer2 } from '@angular/core';
-import { Router, ActivatedRoute, NavigationStart } from '@angular/router';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone, forwardRef } from '@angular/core';
+import { Router, NavigationStart } from '@angular/router';
 import { ToolService } from 'services/tool.service';
 import { DataService } from 'services/data.service';
 import { Content, Contents } from 'types/content';
@@ -49,13 +49,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   constructor(  private dataService: DataService,
                 private toolService: ToolService,
-                private elRef: ElementRef,
                 private modalService: ModalService,
                 private changeDetectionRef: ChangeDetectorRef,
                 private router: Router,
-                private route: ActivatedRoute,
-                private zone: NgZone,
-                private renderer: Renderer2 ) {}
+                private zone: NgZone ) {}
 
   @ViewChild('scrollContainer', { static: true }) private scrollContainerRef: ElementRef;
   @ViewChild('isotopeContent') private isotopeContentRef: ElementRef;
@@ -303,7 +300,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     this.zone.runOutsideAngular( () => window.addEventListener('resize', this.onWindowResize ) );
 
-    let toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
+    const toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
     this.toolbarHeight = toolbar.offsetHeight;
     // console.log('toolbarHeight:', this.toolbarHeight);
     // this.changeDetectionRef.detectChanges();
@@ -389,12 +386,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   onNextSessionClicked(): void {
     log.debug('MasonryGridComponent: onNextSessionClicked()');
     // build a list of un-filtered tiles
-    let displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
+    const displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
     log.debug('MasonryGridComponent: onNextSessionClicked(): displayedTileIds:', displayedTileIds);
 
-    let nextContentItem: Content = null;
-    let nextContentItemId = null;
-    let nextSessionId = null;
+    let nextContentItem: Content;
+    let nextContentItemId;
+    let nextSessionId;
 
     for (let i = 0; i < displayedTileIds.length; i++) {
       if (displayedTileIds[i] === this.selectedContentId && i < displayedTileIds.length - 1 ) {
@@ -405,7 +402,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
 
     for (let i = 0; i < this.content.length; i++) {
-      let contentItem = this.content[i];
+      const contentItem = this.content[i];
       if (contentItem.id === nextContentItemId) {
         nextContentItem = contentItem;
         nextSessionId = contentItem.session;
@@ -429,11 +426,11 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   onPreviousSessionClicked(): void {
     log.debug('MasonryGridComponent: onPreviousSessionClicked()');
     // build a list of un-filtered tiles
-    let displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
+    const displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
     log.debug('MasonryGridComponent: onPreviousSessionClicked(): displayedTileIds:', displayedTileIds);
-    let previousContentItem: Content = null;
-    let previousContentItemId = null;
-    let previousSessionId = null;
+    let previousContentItem: Content;
+    let previousContentItemId;
+    let previousSessionId;
 
     for (let i = 0; i < displayedTileIds.length; i++) {
       if (displayedTileIds[i] === this.selectedContentId && i <= displayedTileIds.length - 1 ) {
@@ -444,7 +441,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
 
     for (let i = 0; i < this.content.length; i++) {
-      let contentItem = this.content[i];
+      const contentItem = this.content[i];
       if (contentItem.id === previousContentItemId) {
         previousContentItem = contentItem;
         previousSessionId = contentItem.session;
@@ -466,7 +463,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   updateNextPreviousButtonStatus(): void {
     // build a list of un-filtered tile id's
-    let displayedTileIds = $('masonry-tile:visible').map(function(){return $(this).attr('id'); } ).get();
+    const displayedTileIds = $('masonry-tile:visible').map(function(){return $(this).attr('id'); } ).get();
     // log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): displayedTileIds:', displayedTileIds);
     // log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): selectedContentId:', this.selectedContentId);
 
@@ -613,7 +610,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.changeDetectionRef.detectChanges();
 
       // deep copy so that the reference is changed and can thus be detected
-      let newIsotopeConfig = this.isotopeConfig.copy();
+      const newIsotopeConfig = this.isotopeConfig.copy();
       newIsotopeConfig.masonry.columnWidth = this.masonryColumnWidth + this.tileMargin * 2;
       this.isotopeConfig = newIsotopeConfig;
 
@@ -700,7 +697,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     content.sort(this.sortContent);
     this.content = content;
     this.content.forEach( (item: Content) => {
-      let contentId = item.id;
+      const contentId = item.id;
       this.contentObj[contentId] = item;
     });
     if (this.content.length !== 0) {
@@ -746,7 +743,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   onSessionPublished(session: Session): void {
     // when an individual session is pushed from a building collection (or monitoring or rolling)
     log.debug('MasonryGridComponent: onSessionPublished(): session:', session);
-    let sessionId = session.id;
+    const sessionId = session.id;
     this.sessions[sessionId] = session;
   }
 
@@ -765,7 +762,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     newContent.forEach(content => {
       this.content.push(content);
-      let contentId = content.id;
+      const contentId = content.id;
       this.contentObj[contentId] = content;
     });
 
@@ -863,11 +860,11 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     if (this.autoScrollStarted) {
       this.pauseScrollerAnimation();
     }
-    let searchRemoved = this.purgeSessions(sessionsToPurge);
+    const searchRemoved = this.purgeSessions(sessionsToPurge);
 
     this.maskChanged(this.lastMask);
     this.countContent();
-    if (searchRemoved > 0 && this.searchBarOpen) {
+    if (searchRemoved && this.searchBarOpen) {
       this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
     }
     this.changeDetectionRef.detectChanges();
@@ -889,7 +886,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
 
 
-    let targetY = this.scrollTop + wheelEvent.deltaY;
+    const targetY = this.scrollTop + wheelEvent.deltaY;
     // log.debug('MasonryGridComponent: wheelEvent: scrollContentHeight:', this.scrollContentHeight);
     // log.debug('MasonryGridComponent: wheelEvent: targetY:', targetY);
     if (targetY < 0 || targetY > this.scrollContentHeight - this.scrollContainerHeight) {
@@ -927,10 +924,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: startScrollerAnimation(): scroll animation isn\'t running right now');
     // log.debug('MasonryGridComponent: startScrollerAnimation(): scrollContentHeight:', this.scrollContentHeight);
 
-    let distanceToScroll = Math.round(this.scrollContentHeight) - this.scrollContainerHeight - this.scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
+    const distanceToScroll = Math.round(this.scrollContentHeight) - this.scrollContainerHeight - this.scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
     log.debug('MasonryGridComponent: startScrollerAnimation(): distanceToScroll:', distanceToScroll);
 
-    let duration = (distanceToScroll / this.pixelsPerSecond) * 1000;
+    const duration = (distanceToScroll / this.pixelsPerSecond) * 1000;
     log.debug('MasonryGridComponent: startScrollerAnimation(): duration:', duration);
 
     if (distanceToScroll <= 1) {
@@ -985,7 +982,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('autoScrollAnimationRunning = false');
     this.autoScrollAnimationRunning = false;
 
-    let distanceToScroll = this.scrollContentHeight - this.scrollContainerHeight - this.scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
+    const distanceToScroll = this.scrollContentHeight - this.scrollContainerHeight - this.scrollTop; // distance is how far the container needs to scroll in order to hit the end of the content
     log.debug('MasonryGridComponent: onAutoScrollAnimationComplete(): distanceToScroll', distanceToScroll);
 
     if (distanceToScroll <= 1) {
@@ -1194,7 +1191,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
 
-    let tempFilter = [];
+    const tempFilter = [];
     let fromArchivesOnly = false;
 
     if (e.showFromArchivesOnly) {
@@ -1264,9 +1261,9 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   searchTermsChanged(e: any): void {
     // log.debug('MasonryGridComponent: searchTermsChanged(): e:', e);
-    let searchTerms = e.searchTerms;
+    const searchTerms = e.searchTerms;
     this.lastSearchTerm = searchTerms;
-    let matchedIds = [];
+    const matchedIds = [];
 
     if (searchTerms === '') {
       this.maskChanged(this.lastMask);
@@ -1278,12 +1275,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       for (let i = 0; i < this.search.length; i++) {
         if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
           // we found a match!
-          let matchedId = this.search[i].id;
+          const matchedId = this.search[i].id;
           matchedIds.push(`[id="${matchedId}"]`);
         }
         else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) { // case-sensitive search
           // we found a match!
-          let matchedId = this.search[i].id;
+          const matchedId = this.search[i].id;
           matchedIds.push(`[id="${matchedId}"]`);
         }
       }
@@ -1310,8 +1307,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   private countContent(newContent: Content[] = null): void {
     // count content from scratch (if no newContent), or add to existing this.contentCount if newContent is defined
-    let contentCount = newContent ? this.contentCount : new ContentCount; // operate on this.contentCount if newContent is defined
-    let tempContent: Content[] = newContent || this.content;
+    const contentCount = newContent ? this.contentCount : new ContentCount; // operate on this.contentCount if newContent is defined
+    const tempContent: Content[] = newContent || this.content;
     tempContent.forEach( (content) => {
       switch (content.contentType) {
         case 'image':
@@ -1350,15 +1347,15 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  private purgeSessions(sessionsToPurge: number[]): number {
-    let searchRemoved = 0;
+  private purgeSessions(sessionsToPurge: number[]): boolean {
+    let searchRemoved = false;
     while (sessionsToPurge.length !== 0) {
-      let sessionToPurge = sessionsToPurge.shift();
+      const sessionToPurge = sessionsToPurge.shift();
 
-      let contentsToPurge = [];
+      const contentsToPurge = [];
       for (let i = 0; i < this.content.length; i++) {
         // Purge content
-        let content = this.content[i];
+        const content = this.content[i];
         // log.debug('MasonryGridComponent: purgeSessions(): content:', content);
         if (content.session === sessionToPurge) {
           contentsToPurge.push(content);
@@ -1366,9 +1363,9 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       }
       // log.debug('MasonryGridComponent: purgeSessions(): contentsToPurge:', contentsToPurge);
       while (contentsToPurge.length !== 0) {
-        let contentToPurge = contentsToPurge.shift();
+        const contentToPurge = contentsToPurge.shift();
         for (let i = 0; i < this.content.length; i++) {
-          let content = this.content[i];
+          const content = this.content[i];
           if (contentToPurge.session === content.session && contentToPurge.contentFile === content.contentFile && contentToPurge.contentType === content.contentType) {
             // Purge content
             log.debug(`MasonryGridComponent: purgeSessions(): purging content id ${content.id} for session ${content.session}`);
@@ -1378,21 +1375,22 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
         }
       }
 
-      let searchesToPurge: Search[] = [];
+      const searchesToPurge: Search[] = [];
       for (let i = 0; i < this.search.length; i++) {
-        let search = this.search[i];
+        const search = this.search[i];
         if (search.session === sessionToPurge) {
           searchesToPurge.push(search);
         }
       }
       while (searchesToPurge.length !== 0) {
-        let searchToPurge = searchesToPurge.shift();
+        const searchToPurge = searchesToPurge.shift();
         for (let i = 0; i < this.search.length; i++) {
-          let search = this.search[i];
+          const search = this.search[i];
           if (searchToPurge.session === search.session && searchToPurge.contentFile === search.contentFile) {
             // Purge search
             log.debug('MasonryGridComponent: purgeSessions(): purging search', search.session);
             this.search.splice(i, 1);
+            searchRemoved = true;
             break;
           }
         }
@@ -1422,88 +1420,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  getTopLeftTileInViewportId(): any {
-    // returns the id of the top-left masonry tile on the screen
-
-    let leftOffset = this.scrollContainerRef.nativeElement.offsetLeft + this.masonryColumnWidth / 2; // we'll target halfway through the first column
-    let topOffset = this.toolbarHeight + 1;
-    let maxTopOffset = this.toolbarHeight + this.scrollContainerHeight;
-    // console.log('maxTopOffset:', maxTopOffset);
-    let offsetIncrement = 5;
-    let element = null;
-    while (!element) {
-      // need to handle reaching end of viewport y axis
-      if (topOffset >= maxTopOffset) {
-        return null;
-      }
-      let el = document.elementFromPoint(leftOffset, topOffset);
-      // console.log('el:', el);
-      if (el.classList.contains('grid')) {
-        // we hit the background, so try again
-        topOffset += offsetIncrement;
-        // console.log('topOffset:', topOffset);
-        continue;
-      }
-      let parent = el.parentElement;
-      let classList = parent.classList;
-      let found = false;
-      for (let i = 0; i < 5; i++) {
-        if (classList.contains('brick')) {
-          found = true;
-          break;
-        }
-        parent = parent.parentElement;
-        classList = parent.classList;
-      }
-      if (found) {
-        return parent.getAttribute('id');
-      }
-    }
-  }
-
-
-
-  getFirstTileFromLeftInViewportId(): any {
-    // returns the id of the top-left masonry tile on the screen
-
-    let leftOffset = this.scrollContainerRef.nativeElement.offsetLeft + this.masonryColumnWidth / 2; // we'll target halfway through the first column
-    let topOffset = this.toolbarHeight + 1;
-    let maxTopOffset = this.toolbarHeight + this.scrollContainerHeight;
-    // console.log('maxTopOffset:', maxTopOffset);
-    let offsetIncrement = 5;
-    let element = null;
-    while (!element) {
-      // need to handle reaching end of viewport y axis
-      if (topOffset >= maxTopOffset) {
-        return null;
-      }
-      let el = document.elementFromPoint(leftOffset, topOffset);
-      // console.log('el:', el);
-      if (el.classList.contains('grid')) {
-        // we hit the background, so try again
-        topOffset += offsetIncrement;
-        // console.log('topOffset:', topOffset);
-        continue;
-      }
-      let parent = el.parentElement;
-      let classList = parent.classList;
-      let found = false;
-      for (let i = 0; i < 5; i++) {
-        if (classList.contains('brick')) {
-          found = true;
-          break;
-        }
-        parent = parent.parentElement;
-        classList = parent.classList;
-      }
-      if (found) {
-        return parent.getAttribute('id');
-      }
-    }
-  }
-
-
-
   hasSessions(): boolean {
     return Object.keys(this.sessions).length !== 0;
   }
@@ -1517,8 +1433,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       if (this.selectedCollectionType === 'monitoring' && !this.pauseMonitoring) {
         this.suspendMonitoring();
       }
-      let sessionId = event.currentTarget.getAttribute('sessionId');
-      let contentId = event.currentTarget.getAttribute('id');
+      const sessionId = event.currentTarget.getAttribute('sessionId');
+      const contentId = event.currentTarget.getAttribute('id');
       this.selectedSession = this.sessions[sessionId];
       this.selectedContent = this.contentObj[contentId];
       this.selectedContentId = contentId;
@@ -1545,8 +1461,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: onTextAreaToggled(): shown', shown);
     this.showTextArea = shown;
     if (this.autoScrollStarted) {
-      // let topLeftTileId = this.getTopLeftTileInViewportId();
-      // log.debug('topLeftTileId:', topLeftTileId);
       this.stopAutoScroll();
     }
     this.changeDetectionRef.detectChanges();
@@ -1564,7 +1478,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
     // log.debug('MasonryGridComponent: onKeyPressed(): event:', event);
-    let keyTable = {
+    const keyTable = {
       'ArrowUp': () => this.onUpArrowPressed(),
       'ArrowDown': () => this.onDownArrowPressed(),
       'Home': () => this.onHomePressed(),
@@ -1602,7 +1516,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     if (this.scrollContentHeight <= this.scrollContainerHeight) {
       return;
     }
-    let target = this.scrollContentHeight - this.scrollContainerHeight;
+    const target = this.scrollContentHeight - this.scrollContainerHeight;
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
       this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
@@ -1622,7 +1536,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     if (target < 0) {
       target = 0;
     }
-    // this.render(0, target, 1);
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
       this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);

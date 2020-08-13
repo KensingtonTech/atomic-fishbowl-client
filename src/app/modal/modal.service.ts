@@ -6,10 +6,6 @@ import * as log from 'loglevel';
 
 export class ModalService {
 
-    constructor() {
-        // log.debug('ModalService: constructor()');
-    }
-
     private modals: ModalComponent[] = [];
     private openModalsCount = 0;
     private modalState = {}; // [id]: open?boolean

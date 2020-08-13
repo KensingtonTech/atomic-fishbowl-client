@@ -18,12 +18,10 @@ export class ClickOutsideDirective {
         log.debug('ClickOutsideDirective: onClick(): classList:', classList);
         let clickedInside = false;
 
-        // log.debug('ClickOutsideDirective: onClick(): getElementsByClassName:', targetElement.getElementsByClassName('routerIcon'));
         if (classList.contains('routerIcon')) {
             clickedInside = true;
         }
 
-        // const clickedInside = this.el.nativeElement.contains(targetElement);
         log.debug('ClickOutsideDirective: onClick(): el:', this.el.nativeElement);
         log.debug('ClickOutsideDirective: onClick(): clickedInside:', clickedInside);
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
@@ -16,7 +16,7 @@ import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import * as utils from './utils';
 import { COLLECTION_MODES, HASHING_MODES } from 'types/add-collection-modes';
-import * as moment from 'moment';
+import dayjs from 'dayjs';
 import * as log from 'loglevel';
 
 
@@ -31,8 +31,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
   constructor(private dataService: DataService,
               private toolService: ToolService,
               private modalService: ModalService,
-              private changeDetectionRef: ChangeDetectorRef,
-              private zone: NgZone) {}
+              private changeDetectionRef: ChangeDetectorRef) {}
 
   @ViewChild('addCollectionForm', { static: true }) addCollectionForm: NgForm;
   @ViewChildren('nwNameBox') nameBoxRef: QueryList<any>;
@@ -743,7 +742,6 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       this.regexDistillationTerms = thisUseCase.regexTerms.join('\n');
     }
     // this might be our problem
-    // this.collectionFormModel = JSON.parse(JSON.stringify(this.collectionFormModel));
     if (this.useCaseBinding === 'bound') {
       this.showUseCaseValues = true;
     }
@@ -841,7 +839,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.type = 'fixed';
 
     // Collection name
-    let now = moment().format('YYYY/MM/DD HH:mm:ssZ');
+    const now = dayjs().format('YYYY/MM/DD HH:mm:ssZ');
     if ('host' in params) {
       this.name = 'Adhoc investigation for host \'' + params['host'] + '\' at ' + now;
     }

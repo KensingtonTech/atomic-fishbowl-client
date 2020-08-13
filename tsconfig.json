@@ -37,7 +37,8 @@
       "jsencrypt": [
         "node_modules/jsencrypt/bin/jsencrypt.min.js"
       ]
-    }
+    },
+    "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
     "preserveWhitespaces": false,

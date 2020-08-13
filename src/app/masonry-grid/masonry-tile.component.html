@@ -9,9 +9,7 @@
 
         <!-- time -->
         <div class="selectable masonryTileTime">
-
           {{session.meta['time'] | formatTime}}
-
         </div>
 
         <!-- file icons and session id -->
@@ -27,9 +25,7 @@
 
         <!-- network info -->
         <div class="selectable masonryTileNetworkInfo">
-
           {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
-
         </div>
 
       </ng-container>
@@ -38,21 +34,15 @@
       <ng-template #saOverlay>
 
         <div class="selectable masonryTileTime">
-
           {{session.meta['stop_time'] | formatSaTime}}
-
         </div>
 
         <div class="selectable masonryTileSessionID">
-        
           {{session.id}}
-        
         </div>
 
         <div class="selectable masonryTileNetworkInfo">
-
           {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
-
         </div>
 
       </ng-template>
@@ -160,9 +150,13 @@
 
         <tr *ngFor="let struct of textAreaTableItems">
 
-          <td class="column1">{{struct.key}}</td>
+          <td class="column1">
+            {{struct.key}}
+          </td>
 
-          <td class="value">{{struct.value}}</td>
+          <td class="value">
+            {{struct.value}}
+          </td>
 
         </tr>
 

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { ModalService } from '../modal/modal.service';
 import { Subscription } from 'rxjs';
 import { ToolService } from 'services/tool.service';
@@ -14,7 +14,6 @@ import * as log from 'loglevel';
 export class DeleteCollectionConfirmModalComponent implements OnInit, OnDestroy {
 
   constructor(private modalService: ModalService,
-              private changeDetectionRef: ChangeDetectorRef,
               private toolService: ToolService ) {}
 
   id = this.toolService.confirmCollectionDeleteModalId;

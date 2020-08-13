@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { AuthenticationService } from 'services/authentication.service';
@@ -15,9 +15,6 @@ import * as log from 'loglevel';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './manageusers-modal.component.html',
   styles: [`
-
-    /*tr.table-body:nth-child(odd) {background: #CCC;}
-    tr.table-body:nth-child(even) {background: #FFF;}*/
 
     .cell {
       padding-left: .3em;
@@ -60,8 +57,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
               private modalService: ModalService,
               private toolService: ToolService,
               private authService: AuthenticationService,
-              private changeDetectionRef: ChangeDetectorRef,
-              private zone: NgZone ) {}
+              private changeDetectionRef: ChangeDetectorRef) {}
 
   id = this.toolService.manageeUsersModalId;
   editingUser: User;

@@ -1,5 +1,7 @@
-import * as moment from 'moment';
+import dayjs from 'dayjs';
 import * as log from 'loglevel';
+
+
 
 export function convertTimeSelection(selectedTimeframe): any {
   // returns an object { timeBegin: epochTime, timeEnd: epochTime } from a string ('Last 5 Minutes', etc)
@@ -63,23 +65,25 @@ export function convertTimeSelection(selectedTimeframe): any {
   if (selectedTimeframe === 'Today') {
     const now = Math.round(d.getTime() / 1000);
     t.timeEnd = now;
-    t.timeBegin = moment().startOf('day').unix();
+    t.timeBegin = dayjs().startOf('day').unix();
   }
   if (selectedTimeframe === 'Yesterday') {
-    t.timeEnd = moment().startOf('day').unix() - 1;
-    t.timeBegin = moment().startOf('day').unix() - 86400;
+    t.timeEnd = dayjs().startOf('day').unix() - 1;
+    t.timeBegin = dayjs().startOf('day').unix() - 86400;
   }
   if (selectedTimeframe === 'This Week') {
     const now = Math.round(d.getTime() / 1000);
     t.timeEnd = now;
-    t.timeBegin = moment().startOf('week').unix();
+    t.timeBegin = dayjs().startOf('week').unix();
   }
   if (selectedTimeframe === 'Last Week') {
-    t.timeBegin = moment().startOf('week').unix() - 604800;
-    t.timeEnd = moment().startOf('week').unix() - 1;
+    t.timeBegin = dayjs().startOf('week').unix() - 604800;
+    t.timeEnd = dayjs().startOf('week').unix() - 1;
   }
   return t;
 }
+
+
 
 export function convertCustomTimeSelection(timeBegin: Date, timeEnd: Date): object {
   // Takes two Date objects as input
@@ -89,11 +93,14 @@ export function convertCustomTimeSelection(timeBegin: Date, timeEnd: Date): obje
   return t;
 }
 
+
+
 export function timeValue(timeBegin: Date, timeEnd: Date): void {
   // prints human readable begin and end times to console.  Takes two Date objects as input
   log.debug('time1:', timeBegin.getTime() / 1000);
   log.debug('time2:', timeEnd.getTime() / 1000);
 }
+
 
 
 export function getFirstKey(o: object | any): string | null {
@@ -109,6 +116,7 @@ export function getFirstKey(o: object | any): string | null {
 }
 
 
+
 export function uniqueArrayValues(a: string[]): string[] {
   // De-duplicates an array of strings and returns the de-duplicated array
   let unique = [];
@@ -118,6 +126,8 @@ export function uniqueArrayValues(a: string[]): string[] {
   }
   return unique;
 }
+
+
 
 export function grokLines(t: string): any[] {
   // Converts a multi-line string (with newline delimiters) into an (de-duplicated) array of strings.
@@ -134,6 +144,8 @@ export function grokLines(t: string): any[] {
   let endterms = uniqueArrayValues(midterms); // de-deduplicate array
   return endterms;
 }
+
+
 
 export function grokHashingLines(v: string): any {
   // converts a multi-line string (with newline delimiters) into a de-duplicated array of objects, { hash: string, friendly: string }
@@ -180,19 +192,27 @@ export function grokHashingLines(v: string): any {
   return keysArray;
 }
 
+
+
 export function pathToFilename(s: string): string {
   const RE = /([^/]*)$/;
   let match = RE.exec(s);
   return match[0];
 }
 
+
+
 export function toCaps(s: string): string {
   return s.toUpperCase();
 }
 
+
+
 export function capitalizeFirstLetter(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+
 
 export function getHashesFromConfig(a: any[]): string {
   let text = '';
@@ -301,6 +321,7 @@ export function isEven(num: number) {
 export function getRectWidth (rect) {
   return rect.width || (rect.right - rect.left);
 }
+
 
 
 export function getRectHeight (rect) {

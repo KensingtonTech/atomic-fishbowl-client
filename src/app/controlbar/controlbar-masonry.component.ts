@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import * as log from 'loglevel';
@@ -12,8 +12,7 @@ import * as log from 'loglevel';
 export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
   constructor(private toolService: ToolService,
-              private changeDetectionRef: ChangeDetectorRef,
-              private zone: NgZone) {}
+              private changeDetectionRef: ChangeDetectorRef) {}
 
   scrollStarted = false;
   showMeta = true;

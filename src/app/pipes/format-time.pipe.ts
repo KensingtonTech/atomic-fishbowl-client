@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import * as moment from 'moment';
+import dayjs from 'dayjs';
 
 
 @Pipe({name: 'formatTime'})
@@ -10,7 +10,7 @@ export class FormatTimePipe implements PipeTransform {
     if (!value) {
       return;
     }
-    const t = moment(value * 1000);
+    const t = dayjs(value * 1000);
     const formatter = args !== undefined ? args : 'YYYY/MM/DD HH:mm:ss';
     return t.format(formatter);
   }

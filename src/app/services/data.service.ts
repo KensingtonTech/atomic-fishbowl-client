@@ -58,9 +58,9 @@ export class DataService { // Manages NwSession objects and also Image objects i
   clientSessionId: number;
   encryptor: JSEncrypt.JSEncrypt;
   private pubKey: string;
-  private authenticated = false;
+  authenticated = false;
   private blobTable: BlobTable = {};
-  socketId;
+  socketId: string;
 
 
 
@@ -117,75 +117,72 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
     this.encryptor = new JSEncrypt.JSEncrypt();
 
-    // this.zone.runOutsideAngular( () => { // no need to run outside the zone as it's already outside the zone
+    // no need to run outside the Angular zone as it's already outside the zone
 
-        if (!this.collectionsRoom) {
-          this.collectionsRoom = io('/collections' );
+    if (!this.collectionsRoom) {
+      this.collectionsRoom = io('/collections' );
+    }
+    else {
+      this.collectionsRoom.open();
+    }
+    // Subscribe to collection socket events
+    this.collectionsRoom.on('connect', roomsocket => log.debug('DataService: Socket.io collectionsRoom connected to server' ));
+    this.collectionsRoom.on('disconnect', reason => {
+      if (reason === 'io server disconnect') {
+        this.collectionsRoom.open();
+      }
+    } );
+    this.collectionsRoom.on('state', this.zone.run( () => (state) => this.collectionStateChanged.next(state) ) );
+    this.collectionsRoom.on('purge', (collectionPurge) => this.sessionsPurged.next(collectionPurge) );
+    this.collectionsRoom.on('clear', () => {
+      this.sessionsReplaced.next( {} );
+      this.contentReplaced.next( [] );
+      this.searchReplaced.next( [] );
+    } );
+    this.collectionsRoom.on('update', (update) => {
+      // log.debug('DataService: got update:', update);
+      if ('collectionUpdate' in update) {
+        update = update.collectionUpdate;
+        if ('session' in update) {
+          this.sessionPublished.next(update.session);
         }
-        else {
-          this.collectionsRoom.open();
+        if ('images' in update) {
+          this.contentPublished.next(update.images);
         }
-        // Subscribe to collection socket events
-        this.collectionsRoom.on('connect', roomsocket => log.debug('DataService: Socket.io collectionsRoom connected to server' ));
-        this.collectionsRoom.on('disconnect', reason => {
-          if (reason === 'io server disconnect') {
-            this.collectionsRoom.open();
-          }
-        } );
-        this.collectionsRoom.on('state', this.zone.run( () => (state) => this.collectionStateChanged.next(state) ) );
-        this.collectionsRoom.on('purge', (collectionPurge) => this.sessionsPurged.next(collectionPurge) );
-        this.collectionsRoom.on('clear', () => {
-          this.sessionsReplaced.next( {} );
-          this.contentReplaced.next( [] );
-          this.searchReplaced.next( [] );
-        } );
-        this.collectionsRoom.on('update', (update) => {
-          // log.debug('DataService: got update:', update);
-          if ('collectionUpdate' in update) {
-            update = update.collectionUpdate;
-            if ('session' in update) {
-              this.sessionPublished.next(update.session);
-            }
-            if ('images' in update) {
-              this.contentPublished.next(update.images);
-            }
-            if ('search' in update) {
-              this.searchPublished.next(update.search);
-            }
-          }
-          if ('error' in update) {
-            this.errorPublished.next(update.error);
-          }
-          if ('queryResultsCount' in update) {
-            this.queryResultsCountUpdated.next(update.queryResultsCount);
-          }
-          if ('workerProgress' in update) {
-            this.workerProgress.next(update);
-          }
-        });
-        this.collectionsRoom.on('sessions', (sessions) => this.sessionsReplaced.next(sessions) );
-        this.collectionsRoom.on('content', (content) => this.contentReplaced.next(content) );
-        this.collectionsRoom.on('searches', (searches) => this.searchReplaced.next(searches) );
-        this.collectionsRoom.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
-      // });
+        if ('search' in update) {
+          this.searchPublished.next(update.search);
+        }
+      }
+      if ('error' in update) {
+        this.errorPublished.next(update.error);
+      }
+      if ('queryResultsCount' in update) {
+        this.queryResultsCountUpdated.next(update.queryResultsCount);
+      }
+      if ('workerProgress' in update) {
+        this.workerProgress.next(update);
+      }
+    });
+    this.collectionsRoom.on('sessions', (sessions) => this.sessionsReplaced.next(sessions) );
+    this.collectionsRoom.on('content', (content) => this.contentReplaced.next(content) );
+    this.collectionsRoom.on('searches', (searches) => this.searchReplaced.next(searches) );
+    this.collectionsRoom.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
 
-      this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
-      this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
-      this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
-      this.serverSocket.on('nwservers', apiServers => this.zone.run( () => this.onNwServersUpdate(apiServers) ) );
-      this.serverSocket.on('saservers', apiServers => this.zone.run( () => this.onSaServersUpdate(apiServers) ) );
-      this.serverSocket.on('feeds', feeds => this.zone.run( () => this.onFeedsUpdate(feeds) ) );
-      this.serverSocket.on('feedStatus', feedStatus => this.zone.run( () => this.onFeedStatusUpdate(feedStatus) ) );
-      this.serverSocket.on('users', users => this.zone.run( () => this.onUsersUpdate(users) ) );
-      this.serverSocket.on('useCases', useCases => this.zone.run( () => this.onUseCasesUpdate(useCases) ) );
-      this.serverSocket.on('license', license => this.zone.run( () => this.onLicenseChanged(license) ) );
-      this.serverSocket.on('logout', (reason => this.zone.run( () => this.onLogoutMessageReceived(reason) ) ) ); // TODO: triggered by the socket when our validity expires
-      this.serverSocket.on('collectionDeleted', (details: CollectionDeletedDetails) => this.collectionDeleted.next(details) );
+    this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
+    this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
+    this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
+    this.serverSocket.on('nwservers', apiServers => this.zone.run( () => this.onNwServersUpdate(apiServers) ) );
+    this.serverSocket.on('saservers', apiServers => this.zone.run( () => this.onSaServersUpdate(apiServers) ) );
+    this.serverSocket.on('feeds', feeds => this.zone.run( () => this.onFeedsUpdate(feeds) ) );
+    this.serverSocket.on('feedStatus', feedStatus => this.zone.run( () => this.onFeedStatusUpdate(feedStatus) ) );
+    this.serverSocket.on('users', users => this.zone.run( () => this.onUsersUpdate(users) ) );
+    this.serverSocket.on('useCases', useCases => this.zone.run( () => this.onUseCasesUpdate(useCases) ) );
+    this.serverSocket.on('license', license => this.zone.run( () => this.onLicenseChanged(license) ) );
+    this.serverSocket.on('logout', (reason => this.zone.run( () => this.onLogoutMessageReceived(reason) ) ) ); // TODO: triggered by the socket when our validity expires
+    this.serverSocket.on('collectionDeleted', (details: CollectionDeletedDetails) => this.collectionDeleted.next(details) );
 
-      // instruct server to send data
-      this.serverSocket.emit('clientReady');
-    // });
-
+    // instruct server to send data
+    this.serverSocket.emit('clientReady');
   }
 
 
@@ -250,7 +247,6 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   onPreferencesUpdate(preferences: Preferences) {
     log.debug('DataService: onPreferencesUpdate(): preferences:', preferences);
-    // this.preferencesChanged.next(JSON.parse(JSON.stringify(preferences)));
     this.preferencesChanged.next(preferences);
   }
 
@@ -710,11 +706,9 @@ export class DataService { // Manages NwSession objects and also Image objects i
   handleError(error: HttpErrorResponse): any {
     if (error.status === 401) {
       this.zone.run( () => this.toolService.logout.next(this.socketId) );
-      // return Promise.reject(error.message || error);
     }
     else {
       log.error('ERROR loading URL: ', error);
-      // return Promise.reject(error);
       throw error;
     }
   }

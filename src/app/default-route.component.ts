@@ -52,7 +52,6 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
 
     if (this.toolService.lastRoute) {
       log.debug('DefaultRouteComponent: routing to lastRoute ' + this.toolService.lastRoute + ' with query params:', params);
-      // this.router.navigate([this.toolService.lastRoute], { queryParams: params, queryParamsHandling: 'merge' });
       this.router.navigate([this.toolService.lastRoute]);
       return;
     }
@@ -60,7 +59,6 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
     else {
       // default route
       log.debug('DefaultRouteComponent: onRouteParameters(): routing to default route ' + this.defaultRoute + ' with query params:', params);
-      // this.router.navigate([this.defaultRoute], { queryParams: params, queryParamsHandling: 'merge' } );
       this.router.navigate([this.defaultRoute]);
     }
 

@@ -1,5 +1,4 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit, OnChanges, ViewChild, ElementRef, NgZone, SimpleChanges } from '@angular/core';
-import { ToolService } from 'services/tool.service';
 import { Content } from 'types/content';
 import { trigger, state, style, transition, animate, useAnimation } from '@angular/animations';
 import { zoomIn, zoomOut } from 'ng-animate';
@@ -54,7 +53,6 @@ export class ClassicTileComponent implements OnInit, OnChanges {
 
   constructor(private changeDetectionRef: ChangeDetectorRef,
               public dataService: DataService,
-              private toolService: ToolService,
               private zone: NgZone,
               private el: ElementRef ) {}
 

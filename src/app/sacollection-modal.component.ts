@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, Input, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ViewChildren, QueryList, ChangeDetectorRef, NgZone } from '@angular/core';
 import { DataService } from 'services/data.service';
 import { ToolService } from 'services/tool.service';
 import { ModalService } from './modal/modal.service';
@@ -15,7 +15,7 @@ import { CollectionMeta } from 'types/collection-meta';
 import { Collection } from 'types/collection';
 import { Preferences } from 'types/preferences';
 import * as utils from './utils';
-import * as moment from 'moment';
+import dayjs from 'dayjs';
 import * as log from 'loglevel';
 
 @Component({
@@ -29,7 +29,6 @@ import * as log from 'loglevel';
 
     .column1 {
       white-space: nowrap;
-      /*width: 1px;*/
       width: 150px;
     }
 
@@ -877,7 +876,6 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       this.regexDistillationTerms = thisUseCase.regexTerms.join('\n');
     }
     // this might be our problem
-    // this.collectionFormModel = JSON.parse(JSON.stringify(this.collectionFormModel));
     if (this.useCaseBinding === 'bound') {
       this.showUseCaseValues = true;
     }
@@ -973,7 +971,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.type = 'fixed';
 
     // Collection name
-    let now = moment().format('YYYY/MM/DD HH:mm:ssZ');
+    const now = dayjs().format('YYYY/MM/DD HH:mm:ssZ');
     if ('host' in params) {
       this.name = 'Adhoc investigation for host \'' + params['host'] + '\' at ' + now;
     }
