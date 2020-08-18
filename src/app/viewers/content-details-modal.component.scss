@@ -1,0 +1,74 @@
+.enabled {
+  color: white;
+}
+
+.disabled {
+  color: grey;
+}
+
+.fa-lock, .fa-hashtag {
+  color: red;
+}
+
+.fa-file-image-o {
+  color: white;
+}
+
+.fa-file-pdf-o {
+  color: red;
+}
+
+.fa-file-excel-o {
+  color: rgb(32,114,71);
+}
+
+.fa-file-word-o {
+  color: rgb(42,86,153);
+}
+
+.fa-file-powerpoint-o {
+  color: rgb(211,71,38);
+}
+
+.menu-bar  {
+
+  .fa {
+    line-height: .5;
+  }
+
+  display: flex;
+  justify-content: space-between;
+  height: 3em;
+  color: white;
+  background-color: rgba(0, 0, 0, .8);
+
+  .left-items {
+    display: flex;
+    align-items: center;
+  }
+
+  .right-items {
+    display: flex;
+    align-items: center;
+  }
+
+  .fa-arrow-circle-o-right {
+    margin-right: .5em;
+  }
+
+  .left-spacer {
+    margin-left: .5em;
+  }
+
+  .left-small-spacer {
+    margin-left: .25em;
+  }
+
+  .left-medium-spacer {
+    margin-left: 1em;
+  }
+
+  .left-large-spacer {
+    margin-left: 2em;
+  }
+}

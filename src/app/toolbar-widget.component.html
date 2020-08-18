@@ -328,23 +328,23 @@
   <input
     #searchBox
     type="text"
+    class="toolbar-search-box"
     name="searchTerms"
     [(ngModel)]="searchTerms"
     (ngModelChange)="searchTermsUpdate()">
     
-  &nbsp;&nbsp;
-  
-  <span
-    [class.fa-deselect]="caseSensitive"
-    class="fa fa-text-height"
-    (click)="toggleCaseSensitivity()">
-  </span>
-  
-  &nbsp;&nbsp;
+  <div
+    [class.deselect]="caseSensitive"
+    class="fa fa-text-height fa-lg"
+    (click)="toggleCaseSensitivity()"
+    [pTooltip]="caseSensitive ? 'Case-sensitive search' : 'Case-insensitive search'"
+    [showDelay]="500"
+    tooltipPosition="bottom">
+  </div>
 
-  <span
-    class="fa fa-times"
+  <div
+    class="fa fa-times fa-lg"
     (click)="toggleSearch()">
-  </span>
+  </div>
 
 </div>

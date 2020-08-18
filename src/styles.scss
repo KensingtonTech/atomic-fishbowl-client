@@ -841,9 +841,6 @@ toolbar-widget {
   }
 
   .afb-toolbar {
-    // position: relative;
-    // top: 0;
-    // width: 100%;
     background-color: rgba(0, 0, 0, .8);
     padding: .5em;
     color: white;
@@ -851,21 +848,29 @@ toolbar-widget {
 
   .toolbarSearchDropdown {
     position: absolute;
-    right: 0;
+    right: 5em;
     top: 2.33333333em;
-    padding: 0.263157895em;
-    background-color: rgba(146, 151, 160, .7);
-    width: 16.57894737em; // 315px
+    // padding: 0.263157895em;
+    padding: 0.5em;
+    background-color: rgb(146, 151, 160);
+    // width: 16.57894737em; // 315px
+    width: 25em; // 315px
     border-radius: 0.157894737em;
     z-index: 100;
+    display: flex;
 
-    span {
+    .fa {
       color: white;
+      margin-left: .4em;
     }
 
     input {
-      width: 76%;
+      width: 100%;
       // width: auto;
+    }
+
+    .deselect {
+      color: black !important;
     }
   }
 
@@ -1207,16 +1212,11 @@ modal .content-details-modal-body {
 
   @include primeStyle(.85em);
 
-  /*
-  p-dropdown {
-    // vertical-align: top;
-  }
-  */
-
   .ui-dropdown {
     min-width: 4.5em;
     vertical-align: sub;
   }
+
 }
 
 content-viewer {

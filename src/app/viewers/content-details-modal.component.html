@@ -13,144 +13,135 @@
         <!-- Top Bar / Menu Bar -->
         <div
           *ngIf="isOpen && content"
-          class="menubar noselect"
-          style="padding: .5em; background-color: rgba(0, 0, 0, .8); color: white;">
+          class="menu-bar noselect">
+            
+            <!-- Items on the left of the menu bar-->
+            <div class="left-items">
 
-            <!-- filename -->
-            <div style="display: inline; float: left; white-space: nowrap; color: white;">
-
-              &nbsp;&nbsp;
-              
-              <span
-                class="fa fa-lg"
-                style="vertical-align: middle;"
+              <!-- file icon -->
+              <div
+                class="fa fa-lg left-spacer"
                 [ngClass]="iconClass">
-              </span>
+              </div>
               
-              &nbsp;
-
-              <span class="selectable">
+              <!-- filename -->
+              <div class="selectable left-medium-spacer">
                 {{utils.pathToFilename(content.contentFile)}}
-              </span>
+              </div>
 
-              <!-- disabled download link -->
+              <!-- Download link -->
               <!--
-              <a
-                (click)="downloadLinkClicked(content.contentFile)"
-                style="display: inline-block; vertical-align: middle;"
-                class="fa fa-arrow-circle-o-down fa-2x"
-                pTooltip="Download Document"
-                showDelay="750">
-              </a>
-              
-              <a
-                style="display: inline-block; vertical-align: middle;"
-                class="fa fa-arrow-circle-o-down fa-2x"
-                pTooltip="Download Document"
-                showDelay="750"
-                href="{{content.contentFile}}">
-              </a>
+              <div>
+
+                <a
+                  (click)="downloadLinkClicked(content.contentFile)"
+                  style="display: inline-block; vertical-align: middle;"
+                  class="fa fa-arrow-circle-o-down fa-2x"
+                  pTooltip="Download Document"
+                  tooltipPosition="bottom"
+                  showDelay="500">
+                </a>
+                
+                <a
+                  style="display: inline-block; vertical-align: middle;"
+                  class="fa fa-arrow-circle-o-down fa-2x"
+                  pTooltip="Download Document"
+                  tooltipPosition="bottom"
+                  showDelay="500"
+                  href="{{content.contentFile}}">
+                </a>
+
+              </div>
               -->
 
             </div>
 
+            
+            <!-- Items on the right of the menu bar-->
+            <div class="right-items">
 
-            <div style="display: inline; float: right;">
+              <!-- Zoom, rotation, next / previous controls -->
+              <ng-container *ngIf="['pdf', 'office'].includes(content.contentType)">
 
-              <!-- zoom, rotation, next / previous controls -->
-              <div
-                *ngIf="['pdf', 'office'].includes(content.contentType)"
-                class="noselect"
-                style="display: inline;">
+                  <p-dropdown
+                    name="pdfZoomSelector"
+                    [options]="zoomLevels"
+                    [(ngModel)]="pdfZoom"
+                    (click)="onZoomLevelClicked()"
+                    (onChange)="onZoomLevelChange($event)"
+                    [ngModelOptions]="{standalone: true}"
+                    pTooltip="Zoom"
+                    tooltipPosition="bottom"
+                    [showDelay]="500">
+                  </p-dropdown>
 
-                  <!-- zoom level -->
-                  <span>
+                  <!-- Rotate button -->
+                  <div
+                    (click)="rotate()"
+                    class="left-spacer fa fa-repeat fa-lg"
+                    pTooltip="Rotate 90&#176;"
+                    tooltipPosition="bottom"
+                    [showDelay]="500">
+                  </div>
+                  
+                  <!-- Number of pages -->
+                  <div class="left-medium-spacer">
+                    {{numPages}} Pages
+                  </div>
 
-                    <b>Zoom&nbsp;</b>
 
-                    <p-dropdown
-                      name="pdfZoomSelector"
-                      [options]="zoomLevels"
-                      [(ngModel)]="pdfZoom"
-                      (click)="onZoomLevelClicked()"
-                      (onChange)="onZoomLevelChange($event)"
-                      [ngModelOptions]="{standalone: true}">
-                    </p-dropdown>
+              </ng-container>
 
-                    &nbsp;&nbsp;
+              <!-- Archives -->
+              <ng-container *ngIf="content.fromArchive || content.isArchive">
 
-                  </span>
-
-                  <!-- rotate button -->
-                  <span>
-
-                    <i
-                      (click)="rotate()"
-                      class="fa fa-repeat fa-lg"
-                      style="vertical-align: middle;">
-                    </i>
-                    
-                    &nbsp;&nbsp;{{numPages}} pages&nbsp;&nbsp;
-
-                  </span>
-
-              </div>
-
-              <!-- display archive filename, archive icon and archive type -->
-              <div
-                *ngIf="content.fromArchive || content.isArchive"
-                style="display: inline; background-color: rgba(0,0,0,0.75); color: white; border-radius: 0.263157895em; padding: 0.210526316em;">
-
-                  <span
+                  <!-- Filename -->
+                  <div
                     *ngIf="content.isArchive"
-                    class="selectable">
+                    class="selectable left-spacer">
                       {{utils.pathToFilename(content.contentFile)}}&nbsp;
-                  </span>
+                  </div>
 
-                <span
-                  *ngIf="content.fromArchive"
-                  class="selectable">
-                    {{utils.pathToFilename(content.archiveFilename)}}&nbsp;
-                </span>
+                  <!-- Archive Filename -->
+                  <div
+                    *ngIf="content.fromArchive"
+                    class="selectable left-spacer">
+                      {{utils.pathToFilename(content.archiveFilename)}}&nbsp;
+                  </div>
 
-                <span
-                  *ngIf="['encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarEntry', 'encryptedRarTable'].includes(content.contentType)"
-                  class="fa fa-lock fa-lg">
-                    &nbsp;
-                </span>
+                  <!--<div
+                    *ngIf="['encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarEntry', 'encryptedRarTable'].includes(content.contentType)"
+                    class="left-spacer fa fa-lock fa-lg">
+                  </div>-->
 
-                <span class="fa fa-file-archive-o fa-lg">
-                  &nbsp;
-                </span>
+                  <!-- Archive icon -->
+                  <div class="left-small-spacer fa fa-file-archive-o fa-lg"></div>
 
-                <span class="selectable">
-                  {{content.archiveType | allCaps}}
-                </span>
-                
-                &nbsp;&nbsp;&nbsp;&nbsp;
+                  <!-- Archive type -->
+                  <div class="selectable left-spacer">
+                    {{content.archiveType | allCaps}}
+                  </div>
 
-              </div>
+              </ng-container>
 
               <!-- next / previous buttons -->
-              <span
-                class="fa fa-arrow-circle-o-left fa-2x enabled"
-                style="vertical-align: bottom;"
+              <div
+                class="left-spacer fa fa-arrow-circle-o-left fa-2x enabled"
                 [class.disabled]="!sessionsAvailable.previous"
                 (click)="onPreviousSessionArrowClicked()"
-                pTooltip="Previous session">
-              </span>
+                pTooltip="Previous session"
+                tooltipPosition="bottom"
+                [showDelay]="500">
+              </div>
               
-              &nbsp;&nbsp;
-              
-              <span
-                class="fa fa-arrow-circle-o-right fa-2x enabled"
-                style="vertical-align: bottom;"
+              <div
+                class="left-small-spacer fa fa-arrow-circle-o-right fa-2x enabled"
                 [class.disabled]="!sessionsAvailable.next"
                 (click)="onNextSessionArrowClicked()"
-                pTooltip="Next session">
-              </span>
-
-              &nbsp;&nbsp;&nbsp;
+                pTooltip="Next session"
+                tooltipPosition="bottom"
+                [showDelay]="500">
+              </div>
 
             </div>
 

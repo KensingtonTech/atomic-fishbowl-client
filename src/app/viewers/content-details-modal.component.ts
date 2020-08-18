@@ -21,45 +21,7 @@ export enum KEY_CODE {
   selector: 'content-details-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './content-details-modal.component.html',
-  styles: [`
-  .enabled {
-    color: white;
-  }
-
-  .disabled {
-    color: grey;
-  }
-
-  .fa-lock, .fa-hashtag {
-    color: red;
-  }
-
-  .fa-file-image-o {
-    color: blue;
-  }
-
-  .fa-file-pdf-o {
-    color: red;
-  }
-
-  .fa-file-excel-o {
-    color: rgb(32,114,71);
-  }
-
-  .fa-file-word-o {
-    color: rgb(42,86,153);
-  }
-
-  .fa-file-powerpoint-o {
-    color: rgb(211,71,38);
-  }
-
-  .menubar .fa {
-    // font-size: 1em;
-    line-height: .5;
-    vertical-align: bottom;
-  }
-  `]
+  styleUrls: ['./content-details-modal.component.scss']
 })
 
 export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestroy {
