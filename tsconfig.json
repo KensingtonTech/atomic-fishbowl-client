@@ -1,45 +1,17 @@
+/*
+  This is a "Solution Style" tsconfig.json file, and is used by editors and TypeScript’s language server to improve development experience.
+  It is not intended to be used to perform a compilation.
+
+  To learn more about this file see: https://angular.io/config/solution-tsconfig.
+*/
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
-    "sourceMap": true,
-    "declaration": false,
-    "downlevelIteration": true,
-    "experimentalDecorators": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "target": "es2015",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
-    "paths": {
-      "dragula": [
-        "node_modules/@kensingtontech/dragula/dist/dragula.min.js"
-      ],
-      "socket.io-client": [
-        "node_modules/socket.io-client/dist/socket.io.slim.js"
-      ],
-      "types/*": [
-        "src/app/types/*"
-      ],
-      "services/*": [
-        "src/app/services/*"
-      ],
-      "jsencrypt": [
-        "node_modules/jsencrypt/bin/jsencrypt.min.js"
-      ]
+  "files": [],
+  "references": [
+    {
+      "path": "./src/tsconfig.app.json"
     },
-    "allowSyntheticDefaultImports": true
-  },
-  "angularCompilerOptions": {
-    "preserveWhitespaces": false,
-    "fullTemplateTypeCheck": true,
-    "strictInjectionParameters": true
-  }
+    {
+      "path": "./src/tsconfig.spec.json"
+    }
+  ]
 }
