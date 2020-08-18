@@ -107,7 +107,7 @@ export function getFirstKey(o: object | any): string | null {
   // returns the 'first' key name of a generic object - a bit of a hack since dicts aren't really ordered.
   // Returns null if object is empty
   // return Object.keys(o)[0];
-  for (let s in o) {
+  for (const s in o) {
     if (o.hasOwnProperty(s)) {
       return s;
     }
@@ -119,9 +119,9 @@ export function getFirstKey(o: object | any): string | null {
 
 export function uniqueArrayValues(a: string[]): string[] {
   // De-duplicates an array of strings and returns the de-duplicated array
-  let unique = [];
+  const unique = [];
   for (let i = 0; i < a.length; i++) {
-    let current = a[i];
+    const current = a[i];
     if (unique.indexOf(current) < 0) { unique.push(current); }
   }
   return unique;
@@ -131,8 +131,8 @@ export function uniqueArrayValues(a: string[]): string[] {
 
 export function grokLines(t: string): any[] {
   // Converts a multi-line string (with newline delimiters) into an (de-duplicated) array of strings.
-  let terms = t.split('\n');
-  let midterms: any = [];
+  const terms = t.split('\n');
+  const midterms: any = [];
   for (let i = 0; i < terms.length; i++) {
     let term = terms[i];
     term = term.replace(/\s+$/g, ''); // remove trailing whitespace
@@ -141,7 +141,7 @@ export function grokLines(t: string): any[] {
       midterms.push(term);
     }
   }
-  let endterms = uniqueArrayValues(midterms); // de-deduplicate array
+  const endterms = uniqueArrayValues(midterms); // de-deduplicate array
   return endterms;
 }
 
@@ -151,9 +151,9 @@ export function grokHashingLines(v: string): any {
   // converts a multi-line string (with newline delimiters) into a de-duplicated array of objects, { hash: string, friendly: string }
   // a line from the input string may be either a single hash value, or a comma-separated hash, friendlyName value
 
-  let n = v.split('\n'); // split by newline
-  let newArray = [];
-  let hashTracker = []; // used for de-duplicating hash entries
+  const n = v.split('\n'); // split by newline
+  const newArray = [];
+  const hashTracker = []; // used for de-duplicating hash entries
 
   for (let x = 0; x < n.length; x++) {
     // remove blank lines
@@ -162,11 +162,11 @@ export function grokHashingLines(v: string): any {
     }
   }
 
-  let keysArray = []; // this is the array of objects that we return
+  const keysArray = []; // this is the array of objects that we return
 
   for (let i = 0; i < newArray.length; i++) {
-    let x = { hash: '', friendly: '' }; // x is the object which we will add to the array
-    let y = newArray[i].split(','); // split our line by comma
+    const x = { hash: '', friendly: '' }; // x is the object which we will add to the array
+    const y = newArray[i].split(','); // split our line by comma
 
     y[0] = y[0].trim(); // remove trailing and leading whitespace from key name, if any
 
@@ -181,7 +181,7 @@ export function grokHashingLines(v: string): any {
 
       if (y.length >= 2) {
         // if user specifies CSV notation, save the second part as the friendly identifier
-        let s = y[1].trim(); // remove leading and trailing whitespace
+        const s = y[1].trim(); // remove leading and trailing whitespace
         x.friendly = s;
       }
 
@@ -196,7 +196,7 @@ export function grokHashingLines(v: string): any {
 
 export function pathToFilename(s: string): string {
   const RE = /([^/]*)$/;
-  let match = RE.exec(s);
+  const match = RE.exec(s);
   return match[0];
 }
 
@@ -326,4 +326,21 @@ export function getRectWidth (rect) {
 
 export function getRectHeight (rect) {
   return rect.height || (rect.bottom - rect.top);
+}
+
+
+
+export function getVisibleElements(elements: HTMLCollectionOf<any>): HTMLElement[] {
+  const visibleElements: HTMLElement[] = [];
+  for (let i = 0; i < elements.length; i++) {
+    const elem: HTMLElement = elements[i];
+    const width = elem.offsetWidth;
+    const height = elem.offsetHeight;
+    const noWidthAndHeight = width === 0 && height === 0;
+    if (noWidthAndHeight) {
+      continue;
+    }
+    visibleElements.push(elem);
+  }
+  return visibleElements;
 }

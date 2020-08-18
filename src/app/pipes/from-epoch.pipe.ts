@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 export class FromEpochPipe implements PipeTransform {
 
-  transform(value: any, args: string[]): any {
+  transform(value: any): any {
     if (!value) {
       return;
     }

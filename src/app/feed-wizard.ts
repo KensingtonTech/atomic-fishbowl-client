@@ -170,7 +170,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   csvLoaded = false;
   private editingId: string;
   private fileChanged = false;
-  private internalFilename = ''; // used only when editing
   authChanged = false; // used only when editing scheduled collections
   urlChanged = false;
   urlVerifyClicked = false;
@@ -219,10 +218,10 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
      this.subscriptions.add(this.toolService.reOpenTabsModal.subscribe( TorF => this.reOpenTabsModal = TorF ));
 
      this.subscriptions.add(this.dataService.feedsChanged.subscribe( (feeds: any) => {
-      let temp = {};
-      for (let c in feeds) {
+      const temp = {};
+      for (const c in feeds) {
         if (feeds.hasOwnProperty(c)) {
-          let feed = feeds[c];
+          const feed = feeds[c];
           temp[feed.name] = null;
         }
       }
@@ -304,7 +303,6 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
       this.type = this.feed.type;
       this.delimiter = this.feed.delimiter;
       this.editingId = this.feed.id;
-      this.internalFilename = this.feed.internalFilename;
 
       if (this.type === 'manual') {
         this.filename = this.feed.filename;
@@ -419,7 +417,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   validateUrlInput(): boolean {
     // ^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$
     // /^(?:http(s)?:\/\/)[\w.-]+$/
-    let re = /^(?:http(s)?:\/\/)[\w.-]+/;
+    const re = /^(?:http(s)?:\/\/)[\w.-]+/;
     return re.test(this.url);
   }
 
@@ -441,7 +439,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   verifyUrl(): void {
     // verify the URL here
     this.urlVerifyClicked = true;
-    let host = { url: this.url, authentication: false };
+    const host = { url: this.url, authentication: false };
     if (this.urlAuthentication === 'enabled' && this.editing && !this.authChanged) {
       host['useCollectionCredentials'] = this.editingId;
     }
@@ -510,12 +508,12 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.columnNumArr = [];
 
     this.rawCSV = '';
-    let file: File = event['files'][0];
+    const file: File = event['files'][0];
     this.file = file;
     this.filename = file.name;
     this.label = file.name;
-    let fileSize = file.size;
-    let chunkSize = 1024; // the number of bytes to read in every slice
+    const fileSize = file.size;
+    const chunkSize = 1024; // the number of bytes to read in every slice
     let lowByte = 0;
     let highByte = chunkSize;
     if (fileSize < chunkSize) {
@@ -524,10 +522,10 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     let bytesRead = 0;
 
     // we want to get precisely 6 lines of text - 1 for a header, and 5 for csv data
-    let readFunc = () => {
-      let slice = file.slice(lowByte, highByte, 'UTF-8'); // get a new blob
-      let reader = new FileReader();
-      let loadHandler = (res) => {
+    const readFunc = () => {
+      const slice = file.slice(lowByte, highByte, 'UTF-8'); // get a new blob
+      const reader = new FileReader();
+      const loadHandler = (res) => {
         log.debug('FeedWizardComponent: uploadHandler(): res:', res.target.result);
         bytesRead = highByte;
         reader.removeEventListener('onload', loadHandler);
@@ -550,7 +548,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
         }
         else {
           // we found 6 newlines, yay
-          let lines = this.rawCSV.split('\n');
+          const lines = this.rawCSV.split('\n');
           while (lines.length > 6) {
             lines.pop();
           }
@@ -573,18 +571,18 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   private parseCSV(csvText: string): void {
-    let sepLines = csvText.split('\n');
-    let splitLines = [];
+    const sepLines = csvText.split('\n');
+    const splitLines = [];
     if (!this.editing) {
       this.columnDropPort = {};
     }
     log.debug('FeedWizardComponent: parseCSV: sepLines:', sepLines);
     let maxColumns = 1;
     for (let i = 0; i < sepLines.length; i++) {
-      let line = sepLines[i];
-      let splitLine = line.split(this.delimiter, 7);
+      const line = sepLines[i];
+      const splitLine = line.split(this.delimiter, 7);
 
-      let columns = splitLine.length;
+      const columns = splitLine.length;
       if (columns > maxColumns) {
         maxColumns = columns;
       }
@@ -655,7 +653,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.columnDropPort[index]['columnId'] = this.draggingColumnID;
     this.columnDropPort[index]['enabled'] = true;
     for (let i = 0; i < this.availableColumnIDs.length; i++) {
-      let columnId = this.availableColumnIDs[i];
+      const columnId = this.availableColumnIDs[i];
       if (columnId.name === this.draggingColumnID.name) {
         this.availableColumnIDs.splice(i, 1);
         break;
@@ -678,9 +676,8 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
   feedDetailsFormValid(): boolean {
     let hashValue = true;
     let hashType = true;
-    // let friendlyName = true;
     for (let i = 0; i < this.availableColumnIDs.length; i++) {
-      let columnId = this.availableColumnIDs[i];
+      const columnId = this.availableColumnIDs[i];
       // log.debug('FeedWizardComponent: feedDetailsFormValid(): columnId: ', columnId);
       if (columnId.id === 'value') {
         hashValue = false;
@@ -702,9 +699,9 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   getColumnNumber(type): number {
-    for (let key in this.columnDropPort) {
+    for (const key in this.columnDropPort) {
       if (this.columnDropPort.hasOwnProperty(key)) {
-        let column = this.columnDropPort[key];
+        const column = this.columnDropPort[key];
         // log.debug('FeedWizardComponent: getColumnNumber(): column:', column);
         if ('columnId' in column && column.columnId.id === type) {
           // log.debug('FeedWizardComponent: getColumnNumber(): key', parseInt(key, 10));
@@ -745,7 +742,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   submitNewManualFeed() {
     // submitting a new manual feed
-    let feed: Feed = {
+    const feed: Feed = {
       id: UUID.UUID(),
       name: this.name,
       type: this.type,
@@ -772,7 +769,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   submitEditedManualFeed() {
     // submitting an edited manual feed
-    let feed: Feed = {
+    const feed: Feed = {
       id: this.editingId,
       name: this.name,
       type: this.type,
@@ -813,7 +810,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   submitNewScheduledFeed() {
     // submitting a new scheduled feed
-    let feed: Feed = {
+    const feed: Feed = {
       id: UUID.UUID(),
       name: this.name,
       type: this.type,
@@ -859,7 +856,7 @@ export class FeedWizardComponent implements OnInit, OnDestroy, AfterViewInit {
 
   submitEditedScheduledFeed() {
     // submitting an edited scheduled feed
-    let feed: Feed = {
+    const feed: Feed = {
       id: this.editingId,
       name: this.name,
       type: this.type,

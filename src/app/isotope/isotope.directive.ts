@@ -1,7 +1,6 @@
 import { Directive, OnInit, OnChanges, Input, ElementRef, NgZone, Renderer2, OnDestroy, ViewChildren, QueryList } from '@angular/core';
 import { IsotopeConfig } from './isotope-config';
 import { IsotopeAPI } from './isotope-api';
-import $ from 'jquery';
 import * as log from 'loglevel';
 // import * as Isotope from 'isotope-layout'; // we're not using typescript / webpack loading as doing so breaks layout when using aot compilation.  We instead use a <script> tag in index.html to load it from /resources.  it sucks but until aot is fixed, we have to use it
 declare var Isotope;
@@ -29,14 +28,6 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit() {
     log.debug('IsotopeDirective: ngOnInit()');
-
-    // Create jquery case-insensitive '::Contains' selector (as opposed to cases-sensitive '::contains')
-    // To potentially be used in filtering
-    $['expr'][':'].Contains = $['expr'].createPseudo(function(arg) {
-      return function( elem ) {
-          return jQuery(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
-      };
-    });
 
     // create public API
     this.api = {
@@ -170,7 +161,7 @@ export class IsotopeDirective implements OnInit, OnChanges, OnDestroy {
 
   unhideAll() {
     for ( let i = 0; i < this.el.nativeElement.children.length; i++) {
-      let element = this.el.nativeElement.children[i];
+      const element = this.el.nativeElement.children[i];
       element.style.visibility = 'visible';
     }
   }

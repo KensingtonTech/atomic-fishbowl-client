@@ -488,7 +488,7 @@ export class Scroller {
       this.__isDecelerating = false;
     }
 
-    let oldLevel = this.__zoomLevel;
+    const oldLevel = this.__zoomLevel;
 
     // Normalize input origin to center of viewport if not defined
     if (originLeft == null) {
@@ -697,7 +697,7 @@ export class Scroller {
    */
   __publish(left, top, zoom, animate = null) {
     // Remember whether we had an animation, then we try to continue based on the current "drive" of the animation
-    let wasAnimating = this.__isAnimating;
+    const wasAnimating = this.__isAnimating;
     if (wasAnimating) {
       this.__animator.stop(this.__animationId);
       this.__isAnimating = false;
@@ -712,15 +712,15 @@ export class Scroller {
       this.__scheduledTop = top;
       this.__scheduledZoom = zoom;
 
-      let oldLeft = this.__scrollLeft;
-      let oldTop = this.__scrollTop;
-      let oldZoom = this.__zoomLevel;
+      const oldLeft = this.__scrollLeft;
+      const oldTop = this.__scrollTop;
+      const oldZoom = this.__zoomLevel;
 
-      let diffLeft = left - oldLeft;
-      let diffTop = top - oldTop;
-      let diffZoom = zoom - oldZoom;
+      const diffLeft = left - oldLeft;
+      const diffTop = top - oldTop;
+      const diffZoom = zoom - oldZoom;
 
-      let step = (percentComplete, now, render) => {
+      const step = (percentComplete, now, render) => {
 
         if (render) {
 
@@ -737,11 +737,11 @@ export class Scroller {
         }
       };
 
-      let verify = (id) => {
+      const verify = (id) => {
         return this.__animationId === id;
       };
 
-      let completed = (renderedFramesPerSecond, animationId, wasFinished) => {
+      const completed = (renderedFramesPerSecond, animationId, wasFinished) => {
         // console.log('completed: wasFinished:', wasFinished);
         if (animationId === this.__isAnimating) {
           this.__isAnimating = false;
@@ -830,10 +830,10 @@ export class Scroller {
   __startDeceleration(timeStamp) {
     if (this.options.paging) {
 
-      let scrollLeft = Math.max(Math.min(this.__scrollLeft, this.__maxScrollLeft), 0);
-      let scrollTop = Math.max(Math.min(this.__scrollTop, this.__maxScrollTop), 0);
-      let clientWidth = this.__clientWidth;
-      let clientHeight = this.__clientHeight;
+      const scrollLeft = Math.max(Math.min(this.__scrollLeft, this.__maxScrollLeft), 0);
+      const scrollTop = Math.max(Math.min(this.__scrollTop, this.__maxScrollTop), 0);
+      const clientWidth = this.__clientWidth;
+      const clientHeight = this.__clientHeight;
 
       // We limit deceleration not to the min/max values of the allowed range, but to the size of the visible client area.
       // Each page should have exactly the size of the client area.
@@ -853,24 +853,24 @@ export class Scroller {
     }
 
     // Wrap class method
-    let step = (percent, now, render) => {
+    const step = (percent, now, render) => {
       this.__stepThroughDeceleration(render);
     };
 
     // How much velocity is required to keep the deceleration running
-    let minVelocityToKeepDecelerating = this.options.snapping ? 4 : 0.001;
+    const minVelocityToKeepDecelerating = this.options.snapping ? 4 : 0.001;
 
     // Detect whether it's still worth to continue animating steps
     // If we are already slow enough to not being user perceivable anymore, we stop the whole process here.
-    let verify = () => {
-      let shouldContinue = Math.abs(this.__decelerationVelocityX) >= minVelocityToKeepDecelerating || Math.abs(this.__decelerationVelocityY) >= minVelocityToKeepDecelerating;
+    const verify = () => {
+      const shouldContinue = Math.abs(this.__decelerationVelocityX) >= minVelocityToKeepDecelerating || Math.abs(this.__decelerationVelocityY) >= minVelocityToKeepDecelerating;
       if (!shouldContinue) {
         this.__didDecelerationComplete = true;
       }
       return shouldContinue;
     };
 
-    let completed = (renderedFramesPerSecond, animationId, wasFinished) => {
+    const completed = (renderedFramesPerSecond, animationId, wasFinished) => {
       this.__isDecelerating = false;
       if (this.__didDecelerationComplete) {
         this.options.scrollingComplete();
@@ -907,13 +907,13 @@ export class Scroller {
 
     if (!this.options.bouncing) {
 
-      let scrollLeftFixed = Math.max(Math.min(this.__maxDecelerationScrollLeft, scrollLeft), this.__minDecelerationScrollLeft);
+      const scrollLeftFixed = Math.max(Math.min(this.__maxDecelerationScrollLeft, scrollLeft), this.__minDecelerationScrollLeft);
       if (scrollLeftFixed !== scrollLeft) {
         scrollLeft = scrollLeftFixed;
         this.__decelerationVelocityX = 0;
       }
 
-      let scrollTopFixed = Math.max(Math.min(this.__maxDecelerationScrollTop, scrollTop), this.__minDecelerationScrollTop);
+      const scrollTopFixed = Math.max(Math.min(this.__maxDecelerationScrollTop, scrollTop), this.__minDecelerationScrollTop);
       if (scrollTopFixed !== scrollTop) {
         scrollTop = scrollTopFixed;
         this.__decelerationVelocityY = 0;
@@ -945,7 +945,7 @@ export class Scroller {
       // This is the factor applied to every iteration of the animation
       // to slow down the process. This should emulate natural behavior where
       // objects slow down when the initiator of the movement is removed
-      let frictionFactor = 0.95;
+      const frictionFactor = 0.95;
 
       this.__decelerationVelocityX *= frictionFactor;
       this.__decelerationVelocityY *= frictionFactor;
@@ -963,8 +963,8 @@ export class Scroller {
       let scrollOutsideY = 0;
 
       // This configures the amount of change applied to deceleration/acceleration when reaching boundaries
-      let penetrationDeceleration = this.options.penetrationDeceleration;
-      let penetrationAcceleration = this.options.penetrationAcceleration;
+      const penetrationDeceleration = this.options.penetrationDeceleration;
+      const penetrationAcceleration = this.options.penetrationAcceleration;
 
       // Check limits
       if (scrollLeft < this.__minDecelerationScrollLeft) {

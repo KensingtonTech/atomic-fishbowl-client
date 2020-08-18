@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 export class BoolToStringPipe implements PipeTransform {
 
-  transform(value: string, args?: string): any {
+  transform(value: string): any {
     return value ? 'true' : 'false';
   }
 }

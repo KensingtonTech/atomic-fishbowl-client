@@ -222,7 +222,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < this.queryList.length; i++) {
       this.queryListObj[this.queryList[i].text] = this.queryList[i];
-      let option: any = {};
+      const option: any = {};
       option['label'] = this.queryList[i].text;
       option['value'] = this.queryList[i].text;
       this.queryListOptions.push(option);
@@ -281,7 +281,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
       if ( 'defaultQuerySelection' in prefs.sa ) {
         for (let i = 0; i < this.queryList.length; i++) {
-          let query = this.queryList[i];
+          const query = this.queryList[i];
           if (query.text === prefs.sa.defaultQuerySelection) {
             log.debug('SaCollectionModalComponent: onPreferencesChanged(): setting query selector to ', query);
             this.selectedQuery = query.text; // changes the query in the query select box dropdown
@@ -329,11 +329,11 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       return;
     }
     log.debug('SaCollectionModalComponent: onFeedsChanged(): feeds', feeds);
-    let feedOptions: SelectItem[] = [];
-    for (let i in feeds) {
+    const feedOptions: SelectItem[] = [];
+    for (const i in feeds) {
       if (feeds.hasOwnProperty(i)) {
-        let feed = feeds[i];
-        let name = feed.name;
+        const feed = feeds[i];
+        const name = feed.name;
         feedOptions.push( { label: name, value: feed } );
       }
     }
@@ -354,10 +354,10 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     if (Object.keys(collections).length === 0) {
       return;
     }
-    let temp = {};
-    for (let c in collections) {
+    const temp = {};
+    for (const c in collections) {
       if (collections.hasOwnProperty(c)) {
-        let collection = collections[c];
+        const collection = collections[c];
         temp[collection.name] = null;
       }
     }
@@ -373,7 +373,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('SaCollectionModalComponent: onUseCasesChanged(): o', o);
     this.useCases = o.useCases;
     this.useCasesObj = o.useCasesObj;
-    let useCaseOptions: SelectItem[] = [];
+    const useCaseOptions: SelectItem[] = [];
     useCaseOptions.push( { label: 'Custom', value: 'custom' } );
     for (let i = 0; i < this.useCases.length; i++) {
       useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
@@ -485,8 +485,8 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.apiServers = apiServers;
     // log.debug("SaCollectionModalComponent: onApiServersChanged(): this.apiServers:", this.apiServers);
 
-    let o: SelectItem[] = [];
-    for (let server in this.apiServers) {
+    const o: SelectItem[] = [];
+    for (const server in this.apiServers) {
       if (this.apiServers.hasOwnProperty(server)) {
         // log.debug('saserver:', server);
         o.push( { label: this.apiServers[server].friendlyName, value: this.apiServers[server].id } )  ;
@@ -526,24 +526,16 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     // log.debug('SaCollectionModalComponent: submitForAdd()');
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
-    let newCollection: Collection = {
+    const newCollection: Collection = {
       id: UUID.UUID(), // overridden later if editing collection
       name: this.name,
       type: this.type,
       state: 'initial',
       saserver: this.selectedApiServer,
       saserverName: this.apiServers[this.selectedApiServer].friendlyName,
-      // query: null,
-      // contentTypes: null,
       contentLimit: this.contentLimit,
-      // deviceNumber: this.apiServers[this.selectedApiServer].deviceNumber,
       bound: false, // may get overridden later
       usecase: 'custom', // may get overridden later
-      // minX: this.minX,
-      // minY: this.minY,
-      // distillationEnabled: null,
-      // regexDistillationEnabled: null,
-      // useHashFeed: null,
       onlyContentFromArchives: this.onlyContentFromArchives,
       executeTime: time,
       serviceType: 'sa'
@@ -556,11 +548,11 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
       for (let i = 0; i < this.useCases.length; i++) {
         // set minX and minY if the use case uses images
-        let thisUseCase = this.useCases[i];
+        const thisUseCase = this.useCases[i];
         let outerBreak = false;
 
         if (thisUseCase.name === newCollection.usecase) {
-          let contentTypes = thisUseCase.contentTypes;
+          const contentTypes = thisUseCase.contentTypes;
           for (let x = 0; x < contentTypes.length; x++) {
             if ( contentTypes[x] === 'images') {
               newCollection.minX = this.minX;
@@ -582,7 +574,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
       if (this.mode === 'adhoc') {
         log.debug('SaCollectionModalComponent: onCollectionSubmit(): queryInputText:', this.queryInputText);
-        let query = JSON.parse(this.queryInputText);
+        const query = JSON.parse(this.queryInputText);
         if ('host' in this.adhocParams) {
           query.push( { any: [ 'autogenerated_domain~' + this.adhocParams['host'], 'http_server~' + this.adhocParams['host'] ] } );
         }
@@ -601,7 +593,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       newCollection.contentTypes = this.selectedContentTypes;
 
       for (let i = 0; i < newCollection.contentTypes.length; i++) {
-        let type = newCollection.contentTypes[i];
+        const type = newCollection.contentTypes[i];
         if (type === 'images') {
           newCollection.minX = this.minX;
           newCollection.minY = this.minY;
@@ -639,7 +631,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     if (!newCollection.bound && this.distillationEnabled ) {
       newCollection.distillationEnabled = false;
-      let endterms = utils.grokLines(this.distillationTerms);
+      const endterms = utils.grokLines(this.distillationTerms);
       if ( endterms.length !== 0 ) {
         newCollection.distillationEnabled = true;
         newCollection.distillationTerms = endterms;
@@ -648,7 +640,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     if (!newCollection.bound && this.regexDistillationEnabled) {
       newCollection.regexDistillationEnabled = false;
-      let endterms = utils.grokLines(this.regexDistillationTerms);
+      const endterms = utils.grokLines(this.regexDistillationTerms);
       if ( endterms.length !== 0 ) {
         newCollection.regexDistillationEnabled = true;
         newCollection.regexDistillationTerms = endterms;
@@ -657,7 +649,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     if (!newCollection.bound && this.sha1Enabled) {
       newCollection.sha1Enabled = false;
-      let endterms = utils.grokHashingLines(this.sha1Hashes);
+      const endterms = utils.grokHashingLines(this.sha1Hashes);
       if ( endterms.length !== 0 ) {
         newCollection.sha1Enabled = true;
         newCollection.sha1Hashes = endterms;
@@ -666,7 +658,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     if (!newCollection.bound && this.sha256Enabled) {
       newCollection.sha256Enabled = false;
-      let endterms = utils.grokHashingLines(this.sha256Hashes);
+      const endterms = utils.grokHashingLines(this.sha256Hashes);
       if ( endterms.length !== 0 ) {
         newCollection.sha256Enabled = true;
         newCollection.sha256Hashes = endterms;
@@ -675,7 +667,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
     if (!newCollection.bound && this.md5Enabled) {
       newCollection.md5Enabled = false;
-      let endterms = utils.grokHashingLines(this.md5Hashes);
+      const endterms = utils.grokHashingLines(this.md5Hashes);
       if ( endterms.length !== 0 ) {
         newCollection.md5Enabled = true;
         newCollection.md5Hashes = endterms;
@@ -714,23 +706,20 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
   addApiServerSubmit(f: NgForm): void {
     // log.debug("SaCollectionModalComponent: addApiServerSubmit(): f:", f);
     this.hideServiceAddBox();
-    let encPassword = this.dataService.encryptor.encrypt(f.value.password);
-    let newServer: SaServer = {
+    const encPassword = this.dataService.encryptor.encrypt(f.value.password);
+    const newServer: SaServer = {
       id: UUID.UUID(),
       host: f.value.hostname,
       port: f.value.restPort,
       ssl: f.value.ssl,
       user: f.value.user,
       password: encPassword,
-      // deviceNumber: f.value.deviceNumber,
       friendlyName: f.value.user + '@' + f.value.hostname + ':' + f.value.restPort // + ' (' + f.value.deviceNumber + ')'
     };
     if (this.apiServerMode === 'edit') {
-      // server = this.apiServers[this.selectedApiServer];
       newServer.id = this.editingApiServerId;
     }
     if (newServer.ssl) {
-      // newServer.friendlyName = newServer.friendlyName + ':ssl';
       newServer.friendlyName = f.value.user + '@' + f.value.hostname + ':' + f.value.restPort + ':ssl'; // + ' (' + f.value.deviceNumber + ')';
     }
     log.debug('SaCollectionModalComponent: addApiServer() newServer:', newServer);
@@ -740,7 +729,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     if (this.apiServerMode === 'add') {
       this.dataService.addSaServer(newServer)
                       .catch( (err) => {
-                        let error = JSON.parse(err);
+                        const error = JSON.parse(err);
                         log.error('SaCollectionModalComponent: addApiServerSubmit(): error response from server:', error.error);
                       });
     }
@@ -748,7 +737,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     if (this.apiServerMode === 'edit') {
       this.dataService.editSaServer(newServer)
                       .catch( (err) => {
-                        let error = JSON.parse(err);
+                        const error = JSON.parse(err);
                         log.error('SaCollectionModalComponent: addApiServerSubmit(): error response from server:', error.error);
                       });
     }
@@ -757,25 +746,16 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-  onOpen(): void {
-    // log.debug('SaCollectionModalComponent: onOpen()');
-  }
-
-
-
   onSelectedTypesChanged(): void {
     log.debug('SaCollectionModalComponent: onSelectedTypesChanged()');
-    let v = this.selectedContentTypes;
+    const v = this.selectedContentTypes;
     let imagesEnabled = false;
     let pdfsEnabled = false;
     let officeEnabled = false;
     let dodgyArchivesEnabled = false;
     let hashesEnabled = false;
-    // log.debug('SaCollectionModalComponent: onSelectedTypesChanged: v:', v);
-    // log.debug('SaCollectionModalComponent: onSelectedTypesChanged: browserEvent:', event);
-    // log.debug('SaCollectionModalComponent: onSelectedTypesChanged: selectedContentTypes:', this.selectedContentTypes);
     for (let i = 0; i < v.length; i++) {
-      let value = v[i];
+      const value = v[i];
       if (value === 'images') {
         imagesEnabled = true;
       }
@@ -821,7 +801,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
 
   onAllTypesSelected() {
-    let vals = [];
+    const vals = [];
     for (let i = 0; i < this.contentTypes.length; i++) {
       vals.push( this.contentTypes[i].value );
     }
@@ -1056,7 +1036,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
       let foundQuery = false;
       // now try to match the collection query to our predefined queries
       for (let i = 0; i < this.queryList.length; i++) {
-        let query = this.queryList[i];
+        const query = this.queryList[i];
         if (query.queryString === collection.query) {
           this.selectedQuery = query.text;
           foundQuery = true;
@@ -1157,7 +1137,6 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
 
   addServiceFormValid(form: NgForm): boolean {
     // log.debug('SaCollectionModalComponent: addServiceFormValid()');
-
     if (this.apiServerMode === 'add' && this.serviceFormModel.hostname && this.serviceFormModel.user && this.serviceFormModel.password && this.serviceFormModel.restPort) { // && this.serviceFormModel.restPort && this.serviceFormModel.deviceNumber
       return true;
     }
@@ -1219,7 +1198,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.dataService.testSaServer(server)
                     .then( () => {
                       this.testInProgress = false;
-                      let msg = 'Connection was successful';
+                      const msg = 'Connection was successful';
                       if (!this.showApiServiceBox) {
                         this.thumbClass = 'fa-thumbs-up';
                         this.thumbClassInForm = '';
@@ -1236,7 +1215,7 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
                     })
                     .catch( (err) => {
                       this.testInProgress = false;
-                      let msg = 'Connection failed';
+                      const msg = 'Connection failed';
                       if (!this.showApiServiceBox) {
                         this.thumbClass = 'fa-thumbs-down';
                         this.thumbClassInForm = '';
@@ -1267,14 +1246,13 @@ export class SaCollectionModalComponent implements OnInit, OnDestroy {
     this.apiServerMode = 'edit';
     this.apiServerButtonText = 'Update';
     this.showApiServiceBox = true;
-    let server = this.apiServers[this.selectedApiServer];
+    const server = this.apiServers[this.selectedApiServer];
     log.debug('SaCollectionModalComponent: editApiServer(): server:', server);
     this.editingApiServerId = server.id;
     this.serviceFormModel.hostname = server.host;
     this.serviceFormModel.user = server.user;
     this.serviceFormModel.restPort = server.port;
     this.serviceFormModel.ssl = server.ssl;
-    // this.serviceFormModel.deviceNumber = server.deviceNumber;
     this.changeDetectionRef.markForCheck();
   }
 

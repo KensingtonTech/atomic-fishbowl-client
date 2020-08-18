@@ -102,7 +102,7 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     log.debug('ToolbarWidgetComponent: onCollectionStateChanged(): state:', state);
     this.iconDecider(state);
 
-    let dupeCollection: Collection = utils.deepCopy(this.selectedCollection);
+    const dupeCollection: Collection = utils.deepCopy(this.selectedCollection);
     dupeCollection['state'] = state;
     this.selectedCollection = dupeCollection;
     // we need to run change detection as updates are out-of-band from the parent
@@ -151,8 +151,8 @@ export class ToolbarWidgetComponent implements OnInit, OnDestroy {
     }
     else if (this.selectedCollection.bound) {
       // OOTB use case
-      let useCaseName = this.selectedCollection.usecase;
-      let useCase = this.useCasesObj[useCaseName];
+      const useCaseName = this.selectedCollection.usecase;
+      const useCase = this.useCasesObj[useCaseName];
       useCaseFriendlyName = useCase.friendlyName;
       if (this.selectedCollection.serviceType === 'nw') {
         query = useCase.nwquery;

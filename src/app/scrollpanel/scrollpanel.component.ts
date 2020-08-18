@@ -112,13 +112,13 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
 
   /*calculateContainerHeight() {
-    let container = this.containerRef.nativeElement;
-    // let content = this.contentRef.nativeElement;
-    let xBar = this.xBarRef.nativeElement;
+    const container = this.containerRef.nativeElement;
+    // const content = this.contentRef.nativeElement;
+    const xBar = this.xBarRef.nativeElement;
 
-    let containerStyles = getComputedStyle(container);
-    let xBarStyles = getComputedStyle(xBar);
-    let pureContainerHeight = this.getHeight(container) - parseInt(xBarStyles['height'], 10);
+    const containerStyles = getComputedStyle(container);
+    const xBarStyles = getComputedStyle(xBar);
+    const pureContainerHeight = this.getHeight(container) - parseInt(xBarStyles['height'], 10);
 
     if (containerStyles['max-height'] !== 'none' && pureContainerHeight === 0) {
       if (content.offsetHeight + parseInt(xBarStyles['height'], 10) > parseInt(containerStyles['max-height'], 10)) {
@@ -133,25 +133,25 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
 
   moveBar() {
-    // let container = this.containerRef.nativeElement;
-    // let content = this.contentRef.nativeElement;
+    // const container = this.containerRef.nativeElement;
+    // const content = this.contentRef.nativeElement;
 
     /* horizontal scroll */
-    /*let xBar = this.xBarRef.nativeElement;
-    let totalWidth = content.scrollWidth;
-    let ownWidth = content.clientWidth;
-    let bottom = (container.clientHeight - xBar.clientHeight) * -1;
+    /*const xBar = this.xBarRef.nativeElement;
+    const totalWidth = content.scrollWidth;
+    const ownWidth = content.clientWidth;
+    const bottom = (container.clientHeight - xBar.clientHeight) * -1;
 
     this.scrollXRatio = ownWidth / totalWidth;*/
 
     /* vertical scroll */
-    let yBar = this.yBarRef.nativeElement;
-    // let totalHeight = content.scrollHeight; // height of content
-    // let ownHeight = content.clientHeight; // height of container
+    const yBar = this.yBarRef.nativeElement;
+    // const totalHeight = content.scrollHeight; // height of content
+    // const ownHeight = content.clientHeight; // height of container
 
-    let containerHeight = this._containerHeight; // height of container
-    let contentHeight = this._contentHeight;  // height of content
-    // let right = (container.clientWidth - yBar.clientWidth) * -1;
+    const containerHeight = this._containerHeight; // height of container
+    const contentHeight = this._contentHeight;  // height of content
+    // const right = (container.clientWidth - yBar.clientWidth) * -1;
 
     /*console.log('moveBar(): containerHeight:', this._containerHeight);
     console.log('moveBar(): contentHeight:', this._contentHeight);
@@ -173,9 +173,9 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
       }
       else {
         this.removeClass(yBar, 'ui-scrollpanel-hidden');
-        let top = containerHeight * (this._scrollTop / contentHeight);
-        let calculatedStyle = { height: containerHeight * this.scrollYRatio, top: top};
-        let heightAndTop = this.enforceMinHandleHeight(containerHeight * .05, calculatedStyle);
+        const top = containerHeight * (this._scrollTop / contentHeight);
+        const calculatedStyle = { height: containerHeight * this.scrollYRatio, top: top};
+        const heightAndTop = this.enforceMinHandleHeight(containerHeight * .05, calculatedStyle);
         yBar.style.cssText = `height: ${heightAndTop.height}px; top: ${heightAndTop.top}px;`;
       }
     });
@@ -247,7 +247,7 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
 
   /*onMouseMoveForXBar(e: MouseEvent) {
-    let deltaX = e.pageX - this.lastPageX;
+    const deltaX = e.pageX - this.lastPageX;
     this.lastPageX = e.pageX;
 
     this.requestAnimationFrame(() => {
@@ -258,7 +258,7 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
 
   onMouseMoveForYBar(e: MouseEvent) {
-    let deltaY = e.pageY - this.lastPageY;
+    const deltaY = e.pageY - this.lastPageY;
     this.lastPageY = e.pageY;
 
     /*this.requestAnimationFrame(() => {
@@ -270,7 +270,7 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
 
   /*scrollTop(scrollTop: number) {
-    let scrollableHeight = this.contentRef.nativeElement.scrollHeight - this.contentRef.nativeElement.clientHeight;
+    const scrollableHeight = this.contentRef.nativeElement.scrollHeight - this.contentRef.nativeElement.clientHeight;
     scrollTop = scrollTop > scrollableHeight ? scrollableHeight : scrollTop > 0 ? scrollTop : 0;
     this.contentRef.nativeElement.scrollTop = scrollTop;
   }*/
@@ -291,7 +291,7 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
 
   requestAnimationFrame(f: Function) {
-    let frame = window.requestAnimationFrame || this.timeoutFrame;
+    const frame = window.requestAnimationFrame || this.timeoutFrame;
     frame(f);
   }
 
@@ -314,7 +314,7 @@ export class CustomScrollPanelComponent implements AfterViewInit, OnDestroy {
 
   /*getHeight(el): number {
     let height = el.offsetHeight;
-    let style = getComputedStyle(el);
+    const style = getComputedStyle(el);
 
     height -= parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
 

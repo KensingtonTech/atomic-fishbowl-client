@@ -55,10 +55,10 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
   ngOnInit(): void {
     // log.debug('MasonryTileComponent: ngOnInit()');
 
-    let parentSession = this.parent.sessions[this.sessionId];
+    const parentSession = this.parent.sessions[this.sessionId];
 
-    let session = { meta: {}, id: this.sessionId };
-    for (let key in parentSession.meta) {
+    const session = { meta: {}, id: this.sessionId };
+    for (const key in parentSession.meta) {
       // de-dupe meta
       if (parentSession.meta.hasOwnProperty(key)) {
         session['meta'][key] = utils.uniqueArrayValues(parentSession.meta[key]);
@@ -108,30 +108,28 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     // set up the text area list items
+    let msg: string;
     if (['encryptedRarEntry', 'encryptedZipEntry'].includes(this.content.contentType)) {
-      let msg = `Encrypted file within a ${utils.toCaps(this.content.archiveType)} archive`;
-      this.textAreaList.push(msg);
+      msg = `Encrypted file within a ${utils.toCaps(this.content.archiveType)} archive`;
     }
     if (this.content.contentType === 'unsupportedZipEntry') {
-      let msg = `Unsupported ZIP format`;
-      this.textAreaList.push(msg);
+      msg = `Unsupported ZIP format`;
     }
     if (this.content.contentType === 'encryptedRarTable') {
-      let msg = `RAR archive has an encrypted table`;
-      this.textAreaList.push(msg);
+      msg = `RAR archive has an encrypted table`;
     }
     if (this.content.contentType === 'hash') {
-      let msg = `Found executable matching ${utils.toCaps(this.content.hashType)} hash value`;
-      this.textAreaList.push(msg);
+      msg = `Found executable matching ${utils.toCaps(this.content.hashType)} hash value`;
     }
     if (['office', 'pdf'].includes(this.content.contentType) && this.content.textDistillationEnabled && 'textTermsMatched' in this.content && this.content.textTermsMatched.length > 0) {
-      let type = this.content.contentType === 'pdf' ? 'PDF' : utils.capitalizeFirstLetter(this.content.contentSubType);
-      let msg = `Found ${type} document containing text term`;
-      this.textAreaList.push(msg);
+      const type = this.content.contentType === 'pdf' ? 'PDF' : utils.capitalizeFirstLetter(this.content.contentSubType);
+      msg = `Found ${type} document containing text term`;
     }
     if (['office', 'pdf'].includes(this.content.contentType) && this.content.regexDistillationEnabled && 'regexTermsMatched' in this.content && this.content.regexTermsMatched.length > 0) {
-      let type = this.content.contentType === 'pdf' ? 'PDF' : utils.capitalizeFirstLetter(this.content.contentSubType);
-      let msg = `Found ${type} document matching Regex term`;
+      const type = this.content.contentType === 'pdf' ? 'PDF' : utils.capitalizeFirstLetter(this.content.contentSubType);
+      msg = `Found ${type} document matching Regex term`;
+    }
+    if (msg) {
       this.textAreaList.push(msg);
     }
 
@@ -154,33 +152,33 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     if (['pdf', 'office'].includes(this.content.contentType) && this.content.contentFile) {
-      let type = this.content.contentType === 'pdf' ? 'PDF' : 'Office';
-      let struct = { key: `${type} Filename:`, value: utils.pathToFilename(this.content.contentFile)};
+      const type = this.content.contentType === 'pdf' ? 'PDF' : 'Office';
+      const struct = { key: `${type} Filename:`, value: utils.pathToFilename(this.content.contentFile)};
       this.textAreaTableItems.push(struct);
     }
 
     if (this.content.isArchive) {
-      let struct = { key: `Archive File:`, value: utils.pathToFilename(this.content.contentFile)};
+      const struct = { key: `Archive File:`, value: utils.pathToFilename(this.content.contentFile)};
       this.textAreaTableItems.push(struct);
     }
 
     if (this.content.fromArchive) {
-      let struct = { key: `Archived Filename:`, value: utils.pathToFilename(this.content.archiveFilename)};
+      const struct = { key: `Archived Filename:`, value: utils.pathToFilename(this.content.archiveFilename)};
       this.textAreaTableItems.push(struct);
     }
 
     if (['encryptedZipEntry', 'encryptedRarEntry'].includes(this.content.contentType)) {
-      let struct = { key: `Encrypted File:`, value: utils.pathToFilename(this.content.contentFile)};
+      const struct = { key: `Encrypted File:`, value: utils.pathToFilename(this.content.contentFile)};
       this.textAreaTableItems.push(struct);
     }
 
     if (this.content.textDistillationEnabled && 'textTermsMatched' in this.content && this.content.textTermsMatched.length > 0) {
-      let struct = { key: `Matched Text:`, value: this.content.textTermsMatched};
+      const struct = { key: `Matched Text:`, value: this.content.textTermsMatched};
       this.textAreaTableItems.push(struct);
     }
 
     if (this.content.regexDistillationEnabled && 'regexTermsMatched' in this.content && this.content.regexTermsMatched.length > 0) {
-      let struct = { key: `Matched RegEx:`, value: this.content.regexTermsMatched};
+      const struct = { key: `Matched RegEx:`, value: this.content.regexTermsMatched};
       this.textAreaTableItems.push(struct);
     }
 
@@ -205,7 +203,7 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
 
   onImageLoaded() {
     // log.debug('MasonryTileComponent: onImageLoaded()');
-    let event = new Event('onloaded');
+    const event = new Event('onloaded');
     this.zone.runOutsideAngular( () => {
         this.el.nativeElement.dispatchEvent(event);
     });
@@ -219,7 +217,7 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
     this.imageSource = '/resources/error_icon.png';
     this.changeDetectionRef.reattach();
     setTimeout( () => this.changeDetectionRef.detach(), 0);
-    let event = new Event('onloaded');
+    const event = new Event('onloaded');
     this.zone.runOutsideAngular( () => {
       this.el.nativeElement.dispatchEvent(event);
     });
@@ -229,11 +227,11 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
 
   updateMasonryMeta() {
     if (this.masonryKeys && this.session && this.masonryKeys.length !== 0 && 'meta' in this.session && Object.keys(this.session.meta).length !== 0) {
-      let masonryMeta = [];
+      const masonryMeta = [];
       for (let i = 0; i < this.masonryKeys.length; i++) {
-        let masonryKey = this.masonryKeys[i];
+        const masonryKey = this.masonryKeys[i];
         if (masonryKey.key in this.session.meta) {
-          let struct = { key: masonryKey.key, friendly: masonryKey.friendly, value: this.session.meta[masonryKey.key]};
+          const struct = { key: masonryKey.key, friendly: masonryKey.friendly, value: this.session.meta[masonryKey.key]};
           masonryMeta.push(struct);
         }
       }

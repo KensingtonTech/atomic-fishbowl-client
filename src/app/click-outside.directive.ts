@@ -12,8 +12,8 @@ export class ClickOutsideDirective {
 
     @HostListener('document:click', ['$event']) onClick(event: any) {
         log.debug('ClickOutsideDirective: onClick(): event.target:', event.target);
-        let targetElement: Element = event.target;
-        let classList = targetElement.classList;
+        const targetElement: Element = event.target;
+        const classList = targetElement.classList;
         log.debug('ClickOutsideDirective: onClick(): classList:', classList);
         let clickedInside = false;
 

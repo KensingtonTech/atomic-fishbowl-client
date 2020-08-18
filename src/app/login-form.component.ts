@@ -54,7 +54,7 @@ export class LoginFormComponent implements OnInit, AfterViewInit, OnDestroy {
   login(): void {
     this.loginSubmitted = true;
     this.errorMsg = '';
-    let user: User = { username: this.username, password: this.password};
+    const user: User = { username: this.username, password: this.password};
     this.authService.login(user, this.dataService.socketId)
                     .then( (res: boolean) => {
                       this.loginSubmitted = false;

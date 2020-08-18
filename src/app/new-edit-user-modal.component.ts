@@ -146,7 +146,7 @@ export class NewEditUserModalComponent implements OnInit {
 
   async addUserSubmit() {
     log.debug('NewEditUserModalComponent: addUserSubmit: this.addUserForm:', this.addUserForm);
-    let encPassword = this.dataService.encryptor.encrypt(this.addUserForm.value.passwords.password);
+    const encPassword = this.dataService.encryptor.encrypt(this.addUserForm.value.passwords.password);
     const newUser: User = {
       username: this.addUserForm.value.username,
       fullname: this.addUserForm.value.fullname,
@@ -177,7 +177,7 @@ export class NewEditUserModalComponent implements OnInit {
   /////////////////////////////////////////////////////////////////
 
   onEditingUserAfterOpen(): void {
-    let user: User = this.editingUser;
+    const user: User = this.editingUser;
     log.debug('NewEditUserModalComponent: onEditingUserAfterOpen(): user:', user);
 
     this.editUserForm.patchValue({
@@ -201,7 +201,7 @@ export class NewEditUserModalComponent implements OnInit {
 
   async editUserSubmit(form: any) {
     log.debug('NewEditUserModalComponent: editUserSubmit(): form:', form);
-    let updatedUser: User = new User;
+    const updatedUser: User = new User;
     updatedUser.id = this.editingUser.id;
     updatedUser.enabled = form.value.userEnabled;
     if ( this.editingUser.fullname !== form.value.fullname ) {
@@ -211,7 +211,7 @@ export class NewEditUserModalComponent implements OnInit {
       updatedUser.email = form.value.email;
     }
     if ( form.controls.passwords.dirty && form.value.passwords.password.length !== 0 ) {
-      let encPassword = this.dataService.encryptor.encrypt(form.value.passwords.password);
+      const encPassword = this.dataService.encryptor.encrypt(form.value.passwords.password);
       updatedUser.password = encPassword;
     }
     log.debug('NewEditUserModalComponent: editUserSubmit(): updatedUser:', updatedUser);

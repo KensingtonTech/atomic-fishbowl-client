@@ -50,7 +50,7 @@ export class TabContainerComponent {
 
   onTabChange(event): void {
     // log.debug('TabContainerComponent: onTabChange(): event:', event);
-    let index = event.index;
+    const index = event.index;
     this.selectedTabIndex = index;
     log.debug('TabContainerComponent: onTabChange(): index:', index);
     if (index === 0) {

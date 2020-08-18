@@ -21,7 +21,6 @@ import { SessionsAvailable } from 'types/sessions-available';
 import * as imagesLoaded from 'imagesloaded';
 import { Scroller } from '../scroller/scroller';
 import * as log from 'loglevel';
-import $ from 'jquery';
 (async () => {
   if (!('ResizeObserver' in window)) {
     // Load polyfill asynchronously, only if required.
@@ -97,6 +96,9 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private imgsLoaded: ImagesLoaded.ImagesLoaded = null;
   private initialLayoutInProgress = false; // helps address a race condition where onContentPublished() and/or onSessionsPurged() step on the first layout operation of onContentReplaced, and causes tons of unnecessary layout operations.  Prevents addWithLayout from being set to true until that first layout operation is complete.
   private publishedContentQueueing = false; // instructs onLayoutComplete() to perform an additional operation after the initialLayout operation has completed, and also to switch the layout mode to addWithLayout = true
+  private get displayedTileIds(): string[] {
+    return utils.getVisibleElements(document.getElementsByTagName('masonry-tile')).map( (elem) => elem.getAttribute('id') );
+  }
 
   // search and filtering
   filter = '*';
@@ -344,8 +346,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   onNextSessionClicked(): void {
     log.debug('MasonryGridComponent: onNextSessionClicked()');
-    // build a list of un-filtered tiles
-    const displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
+    // get the list of un-filtered tiles
+    const displayedTileIds = this.displayedTileIds;
     log.debug('MasonryGridComponent: onNextSessionClicked(): displayedTileIds:', displayedTileIds);
 
     let nextContentItem: Content;
@@ -384,8 +386,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   onPreviousSessionClicked(): void {
     log.debug('MasonryGridComponent: onPreviousSessionClicked()');
-    // build a list of un-filtered tiles
-    const displayedTileIds = $('masonry-tile:visible').map(function(){ return $(this).attr('id'); } ).get();
+    // get the list of un-filtered tiles
+    const displayedTileIds = this.displayedTileIds;
     log.debug('MasonryGridComponent: onPreviousSessionClicked(): displayedTileIds:', displayedTileIds);
     let previousContentItem: Content;
     let previousContentItemId;
@@ -421,8 +423,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
   updateNextPreviousButtonStatus(): void {
-    // build a list of un-filtered tile id's
-    const displayedTileIds = $('masonry-tile:visible').map(function(){return $(this).attr('id'); } ).get();
+    // get the list of un-filtered tile id's
+    const displayedTileIds = this.displayedTileIds;
     // log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): displayedTileIds:', displayedTileIds);
     // log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): selectedContentId:', this.selectedContentId);
 
@@ -1230,18 +1232,18 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
 
-    if (this.search.length > 0) {
-      for (let i = 0; i < this.search.length; i++) {
-        if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) { // case-insensitive search
-          // we found a match!
-          const matchedId = this.search[i].id;
-          matchedIds.push(`[id="${matchedId}"]`);
-        }
-        else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) { // case-sensitive search
-          // we found a match!
-          const matchedId = this.search[i].id;
-          matchedIds.push(`[id="${matchedId}"]`);
-        }
+    for (let i = 0; i < this.search.length; i++) {
+      if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) {
+        // case-insensitive search
+        // we found a match!
+        const matchedId = this.search[i].id;
+        matchedIds.push(`[id="${matchedId}"]`);
+      }
+      else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) {
+        // case-sensitive search
+        // we found a match!
+        const matchedId = this.search[i].id;
+        matchedIds.push(`[id="${matchedId}"]`);
       }
     }
 

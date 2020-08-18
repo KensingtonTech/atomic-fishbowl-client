@@ -83,7 +83,6 @@ export class SplashScreenModalComponent implements OnInit, OnDestroy {
       clearTimeout(this.closeTimeout);
       this.toolService.splashLoaded = true;
       // we only trigger this if closing automatically.  If cancelling, we don't want anything else to happen
-      // this.toolService.onSplashScreenAtStartupClosed.next();
     }
   }
 

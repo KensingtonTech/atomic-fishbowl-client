@@ -127,8 +127,8 @@ export class FeedsComponent implements OnInit, OnDestroy {
       this.filterChanged();
       return;
     }
-    let tempFeeds: Feed[] = [];
-    for (let n in feeds) {
+    const tempFeeds: Feed[] = [];
+    for (const n in feeds) {
       if (feeds.hasOwnProperty(n)) {
         tempFeeds.push(feeds[n]);
       }
@@ -183,9 +183,9 @@ export class FeedsComponent implements OnInit, OnDestroy {
       this.displayedFeeds = this.feeds;
     }
     else {
-      let tempFeeds: Feed[] = [];
+      const tempFeeds: Feed[] = [];
       for (let i = 0; i < this.feeds.length; i++) {
-        let feed = this.feeds[i];
+        const feed = this.feeds[i];
         if (feed.name.toLocaleLowerCase().includes(this.filterText.toLocaleLowerCase())) {
           tempFeeds.push(feed);
         }

@@ -110,7 +110,7 @@ export class MetaWidgetComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.preferences = prefs;
     this.preferenceKeys = this.preferences[this.serviceType].displayedKeys.slice(0);
-    let preferenceKeysObj = {};
+    const preferenceKeysObj = {};
     this.preferenceKeys.forEach( prefKey => {
       preferenceKeysObj[prefKey] = 0;
     });
@@ -138,7 +138,7 @@ export class MetaWidgetComponent implements OnInit, OnChanges, OnDestroy {
     // sets this.enabledMeta to be an object of meta Keys,
     // with the value of each key being a boolean of whether
     // to display the key or not
-    let tmpEnabledMeta = {};
+    const tmpEnabledMeta = {};
     Object.keys(this.meta).forEach( key => {
       let enabled = true;
       if (!this.showAll && !this.checkForKeyInPreferences(key)) {
@@ -163,7 +163,7 @@ export class MetaWidgetComponent implements OnInit, OnChanges, OnDestroy {
     // builds a list of all keynames from the session's meta
     // doesn't contain any reference displayed keys which aren't present in the meta
     // only called from  getCombinedMetaKeys()
-    let keys: string[] = [];
+    const keys: string[] = [];
     Object.keys(this.meta).forEach( key => {
       keys.push(key);
     });
@@ -176,7 +176,7 @@ export class MetaWidgetComponent implements OnInit, OnChanges, OnDestroy {
     // adds any preferred displayed keys to the list of all meta keys
     // we do this so that we can display an indicator if the session meta
     // doesn't contain preferred keys
-    let metaKeys: string[] = this.getAllMetaKeys();
+    const metaKeys: string[] = this.getAllMetaKeys();
     this.preferenceKeys.forEach( prefKey => {
       if ( !(prefKey in this.meta) ) {
         metaKeys.push(prefKey);
@@ -249,14 +249,14 @@ export class MetaWidgetComponent implements OnInit, OnChanges, OnDestroy {
     // {{preferences.sa.url}}/investigation/{{deviceNumber}}/reconstruction/{{sessionId}}/AUTO
     // let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'pb' : ['flow_id=4898292'], 'ca' : { 'start' : 1518021720000, 'end' : 1518108120000}, 'now' : 1518108153464, 'ac': 'Summary' };
 
-    let struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'ac': 'Summary' };
+    const struct = { 'sc' : { 'Extractions' : { 'aC' : 'hT' , 's' : { 'p' : 1, 's' : 25, 'f' : [], 'sf' : 'date', 'sd' : 'ASC'}, 'p' : 0 }, 'Geolocation': { 'rI' : 'ipv4_conversation', 'rT' : 'g', 'sd' : 'd' , 'sc' : 2, 'p' : 0, 's' : 25, 'filters' : {'all' : []}}, 'Reports' : { 'rI' : 'application_id', 'rT' : 'r', 'cT' : 'pie', 'aS' : 'linear', 'cR' : 10, 'sd' : 'd', 'sc' : 'sessions', 'p' : 0, 's' : 25, 'comp' : 'none', 'filters' : {'all' : [] } }, 'Summary' : {'vK' : 1, 'p' : 0}}, 'ac': 'Summary' };
     struct['pb'] = [ 'flow_id=' + sessionId ];
-    let startTime = this.convertSaTime(<any>this.meta['start_time']);
+    const startTime = this.convertSaTime(<any>this.meta['start_time']);
 
-    let stopTime = this.convertSaTime(<any>this.meta['stop_time']);
+    const stopTime = this.convertSaTime(<any>this.meta['stop_time']);
     struct['ca'] = { 'start' : startTime, 'end': stopTime };
     struct['now'] = new Date().getTime();
-    let encoded = btoa(JSON.stringify(struct));
+    const encoded = btoa(JSON.stringify(struct));
     // log.debug('ClassicSessionPopupComponent: saUrlGetter(): struct:', struct);
 
     return this.preferences.sa.url + '/deepsee/index#' + encoded;

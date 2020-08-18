@@ -138,7 +138,7 @@ export class ManageUsersModalComponent implements OnInit, OnDestroy {
 
   findUser(id: string): User {
     for (let x = 0; x < this.users.length; x++) {
-      let user = this.users[x];
+      const user = this.users[x];
       if (user.id === id) {
         return user;
       }

@@ -80,9 +80,9 @@ export class NewEditNwServiceModalComponent implements OnInit {
   onEditingApiServiceAfterOpen(): void {
     log.debug('NewEditNwServiceModalComponent: onEditingApiServiceAfterOpen()');
 
-    let server = this.selectedApiServer;
+    const server = this.selectedApiServer;
     log.debug('NewEditNwServiceModalComponent: onEditingApiServiceAfterOpen(): server:', server);
-    let tempModel = {
+    const tempModel = {
       hostname: server.host,
       user: server.user,
       restPort: server.port,
@@ -164,13 +164,13 @@ export class NewEditNwServiceModalComponent implements OnInit {
     this.dataService.testNwServer(server)
                     .then( () => {
                       this.testInProgress = false;
-                      let msg = 'Connection was successful';
+                      const msg = 'Connection was successful';
                       this.thumbClass = 'fa-thumbs-up';
                       this.testError = msg;
                     })
                     .catch( (err) => {
                       this.testInProgress = false;
-                      let msg = 'Connection failed';
+                      const msg = 'Connection failed';
                       this.thumbClass = 'fa-thumbs-down';
                       this.testError = msg;
                       log.info('Test connection failed with error:', err);
@@ -186,8 +186,8 @@ export class NewEditNwServiceModalComponent implements OnInit {
   addApiServerSubmit(f: NgForm) {
     // log.debug("NewEditNwServiceModalComponent: addApiServerSubmit(): f:", f);
     this.resetForm();
-    let encPassword = this.dataService.encryptor.encrypt(f.value.password);
-    let newServer: NwServer = {
+    const encPassword = this.dataService.encryptor.encrypt(f.value.password);
+    const newServer: NwServer = {
       id: UUID.UUID(),
       host: f.value.hostname,
       port: f.value.restPort,
@@ -206,7 +206,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
     }
     log.debug('NewEditNwServiceModalComponent: addNwServer() newServer:', newServer);
 
-    let apiMethod = this.addingService ? this.dataService.addNwServer.bind(this.dataService) : this.dataService.editNwServer.bind(this.dataService);
+    const apiMethod = this.addingService ? this.dataService.addNwServer.bind(this.dataService) : this.dataService.editNwServer.bind(this.dataService);
 
     apiMethod(newServer)
                         .then( () => {
@@ -217,7 +217,7 @@ export class NewEditNwServiceModalComponent implements OnInit {
                           this.resetForm();
                         })
                         .catch( (err) => {
-                          let error = JSON.parse(err);
+                          const error = JSON.parse(err);
                           log.error('NewEditNwServiceModalComponent: addApiServerSubmit(): error response from server:', error.error);
                         });
 

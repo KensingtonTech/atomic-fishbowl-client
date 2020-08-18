@@ -161,7 +161,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < this.queryList.length; i++) {
       this.queryListObj[this.queryList[i].text] = this.queryList[i];
-      let option: any = {};
+      const option: any = {};
       option['label'] = this.queryList[i].text;
       option['value'] = this.queryList[i].text;
       this.queryListOptions.push(option);
@@ -191,7 +191,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.dataService.nwServersChanged.subscribe( (apiServers: NwServers) => this.onApiServersChanged(apiServers) ));
 
     this.timeframes.forEach(timeframe => {
-      let item: SelectItem = { label: timeframe, value: timeframe};
+      const item: SelectItem = { label: timeframe, value: timeframe};
       this.timeframeOptions.push(item);
     });
 
@@ -227,7 +227,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
       if ( 'defaultQuerySelection' in prefs.nw ) {
         for (let i = 0; i < this.queryList.length; i++) {
-          let query = this.queryList[i];
+          const query = this.queryList[i];
           if (query.text === prefs.nw.defaultQuerySelection) {
             log.debug('NwCollectionModalComponent: onPreferencesChanged(): setting query selector to ', query);
             this.selectedQuery = query.text; // changes the query in the query select box dropdown
@@ -263,10 +263,10 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     if (Object.keys(collections).length === 0) {
       return;
     }
-    let temp = {};
-    for (let c in collections) {
+    const temp = {};
+    for (const c in collections) {
       if (collections.hasOwnProperty(c)) {
-        let collection = collections[c];
+        const collection = collections[c];
         temp[collection.name] = null;
       }
     }
@@ -282,11 +282,11 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       return;
     }
     log.debug('NwCollectionModalComponent: onFeedsChanged(): feeds', feeds);
-    let feedOptions: SelectItem[] = [];
-    for (let i in feeds) {
+    const feedOptions: SelectItem[] = [];
+    for (const i in feeds) {
       if (feeds.hasOwnProperty(i)) {
-        let feed = feeds[i];
-        let name = feed.name;
+        const feed = feeds[i];
+        const name = feed.name;
         feedOptions.push( { label: name, value: feed } );
       }
     }
@@ -312,7 +312,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('NwCollectionModalComponent: onUseCasesChanged(): o', o);
     this.useCases = o.useCases;
     this.useCasesObj = o.useCasesObj;
-    let useCaseOptions: SelectItem[] = [];
+    const useCaseOptions: SelectItem[] = [];
     useCaseOptions.push( { label: 'Custom', value: 'custom' } );
     for (let i = 0; i < this.useCases.length; i++) {
       useCaseOptions.push( { label: this.useCases[i].friendlyName, value: this.useCases[i].name } );
@@ -430,24 +430,17 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     // log.debug('NwCollectionModalComponent: onCollectionSubmit()');
     const time = <number>(Math.round( <any>(new Date()) / 1000) );
 
-    let newCollection: Collection = {
+    const newCollection: Collection = {
       id: UUID.UUID(), // overridden later if editing collection
       name: this.name,
       type: this.type,
       state: 'initial',
       nwserver: this.selectedApiServer.id,
       nwserverName: this.selectedApiServer.friendlyName,
-      // query: null,
-      // contentTypes: null,
       contentLimit: this.contentLimit,
       deviceNumber: this.selectedApiServer.deviceNumber,
       bound: false, // may get overridden later
       usecase: 'custom', // may get overridden later
-      // minX: this.minX,
-      // minY: this.minY,
-      // distillationEnabled: null,
-      // regexDistillationEnabled: null,
-      // useHashFeed: null,
       onlyContentFromArchives: this.onlyContentFromArchives,
       executeTime: time,
       serviceType: 'nw'
@@ -460,11 +453,11 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
       for (let i = 0; i < this.useCases.length; i++) {
         // set minX and minY if the use case uses images
-        let thisUseCase = this.useCases[i];
+        const thisUseCase = this.useCases[i];
         let outerBreak = false;
 
         if (thisUseCase.name === newCollection.usecase) {
-          let contentTypes = thisUseCase.contentTypes;
+          const contentTypes = thisUseCase.contentTypes;
           for (let x = 0; x < contentTypes.length; x++) {
             if ( contentTypes[x] === 'images') {
               newCollection.minX = this.minX;
@@ -511,7 +504,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       newCollection.contentTypes = this.selectedContentTypes;
 
       for (let i = 0; i < newCollection.contentTypes.length; i++) {
-        let type = newCollection.contentTypes[i];
+        const type = newCollection.contentTypes[i];
         if (type === 'images') {
           newCollection.minX = this.minX;
           newCollection.minY = this.minY;
@@ -547,7 +540,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
     if (!newCollection.bound && this.distillationEnabled ) {
-      let endterms = utils.grokLines(this.distillationTerms);
+      const endterms = utils.grokLines(this.distillationTerms);
       newCollection.distillationEnabled = false;
       if ( endterms.length !== 0 ) {
         newCollection.distillationEnabled = true;
@@ -556,7 +549,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.regexDistillationEnabled) {
-      let endterms = utils.grokLines(this.regexDistillationTerms);
+      const endterms = utils.grokLines(this.regexDistillationTerms);
       newCollection.regexDistillationEnabled = false;
       if ( endterms.length !== 0 ) {
         newCollection.regexDistillationEnabled = true;
@@ -565,7 +558,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.hashesEnabled && this.sha1Enabled) {
-      let endterms = utils.grokHashingLines(this.sha1Hashes);
+      const endterms = utils.grokHashingLines(this.sha1Hashes);
       newCollection.sha1Enabled = false;
       if ( endterms.length !== 0 ) {
         newCollection.sha1Enabled = true;
@@ -574,7 +567,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.hashesEnabled && this.sha256Enabled) {
-      let endterms = utils.grokHashingLines(this.sha256Hashes);
+      const endterms = utils.grokHashingLines(this.sha256Hashes);
       newCollection.sha256Enabled = false;
       if ( endterms.length !== 0 ) {
         newCollection.sha256Enabled = true;
@@ -583,7 +576,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
 
     if (!newCollection.bound && this.hashesEnabled && this.md5Enabled) {
-      let endterms = utils.grokHashingLines(this.md5Hashes);
+      const endterms = utils.grokHashingLines(this.md5Hashes);
       newCollection.md5Enabled = false;
       if ( endterms.length !== 0 ) {
         newCollection.md5Enabled = true;
@@ -621,30 +614,16 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
 
-
-
-
-
-  onOpen(): void {
-    // log.debug('NwCollectionModalComponent: onOpen()');
-  }
-
-
-
-
   onSelectedTypesChanged(): void {
     log.debug('NwCollectionModalComponent: onSelectedTypesChanged()');
-    let v = this.selectedContentTypes;
+    const v = this.selectedContentTypes;
     let imagesEnabled = false;
     let pdfsEnabled = false;
     let officeEnabled = false;
     let dodgyArchivesEnabled = false;
     let hashesEnabled = false;
-    // log.debug('NwCollectionModalComponent: onSelectedTypesChanged: v:', v);
-    // log.debug('NwCollectionModalComponent: onSelectedTypesChanged: browserEvent:', event);
-    // log.debug('NwCollectionModalComponent: onSelectedTypesChanged: selectedContentTypes:', this.selectedContentTypes);
     for (let i = 0; i < v.length; i++) {
-      let value = v[i];
+      const value = v[i];
       if (value === 'images') {
         imagesEnabled = true;
       }
@@ -689,7 +668,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
 
   onAllTypesSelected() {
-    let vals = [];
+    const vals = [];
     for (let i = 0; i < this.contentTypes.length; i++) {
       vals.push( this.contentTypes[i].value );
     }
@@ -810,7 +789,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.showUseCaseValues = false;
     this.displayUseCaseDescription = false;
     if (Object.keys(this.apiServers).length !== 0) {
-      let firstApiServerId = Object.keys(this.apiServers)[0];
+      const firstApiServerId = Object.keys(this.apiServers)[0];
       this.selectedApiServer = this.apiServers[firstApiServerId];
       log.debug('NwCollectionModalComponent: onAddCollectionNext(): selectedApiServer.id', this.selectedApiServer.id);
     }
@@ -874,7 +853,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     // API Server
     if (Object.keys(this.apiServers).length !== 0) {
-      let firstApiServerId = Object.keys(this.apiServers)[0];
+      const firstApiServerId = Object.keys(this.apiServers)[0];
       this.selectedApiServer = this.apiServers[firstApiServerId];
       log.debug('NwCollectionModalComponent: onAdhocCollectionNext(): selectedApiServer.id', this.selectedApiServer.id);
     }
@@ -947,7 +926,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
       let foundQuery = false;
       // now try to match the collection query to our predefined queries
       for (let i = 0; i < this.queryList.length; i++) {
-        let query = this.queryList[i];
+        const query = this.queryList[i];
         if (query.queryString === collection.query) {
           this.selectedQuery = query.text;
           foundQuery = true;
@@ -963,7 +942,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
 
     if (collection.nwserver in this.apiServers) {
       log.debug(`NwCollectionModalComponent: onEditCollectionNext(): Collection's nwserver ${collection.nwserver} is defined`);
-      let firstApiServerId = collection.nwserver;
+      const firstApiServerId = collection.nwserver;
       this.selectedApiServer = this.apiServers[firstApiServerId];
     }
     else {
@@ -1035,7 +1014,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     log.debug('NwCollectionModalComponent: onApiServersChanged(): apiServers:', apiServers);
     this.apiServers = apiServers;
 
-    let options: SelectItem[] = [];
+    const options: SelectItem[] = [];
     Object.keys(this.apiServers).forEach( server => {
       // log.debug('nwserver:', server);
       options.push( { label: this.apiServers[server].friendlyName, value: this.apiServers[server] } )  ;
@@ -1063,7 +1042,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
     else if (Object.keys(this.apiServers).length === 1) {
       // only one api server is defined - select it
-      let firstApiServerId = Object.keys(this.apiServers)[0];
+      const firstApiServerId = Object.keys(this.apiServers)[0];
       this.selectedApiServer = this.apiServers[firstApiServerId];
     }
     else if (this.selectedApiServer && !Object.keys(this.apiServers).includes(this.selectedApiServer.id)) {
@@ -1128,19 +1107,19 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
 
-    let server = this.selectedApiServer;
+    const server = this.selectedApiServer;
 
     this.dataService.testNwServer(server)
                     .then( () => {
                       this.testInProgress = false;
-                      let msg = 'Connection was successful';
+                      const msg = 'Connection was successful';
                       this.thumbClass = 'fa-thumbs-up';
                       this.testError = msg;
 
                     })
                     .catch( (err) => {
                       this.testInProgress = false;
-                      let msg = 'Connection failed';
+                      const msg = 'Connection failed';
                       this.thumbClass = 'fa-thumbs-down';
                       this.testError = msg;
                       log.info('Test connection failed with error:', err);

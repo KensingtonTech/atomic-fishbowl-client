@@ -636,7 +636,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('ClassicGridComponent: onMaskChanged():', mask);
 
     if (mask.showImage && mask.showPdf && mask.showWord && mask.showExcel && mask.showPowerpoint && mask.showHash && mask.showDodgy && !mask.showFromArchivesOnly) {
-      const tmpDisplayedContent: boolean[] = this.content.map( value => true );
+      const tmpDisplayedContent: boolean[] = this.content.map( () => true );
       this.displayedContent = tmpDisplayedContent;
       this.changeDetectionRef.detectChanges();
       return;
@@ -708,7 +708,7 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
       // we just got too far out, so turn off all high-res sessions
       this.tooFarOutForHighRes = true;
       log.debug('ClassicGridComponent: sessionWidgetDecider(): switching off high-res images');
-      const tempHighResSessions: boolean[] = this.content.map( value => false );
+      const tempHighResSessions: boolean[] = this.content.map( () => false );
       this.highResSessions = tempHighResSessions;
       if (this.sessionWidgetEnabled) {
         this.hideSessionWidget(); // changes detected within
@@ -941,9 +941,9 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private purgeSessions(sessionsToPurge: number[]): boolean {
     let searchRemoved = false;
     while (sessionsToPurge.length !== 0) {
-      let sessionToPurge = sessionsToPurge.shift();
+      const sessionToPurge = sessionsToPurge.shift();
 
-      let contentsToPurge = [];
+      const contentsToPurge = [];
       for (let i = 0; i < this.content.length; i++) {
         // Purge content
         const content = this.content[i];

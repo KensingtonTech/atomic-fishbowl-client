@@ -17,12 +17,16 @@
         <!--header-->
         <div fxLayout="row">
 
-          <h2 *ngIf="!editing" style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
-            Hash Feed Wizard - New Feed
+          <h2
+            *ngIf="!editing"
+            style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+              Hash Feed Wizard - New Feed
           </h2>
           
-          <h2 *ngIf="editing && feed" style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
-            Hash Feed Wizard - Editing "{{feed.name}}"
+          <h2
+            *ngIf="editing && feed"
+            style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+              Hash Feed Wizard - Editing "{{feed.name}}"
           </h2>
 
           <!-- next / cancel buttons -->
@@ -492,8 +496,7 @@
                               icon="fa fa-fw fa-close"
                               iconPos="right"
                               [label]="columnDropPort[i].columnId.name"
-                              (onClick)="onDeselectColumnId(i)"
-                              style="vertical-align: top;">
+                              (onClick)="onDeselectColumnId(i)">
                             </p-button>
 
                           </span>

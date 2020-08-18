@@ -136,16 +136,16 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       return true;
     },
     mirror: (item) => {
-      let rect = item.getBoundingClientRect();
-      let collectionId = item.getAttribute('collectionId');
-      let collectionRowElements = this.collectionsTableRef.nativeElement.querySelectorAll(`[collectionId="${collectionId}"]:not(.actions)`);
-      let container = document.createElement('div');
+      const rect = item.getBoundingClientRect();
+      const collectionId = item.getAttribute('collectionId');
+      const collectionRowElements = this.collectionsTableRef.nativeElement.querySelectorAll(`[collectionId="${collectionId}"]:not(.actions)`);
+      const container = document.createElement('div');
       container.className = 'collections-table-clone';
       let width = 0;
       collectionRowElements.forEach( el => {
-        let w = utils.getRectWidth(el.getBoundingClientRect());
+        const w = utils.getRectWidth(el.getBoundingClientRect());
         width += w;
-        let clonedEl = el.cloneNode(true);
+        const clonedEl = el.cloneNode(true);
         clonedEl.style['width'] = w + 'px';
         container.appendChild(clonedEl);
       });
@@ -298,7 +298,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     // we have collections - yay
 
     if (this.selectedCollection) {
-      let selectedCollectionId = this.selectedCollection.id;
+      const selectedCollectionId = this.selectedCollection.id;
       if (selectedCollectionId in collections &&
         ( !('modifier' in this.selectedCollection) && 'modifier' in collections[selectedCollectionId] ) || // edited for the first time
         ( 'modifier' in this.selectedCollection && this.selectedCollection.modifier && this.selectedCollection.modifier.timestamp !== collections[selectedCollectionId].modifier.timestamp ) // edited a subsequent time, and the timstamp changed
@@ -311,7 +311,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     Object.keys(collections).forEach( (id) => {
       // only keep collections for which the preferences have its service enabled
-      let collection = collections[id];
+      const collection = collections[id];
       if (this.preferences && this.preferences.serviceTypes[collection.serviceType] === false) {
         delete collections[id];
       }
@@ -319,10 +319,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     this.origCollections = collections;
 
-    let tempCollections = [];
+    const tempCollections = [];
 
     Object.keys(collections).forEach( (c) => {
-      let collection = collections[c];
+      const collection = collections[c];
       tempCollections.push(collection);
     });
     this.collections = tempCollections;
@@ -361,7 +361,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     }
 
     // get collection id of dropped item
-    let collectionId = el.getAttribute('collectionId');
+    const collectionId = el.getAttribute('collectionId');
     // log.debug('CollectionsComponent: onDragulaDrop(): collectionId:', collectionId);
 
     // first we need to un-screw the view and move our other cells to where we dropped it
@@ -371,10 +371,10 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     // work out where to place the moved row
     // log.debug('CollectionsComponent: onDragulaDrop(): droppedTargetCollectionId:', this.droppedTargetCollectionId);
-    let targetCollectionId = this.droppedTargetCollectionId;
+    const targetCollectionId = this.droppedTargetCollectionId;
 
     // move the row
-    let tempDisplayedCollections: Collection[] = [];
+    const tempDisplayedCollections: Collection[] = [];
     if (targetCollectionId === collectionId) {
       // nothing changed - just return;
       return;
@@ -403,7 +403,7 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     this.displayedCollections = tempDisplayedCollections;
     this.changeDetectionRef.markForCheck();
     this.changeDetectionRef.detectChanges();
-    let tempCollectionOrder = [];
+    const tempCollectionOrder = [];
     this.displayedCollections.forEach( collection => tempCollectionOrder.push(collection.id));
     // log.debug('CollectionsComponent: onDragulaDrop(): tempCollectionOrder:', tempCollectionOrder);
     this.toolService.setPreference('collectionOrder', JSON.stringify(tempCollectionOrder));
@@ -626,9 +626,9 @@ export class CollectionsComponent implements OnInit, OnDestroy {
       // this.displayedCollections = this.collections;
       // log.debug('origCollections:', this.origCollections);
 
-      let collectionOrder = JSON.parse(this.toolService.getPreference('collectionOrder'));
-      let temp = [];
-      let tempFound = {};
+      const collectionOrder = JSON.parse(this.toolService.getPreference('collectionOrder'));
+      const temp = [];
+      const tempFound = {};
 
       if (!collectionOrder) {
         // no pre-establish collection order exists, so just set displayedCollections to the list of collections
@@ -662,9 +662,9 @@ export class CollectionsComponent implements OnInit, OnDestroy {
 
     else {
       // enter this block if the user has entered filter text
-      let tempCollections: Collection[] = [];
+      const tempCollections: Collection[] = [];
       for (let i = 0; i < this.collections.length; i++) {
-        let collection = this.collections[i];
+        const collection = this.collections[i];
         if (collection.name.toLocaleLowerCase().includes(this.filterText.toLocaleLowerCase())) {
           tempCollections.push(collection);
         }
@@ -676,8 +676,8 @@ export class CollectionsComponent implements OnInit, OnDestroy {
     if (!this.showFixed || !this.showRolling || !this.showMonitoring) {
       // apply collection type mask
       this.filterEnabled = true;
-      let displayedCollections = utils.deepCopy(this.displayedCollections);
-      let tempCollections: Collection[] = [];
+      const displayedCollections = utils.deepCopy(this.displayedCollections);
+      const tempCollections: Collection[] = [];
       displayedCollections.forEach( (collection: Collection) => {
         switch (collection.type) {
           case 'fixed':

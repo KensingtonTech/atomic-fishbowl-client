@@ -25,7 +25,7 @@ export class ScrollerAnimate {
    * @return {Boolean} Whether the animation was stopped (aka, was running before)
    */
   stop(id: number): boolean {
-    let cleared = this.running[id] !== null;
+    const cleared = this.running[id] !== null;
     if (cleared) {
       this.running[id] = null;
     }
@@ -40,8 +40,8 @@ export class ScrollerAnimate {
    * @return {Boolean} Whether the animation was stopped (aka, was running before)
    */
   stopCurrent(): boolean {
-    let id = this.counter - 1;
-    let cleared = this.running[id] != null;
+    const id = this.counter - 1;
+    const cleared = this.running[id] != null;
     if (cleared) {
       this.running[id] = null;
     }
@@ -78,16 +78,15 @@ export class ScrollerAnimate {
    */
   start(stepCallback, verifyCallback, completedCallback, duration = null, easingMethod = null): number {
 
-    let start = performance.now();
+    const start = performance.now();
     let lastFrame = start;
     let percent = 0;
     let dropCounter = 0;
-    let id = this.counter++;
+    const id = this.counter++;
 
     // Compacting running db automatically every few new animations
     if (id % 20 === 0) {
-      let newRunning = {};
-      // for (let usedId in this.running) {
+      const newRunning = {};
       Object.keys(this.running).forEach( usedId => {
         newRunning[usedId] = true;
       });
@@ -95,13 +94,13 @@ export class ScrollerAnimate {
     }
 
     // This is the internal step method which is called every few milliseconds
-    let step = virtual => {
+    const step = virtual => {
 
       // Normalize virtual value
-      let render = virtual !== true;
+      const render = virtual !== true;
 
       // Get current time
-      let now = performance.now();
+      const now = performance.now();
 
       // Verification is executed before next animation step
       if (!this.running[id] || (verifyCallback && !verifyCallback(id))) {
@@ -118,7 +117,7 @@ export class ScrollerAnimate {
       // This is important to bring internal state variables up-to-date with progress in time.
       if (render) {
 
-        let droppedFrames = Math.round((now - lastFrame) / (this.millisecondsPerSecond / this.desiredFrames)) - 1;
+        const droppedFrames = Math.round((now - lastFrame) / (this.millisecondsPerSecond / this.desiredFrames)) - 1;
         for (let j = 0; j < Math.min(droppedFrames, 4); j++) {
           step(true);
           dropCounter++;
@@ -135,7 +134,7 @@ export class ScrollerAnimate {
       }
 
       // Execute step callback, then...
-      let value = easingMethod ? easingMethod(percent) : percent;
+      const value = easingMethod ? easingMethod(percent) : percent;
       if ((stepCallback(value, now, render) === false || percent === 1) && render) {
         this.running[id] = null;
         if (completedCallback) {

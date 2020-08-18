@@ -29,13 +29,6 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
   defaultSaQueries = defaultSaQueries;
   defaultSaQueriesOptions: SelectItem[] = [];
 
-  private defaultMasonryKeys: any = [
-                                { key: 'alias.host', friendly: 'Hostname' },
-                                { key: 'ad.username.src', friendly: 'AD User' },
-                                { key: 'ad.computer.src', friendly: 'AD Computer' },
-                                { key: 'ad.domain.src', friendly: 'AD Domain' }
-                              ];
-
   displayedNwKeysString: string = null;
   masonryNwKeysString: string = null;
   displayedSaKeysString: string = null;
@@ -58,9 +51,9 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
                                     nw: {
                                       url: null,
                                       presetQuery: null,
-                                      displayedKeys: null, // this.getDisplayedKeysValue(this.defaultDisplayedKeys),
-                                      defaultQuerySelection: null, // this.defaultNwQueries[0].text, // this only has effect on the first run of Atomic Fishbowl.  After the prefs have been set, it will be read in from the prefs
-                                      masonryKeys: null, // this.getMasonryKeysValue(this.defaultMasonryKeys),
+                                      displayedKeys: null,
+                                      defaultQuerySelection: null, // this only has effect on the first run of Atomic Fishbowl.  After the prefs have been set, it will be read in from the prefs
+                                      masonryKeys: null,
                                       contentTimeout: null,
                                       queryTimeout: null,
                                       queryDelayMinutes: null,
@@ -98,13 +91,13 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     for (let i = 0; i < this.defaultNwQueries.length; i++) {
-      let query = this.defaultNwQueries[i];
-      let option: SelectItem = { label: query.text, value: query.text };
+      const query = this.defaultNwQueries[i];
+      const option: SelectItem = { label: query.text, value: query.text };
       this.defaultNwQueriesOptions.push(option);
     }
     for (let i = 0; i < this.defaultSaQueries.length; i++) {
-      let query = this.defaultSaQueries[i];
-      let option: SelectItem = { label: query.text, value: query.text };
+      const query = this.defaultSaQueries[i];
+      const option: SelectItem = { label: query.text, value: query.text };
       this.defaultSaQueriesOptions.push(option);
     }
 
@@ -151,15 +144,15 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
   }
 
   setDisplayedKeysValue(v: string): any {
-    let n = v.split('\n');
-    let newArray = [];
+    const n = v.split('\n');
+    const newArray = [];
     for (let x = 0; x < n.length; x++) {
       // remove blank lines
       if (!n[x].match(/^\s*$/)) {
         newArray.push(n[x]);
       }
     }
-    let keysArray = [];
+    const keysArray = [];
     for (let x = 0; x < newArray.length; x++) {
       newArray[x] = newArray[x].replace(/^\s+/, '').replace(/\s+$/, ''); // remove leading and trailing whitespace
       if (newArray[x].match(/\s/)) {
@@ -175,8 +168,8 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
 
   setMasonryKeysValue(v: string): any {
-    let n = v.split('\n'); // split by newline
-    let newArray = [];
+    const n = v.split('\n'); // split by newline
+    const newArray = [];
     // log.debug('PreferencesModalComponent: setMasonryKeysValue(): n:', n);
 
     for (let x = 0; x < n.length; x++) {
@@ -187,11 +180,11 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     }
     // log.debug('PreferencesModalComponent: setMasonryKeysValue(): newArray:', newArray);
 
-    let keysArray = [];
+    const keysArray = [];
 
     for (let i = 0; i < newArray.length; i++) {
-      let x = {};
-      let y = newArray[i].split(',');
+      const x = {};
+      const y = newArray[i].split(',');
       // log.debug('y:', y);
 
       y[0] = y[0].replace(/\s+$/, '').replace(/^\s+/, ''); // remove trailing and leading whitespace from key name, if any
@@ -205,7 +198,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
 
       if (y.length >= 2) {
         // if user specifies CSV notation, save the second part as the friendly name
-        let s = y[1].replace(/^\s+/, '').replace(/\s+$/, ''); // remove leading and trailing whitespace
+        const s = y[1].replace(/^\s+/, '').replace(/\s+$/, ''); // remove leading and trailing whitespace
         x['friendly'] = s;
       }
       else {
@@ -241,7 +234,6 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     log.debug('PreferencesModalComponent: onPreferencesChanged(): preferences:', preferences);
     delete preferences['_id'];
     this.preferencesModel = preferences;
-    // selectedServiceTypes: string[] = ['nw', null ]; // just netwitness by default
     if (preferences.serviceTypes.nw) {
       this.displayedNwKeysString = this.getDisplayedKeysValue(this.preferencesModel.nw.displayedKeys);
       this.masonryNwKeysString = this.getMasonryKeysValue(this.preferencesModel.nw.masonryKeys);
@@ -267,7 +259,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     this.toolService.setPreference('autoScrollSpeed', this.autoScrollSpeed);
     this.toolService.masonryAutoscrollSpeedChanged.next(this.autoScrollSpeed);
 
-    let prefs: Preferences = this.preferencesModel;
+    const prefs: Preferences = this.preferencesModel;
     if (this.preferencesModel.serviceTypes.nw) {
       prefs.nw.masonryKeys = this.setMasonryKeysValue(this.masonryNwKeysString);
       prefs.nw.displayedKeys = this.setDisplayedKeysValue(this.displayedNwKeysString);
@@ -288,7 +280,7 @@ export class PreferencesModalComponent implements OnInit, OnDestroy {
     let nw = false;
     let sa = false;
     for (let i = 0; i < this.selectedServiceTypes.length; i++) {
-      let type = this.selectedServiceTypes[i];
+      const type = this.selectedServiceTypes[i];
       if (type === 'nw') {
         nw = true;
       }

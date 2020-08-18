@@ -48,8 +48,8 @@ export class ModalComponent implements OnInit, OnDestroy {
   private _isFront = false;
   set isFront(isFront) {
     log.debug('ModalComponent: isFront(): id:', this.id);
-    log.debug('ModalComponent: isFront(): isFront:', isFront);
     this._isFront = isFront;
+    log.debug('ModalComponent: isFront(): isFront:', this._isFront);
     if (isFront) {
       this.zone.runOutsideAngular( () => document.addEventListener('keydown', this.onKeyPressed ));
     }
@@ -92,7 +92,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
 
   onClickOutside = (event) => {
-    let target = $(event.target);
+    const target = $(event.target);
     if (!target.closest('.modal-body').length) {
         this.close();
     }

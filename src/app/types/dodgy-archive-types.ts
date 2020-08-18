@@ -1,1 +1,6 @@
-export const DodgyArchiveTypes = [ 'encryptedRarEntry', 'encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarTable' ];
+export const DodgyArchiveTypes = [
+  'encryptedRarEntry',
+  'encryptedZipEntry',
+  'unsupportedZipEntry',
+  'encryptedRarTable'
+];

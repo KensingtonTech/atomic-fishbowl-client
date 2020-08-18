@@ -105,7 +105,7 @@ export class IsotopeConfig {
 
 
   copy(): IsotopeConfig {
-    let newOption = new IsotopeConfig();
+    const newOption = new IsotopeConfig();
     if (this.itemSelector) {
       newOption.itemSelector = this.itemSelector;
     }

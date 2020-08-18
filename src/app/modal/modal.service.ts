@@ -8,7 +8,7 @@ export class ModalService {
 
     private modals: ModalComponent[] = [];
     private openModalsCount = 0;
-    private modalState = {}; // [id]: open?boolean
+    private modalState = {};
     private openModalsStack = [];
 
 
@@ -38,11 +38,9 @@ export class ModalService {
 
     open(id: string) {
         log.debug('ModalService: open(): id:', id);
-        // log.debug('ModalService: open(): modals:', this.modals);
-        // let modal: ModalComponent = null;
         // open modal specified by id
         for (let i = 0; i < this.modals.length; i++) {
-            let modal = this.modals[i];
+            const modal = this.modals[i];
             if (modal.id === id && !this.modalState[id]) {
                 log.debug('ModalService: open(): found id:', id);
                 this.modalState[id] = true;
@@ -72,7 +70,7 @@ export class ModalService {
         log.debug('ModalService: close(): id:', id);
         // close modal specified by id
         for (let i = 0; i < this.modals.length; i++) {
-            let modal = this.modals[i];
+            const modal = this.modals[i];
             if (modal.id === id && this.modalState[id]) {
                 log.debug('ModalService: close(): found id:', id);
                 this.modalState[id] = false;
@@ -107,7 +105,7 @@ export class ModalService {
     closeAll(): void {
         log.debug('ModalService: closeAll()');
         for ( let i = 0; i < this.modals.length; i++ ) {
-            let modal: ModalComponent = this.modals[i];
+            const modal: ModalComponent = this.modals[i];
             modal.close();
         }
         Object.keys(this.modalState).forEach( key => this.modalState[key] = false);

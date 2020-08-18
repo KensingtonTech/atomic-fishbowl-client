@@ -42,7 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add( this.authService.loggedInChanged.subscribe( loggedIn => this.onLoginChanged(loggedIn) ) );
 
-    let eulaAccepted = this.toolService.getPreference('eulaAccepted');
+    const eulaAccepted = this.toolService.getPreference('eulaAccepted');
     if (eulaAccepted !== null ) {
       this.eulaAccepted = eulaAccepted;
     }
@@ -104,7 +104,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async onSocketConnected(status) {
     log.debug('AppComponent: onSocketConnected(): status:', status);
-    let { connected, socketId} = status;
+    const { connected, socketId} = status;
 
     if (connected !== null && connected) {
       this.serverReachable = true;
