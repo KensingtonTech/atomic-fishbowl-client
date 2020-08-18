@@ -22,6 +22,13 @@
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.app.json",
             "polyfills": "src/polyfills.ts",
+            "allowedCommonJsDependencies": [
+              "loglevel",
+              "imagesloaded",
+              "ng2-pdf-viewer",
+              "pdfjs-dist/web/pdf_viewer",
+              "pdfjs-dist/build/pdf"
+            ],
             "assets": [
               "src/favicon.ico",
               "src/resources"

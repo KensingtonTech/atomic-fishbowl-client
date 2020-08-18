@@ -21,14 +21,6 @@ import { SessionsAvailable } from 'types/sessions-available';
 import * as imagesLoaded from 'imagesloaded';
 import { Scroller } from '../scroller/scroller';
 import * as log from 'loglevel';
-(async () => {
-  if (!('ResizeObserver' in window)) {
-    // Load polyfill asynchronously, only if required.
-    log.debug('Loading ResizeObserver polyfill');
-    const module = await import('@juggle/resize-observer');
-    (<any>window).ResizeObserver = module.ResizeObserver;
-  }
-})();
 
 
 @Component({
