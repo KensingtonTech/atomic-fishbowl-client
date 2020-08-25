@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input, ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PanZoomAPI } from 'ng2-panzoom';
+import { PanZoomAPI } from 'ngx-panzoom';
 import * as log from 'loglevel';
 
 @Component({

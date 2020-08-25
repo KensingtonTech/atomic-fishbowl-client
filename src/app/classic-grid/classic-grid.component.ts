@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, ChangeDetectionStrategy, NgZone, forwardRef } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { PanZoomConfig, PanZoomAPI, PanZoomModel } from 'ng2-panzoom';
+import { PanZoomConfig, PanZoomAPI, PanZoomModel } from 'ngx-panzoom';
 import { ToolService } from 'services/tool.service';
 import { DataService } from 'services/data.service';
 import { Content, Contents } from 'types/content';
