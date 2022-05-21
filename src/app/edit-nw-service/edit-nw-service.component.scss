@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  width: 40rem;
+}
+
+/*::ng-deep {
+  @include mat.all-component-typographies(vars.$modal-typography);
+      
+  .mat-card-content,
+  .mat-card-title > *,
+  .mat-form-field > *,
+  .mat-raised-button > * {
+    font-size: 1em;
+  }
+
+  .mat-raised-button,
+  .mat-raised-button > * {
+    line-height: 2.5;
+  }
+
+}
+*/

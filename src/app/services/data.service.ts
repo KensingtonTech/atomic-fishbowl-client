@@ -1,61 +1,80 @@
 import { Injectable, NgZone } from '@angular/core';
-import { Subject, BehaviorSubject } from 'rxjs';
-import { HttpHeaders, HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { NwServer } from 'types/nwserver';
-import { SaServer } from 'types/saserver';
+import { Subject, BehaviorSubject, firstValueFrom } from 'rxjs';
+import {
+  HttpHeaders,
+  HttpClient,
+  HttpErrorResponse
+} from '@angular/common/http';
+import { NwServer, NwServers, NwServerTest } from 'types/nwserver';
+import { SaServer, SaServers } from 'types/saserver';
 import { ToolService } from './tool.service';
-import { Feed } from 'types/feed';
+import { Feed, Feeds, FeedState, ManualFeed, ScheduledFeed } from 'types/feed';
 import { Preferences } from 'types/preferences';
-import { NwServers } from 'types/nwserver';
-import * as io from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import * as log from 'loglevel';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
 import { BlobTable } from 'types/blobtable';
-import * as JSEncrypt from 'jsencrypt';
+import * as JSEncrypt from 'jsencrypt/lib';
+import { User } from 'types/user';
+import {
+  ContentItem,
+  Collections,
+  WorkerData,
+  Session,
+  CollectionState,
+  Sessions,
+  Search,
+  Collection
+} from 'types/collection';
+import { ClientUseCases } from 'types/use-case';
+
+export interface SocketConnectedEvent {
+  connected?: boolean;
+  socketId?: string;
+}
 
 @Injectable({providedIn: 'root'})
-
 export class DataService { // Manages NwSession objects and also Image objects in grid and the image's association with Session objects.  Adds more objects as they're added
 
-  private serverSocket: any;
-  private collectionsRoom: any;
+  private serverSocket: Socket;
+  private collectionsRoom: Socket;
 
   // Observables
-  contentPublished = new Subject<any>();
-  sessionPublished = new Subject<any>();
-  selectedCollectionChanged = new Subject<any>();
-  collectionStateChanged = new Subject<any>();
-  sessionsReplaced = new Subject<any>();
-  contentReplaced = new Subject<any>();
-  searchReplaced = new Subject<any>();
-  searchPublished = new Subject<any>();
-  errorPublished = new Subject<any>();
-  sessionsPurged = new Subject<any>();
-  queryResultsCountUpdated = new Subject<any>();
+  contentPublished = new Subject<ContentItem[]>();
+  sessionPublished = new Subject<Session>();
+  selectedCollectionChanged = new Subject<Collection>();
+  collectionStateChanged = new Subject<CollectionState>();
+  sessionsReplaced = new Subject<Sessions>();
+  contentReplaced = new Subject<ContentItem[]>();
+  searchReplaced = new Subject<Search[]>();
+  searchPublished = new Subject<Search[]>();
+  errorPublished = new Subject<string>();
+  sessionsPurged = new Subject<number[]>(); // sessionIds
+  queryResultsCountUpdated = new Subject<number>();
   collectionDeleted = new Subject<CollectionDeletedDetails>();
   noopCollection = new Subject<void>();
-  workerProgress = new Subject<any>();
+  workerProgress = new Subject<{workerProgress?: string; label?: string}>();
   monitoringCollectionPause = new BehaviorSubject<boolean>(false);
 
-  collectionsChanged = new BehaviorSubject<any>({});
-  preferencesChanged = new BehaviorSubject<any>({});
+  collectionsChanged = new BehaviorSubject<Collections>({});
+  preferencesChanged = new BehaviorSubject<Preferences | undefined>(undefined);
   nwServersChanged = new BehaviorSubject<NwServers>({});
-  saServersChanged = new BehaviorSubject<any>({});
-  feedsChanged = new BehaviorSubject<any>({});
-  feedStatusChanged = new BehaviorSubject<any>({});
-  usersChanged = new BehaviorSubject<any>({});
-  serverVersionChanged = new BehaviorSubject<string>(null);
-  useCasesChanged = new BehaviorSubject<object>( { useCases: [], useCasesObj: {} } );
+  saServersChanged = new BehaviorSubject<SaServers>({});
+  feedsChanged = new BehaviorSubject<Feeds>({});
+  feedStatusChanged = new BehaviorSubject<Record<string, FeedState>>({});
+  usersChanged = new BehaviorSubject<User[]>([]);
+  serverVersionChanged = new BehaviorSubject<string>('');
+  useCasesChanged = new BehaviorSubject<ClientUseCases>( { useCases: [], useCasesObj: {} } );
   loggedOutByServer = new Subject<void>();
-  socketConnected = new BehaviorSubject<any>({connected: null, socketId: null});
+  socketConnected = new BehaviorSubject<SocketConnectedEvent>({connected: undefined, socketId: undefined});
   socketUpgraded = new BehaviorSubject<boolean>(false);
 
 
   // Properties
   apiUrl = '/api';
-  clientSessionId: number;
-  encryptor: JSEncrypt.JSEncrypt;
-  private pubKey: string;
+  clientSessionId: string;
+  private encryptor?: JSEncrypt.JSEncrypt;
+  private pubKey?: string;
   authenticated = false;
   private blobTable: BlobTable = {};
   socketId: string;
@@ -65,45 +84,57 @@ export class DataService { // Manages NwSession objects and also Image objects i
   constructor(
     private http: HttpClient,
     private toolService: ToolService,
-    private zone: NgZone ) {
-    log.debug('DataService: constructor()');
-    this.toolService.clientSessionId.subscribe( (clientSessionId: number) => {
-      log.debug(`DataService: clientSessionIdSubscription(): got clientSessionId: ${clientSessionId}`);
-      this.clientSessionId = clientSessionId;
-    });
+    private zone: NgZone
+  ) {
+    this.toolService.clientSessionId.subscribe(
+      (clientSessionId) => {
+        log.debug(`DataService: clientSessionIdSubscription(): got clientSessionId: ${clientSessionId}`);
+        this.clientSessionId = clientSessionId;
+      }
+    );
+    this.initSockets();
+  }
 
 
-    // new init protocol
+
+  initSockets() {
     this.zone.runOutsideAngular( () => {
       this.serverSocket = io();
 
       this.serverSocket.on('connect', () => {
         log.debug('DataService: Socket.io connected to server');
-        this.zone.run( () => this.socketConnected.next({ connected: true, socketId: this.serverSocket.id }));
+        this.zone.run(
+          () => this.socketConnected.next({
+            connected: true,
+            socketId: this.serverSocket.id
+          })
+        );
         this.socketId = this.serverSocket.id;
-        log.debug('DataService: socketId:', this.socketId);
       });
 
-      this.serverSocket.on('serverVersion', version => this.onServerVersionUpdate(version) );
-      this.serverSocket.on('socketUpgrade',  () => this.onSocketUpgrade() );
-      this.serverSocket.on('socketDowngrade',  () => this.onSocketDowngrade() );
+      this.serverSocket.on('serverVersion',
+        version => this.onServerVersionUpdate(version)
+      );
+      this.serverSocket.on('socketUpgrade',
+        () => this.onSocketUpgrade()
+      );
+      this.serverSocket.on('socketDowngrade',
+        () => this.onSocketDowngrade()
+      );
 
-      this.serverSocket.on('disconnect', reason => {
-        log.debug('DataService: serverSocket was disconnected with reason:', reason);
-        /*if (reason === 'io server disconnect') {
-          // the server disconnected us forcefully.  maybe due to logout or token timeout
-          // start trying to reconnect
-          // this will repeat until successful
-          this.serverSocket.open();
-        }*/
-        // server should never forcefully disconnect under the new protocol
-        // if (reason === 'ping timeout') {
-          this.zone.run( () => this.socketConnected.next({ connected: false, socketId: null }));
+      this.serverSocket.on('disconnect',
+        reason => {
+          log.debug('DataService: serverSocket was disconnected with reason:', reason);
+          this.zone.run(
+            () => this.socketConnected.next({
+              connected: false,
+              socketId: undefined
+            })
+          );
           this.onSocketDowngrade();
-        // }
-      } );
+        }
+      );
     });
-
   }
 
 
@@ -124,60 +155,142 @@ export class DataService { // Manages NwSession objects and also Image objects i
       this.collectionsRoom.open();
     }
     // Subscribe to collection socket events
-    this.collectionsRoom.on('connect', roomsocket => log.debug('DataService: Socket.io collectionsRoom connected to server' ));
-    this.collectionsRoom.on('disconnect', reason => {
-      if (reason === 'io server disconnect') {
-        this.collectionsRoom.open();
-      }
-    } );
-    this.collectionsRoom.on('state', this.zone.run( () => (state) => this.collectionStateChanged.next(state) ) );
-    this.collectionsRoom.on('purge', (collectionPurge) => this.sessionsPurged.next(collectionPurge) );
-    this.collectionsRoom.on('clear', () => {
-      this.sessionsReplaced.next( {} );
-      this.contentReplaced.next( [] );
-      this.searchReplaced.next( [] );
-    } );
-    this.collectionsRoom.on('update', (update) => {
-      // log.debug('DataService: got update:', update);
-      if ('collectionUpdate' in update) {
-        update = update.collectionUpdate;
-        if ('session' in update) {
-          this.sessionPublished.next(update.session);
-        }
-        if ('images' in update) {
-          this.contentPublished.next(update.images);
-        }
-        if ('search' in update) {
-          this.searchPublished.next(update.search);
+    this.collectionsRoom.on('connect', () => log.debug('DataService: Socket.io collectionsRoom connected to server' ));
+    this.collectionsRoom.on(
+      'disconnectClients',
+      reason => {
+        if (reason === 'io server disconnect') {
+          this.collectionsRoom.open();
         }
       }
-      if ('error' in update) {
-        this.errorPublished.next(update.error);
+    );
+    this.collectionsRoom.on(
+      'state',
+      this.zone.run(
+        () => (state) => this.collectionStateChanged.next(state)
+      )
+    );
+    this.collectionsRoom.on(
+      'purge',
+      (collectionPurge) => this.sessionsPurged.next(collectionPurge)
+    );
+    this.collectionsRoom.on(
+      'clear',
+      () => {
+        this.sessionsReplaced.next( {} );
+        this.contentReplaced.next( [] );
+        this.searchReplaced.next( [] );
       }
-      if ('queryResultsCount' in update) {
-        this.queryResultsCountUpdated.next(update.queryResultsCount);
+    );
+    this.collectionsRoom.on(
+      'update',
+      (workerData: WorkerData) => {
+        if (workerData.collectionUpdate) {
+          const update = workerData.collectionUpdate;
+          if (update.session) {
+            this.sessionPublished.next(update.session);
+          }
+          if (update.images) {
+            this.contentPublished.next(update.images);
+          }
+          if (update.search) {
+            this.searchPublished.next(update.search);
+          }
+        }
+        if (workerData.error !== undefined) {
+          this.errorPublished.next(workerData.error);
+        }
+        if (workerData.queryResultsCount !== undefined) {
+          this.queryResultsCountUpdated.next(workerData.queryResultsCount);
+        }
+        if (workerData.workerProgress !== undefined) {
+          this.workerProgress.next({
+            workerProgress: workerData.workerProgress,
+            label: workerData.label
+          });
+        }
       }
-      if ('workerProgress' in update) {
-        this.workerProgress.next(update);
-      }
-    });
-    this.collectionsRoom.on('sessions', (sessions) => this.sessionsReplaced.next(sessions) );
-    this.collectionsRoom.on('content', (content) => this.contentReplaced.next(content) );
-    this.collectionsRoom.on('searches', (searches) => this.searchReplaced.next(searches) );
-    this.collectionsRoom.on('paused', (paused) => this.monitoringCollectionPause.next(paused) );
-
-    this.serverSocket.on('preferences', preferences => this.onPreferencesUpdate(preferences) );
-    this.serverSocket.on('collections', collections => this.onCollectionsUpdate(collections) );
-    this.serverSocket.on('publicKey', key => this.onPublicKeyChanged(key) );
-    this.serverSocket.on('nwservers', apiServers => this.zone.run( () => this.onNwServersUpdate(apiServers) ) );
-    this.serverSocket.on('saservers', apiServers => this.zone.run( () => this.onSaServersUpdate(apiServers) ) );
-    this.serverSocket.on('feeds', feeds => this.zone.run( () => this.onFeedsUpdate(feeds) ) );
-    this.serverSocket.on('feedStatus', feedStatus => this.zone.run( () => this.onFeedStatusUpdate(feedStatus) ) );
-    this.serverSocket.on('users', users => this.zone.run( () => this.onUsersUpdate(users) ) );
-    this.serverSocket.on('useCases', useCases => this.zone.run( () => this.onUseCasesUpdate(useCases) ) );
-    this.serverSocket.on('initialised', () => this.zone.run( () => this.onClientInitialised() ) );
-    this.serverSocket.on('logout', (reason => this.zone.run( () => this.onLogoutMessageReceived(reason) ) ) ); // TODO: triggered by the socket when our validity expires
-    this.serverSocket.on('collectionDeleted', (details: CollectionDeletedDetails) => this.collectionDeleted.next(details) );
+    );
+    this.collectionsRoom.on(
+      'sessions',
+      (sessions: Sessions) => this.sessionsReplaced.next(sessions)
+    );
+    this.collectionsRoom.on(
+      'content',
+      (content: ContentItem[]) => this.contentReplaced.next(content)
+    );
+    this.collectionsRoom.on(
+      'searches',
+      (searches: Search[]) => this.searchReplaced.next(searches)
+    );
+    this.collectionsRoom.on(
+      'paused',
+      (paused) => this.monitoringCollectionPause.next(paused)
+    );
+    this.serverSocket.on(
+      'preferences',
+      preferences => this.onPreferencesUpdate(preferences)
+    );
+    this.serverSocket.on(
+      'collections',
+      (collections) => this.onCollectionsUpdate(collections)
+    );
+    this.serverSocket.on(
+      'publicKey',
+      key => this.onPublicKeyChanged(key)
+    );
+    this.serverSocket.on(
+      'nwservers',
+      apiServers => this.zone.run(
+        () => this.onNwServersUpdate(apiServers)
+      )
+    );
+    this.serverSocket.on(
+      'saservers',
+      apiServers => this.zone.run(
+        () => this.onSaServersUpdate(apiServers)
+      )
+    );
+    this.serverSocket.on(
+      'feeds',
+      feeds => this.zone.run(
+        () => this.onFeedsUpdate(feeds)
+      )
+    );
+    this.serverSocket.on(
+      'feedStatus',
+      feedStatus => this.zone.run(
+        () => this.onFeedStatusUpdate(feedStatus)
+        )
+      );
+    this.serverSocket.on(
+      'users',
+      users => this.zone.run(
+        () => this.onUsersUpdate(users)
+      )
+    );
+    this.serverSocket.on(
+      'useCases',
+      useCases => this.zone.run(
+        () => this.onUseCasesUpdate(useCases)
+      )
+    );
+    this.serverSocket.on(
+      'initialised',
+      () => this.zone.run(
+        () => this.onClientInitialised()
+      )
+    );
+    this.serverSocket.on(
+      'logout',
+      (reason) => this.zone.run(
+        () => this.onLogoutMessageReceived(reason)
+      )
+    ); // TODO: triggered by the socket when our validity expires
+    this.serverSocket.on(
+      'collectionDeleted',
+      (details: CollectionDeletedDetails) => this.collectionDeleted.next(details)
+    );
 
     // instruct server to send data
     this.serverSocket.emit('clientReady');
@@ -190,16 +303,16 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
     // clear application state to prevent prying
     this.authenticated = false;
-    this.encryptor = null;
-    this.pubKey = null;
+    this.encryptor = undefined;
+    this.pubKey = undefined;
     this.monitoringCollectionPause.next(false);
     this.collectionsChanged.next({});
-    this.preferencesChanged.next({});
+    this.preferencesChanged.next(undefined);
     this.nwServersChanged.next({});
     this.saServersChanged.next({});
     this.feedsChanged.next({});
     this.feedStatusChanged.next({});
-    this.usersChanged.next({});
+    this.usersChanged.next([]);
     this.useCasesChanged.next({useCases: [], useCasesObj: {} });
 
     // We must disconnect events when a user logs out
@@ -250,7 +363,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  onCollectionsUpdate(collections: any) {
+  onCollectionsUpdate(collections: Collections) {
     log.debug('DataService: onCollectionsUpdate(): collections:', collections);
     this.collectionsChanged.next(collections);
   }
@@ -264,42 +377,42 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  onNwServersUpdate(apiServers) {
-    log.debug('DataService: onNwServersUpdate(): key:', apiServers);
-    this.nwServersChanged.next(apiServers);
+  onNwServersUpdate(nwServers: NwServers) {
+    log.debug('DataService: onNwServersUpdate():', {nwServers});
+    this.nwServersChanged.next(nwServers);
   }
 
 
 
-  onSaServersUpdate(apiServers) {
-    log.debug('DataService: onSaServersUpdate(): key:', apiServers);
-    this.saServersChanged.next(apiServers);
+  onSaServersUpdate(saServers: SaServers) {
+    log.debug('DataService: onSaServersUpdate()', {saServers});
+    this.saServersChanged.next(saServers);
   }
 
 
 
-  onFeedsUpdate(feeds) {
+  onFeedsUpdate(feeds: Feeds) {
     log.debug('DataService: onFeedsUpdate(): feeds:', feeds);
     this.feedsChanged.next(feeds);
   }
 
 
 
-  onFeedStatusUpdate(feedStatus) {
+  onFeedStatusUpdate(feedStatus: Record<string, FeedState>) {
     log.debug('DataService: onFeedStatusUpdate(): feedStatus:', feedStatus);
     this.feedStatusChanged.next(feedStatus);
   }
 
 
 
-  onUsersUpdate(users) {
+  onUsersUpdate(users: User[]) {
     log.debug('DataService: onUsersUpdate(): users:', users);
     this.usersChanged.next(users);
   }
 
 
 
-  onUseCasesUpdate(useCases) {
+  onUseCasesUpdate(useCases: ClientUseCases) {
     log.debug('DataService: onUseCasesUpdate(): useCases:', useCases );
     this.useCasesChanged.next( useCases );
   }
@@ -313,7 +426,7 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  onLogoutMessageReceived(reason) {
+  onLogoutMessageReceived(reason: string) {
     log.debug('DataService: onLogoutMessageReceived()');
     if (reason === 'token expired') {
       this.toolService.logout.next(this.socketId);
@@ -324,47 +437,46 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   ///////////////////// NW SERVERS /////////////////////
 
-  testNwServer( server: any ): Promise<any> {
-    return this.http
-                .post(this.apiUrl + '/nwserver/test', server )
-                .toPromise();
-                // .catch(e => this.handleError(e)); // we don't want to logout if server throws a 401, as the server will mimic whatever code NW returns with
+  testNwServer( server: NwServerTest ): Promise<any> {
+    return firstValueFrom(
+      this.http.post(this.apiUrl + '/nwserver/test', server )
+    );
   }
 
 
-  deleteNwServer(id: string): Promise<void> {
+  async deleteNwServer(id: string): Promise<void> {
     log.debug('DataService: deleteNwServer():', id);
-    return this.http
-                .delete(this.apiUrl + '/nwserver/' + id )
-                .toPromise()
-                .then(response => response as any)
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.delete(this.apiUrl + '/nwserver/' + id )
+    )
+    .then(response => response as any)
+    .catch(e => this.handleError(e));
   }
 
 
-  addNwServer(nwserver: NwServer): Promise<any> {
+  async addNwServer(nwserver: NwServer): Promise<any> {
     log.debug('DataService: addNwServer()');
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/nwserver', nwserver, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: addNwServer(): response:', response);
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.post(this.apiUrl + '/nwserver', nwserver, { headers } )
+      )
+      .then(response => {
+        log.debug('DataService: addNwServer(): response:', response);
+      })
+      .catch(e => this.handleError(e));
   }
 
 
-  editNwServer(nwserver: NwServer): Promise<any> {
+  async editNwServer(nwserver: Optional<NwServer, 'password'>): Promise<any> {
     log.debug('DataService: editNwServer()');
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/nwserver/edit', nwserver, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: editNwServer(): response:', response);
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.patch(this.apiUrl + '/nwserver', nwserver, { headers } )
+    )
+    .then(response => {
+      log.debug('DataService: editNwServer(): response:', response);
+    })
+    .catch(e => this.handleError(e));
   }
 
 
@@ -372,98 +484,99 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
     ///////////////////// SA SERVERS /////////////////////
 
-    testSaServer( server: any ): Promise<any> {
-      return this.http
-                  .post(this.apiUrl + '/saserver/test', server )
-                  .toPromise();
+    async testSaServer( server: Partial<SaServer> ): Promise<any> {
+      return await firstValueFrom(
+        this.http
+        .post(this.apiUrl + '/saserver/test', server )
+      );
     }
 
 
-    deleteSaServer(id: string): Promise<void> {
+    async deleteSaServer(id: string): Promise<void> {
       log.debug('DataService: deleteSaServer():', id);
-      return this.http
-                  .delete(this.apiUrl + '/saserver/' + id )
-                  .toPromise()
-                  .then(response => response as any)
-                  .catch(e => this.handleError(e));
+      return await firstValueFrom(
+        this.http.delete(this.apiUrl + '/saserver/' + id )
+      )
+      .then(response => response as any)
+      .catch(e => this.handleError(e));
     }
 
 
-    addSaServer(saserver: SaServer): Promise<any> {
+    async addSaServer(saserver: SaServer): Promise<any> {
       log.debug('DataService: addSaServer()');
       const headers = new HttpHeaders().set('Content-Type', 'application/json');
-      return this.http
-                  .post(this.apiUrl + '/saserver', saserver, { headers } )
-                  .toPromise()
-                  .then(response => {
-                    log.debug('DataService: addSaServer(): response:', response);
-                  })
-                  .catch(e => this.handleError(e));
+      return await firstValueFrom (
+        this.http.post(this.apiUrl + '/saserver', saserver, { headers } )
+      )
+      .then(response => {
+        log.debug('DataService: addSaServer(): response:', response);
+      })
+      .catch(e => this.handleError(e));
     }
 
 
-    editSaServer(saserver: SaServer): Promise<any> {
+    async editSaServer(saserver: SaServer): Promise<any> {
       log.debug('DataService: editSaServer()');
       const headers = new HttpHeaders().set('Content-Type', 'application/json');
-      return this.http
-                  .post(this.apiUrl + '/saserver/edit', saserver, { headers } )
-                  .toPromise()
-                  .then(response => {
-                    log.debug('DataService: editSaServer(): response:', response);
-                  })
-                  .catch(e => this.handleError(e));
+      return await firstValueFrom(
+        this.http.patch(this.apiUrl + '/saserver', saserver, { headers } )
+      )
+      .then(response => {
+        log.debug('DataService: editSaServer(): response:', response);
+      })
+      .catch(e => this.handleError(e));
     }
 
   ///////////////////// PREFERENCES /////////////////////
 
-  setPreferences(prefs: any): Promise<void> {
+  async setPreferences(prefs: Preferences): Promise<void> {
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                    .post(this.apiUrl + '/preferences', prefs, { headers } )
-                    .toPromise()
-                    // .then(response => {} )
-                    .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.post(this.apiUrl + '/preferences', prefs, { headers } )
+    )
+    .catch(e => this.handleError(e));
   }
 
 
   ///////////////////// COLLECTIONS /////////////////////
 
-  addCollection(collection: any):  Promise<any> {
+  async addCollection(collection: Partial<Collection>):  Promise<any> {
     log.debug('DataService: addCollection():', collection.id);
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/collection', collection, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug(response);
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.post(this.apiUrl + '/collection', collection, { headers } )
+    )
+    .then(response => {
+      log.debug(response);
+    })
+    .catch(e => this.handleError(e));
   }
 
 
-  editCollection(collection: any):  Promise<any> {
+  async editCollection(collection: Partial<Collection>):  Promise<any> {
     log.debug('DataService: editCollection():', collection.id);
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/collection/edit', collection, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug(response);
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.patch(this.apiUrl + '/collection', collection, { headers } )
+    )
+    .then(response => {
+      log.debug(response);
+    })
+    .catch(e => this.handleError(e));
   }
 
 
 
   getRollingCollection(collectionId: string): void {
-    log.debug('DataService: getRollingCollection(): joining room with id:', collectionId);
+    log.debug('DataService: getRollingCollection()', {collectionId});
     // uses socket.io
-    this.collectionsRoom.emit('join', { collectionId: collectionId, sessionId: this.clientSessionId });
+    this.collectionsRoom.emit('join', { collectionId, sessionId: this.clientSessionId });
   }
 
 
 
   getFixedCollection(collectionId: string): void {
+    log.debug('DataService: getFixedCollection()', {collectionId});
     // uses socket.io
     this.collectionsRoom.emit('joinFixed', collectionId );
   }
@@ -492,106 +605,107 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
-  deleteCollection(id: string): Promise<void> {
+  async deleteCollection(id: string): Promise<void> {
     log.debug('DataService: deleteCollection():', id);
-    return this.http
-                .delete(this.apiUrl + '/collection/' + id )
-                .toPromise()
-                .then( () => {} )
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.delete(this.apiUrl + '/collection/' + id )
+    )
+    .then( () => {} )
+    .catch(e => this.handleError(e));
   }
 
 
   ///////////////////// FEEDS /////////////////////
 
-  deleteFeed(id: string): Promise<any> {
+  async deleteFeed(id: string): Promise<any> {
     log.debug('DataService: deleteFeed():', id);
-    return this.http
-                .delete(this.apiUrl + '/feed/' + id )
-                .toPromise()
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.delete(this.apiUrl + '/feed/' + id )
+    )
+    .catch(e => this.handleError(e));
   }
 
 
 
-  addFeedManual(feed: Feed, file: File): Promise<any> {
+  async addFeedManual(feed: Omit<ManualFeed, 'version' | 'internalFilename' | 'creator'>, file: File): Promise<any> {
     log.debug('DataService: addFeedManual()');
     const formData = new FormData();
     formData.append('model', JSON.stringify(feed));
     formData.append('file', file);
-    return this.http
-                .post(this.apiUrl + '/feed/manual', formData )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: addFeedManual(): response:', response);
-                  return response;
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.post(this.apiUrl + '/feed/manual', formData )
+    )
+    .then(response => {
+      log.debug('DataService: addFeedManual(): response:', response);
+      return response;
+    })
+    .catch(e => this.handleError(e));
   }
 
 
 
-  editFeedWithoutFile(feed: Feed): Promise<any> {
+  async editFeedWithoutFile(feed: Omit<Feed, 'version' | 'internalFilename' | 'creator'>): Promise<any> {
     log.debug('DataService: editFeedWithoutFile()');
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/feed/edit/withoutfile', feed, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: editFeedWithoutFile(): response:', response);
-                  return response;
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.patch(this.apiUrl + '/feed/withoutfile', feed, { headers } )
+    )
+    .then(response => {
+      log.debug('DataService: editFeedWithoutFile(): response:', response);
+      return response;
+    })
+    .catch(e => this.handleError(e));
   }
 
 
 
-  editFeedWithFile(feed: Feed, file: File): Promise<any> {
+  async editFeedWithFile(feed: Omit<ManualFeed, 'version' | 'internalFilename' | 'creator'>, file: File): Promise<any> {
     log.debug('DataService: editFeedWithFile()');
     const formData = new FormData();
     formData.append('model', JSON.stringify(feed));
     formData.append('file', file);
-    return this.http
-                .post(this.apiUrl + '/feed/edit/withfile', formData )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: editFeedWithFile(): response:', response);
-                  return response;
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http
+      .patch(this.apiUrl + '/feed/withfile', formData )
+    )
+    .then(response => {
+      log.debug('DataService: editFeedWithFile(): response:', response);
+      return response;
+    })
+    .catch(e => this.handleError(e));
   }
 
 
 
-  addFeedScheduled(feed: Feed): Promise<any> {
+  async addFeedScheduled(feed: ScheduledFeed): Promise<any> {
     log.debug('DataService: addFeedScheduled()');
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/feed/scheduled', feed, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug('DataService: addFeedScheduled(): response:', response);
-                  return response;
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.post(this.apiUrl + '/feed/scheduled', feed, { headers } )
+    )
+    .then(response => {
+      log.debug('DataService: addFeedScheduled(): response:', response);
+      return response;
+    })
+    .catch(e => this.handleError(e));
   }
 
 
 
-  testFeedUrl( host: any ): Promise<any> {
-    return this.http
-                .post(this.apiUrl + '/feed/testurl', host )
-                .toPromise()
-                .catch(e => this.handleError(e));
+  async testFeedUrl( host: any ): Promise<any> {
+    return await firstValueFrom(
+      this.http.post(this.apiUrl + '/feed/testurl', host )
+    )
+    .catch(e => this.handleError(e));
   }
 
 
 
-  getFeedFilehead(id: string): Promise<any> {
-    return this.http
-                .get(this.apiUrl + '/feed/filehead/' + id )
-                .toPromise()
-                .catch(e => this.handleError(e));
+  async getFeedFilehead(id: string): Promise<any> {
+    return await firstValueFrom(
+      this.http.get(this.apiUrl + '/feed/filehead/' + id )
+    )
+    .catch(e => this.handleError(e));
   }
 
 
@@ -600,80 +714,74 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   ///////////////////// USERS /////////////////////
 
-  deleteUser(id: string): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
     log.debug('DataService: deleteUser():', id);
-    return this.http
-                .delete(this.apiUrl + '/user/' + id )
-                .toPromise()
-                .then(response => response as any)
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.delete(this.apiUrl + '/user/' + id )
+    )
+    .then(response => response as any)
+    .catch(e => this.handleError(e));
   }
 
 
 
-  addUser(user: any): Promise<any> {
+  async addUser(user: Omit<User, '_id'>): Promise<any> {
     log.debug('DataService: addUser()');
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/user', user, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug(response);
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.post(this.apiUrl + '/user', user, { headers } )
+    )
+    .then(response => {
+      log.debug(response);
+    })
+    .catch(e => this.handleError(e));
   }
 
 
 
-  updateUser(user: any): Promise<any> {
+  async updateUser(user: Partial<User>): Promise<any> {
     log.debug('DataService: updateUser()');
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    return this.http
-                .post(this.apiUrl + '/user/edit', user, { headers } )
-                .toPromise()
-                .then(response => {
-                  log.debug(response);
-                })
-                .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.patch(this.apiUrl + '/user', user, { headers } )
+    )
+    .then(response => {
+      log.debug(response);
+    })
+    .catch(e => this.handleError(e));
   }
-
-
-
-
-
-
-
 
   ////////////////// IMG Load //////////////////
 
-  getImage(uri: string): Promise<string> {
+  async getImage(uri: string): Promise<string> {
     // returns a URL to a browser-created representation of a fetched image blob
-    // log.debug('DataService: getImage(): uri:', uri);
 
     if ( (uri in this.blobTable) ) {
       // log.debug('DataService: getImage(): returning blob uri from table');
       return Promise.resolve(this.blobTable[uri]);
     }
 
-    return this.http
-          .get(uri, {responseType: 'blob'})
-          .toPromise()
-          .then( (data: Blob) => {
-            const url = window.URL.createObjectURL(data);
-            this.blobTable[uri] = url;
-            return url;
-          })
-          .catch(e => this.handleError(e));
+    return await firstValueFrom(
+      this.http.get(uri, {responseType: 'blob'})
+    )
+    .then( (data?: Blob) => {
+      if (!data) {
+        throw new Error('No data returned');
+      }
+      const url = window.URL.createObjectURL(data);
+      this.blobTable[uri] = url;
+      return url;
+    })
+    .catch(e => this.handleError(e));
   }
 
 
 
   resetBlobs() {
     log.debug('DataService: resetBlobs()');
-    Object.entries(this.blobTable).forEach( entry => {
-      const blobUri = entry.shift();
-      window.URL.revokeObjectURL(blobUri);
-    });
+    Object.keys(this.blobTable)
+      .forEach( ([blobUri]) => window.URL.revokeObjectURL(blobUri)
+    );
     this.blobTable = {};
   }
 
@@ -691,11 +799,11 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
   ///////////////////// PING /////////////////////
 
-  ping(): Promise<any> {
+  async ping(): Promise<any> {
     // log.debug('DataService: ping()');
-    return this.http
-                .get(this.apiUrl + '/ping')
-                .toPromise();
+    return await firstValueFrom(
+      this.http.get(this.apiUrl + '/ping')
+    );
   }
 
 
@@ -717,9 +825,25 @@ export class DataService { // Manages NwSession objects and also Image objects i
     if (!key) {
       return;
     }
-    this.encryptor.log = true;
+    if (!this.encryptor) {
+      throw new Error('encryptor is undefined');
+    }
+    // this.encryptor.log = true;
     this.pubKey = key;
     this.encryptor.setPublicKey(this.pubKey);
+  }
+
+
+
+  encrypt(value: string): string {
+    if (!this.encryptor) {
+      throw new Error('Encryptor is not defined');
+    }
+    const res = this.encryptor.encrypt(value);
+    if (res === false) {
+      throw new Error('Encryption error');
+    }
+    return res;
   }
 
 }

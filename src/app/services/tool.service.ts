@@ -1,66 +1,64 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, Router, Params } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 import { Subject, BehaviorSubject } from 'rxjs';
-import { Collection } from 'types/collection';
+import { Collection, NwCollection, SaCollection } from 'types/collection';
 import { Feed } from 'types/feed';
 import { Subscription} from 'rxjs';
 import * as log from 'loglevel';
 
-@Injectable({providedIn: 'root'})
+export interface DeviceNumberEvent {
+  deviceNumber: number;
+  nwserver: string;
+}
 
+
+@Injectable({providedIn: 'root'})
 export class ToolService {
 
   // properties
-  splashLoaded = false;
   firstLoad = true;
-  loadCollectionOnRouteChange = false; // this may be set before switching routes to instruct the new view to load a particular collcetion
-  queryParams: Params = null;
+  loadCollectionOnRouteChange = false; // this may be set before switching routes to instruct the new view to load a particular collection
+  queryParams?: Params;
   urlParametersLoaded = false;
-  lastRoute: string = null;
+  lastRoute?: string;
 
   ////////////  OBSERVABLES ////////////
 
   // Device Number
-  deviceNumber = new BehaviorSubject<any>(0);
+  deviceNumber = new BehaviorSubject<DeviceNumberEvent | undefined>(undefined);
 
   // Scrolling
-  scrollToBottom = new Subject<any>();
-  stopScrollToBottom = new Subject<any>(); // commands the view to stop scrolling
-  scrollToBottomRunning = new Subject<any>(); // this notifies that scrolling has been started by the view
-  scrollToBottomStopped = new Subject<any>(); // this notifies that scrolling has finished in the view
+  scrollToBottom = new Subject<void>();
+  stopScrollToBottom = new Subject<void>(); // commands the view to stop scrolling
+  scrollToBottomRunning = new Subject<void>(); // this notifies that scrolling has been started by the view
+  scrollToBottomStopped = new Subject<void>(); // this notifies that scrolling has finished in the view
 
   // Masonry
   showMasonryTextArea = new BehaviorSubject<boolean>(true);
   masonryColumnWidthChanged = new Subject<number>();
   masonryAutoscrollSpeedChanged = new Subject<number>();
 
-  // Users
-  confirmUserDelete = new Subject<any>();
-
   // Authentication
-  logout = new Subject<any>();
+  logout = new Subject<string>(); // value is socketId
 
   // Misc
-  fileToDownload = new Subject<any>();
-  confirmDownloadFile = new Subject<any>();
-  clientSessionId = new Subject<any>();
-  onSplashScreenAtStartupClosed = new Subject<void>();
+  fileToDownload = new Subject<string>();
+  confirmDownloadFile = new Subject<string>();
+  clientSessionId = new Subject<string>();
+  splashScreenClosed = new Subject<void>();
   eulaAccepted = new Subject<void>();
 
   // NW and SA Servers
-  saServerToDelete = new Subject<any>();
   confirmNwServerDelete = new Subject<string>();
   confirmSaServerDelete = new Subject<string>();
 
 
   // collections //
-  selectedCollection: Collection;
-  getCollectionDataAgain = new Subject<any>();
-  deleteCollectionNext = new Subject<Collection>();
-  deleteCollectionConfirmed = new Subject<string>();
+  selectedCollection?: Collection;
+  getCollectionDataAgain = new Subject<void>();
   executeCollectionOnEdit = new Subject<boolean>();
-  executeAddCollection = new Subject<any>();
-  executeEditCollection = new Subject<any>();
+  executeAddCollection = new Subject<Collection>();
+  executeEditCollection = new Subject<Collection>();
 
   // communicates to collection dialogs that when they open, they should be in 'adhoc' mode
   addNwAdhocCollectionNext = new BehaviorSubject<Params>({});
@@ -71,17 +69,19 @@ export class ToolService {
   addSaCollectionNext = new Subject<void>();
 
   // communicates to collection dialogs that when they open, they should be in 'edit' mode
-  editNwCollectionNext = new Subject<Collection>();
-  editSaCollectionNext = new Subject<Collection>();
-
-
+  editNwCollectionNext = new Subject<NwCollection>();
+  editSaCollectionNext = new Subject<SaCollection>();
 
   // feeds
   addFeedNext = new Subject<void>();
   editFeedNext = new Subject<Feed>();
-  deleteFeedNext = new Subject<Feed>();
 
-
+  // Dialog Control
+  displayTabContainerModal = new Subject<boolean>();
+  displayManageUsersModal = new Subject<boolean>();
+  displayFeedWizardModal = new Subject<boolean>();
+  displayNwCollectionModal = new Subject<boolean>();
+  displayContentDetailsModal = new Subject<boolean>();
 
   // Tab Container
   collectionsOpened = new Subject<void>();
@@ -89,40 +89,19 @@ export class ToolService {
   tabContainerClosed = new Subject<void>();
   reOpenTabsModal = new Subject<boolean>();
 
-
-
-  // Modal ID's
-  collectionDeletedModalId = 'collection-deleted-notify-modal';
-  contentDetailsModalId = 'content-details-modal';
-  confirmDeleteFeedModalId = 'confirm-delete-feed-modal';
-  feedWizardModalId = 'feed-wizard-modal';
-  nwCollectionModalId = 'nw-collection-modal';
-  saCollectionModalId = 'sa-collection-modal';
-  tabContainerModalId = 'tab-container-modal';
-  splashScreenModalId = 'splash-screen-modal';
-  serverDownModalId = 'server-down-modal';
-  confirmCollectionDeleteModalId = 'confirm-collection-delete-modal';
-  confirmUserDeleteModalId = 'confirm-user-delete-modal';
-  confirmNwServerDeleteModalId = 'confirm-nwserver-delete-modal';
-  confirmSaServerDeleteModalId = 'confirm-saserver-delete-modal';
-  confirmDownloadFileModalId = 'confirm-downloadfile-modal';
-  preferencesModalId = 'preferences-modal';
-  manageeUsersModalId = 'manage-users-modal';
-  newEditUserModalId = 'new-edit-user-modal';
-  newEditNwServiceModalId = 'new-edit-nw-server-modal';
-  loggedOutModalId = 'logged-out-notify-modal';
-
-  private subscriptions = new Subscription;
+  private subscriptions = new Subscription();
+  private fakeLocalStorage: Record<string, unknown> = {};
 
 
 
 
-  constructor(private route: ActivatedRoute,
-              private router: Router) {
-    log.debug('ToolService: constructor()');
-
-    this.lastRoute = this.getPreference('lastRoute');
-    this.subscriptions.add(this.route.queryParams.subscribe( (params: Params ) => this.onRouteParameters(params) ));
+  constructor(private route: ActivatedRoute) {
+    this.lastRoute = this.getStringPreference('lastRoute');
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(
+        (params: Params ) => this.onRouteParameters(params)
+      )
+    );
   }
 
 
@@ -143,17 +122,14 @@ export class ToolService {
         return;
       }
 
-      // if (params['service'] !== 'nw' && params['service'] !== 'sa') {
       if ( !['nw', 'sa'].includes(params.service) ) {
         return;
       }
 
-      // if ('ip' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
       if ('ip' in params && !['src', 'dst'].includes(params.side)) {
         return;
       }
 
-      // if ('adUser' in params && params['side'] !== 'src' && params['side'] !== 'dst') {
       if ('adUser' in params && !['src', 'dst'].includes(params.side)) {
         return;
       }
@@ -165,7 +141,6 @@ export class ToolService {
 
       this.urlParametersLoaded = true;
       this.queryParams = params;
-
     }
   }
 
@@ -173,41 +148,71 @@ export class ToolService {
 
   stop() {
     log.debug('ToolService: stop()');
-    this.selectedCollection = null;
-    this.deviceNumber.next(0);
+    this.selectedCollection = undefined;
+    this.deviceNumber.next(undefined);
     this.addNwAdhocCollectionNext.next({});
     this.addSaAdhocCollectionNext.next({});
   }
 
 
 
-  setPreference(key, value): void {
-    localStorage.setItem(key, value);
+  setPreference(key: string, value: unknown): void {
+    try {
+      localStorage.setItem(key, value as any);
+    }
+    catch (error) {
+      // if we're in an iFrame, there's a good change we won't be able to access localStorage
+      this.fakeLocalStorage[key] = value;
+    }
   }
 
 
 
-  getPreference(key): any {
-    let item: any = localStorage.getItem(key);
-
-    if (item == null) {
-      return null;
+  getBooleanPreference(key: string): boolean | undefined;
+  getBooleanPreference(key: string, defaultValue: boolean): boolean;
+  getBooleanPreference(key: string, defaultValue?: boolean): boolean | undefined {
+    const item = localStorage.getItem(key);
+    if (item === null) {
+      return defaultValue;
     }
+    return item.toLowerCase() === 'true';
+  }
 
+
+  getNumberPreference(key: string): number | undefined;
+  getNumberPreference(key: string, defaultValue: number): number;
+  getNumberPreference(key: string, defaultValue?: number): number | undefined {
+    const item = localStorage.getItem(key);
+    if (item === null) {
+      return defaultValue;
+    }
     const numberRegex = /^[\d\.]+$/;
 
     if ( numberRegex.test(item) ) {
-      item = Number(item);
+      return Number(item);
     }
+    return defaultValue;
+  }
 
-    if (item === 'true') {
-      item = true;
-    }
-    if (item === 'false') {
-      item = false;
-    }
 
-    return item;
+
+  getStringPreference(key: string): string | undefined;
+  getStringPreference(key: string, defaultValue: string): string;
+  getStringPreference(key: string, defaultValue?: string): string | undefined {
+    const item = localStorage.getItem(key);
+    return item ?? defaultValue;
+  }
+
+
+
+  getJSONPreference<T extends Record<any, unknown> | Array<unknown>>(key: string): T | undefined;
+  getJSONPreference<T extends Record<any, unknown> | Array<unknown>>(key: string, defaultValue: T): T;
+  getJSONPreference<T extends Record<any, unknown> | Array<unknown>>(key: string, defaultValue?: T): T | undefined {
+    const item = localStorage.getItem(key);
+    if (item === null) {
+      return defaultValue;
+    }
+    return JSON.parse(item);
   }
 
 }

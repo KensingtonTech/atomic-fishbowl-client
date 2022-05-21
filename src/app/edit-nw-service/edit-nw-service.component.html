@@ -1,0 +1,237 @@
+<!--ADD A NETWITNESS SERVICE BOX-->
+<div
+  #addServiceBox
+  style="margin-top: 1.052631579em;">
+
+    <form
+      novalidate
+      autocomplete="off">
+
+        <mat-card style="padding: 0.657894737em;">
+
+          <mat-card-content>
+
+            <mat-card-title>
+              {{addingService ? 'Add' : 'Edit'}} a NetWitness Service
+            </mat-card-title>
+
+            <!--NAME-->
+            <div>
+              
+              <mat-form-field class="full-width">
+
+                <input
+                  matNativeControl
+                  [(ngModel)]="name"
+                  type="text"
+                  name="friendlyName"
+                  autocomplete="off"
+                  [tabindex]="0">
+
+                <mat-label>Name</mat-label>
+
+              </mat-form-field>
+
+              <br>
+
+            </div>
+
+            <!--HOSTNAME-->
+            <div>
+              
+              <mat-form-field class="full-width">
+
+                <input
+                  #hostName
+                  matNativeControl
+                  [(ngModel)]="hostname"
+                  type="text"
+                  name="hostname"
+                  autocomplete="off"
+                  required
+                  [tabindex]="0">
+
+                <mat-label>Hostname</mat-label>
+
+                <mat-error *ngIf="!hostname">
+                  Hostname is required
+                </mat-error>
+
+              </mat-form-field>
+
+              <br>
+
+            </div>
+
+            <!--USERNAME-->
+            <div>
+
+              <mat-form-field class="full-width">
+
+                <input
+                  matNativeControl
+                  [(ngModel)]="user"
+                  type="text"
+                  name="user"
+                  autocomplete="off"
+                  required
+                  [tabindex]="1">
+
+                <mat-label>Username</mat-label>
+
+                <mat-error *ngIf="!user">
+                  Username is required
+                </mat-error>
+
+              </mat-form-field>
+              
+              <br>
+
+            </div>
+
+            <!--PASSWORD-->
+            <div>
+
+              <mat-form-field class="full-width">
+
+                <input
+                  matNativeControl
+                  [(ngModel)]="password"
+                  type="password"
+                  name="serverPassword"
+                  [required]="passwordRequired"
+                  autocomplete="new-password"
+                  [tabindex]="2">
+
+                <mat-label>Password</mat-label>
+
+                <mat-error *ngIf="addingService && !password">
+                  Password is required
+                </mat-error>
+
+              </mat-form-field>
+              
+              <br>
+
+            </div>
+
+            <div>
+
+              <!--REST PORT-->
+                <mat-form-field style="width: 5em;">
+
+                  <input
+                    matNativeControl
+                    [(ngModel)]="restPort"
+                    type="number"
+                    name="restPort"
+                    autocomplete="off"
+                    min="0"
+                    max="65535"
+                    [tabindex]="3">
+
+                  <mat-label>
+                    REST Port
+                  </mat-label>
+
+                  <mat-error *ngIf="!restPort">
+                    REST Port is required
+                  </mat-error>
+
+                </mat-form-field>
+
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+              <!--SSL-->
+              <mat-checkbox
+                style="vertical-align: baseline;"
+                labelPosition="after"
+                [(ngModel)]="ssl"
+                type="checkbox"
+                name="ssl"
+                [tabindex]="4">
+                  SSL
+              </mat-checkbox>
+
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+              <!--INVESTIGATION DEVICE ID-->
+              <mat-form-field
+                style="width: 6em;"
+                [showDelay]="1000"
+                [hideDelay]="1000"
+                tooltipStyleClass="investigationTooltip"
+                pTooltip="In NetWitness, every core service is assigned a numeric identifier, which is used to browse that specific service in Investigation.  You can find the ID for your device by browsing to Investigation in NetWitness, selecting this service, and viewing the URL.  The URL will look like https://hostname/investigation/<DEVICENUMBER> .">
+
+                  <input
+                    matNativeControl
+                    [(ngModel)]="deviceNumber"
+                    type="number"
+                    name="deviceNumber"
+                    autocomplete="off"
+                    required
+                    [tabindex]="5">
+
+                  <mat-label>Investigation ID</mat-label>
+
+                  <mat-error *ngIf="!deviceNumber">
+                    Investigation ID is required
+                  </mat-error>
+
+              </mat-form-field>
+
+            </div>
+
+            <!--SAVE SERVICE OR TEST OR CANCEL-->
+            <mat-card-actions align="end">
+
+              <!-- thumbs-up / thumbs-down icon -->
+              <div
+                *ngIf="testSuccess !== undefined"
+                class="flex align-items-center"
+                style="margin-left: 1em; margin-right: auto;">
+                  
+                  {{testError}}&nbsp;
+
+                  <i
+                    [class.fa-thumbs-up]="testSuccess"
+                    [class.fa-thumbs-down]="!testSuccess"
+                    class="fa fa-lg">
+                  </i>
+
+              </div>
+
+              <!-- test button -->
+              <button
+                mat-button
+                type="button"
+                (click)="onTestApiServerClicked(selectedApiServer)"
+                [disabled]="!addServiceFormValid() || testInProgress" color="accent">
+                  Test
+              </button>
+
+              <!-- save / update button -->
+              <button
+                mat-button
+                [disabled]="!addServiceFormValid()"
+                (click)="addServerSubmit()">
+                  {{addingService ? 'Save' : 'Update'}}
+              </button>
+
+              <!-- cancel button -->
+              <button
+                mat-button
+                type="button"
+                (click)="close()">
+                  Cancel
+              </button>
+
+            </mat-card-actions>
+
+          </mat-card-content>
+
+        </mat-card>
+
+    </form>
+
+</div>

@@ -1,0 +1,50 @@
+.feedContainer {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.25em;
+  height: 100%;
+  overflow: auto;
+}
+
+.feeds-table {
+  width: 100%;
+  margin: auto;
+}
+
+.cell {
+  padding-left: .3em;
+}
+
+.evenRow {
+  background-color: #FFF;
+}
+
+.oddRow {
+  background-color: #CCC;
+}
+
+.header {
+  font-weight: bold;
+  font-size: 1.3em;
+  background-color: #CCC;
+}
+
+.center {
+  text-align: center;
+}
+
+.link {
+  cursor: pointer;
+}
+
+.link:hover {
+  font-weight: bold;
+}
+
+.no-nw-server:hover {
+  color: red;
+}
+
+.disabled {
+  color: grey;
+}

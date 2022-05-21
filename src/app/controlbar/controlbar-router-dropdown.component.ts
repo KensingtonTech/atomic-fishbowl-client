@@ -1,4 +1,10 @@
-import { Component, ChangeDetectorRef, OnInit, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  OnInit,
+  Output,
+  EventEmitter
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { ToolService } from 'services/tool.service';
 import * as log from 'loglevel';
@@ -11,30 +17,32 @@ interface RouterOption {
 }
 
 @Component({
-  selector: 'router-dropdown',
+  selector: 'app-router-dropdown',
   templateUrl: './controlbar-router-dropdown.component.html'
 })
 
 export class RouterDropdownComponent implements OnInit {
 
-  constructor(private router: Router,
-              private toolService: ToolService,
-              private changeDetectorRef: ChangeDetectorRef) {}
+  constructor(
+    private router: Router,
+    private toolService: ToolService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   routerOptions: RouterOption[] = [
-                                            {
-                                              name: 'masonryGrid',
-                                              link: '/masonryGrid',
-                                              class: 'icon fa fa-th-large fa-2x fa-fw',
-                                              tooltip: 'Masonry'
-                                            },
-                                            {
-                                              name: 'classicGrid',
-                                              link: '/classicGrid',
-                                              class: 'icon fa fa-th fa-2x fa-fw',
-                                              tooltip: 'Classic'
-                                            }
-                                          ];
+    {
+      name: 'masonryGrid',
+      link: '/masonryGrid',
+      class: 'icon fa fa-th-large fa-2x fa-fw',
+      tooltip: 'Masonry'
+    },
+    {
+      name: 'classicGrid',
+      link: '/classicGrid',
+      class: 'icon fa fa-th fa-2x fa-fw',
+      tooltip: 'Classic'
+    }
+  ];
 
   @Output() isOpen = new EventEmitter<boolean>();
   selectedRoute: RouterOption;
@@ -43,7 +51,7 @@ export class RouterDropdownComponent implements OnInit {
 
 
   ngOnInit(): void {
-    this.selectedRoute  = this.getSelectedRoute();
+    this.selectedRoute = this.getSelectedRoute();
     this.orderRouterOptions();
   }
 
@@ -51,7 +59,7 @@ export class RouterDropdownComponent implements OnInit {
 
   orderRouterOptions(): void {
     // this will place the currently selected route last in the selection
-    let optionToSplice: RouterOption = null;
+    let optionToSplice: RouterOption;
     for (let i = 0; i < this.routerOptions.length; i++) {
       const option = this.routerOptions[i];
       if (this.selectedRoute.name.startsWith(option.name)) {
@@ -64,21 +72,21 @@ export class RouterDropdownComponent implements OnInit {
 
 
 
-  getSelectedRoute(): any {
+  getSelectedRoute(): RouterOption {
     const route = this.router.url;
     log.debug(`RouterDropdownComponent: getSelectedRoute(): route ${route}`);
-    for ( let i = 0; i < this.routerOptions.length; i++ ) {
-      if (route.startsWith(this.routerOptions[i].link)) {
-        return this.routerOptions[i];
+    for (const routerOption of this.routerOptions) {
+      if (route.startsWith(routerOption.link)) {
+        return routerOption;
       }
     }
+    throw new Error('Did not find selected route!');
   }
 
 
 
   collapseRouterOptions(): void {
     log.debug('RouterDropdownComponent: collapseRouterOptions()');
-    // document.removeEventListener('click', () => this.collapseRouterOptions() );
     this.selectionExpanded = false;
     this.isOpen.emit(false);
   }
@@ -88,21 +96,17 @@ export class RouterDropdownComponent implements OnInit {
   expandRouterOptions(): void {
     log.debug('RouterDropdownComponent: expandRouterOptions()');
     this.selectionExpanded = true;
-    // this.changeDetectorRef.markForCheck();
     this.isOpen.emit(true);
-    // this.changeDetectorRef.detectChanges();
-
   }
 
 
 
-  routeSelected(e: any): void {
-    // log.debug("routeSelected()", e);
-    if (this.selectedRoute !== e) {
-      this.selectedRoute = e;
+  routeSelected(route: RouterOption): void {
+    if (this.selectedRoute !== route) {
+      this.selectedRoute = route;
       this.selectionExpanded = false;
       // execute route
-      this.router.navigate([e.link]);
+      this.router.navigate([route.link]);
       this.changeDetectorRef.markForCheck();
       this.toolService.loadCollectionOnRouteChange = true;
     }

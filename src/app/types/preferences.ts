@@ -4,7 +4,7 @@ export interface Preferences {
   defaultContentLimit: number;
   defaultRollingHours: number;
   debugLogging: boolean;
-  serviceTypes: { nw: boolean, sa: boolean };
+  serviceTypes: { nw: boolean; sa: boolean };
   nw: NwPreferences;
   sa: SaPreferences;
   tokenExpirationHours: number;
@@ -16,7 +16,6 @@ interface NwPreferences {
   presetQuery: string;
   queryTimeout: number;
   contentTimeout: number;
-  // summaryTimeout: number;
   queryDelayMinutes: number;
   maxContentErrors: number;
   displayedKeys: string[];
@@ -37,7 +36,7 @@ interface SaPreferences {
   sessionLimit: number;
 }
 
-interface MasonryKey {
+export interface MasonryKey {
   key: string;
   friendly: string;
 }

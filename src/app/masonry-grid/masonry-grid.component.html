@@ -1,66 +1,76 @@
-<toolbar-widget [contentCount]="contentCount"></toolbar-widget>
+<app-toolbar-widget
+  [contentCount]="contentCount"
+  (displaySplashScreenModal)="displaySplashScreenModal = true"
+  (displayPreferencesModal)="displayPreferencesModal = true">
+</app-toolbar-widget>
+
+
 
 <!-- left bar -->
-<div
-  class="masonry-left-bar"
-  fxLayout="column"
-  fxLayoutAlign="start center">
+<div class="masonry-left-bar flex flex-column justify-content-between align-items-center">
 
-    <!-- control bar -->
-    <control-bar-masonry fxFlexOffset="1.052631579em"></control-bar-masonry>
+  <!-- control bar -->
+  <div class="control-bar-top">
 
-    <!-- pause / resume buttons for monitoring collections -->
-    <div *ngIf="selectedCollectionType == 'monitoring'" fxFlexOffset="2em" style="color: white;">
+    <app-control-bar-masonry></app-control-bar-masonry>
 
-      <i
-        *ngIf="!pauseMonitoring"
-        class="fa fa-pause-circle-o fa-4x"
-        (click)="suspendMonitoring()">
-      </i>
+  </div>
 
-      <i
-        *ngIf="pauseMonitoring"
-        class="fa fa-play-circle-o fa-4x"
-        (click)="resumeMonitoring()">
-      </i>
+  <!-- pause / resume buttons for monitoring collections -->
+  <div
+    *ngIf="selectedCollectionType === 'monitoring'"
+    class="white"
+    style="margin-top: 2rem;">
 
-    </div>
+    <i
+      *ngIf="!pauseMonitoring"
+      class="fa fa-pause-circle-o fa-4x clickable"
+      (click)="suspendMonitoring()">
+    </i>
 
-    <!-- content count -->
-    <content-count-widget
-      *ngIf="selectedCollectionType"
-      [contentCount]="contentCount"
-      style="margin-top: auto; margin-bottom: auto;">
-    </content-count-widget>
+    <i
+      *ngIf="pauseMonitoring"
+      class="fa fa-play-circle-o fa-4x clickable"
+      (click)="resumeMonitoring()">
+    </i>
+
+  </div>
+
+  <!-- content count -->
+  <app-content-count-widget
+    *ngIf="selectedCollectionType"
+    [contentCount]="contentCount"
+    style="margin-top: auto; margin-bottom: auto;">
+  </app-content-count-widget>
+
+  <div></div>
 
 </div>
 
-
-<div
-  class="masonryViewport"
-  style="overflow: none;">
+<!-- Main Masonry Area -->
+<div class="masonryViewport">
 
     <div
-      #scrollContainer
+      #ScrollContainerRef
       tabindex="-1"
-      class="scrollContainer noselect"
-      style="position: relative; width: 100%; height: 100%; outline: 0; overflow: hidden; transform: translateZ(0);">
+      class="scroll-container noselect">
 
         <div
           isotope
-          #isotopeContent
+          #IsotopeContentRef
           *ngIf="isotopeConfig"
           tabindex="-1"
-          class="grid"
+          class="grid isotope-container"
           [config]="isotopeConfig"
           [filter]="filter"
           [addWithLayout]="addWithLayout"
-          style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; outline: none; overflow-y: visible;">
+          [layoutCompleteCallback]="layoutCompleteCallback">
 
-            <ng-container *ngIf="content && hasSessions() && masonryKeys">
+            <ng-container *ngIf="content && hasSessions() && masonryKeys && collectionId && selectedCollectionServiceType">
 
-              <masonry-tile
+              <app-masonry-tile
                 *ngFor="let item of content"
+                #MasonryTileRef
                 isotope-brick
                 class="brick"
                 [collectionId]="collectionId"
@@ -74,14 +84,14 @@
                 [masonryColumnWidth]="masonryColumnWidth"
                 [serviceType]="selectedCollectionServiceType"
                 [attr.id]="item.id"
-                [margin]="tileMargin"
-                (click)="onTileClicked($event)"
+                (click)="onTileClicked(MasonryTileRef)"
                 [displayTextArea]="showTextArea">
-              </masonry-tile>
+              </app-masonry-tile>
 
             </ng-container>
 
         </div>
+
     </div>
 
     <p-scrollPanel-custom
@@ -95,30 +105,150 @@
 
 
 
-<!-- Modals -->
-<tab-container-modal></tab-container-modal>
+<!-- Collections / Feeds Modal-->
+<p-dialog
+  [visible]="displayTabContainerModal"
+  (visibleChange)="onDisplayTabContainerModalChanged($event)"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="tab-container-modal"
+  styleClass="tab-container-modal-body">
 
-<splash-screen-modal></splash-screen-modal>
+  <app-tab-container-modal></app-tab-container-modal>
 
-<preferences-modal></preferences-modal>
+</p-dialog>
 
-<manage-users-modal></manage-users-modal>
 
-<collection-deleted-notify-modal [user]="collectionDeletedUser"></collection-deleted-notify-modal>
+<!-- Manage Users Modal-->
+<p-dialog
+  [(visible)]="displayManageUsersModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="manage-users-modal"
+  styleClass="manage-users-modal-body">
+    
+    <app-manage-users-modal></app-manage-users-modal>
 
-<content-details-modal
-  *ngIf="selectedCollectionServiceType"
-  [session]="selectedSession"
-  [content]="selectedContent"
-  [serviceType]="selectedCollectionServiceType"
-  [collectionId]="collectionId"
-  [sessionsAvailable]="sessionsAvailable">
-</content-details-modal>
+</p-dialog>
 
-<ng-container *ngIf="preferences && preferences.serviceTypes">
 
-  <nw-collection-modal *ngIf="preferences.serviceTypes.nw"></nw-collection-modal>
 
-  <sa-collection-modal *ngIf="preferences.serviceTypes.sa"></sa-collection-modal>
+<!-- Splash Screeen -->
+<p-dialog
+  [(visible)]="displaySplashScreenModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  [contentStyle]="{padding: '0'}">
+  
+    <app-splash-screen-modal
+      [(displaySplashScreenModal)]="displaySplashScreenModal"
+      [firstLoad]="firstLoad">
+    </app-splash-screen-modal>
 
-</ng-container>
+</p-dialog>
+
+
+
+<!-- Feed Wizard -->
+<p-dialog
+  [(visible)]="displayFeedWizardModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="feed-wizard-modal"
+  styleClass="feed-wizard-modal-body">
+
+  <app-feed-wizard-modal></app-feed-wizard-modal>
+
+</p-dialog>
+
+
+
+<!-- Preferences -->
+<p-dialog
+  [(visible)]="displayPreferencesModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="preferences-modal"
+  styleClass="preferences-modal-body">
+
+  <app-preferences-modal
+    [(displayPreferencesModal)]="displayPreferencesModal">
+  </app-preferences-modal>
+
+</p-dialog>
+
+
+
+<!-- Content Details -->
+<p-dialog
+  [(visible)]="displayContentDetailsModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="content-details-modal"
+  styleClass="content-details-modal-body">
+
+    <app-content-details-modal
+      *ngIf="selectedCollectionServiceType && collectionId"
+      [session]="selectedSession"
+      [content]="selectedContent"
+      [serviceType]="selectedCollectionServiceType"
+      [collectionId]="collectionId"
+      [sessionsAvailable]="sessionsAvailable">
+    </app-content-details-modal>
+
+</p-dialog>
+
+
+
+<!-- NW / SA Collection Modals -->
+<p-dialog
+  [visible]="displayNwCollectionModal"
+  (visibleChange)="onDisplayNwCollectionModalChanged($event)"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false">
+
+  <app-nw-collection-modal>
+  </app-nw-collection-modal>
+
+  <!--<app-sa-collection-modal *ngIf="preferences.serviceTypes.sa"></app-sa-collection-modal>-->
+
+</p-dialog>
+
+
+
+<p-confirmDialog></p-confirmDialog>

@@ -26,6 +26,7 @@
 !.vscode/extensions.json
 
 # misc
+/.angular
 /.sass-cache
 /connect.lock
 /coverage
@@ -46,3 +47,10 @@ src/nw-context-menu/~$B-NW Context Menu Integration Guide.docx
 
 # Testing library install files
 /ngx-panzoom*.tgz
+
+/.vscode
+
+# Created in postinstall
+src/resources/nw-investigation-context-menu.zip
+src/resources/pdf.worker.min.js
+src/resources/isotope.pkgd.min.js

@@ -1,53 +1,68 @@
-<div class="noselect">
+<div class="noselect flex flex-column row-gap-2">
 
   <!-- change route icon -->
-  <div>
+  <div class="flex column-gap-2">
 
-    <router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown>
+    <app-router-dropdown
+      (isOpen)="onRouterDropdownOpen($event)"
+      pTooltip="Select view"
+      tooltipPosition="bottom"
+      [showDelay]="500">
+    </app-router-dropdown>
 
     <!-- full screen button -->
     <span
       *ngIf="!routerDropdownOpen"
       toggleFullscreen
-      class="icon fa fa-desktop fa-2x fa-fw">
+      class="icon fa fa-desktop fa-2x fa-fw clickable"
+      pTooltip="Toggle fullscreen"
+      tooltipPosition="bottom"
+      [showDelay]="500">
     </span>
 
   </div>
 
-  <div
-    *ngIf="!routerDropdownOpen"
-    style="margin-top: .4em;">
+  <div class="flex column-gap-2"
+    *ngIf="!routerDropdownOpen">
 
     <!-- autoscroller start button -->
     <span
       *ngIf="!scrollStarted"
-      class="icon fa fa-level-down fa-2x fa-fw"
+      class="icon fa fa-level-down fa-2x fa-fw clickable"
       (click)="scrollToBottom()"
-      pTooltip="Start autoscroller">
+      pTooltip="Start autoscroller"
+      tooltipPosition="bottom"
+      [showDelay]="500">
     </span>
 
     <!-- autoscroller stop button -->
     <span
       *ngIf="scrollStarted"
-      class="icon fa fa-stop fa-2x fa-fw"
+      class="icon fa fa-stop fa-2x fa-fw clickable"
       (click)="stopScrollToBottom()"
-      pTooltip="Stop autoscroller">
+      pTooltip="Stop autoscroller"
+      tooltipPosition="bottom"
+      [showDelay]="500">
     </span>
 
     <!-- show meta -->
     <span
       *ngIf="showMeta"
-      class="icon fa fa-comment fa-2x fa-fw"
+      class="icon fa fa-comment fa-2x fa-fw clickable"
       (click)="hideMetaFunction()"
-      pTooltip="Hide Meta">
+      pTooltip="Hide Meta"
+      tooltipPosition="bottom"
+      [showDelay]="500">
     </span>
 
     <!-- hide meta -->
     <span
       *ngIf="!showMeta"
-      class="icon fa fa-comment-o fa-2x fa-fw"
+      class="icon fa fa-comment-o fa-2x fa-fw clickable"
       (click)="showMetaFunction()"
-      pTooltip="Show Meta">
+      pTooltip="Show Meta"
+      tooltipPosition="bottom"
+      [showDelay]="500">
     </span>
 
   </div>

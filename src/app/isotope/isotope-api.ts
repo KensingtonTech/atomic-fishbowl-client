@@ -1,8 +1,8 @@
 export interface IsotopeAPI {
-  layout: Function;
-  destroyMe: Function;
-  initializeMe: Function;
-  unhideAll: Function;
-  basicLayout: Function;
-  reloadItems: Function;
+  layout: (refreshConfig?: boolean) => void;
+  destroyMe: () => void;
+  initializeMe: () => void;
+  unhideAll: () => void;
+  basicLayout: () => void;
+  reloadItems: () => void;
 }

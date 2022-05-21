@@ -1,0 +1,27 @@
+FROM node:16.15.0 AS STAGE_BUILD
+LABEL stage=builder
+ARG DEBUG_BUILD=false
+WORKDIR /workspace
+COPY package.json package-lock.json tsconfig.json angular.json ./
+COPY scripts/ scripts
+COPY src/ src
+RUN apt-get update \
+  && apt-get install -y zip \
+  && npm install \
+  && if [ "$DEBUG_BUILD" = "true" ]; then \
+    npm run build:gzip; \
+  else \
+    npm run build:prod:gzip; \
+  fi
+
+
+FROM kensingtontech/nginx-jwt:1.22.0
+WORKDIR /opt/kentech/afb-client/webroot
+COPY nginx.conf /etc/nginx
+COPY --from=STAGE_BUILD /workspace/dist/ ./
+COPY LICENSE.txt ./
+RUN rm -f /etc/nginx/conf.d/* \
+  && apt-get install -y wait-for-it \
+  && touch index.html
+EXPOSE 443
+CMD ["wait-for-it", "-t", "0", "server:3002", "--", "nginx", "-g", "daemon off;"]

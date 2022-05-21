@@ -1,0 +1,207 @@
+<p-toolbar styleClass="feedToolbar">
+
+  <p-button
+    type="button"
+    (onClick)="onAddFeedClick()"
+    label="New Feed">
+  </p-button>
+
+  &nbsp;&nbsp;
+
+  <div class="p-toolbar-group-right">
+
+    <div class="p-inputgroup">
+
+      <span class="p-inputgroup-addon">
+        
+        <i class="pi pi-search"></i>
+      
+      </span>
+
+      <input
+        pInputText
+        name="filter"
+        type="text"
+        size="60"
+        type="text"
+        placeholder="Filter"
+        [(ngModel)]="filterText"
+        (ngModelChange)="filterChanged()">
+
+      <p-button
+        icon="pi pi-times"
+        class="p-button-danger"
+        (onClick)="clearFilter()">
+      </p-button>
+
+    </div>
+
+  </div>
+
+</p-toolbar>
+
+<div
+  *ngIf="feeds && feeds.length === 0"
+  class="feedContainer">
+  
+  <p>No feeds are defined</p>
+
+</div>
+
+<!--feed container-->
+<div
+  *ngIf="displayedFeeds && displayedFeeds.length > 0"
+  class="feedContainer">
+
+    <div class="feeds-table">
+
+        <!-- table headers -->
+        <div class="header">
+          Actions
+        </div>
+
+        <div class="header cell">
+          Feed Name
+        </div>
+
+        <div class="header cell">
+          Type
+        </div>
+
+        <div class="header cell">
+          Status
+        </div>
+
+        <div class="header cell">
+          Schedule
+        </div>
+
+        <div class="header cell">
+          Created
+        </div>
+
+        <div class="header cell">
+          Last Modified
+        </div>
+
+        <!-- loop through collections -->
+        <ng-container *ngFor="let feed of displayedFeeds; odd as odd">
+
+          <!-- Actions -->
+          <div
+            class="cell center actions"
+            [class.evenRow]="!odd"
+            [class.oddRow]="odd"
+            style="cursor: initial;"
+            [attr.feedId]="feed.id">
+
+              <!-- Delete -->
+              <span
+                class="fa fa-trash clickable"
+                (click)="onDeleteFeedClick(feed)">
+              </span>
+              
+              &nbsp;
+
+              <!-- Edit -->
+              <span
+                class="fa fa-pencil clickable"
+                (click)="onEditFeedClick(feed)">
+              </span>
+
+          </div>
+
+          <!-- feed name -->
+          <div
+            class="cell feedName link"
+            [class.evenRow]="!odd"
+            [class.oddRow]="odd"
+            [attr.feedId]="feed.id">
+              {{feed.name}}
+          </div>
+
+          <!-- feed type -->
+          <div
+            class="cell"
+            [class.evenRow]="!odd"
+            [class.oddRow]="odd"
+            [attr.feedId]="feed.id">
+              {{feed.type | capitaliseFirstLetter}}
+          </div>
+
+          <!-- feed status -->
+          <div class="cell" [class.evenRow]="!odd" [class.oddRow]="odd" [attr.feedId]="feed.id">
+
+            <span
+              *ngIf="feed.type === 'scheduled' && ifStatusExists(feed.id) && feedStatus[feed.id].good"
+              [pTooltip]="'Last run at' + (feedStatus[feed.id]?.time | date: 'short')">
+                OK
+            </span>
+
+            <span
+              *ngIf="feed.type === 'scheduled' && ifStatusExists(feed.id) && !feedStatus[feed.id].good"
+              [pTooltip]="'Last run at' + (feedStatus[feed.id]?.time | date: 'short')">
+                Failed
+            </span>
+
+            <span *ngIf="feed.type === 'manual'">
+              -
+            </span>
+
+          </div>
+
+          <!-- feed schedule -->
+          <div
+            class="cell"
+            [class.evenRow]="!odd"
+            [class.oddRow]="odd"
+            [attr.feedId]="feed.id">
+            
+            <span *ngIf="feed.type === 'scheduled'">
+              Every {{feed.schedule.value}} {{feed.schedule.interval}}<ng-container *ngIf="feed.schedule.interval === 'day'">s</ng-container>
+            </span>
+
+            <span *ngIf="feed.type === 'manual'">
+              -
+            </span>
+
+          </div>
+
+          <!-- created -->
+          <div
+            class="cell"
+            [class.evenRow]="!odd"
+            [class.oddRow]="odd"
+            [attr.feedId]="feed.id">
+
+              <span *ngIf="feed.creator">
+                {{feed.creator.timestamp | date:'y/MM/d HH:mm'}} by {{feed.creator.username}}
+              </span>
+
+          </div>
+
+          <!-- modified -->
+          <div
+            class="cell"
+            [class.evenRow]="!odd"
+            [class.oddRow]="odd"
+            [attr.feedId]="feed.id">
+
+              <span *ngIf="feed.modifier">
+                {{feed.modifier.timestamp | date:'y/MM/d HH:mm'}} by {{feed.modifier.username}}
+              </span>
+
+              <span *ngIf="!feed.modifier">
+                -
+              </span>
+
+          </div>
+
+        </ng-container>
+
+    </div>
+
+</div>
+
+
+<p-confirmDialog [key]="confirmationKey"></p-confirmDialog>

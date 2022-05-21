@@ -4,11 +4,10 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 export class MapValuesPipe implements PipeTransform {
 
-  transform(value: any): any {
+  transform<T>(value?: Record<any, T>): T[] | void {
     if (!value) {
-      return value;
+      return;
     }
-    const values = Object.values(value).map( v => v );
-    return values;
+    return Object.values(value).map( v => v );
   }
 }

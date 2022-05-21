@@ -1,0 +1,70 @@
+.collectionsContainer {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.25em;
+  height: 100%;
+  overflow: auto;
+}
+
+.collections-table {
+  display: grid;
+  grid-template-columns: 6em 1fr .5fr .5fr .5fr .5fr .5fr;
+  grid-auto-rows: auto;
+  grid-row-gap: .3em;
+
+  .header {
+    position: sticky;
+    top: 0;
+  }
+}
+
+.cell {
+  padding-left: .3em;
+}
+
+.evenRow {
+  background-color: #FFF;
+}
+
+.oddRow {
+  background-color: #CCC;
+}
+
+.header {
+  font-weight: bold;
+  font-size: 1.3em;
+  background-color: #CCC;
+}
+
+.center {
+  text-align: center;
+}
+
+.link {
+  cursor: pointer;
+}
+
+.link:hover {
+  font-weight: bold;
+}
+
+.no-nw-server:hover {
+  color: red;
+}
+
+.disabled {
+  color: grey;
+}
+
+::ng-deep {
+  .collectionMaskMenu .p-menuitem-icon {
+    border: 2px solid #ced4da;
+    background: #ffffff;
+    width: 13.813px;
+    height: 13px;
+    color: #495057;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    box-sizing: content-box;
+  }
+}

@@ -4,7 +4,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ModalModule } from './modal/modal.module';
 import { NgxPanZoomModule } from 'ngx-panzoom';
 import { IsotopeModule } from './isotope/isotope.module';
 
@@ -23,6 +22,11 @@ import { DragDropModule } from 'primeng/dragdrop';
 import { TabViewModule } from 'primeng/tabview';
 import { ToolbarModule } from 'primeng/toolbar';
 import { MenuModule } from 'primeng/menu';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -53,12 +57,11 @@ import { ClickOutsideDirective } from './click-outside.directive';
 // Our Components
 import { AppComponent } from './app.component';
 import { DefaultRouteComponent } from './default-route.component';
-import { ToolbarWidgetComponent } from './toolbar-widget.component';
-import { SplashScreenModalComponent } from './splashscreen-modal.component';
-import { NwCollectionModalComponent } from './nwcollection-modal.component';
-import { DeleteCollectionConfirmModalComponent } from './confirmation-modals/deletecollection-confirm-modal.component';
-import { PreferencesModalComponent } from './preferences-modal.component';
-import { ManageUsersModalComponent } from './manageusers-modal.component';
+import { ToolbarWidgetComponent } from './toolbar-widget/toolbar-widget.component';
+import { SplashScreenModalComponent } from './splashscreen-modal/splashscreen-modal.component';
+import { NwCollectionModalComponent } from './nw-collection-modal/nw-collection-modal.component';
+import { PreferencesModalComponent } from './preferences-modal/preferences-modal.component';
+import { ManageUsersModalComponent } from './manage-users-modal/manage-users-modal.component';
 import { ClassicGridComponent } from './classic-grid/classic-grid.component';
 import { MasonryGridComponent } from './masonry-grid/masonry-grid.component';
 import { ClassicControlBarComponent } from './controlbar/controlbar-classic.component';
@@ -66,135 +69,121 @@ import { MasonryControlBarComponent } from './controlbar/controlbar-masonry.comp
 import { RouterDropdownComponent } from './controlbar/controlbar-router-dropdown.component';
 import { ClassicSessionPopupComponent } from './classic-grid/classic-session-popup.component';
 import { ClassicTileComponent } from './classic-grid/classic-tile.component';
-import { MetaAccordionComponent } from './viewers/meta-accordion.component';
+import { MetaAccordionComponent } from './meta-accordion/meta-accordion.component';
 import { MasonryTileComponent } from './masonry-grid/masonry-tile.component';
-import { SessionDetailsModalComponent } from './viewers/content-details-modal.component';
-import { DeleteUserConfirmModalComponent } from './confirmation-modals/deleteuser-confirm-modal.component';
-import { ServerDownModalComponent } from './serverdown-modal.component';
-import { LoginFormComponent } from './login-form.component';
-import { DeleteNwServerConfirmModalComponent } from './confirmation-modals/deletenwserver-confirm-modal.component';
-import { CollectionsComponent } from './collections.component';
-import { FeedsComponent } from './feeds.component';
-import { FeedWizardComponent } from './feed-wizard';
-import { DeleteFeedConfirmModalComponent } from './confirmation-modals/deletefeed-confirm-modal.component';
-import { TabContainerComponent } from './tabcontainer-modal.component';
-import { SaCollectionModalComponent } from './sacollection-modal.component';
-import { DeleteSaServerConfirmModalComponent } from './confirmation-modals/deletesaserver-confirm-modal.component';
-import { CollectionDeletedNotifyModalComponent } from './collection-deleted-notify-modal.component';
-import { EulaComponent } from './eula.component';
-import { ContentViewerComponent } from './viewers/content-viewer.component';
-import { MetaWidgetComponent } from './viewers/meta-widget.component';
-import { ContentCountWidgetComponent } from './viewers/content-count-widget.component';
-import { NewEditUserModalComponent } from './new-edit-user-modal.component';
-import { NewEditNwServiceModalComponent } from './new-edit-nw-service.component';
-import { LoggedOutNotifyModalComponent } from './logged-out-notify-modal.component';
+import { SessionDetailsModalComponent } from './content-details-modal/content-details-modal.component';
+import { ServerDownModalComponent } from './serverdown-modal/serverdown-modal.component';
+import { LoginFormComponent } from './login-form/login-form.component';
+import { CollectionsComponent } from './collections/collections.component';
+import { FeedsComponent } from './feeds/feeds.component';
+import { FeedWizardComponent } from './feed-wizard/feed-wizard.component';
+import { TabContainerComponent } from './tabcontainer-modal/tabcontainer-modal.component';
+// import { SaCollectionModalComponent } from './sacollection-modal/sacollection-modal.component.ts.disabled';
+import { EulaComponent } from './eula/eula.component';
+import { ContentViewerComponent } from './content-viewer/content-viewer.component';
+import { MetaWidgetComponent } from './meta-widget/meta-widget.component';
+import { ContentCountWidgetComponent } from './content-count-widget/content-count-widget.component';
+import { EditUserModalComponent } from './edit-user-modal/edit-user-modal.component';
+import { EditNwServiceModalComponent } from './edit-nw-service/edit-nw-service.component';
 import { CustomScrollPanelComponent } from './scrollpanel/scrollpanel.component';
-
-// Other
-import { FlexLayoutModule } from '@angular/flex-layout';
 
 
 
 @NgModule({
   imports:      [ BrowserModule,
-                  BrowserAnimationsModule,
-                  HttpClientModule,
-                  FormsModule,
-                  ReactiveFormsModule,
-                  NgxPanZoomModule,
-                  ModalModule,
-                  CalendarModule,
-                  TooltipModule,
-                  ButtonModule,
-                  IsotopeModule,
-                  RadioButtonModule,
-                  SelectButtonModule,
-                  DropdownModule,
-                  ListboxModule,
-                  InputTextModule,
-                  FileUploadModule,
-                  CheckboxModule,
-                  DragDropModule,
-                  TabViewModule,
-                  ToolbarModule,
-                  MatCardModule,
-                  MatInputModule,
-                  MatCheckboxModule,
-                  MatButtonModule,
-                  MatToolbarModule,
-                  FlexLayoutModule,
-                  DragulaModule.forRoot(),
-                  PdfViewerModule,
-                  MenuModule,
-                  RouterModule.forRoot([
-                    {
-                      path: '',
-                      component: DefaultRouteComponent // if no path is specified, then this component will decide which path to take
-                    },
-                    {
-                      path: 'masonryGrid',
-                      component: MasonryGridComponent
-                    },
-
-                    {
-                      path: 'classicGrid',
-                      component: ClassicGridComponent
-                    }
-                  ])
-                ],
-  declarations: [ AppComponent,
-                  DefaultRouteComponent,
-                  ClassicGridComponent,
-                  MasonryGridComponent,
-                  ClassicSessionPopupComponent,
-                  ToolbarWidgetComponent,
-                  FromEpochPipe,
-                  FormatTimePipe,
-                  FormatSaTimePipe,
-                  MapValuesPipe,
-                  AllCapsPipe,
-                  CapFirstLetterPipe,
-                  NwCollectionModalComponent,
-                  DeleteCollectionConfirmModalComponent,
-                  ClassicControlBarComponent,
-                  PreferencesModalComponent,
-                  ToggleFullscreenDirective,
-                  MetaAccordionComponent,
-                  ClassicTileComponent,
-                  SplashScreenModalComponent,
-                  RouterDropdownComponent,
-                  MasonryControlBarComponent,
-                  ClickOutsideDirective,
-                  MasonryTileComponent,
-                  SessionDetailsModalComponent,
-                  LoginFormComponent,
-                  ManageUsersModalComponent,
-                  DeleteUserConfirmModalComponent,
-                  ServerDownModalComponent,
-                  MetaWidgetComponent,
-                  DeleteNwServerConfirmModalComponent,
-                  CollectionsComponent,
-                  FeedsComponent,
-                  FeedWizardComponent,
-                  DeleteFeedConfirmModalComponent,
-                  TabContainerComponent,
-                  SaCollectionModalComponent,
-                  DeleteSaServerConfirmModalComponent,
-                  CollectionDeletedNotifyModalComponent,
-                  EulaComponent,
-                  BoolToStringPipe,
-                  ContentViewerComponent,
-                  ContentCountWidgetComponent,
-                  NewEditUserModalComponent,
-                  NewEditNwServiceModalComponent,
-                  LoggedOutNotifyModalComponent,
-                  CustomScrollPanelComponent
-                ],
-  providers:    [],
+    BrowserAnimationsModule,
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgxPanZoomModule,
+    CalendarModule,
+    TooltipModule,
+    ButtonModule,
+    IsotopeModule,
+    RadioButtonModule,
+    SelectButtonModule,
+    DropdownModule,
+    ListboxModule,
+    InputTextModule,
+    FileUploadModule,
+    CheckboxModule,
+    DragDropModule,
+    TabViewModule,
+    ToolbarModule,
+    MatCardModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    MatToolbarModule,
+    DragulaModule.forRoot(),
+    PdfViewerModule,
+    MenuModule,
+    ConfirmDialogModule,
+    ConfirmPopupModule,
+    DialogModule,
+    TableModule,
+    RouterModule.forRoot([
+      {
+        path: '',
+        component: DefaultRouteComponent // if no path is specified, then this component will decide which path to take
+      },
+      {
+        path: 'masonryGrid',
+        component: MasonryGridComponent
+      },
+      {
+        path: 'classicGrid',
+        component: ClassicGridComponent
+      }
+    ],
+    {
+      relativeLinkResolution: 'legacy'
+    })
+  ],
+  declarations: [
+    AppComponent,
+    DefaultRouteComponent,
+    ClassicGridComponent,
+    MasonryGridComponent,
+    ClassicSessionPopupComponent,
+    ToolbarWidgetComponent,
+    FromEpochPipe,
+    FormatTimePipe,
+    FormatSaTimePipe,
+    MapValuesPipe,
+    AllCapsPipe,
+    CapFirstLetterPipe,
+    NwCollectionModalComponent,
+    ClassicControlBarComponent,
+    PreferencesModalComponent,
+    ToggleFullscreenDirective,
+    MetaAccordionComponent,
+    ClassicTileComponent,
+    SplashScreenModalComponent,
+    RouterDropdownComponent,
+    MasonryControlBarComponent,
+    ClickOutsideDirective,
+    MasonryTileComponent,
+    SessionDetailsModalComponent,
+    LoginFormComponent,
+    ManageUsersModalComponent,
+    ServerDownModalComponent,
+    MetaWidgetComponent,
+    CollectionsComponent,
+    FeedsComponent,
+    FeedWizardComponent,
+    TabContainerComponent,
+    // SaCollectionModalComponent,
+    EulaComponent,
+    BoolToStringPipe,
+    ContentViewerComponent,
+    ContentCountWidgetComponent,
+    EditUserModalComponent,
+    EditNwServiceModalComponent,
+    CustomScrollPanelComponent
+  ],
+  providers:    [ ConfirmationService ],
   bootstrap:    [ AppComponent ]
-
 })
 
-export class AppModule {
-
-}
+export class AppModule {}

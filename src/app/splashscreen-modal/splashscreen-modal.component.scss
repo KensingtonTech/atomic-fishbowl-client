@@ -1,0 +1,29 @@
+.splash-container {
+  // width: 21.05263158em; // 400px
+  padding: 1rem;
+  background-color: rgba(0,0,0,.9);
+  color: white;
+
+  h1 {
+    margin-bottom: 0;
+    margin-top: 0;
+    font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;
+  }
+
+  img {
+    width: 23.68421053em;
+    height: auto;
+  }
+
+  .fa-times-circle-o {
+    // position: relative;
+    // top: 0.105263158em;
+    // right: 0.263157895em;
+    // z-index: 100;
+    color: white;
+  }
+
+  .noBottomMargin {
+    margin-bottom: 0;
+  }
+}

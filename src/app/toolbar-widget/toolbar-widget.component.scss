@@ -1,0 +1,70 @@
+:host {
+  display: block;
+}
+
+.label {
+  color: rgb(230,234,234);
+  font-weight: bolder;
+  // font-size: 13px; // fix this one
+}
+
+.value {
+  color: white;
+  margin-right: 0.526315789em; /*10px*/
+  // font-size: 12px; // fix this one
+}
+
+.fa-deselect {
+  color: grey !important;
+}
+
+.hide {
+  display: none;
+}
+
+.afb-toolbar {
+  background-color: rgba(0, 0, 0, .8);
+  padding: .5em;
+  color: white;
+}
+
+.toolbarSearchDropdown {
+  position: absolute;
+  right: 5em;
+  top: 2.33333333em;
+  // padding: 0.263157895em;
+  padding: 0.5em;
+  background-color: rgb(146, 151, 160);
+  // width: 16.57894737em; // 315px
+  width: 25em; // 315px
+  border-radius: 0.157894737em;
+  z-index: 100;
+  display: flex;
+
+  .fa {
+    color: white;
+    margin-left: .4em;
+  }
+
+  input {
+    width: 100%;
+    // width: auto;
+  }
+
+  .deselect {
+    color: black !important;
+  }
+}
+
+.toolbar-right {
+  padding-right: 1rem;
+}
+
+.search-button {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.logout-button {
+  margin-left: 1rem;
+}

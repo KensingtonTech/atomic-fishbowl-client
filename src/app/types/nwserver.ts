@@ -6,9 +6,9 @@ export interface NwServer {
   ssl: boolean;
   user: string;
   deviceNumber: number;
-  password?: string;
+  password: string;
 }
 
-export interface NwServers {
-  [id: string]: NwServer;
-}
+export type NwServers = Record<string, NwServer>;
+
+export type NwServerTest = Omit<Optional<NwServer, 'id' | 'password'>, 'friendlyName' | 'deviceNumber'>;

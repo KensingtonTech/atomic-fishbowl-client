@@ -5,27 +5,30 @@
     *ngIf="!selectionExpanded"
     (click)="expandRouterOptions()"
     [ngClass]="selectedRoute.class"
-    class="routerIcon">
+    class="routerIcon clickable">
   </span>
 
   <!-- expanded -->
   <div
     *ngIf="selectionExpanded"
-    (clickOutside)="collapseRouterOptions()">
+    (clickOutside)="collapseRouterOptions()"
+    class="flex flex-column row-gap-2">
 
       <div
         *ngFor="let option of routerOptions"
-        style="margin-bottom: .2em"
+        class="flex align-items-center column-gap-1"
         (click)="routeSelected(option)">
 
           <span
-            class="routerIcon {{option.class}}"
-            [class.deselect]="selectedRoute.name == option.name">
+            class="routerIcon clickable margin-0"
+            [ngClass]="option.class"
+            [class.deselect]="selectedRoute.name === option.name"
+            [class.not-allowed]="selectedRoute.name === option.name">
           </span>
 
           &nbsp;
 
-          <span style="color: white; vertical-align: 50%;">
+          <span class="white margin-0">
             {{option.tooltip}}
           </span>
 

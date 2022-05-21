@@ -1,0 +1,26 @@
+<p-tabView
+  [activeIndex]="selectedTabIndex"
+  (onChange)="onTabChange($event)">
+
+    <p-tabPanel
+      header="Collections"
+      headerStyleClass="noselect nooutline">
+
+        <app-collections></app-collections>
+
+    </p-tabPanel>
+
+    <p-tabPanel
+      header="Hash Feeds"
+      headerStyleClass="noselect nooutline">
+
+        <app-feeds></app-feeds>
+
+    </p-tabPanel>
+
+</p-tabView>
+
+<div
+  (click)="closeModal()"
+  class="fa fa-times-circle-o fa-2x close-button clickable">
+</div>

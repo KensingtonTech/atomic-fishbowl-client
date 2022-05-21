@@ -1,0 +1,20 @@
+:host {
+  > div {
+    background-color: rgba(0,0,0,0.8);
+    padding: .3em;
+    border-radius: 0.526315789em;
+  }
+}
+
+::ng-deep {
+  .icon {
+    background-color: rgb(75,173,243);
+    color: white;
+    border-radius: .45em;
+    padding: .1em;
+  }
+  
+  .deselect {
+    color: grey;
+  }
+}

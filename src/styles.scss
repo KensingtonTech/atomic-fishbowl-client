@@ -1,6 +1,15 @@
+@use '@angular/material' as mat;
+@import '~font-awesome/scss/font-awesome';
+@import '~@angular/material/prebuilt-themes/indigo-pink.css';
 @import "media-queries.scss";
-@import '~@angular/material/theming';
 @import 'app/scrollpanel/scrollpanel.component.scss';
+
+@import '~primeng/resources/primeng.min.css';
+@import '~primeng/resources/themes/nova/theme.css';
+@import '~primeicons/primeicons';
+@import '~@kensingtontech/dragula/dist/dragula';
+@import '~primeflex/primeflex.css';
+
 
 $base-multiplier: .625;
 // $base-multiplier: 1;
@@ -137,131 +146,117 @@ body {
   box-sizing: initial;
 }
 
-[class^="ui-"] {
+[class^="p-"] {
   // re-apply only for PrimeNG elements
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
   box-sizing: border-box;
+
+  &.fa {
+    box-sizing: content-box;
+  }
 }
 
 @mixin primeStyle($fontsize: 1em) {
 
   // override primeng selectButton color
-  .ui-selectbutton .ui-button.ui-state-default:not(.ui-state-active),
-  .ui-togglebutton.ui-button.ui-state-default:not(.ui-state-active),
-  .ui-selectbutton .ui-button:not(.ui-state-disabled):not(.ui-state-active).ui-state-focus {
+  .p-selectbutton .p-button.p-state-default:not(.p-state-active),
+  .p-togglebutton.p-button.p-state-default:not(.p-state-active),
+  .p-selectbutton .p-button:not(.p-state-disabled):not(.p-state-active).p-state-focus {
     background-color: rgb(255, 255, 255);
   }
 
-  // override primeng selectButton color
-  .ui-selectbutton .ui-button:not(.ui-state-disabled):not(.ui-state-active):hover {
-    background-color: rgb(238, 238, 238);
-  }
-
-  /*.ui-selectbutton .ui-button.ui-state-active {
-    color: rgb(0, 0, 0);
-  }*/
-
-  .ui-listbox .ui-listbox-list .ui-listbox-item {
+  .p-listbox .p-listbox-list .p-listbox-item {
     outline: none; // get rid of outline effect on p-listbox
     padding: 0.2145em 0.857em;
   }
 
-  .ui-dropdown-panel .ui-dropdown-items .ui-dropdown-item,
-  .ui-dropdown-panel .ui-dropdown-items .ui-dropdown-item-group {
+  .p-dropdown-panel .p-dropdown-items .p-dropdown-item,
+  .p-dropdown-panel .p-dropdown-items .p-dropdown-item-group {
     padding: 0.2145em 0.857em; // reduce padding on p-dropdown;
   }
 
-  .ui-widget {
+  .p-widget {
     // un-screw primeng theme's stupid px font-size
     font-family: system-ui, -apple-system, BlinkMacSystemFont;
-    // font-size: 0.736842105em;
-    // font-size: .9em;
     font-size: $fontsize;
   }
 
-  .ui-dropdown::before,
-  .ui-dropdown::after {
+  .p-dropdown::before,
+  .p-dropdown::after {
     display: none !important;
   }
 
-  .investigationTooltip.ui-tooltip .ui-tooltip-text {
+  .investigationTooltip.p-tooltip .p-tooltip-text {
     white-space: pre-line;
     width: 19.73684211em; // 375px
   }
 
-  .collectionTooltip.ui-tooltip .ui-tooltip-text {
+  .collectionTooltip.p-tooltip .p-tooltip-text {
     white-space: pre-line;
     width: 19.73684211em; // 375px
   }
 
-  .ui-tabview {
-    height: 100%; // !important
-    position: relative; // !important
+  .p-tabview {
+    height: 100%;
+    position: relative;
     padding: 0;
   }
 
-  .ui-tabview-panels {
+  .p-tabview-panels {
     height: 95%;
     position: relative;
   }
 
-  .ui-tabview-panel {
+  .p-tabview-panel {
     height: 100%;
     position: relative;
     /*padding: 0 !important;*/
   }
 
-  .ui-tabview-selected {
+  .p-tabview-selected {
     font-weight: bold;
   }
 
-  .ui-tabview.ui-tabview-top .ui-tabview-nav li a,
-  .ui-tabview.ui-tabview-bottom .ui-tabview-nav li a,
-  .ui-tabview.ui-tabview-left .ui-tabview-nav li a,
-  .ui-tabview.ui-tabview-right .ui-tabview-nav li a {
+  .p-tabview.p-tabview-top .p-tabview-nav li a,
+  .p-tabview.p-tabview-bottom .p-tabview-nav li a,
+  .p-tabview.p-tabview-left .p-tabview-nav li a,
+  .p-tabview.p-tabview-right .p-tabview-nav li a {
     // fix the size of tabs
     padding: 0.35em .8em;
   }
 
-  .ui-button.ui-button-text-only .ui-button-text {
+  .p-button.p-button-text-only .p-button-text {
     // pverrode padding of p-button
-    // padding: 0.429em 1em;
     padding: 0.4em .5em;
-    // font-size: .9em;
   }
 
-  .ui-button.ui-button-text-icon-left .ui-button-text {
+  .p-button.p-button-text-icon-left .p-button-text {
     // fix button with icon padding
-    // padding: 0.429em 1em 0.429em 2em;
     padding: 0.4em .5em 0.4em 2em;
-    // font-size: .9em;
     font-size: $fontsize;
   }
 
-  .ui-inputtext {
+  .p-inputtext {
     // fix padding and font of pInputText
     padding: 0.2145em;
-    // font-size: .0.736842105em;
     font-size: $fontsize; // override theme default of 14px;
   }
 
-  .ui-button.ui-button-icon-only .ui-button-text {
+  .p-button.p-button-icon-only .p-button-text {
     // fix padding of X icon in p-menu
     padding: 0.3em;
   }
 
-  .ui-inputgroup .ui-inputgroup-addon {
+  .p-inputgroup .p-inputgroup-addon {
     // fix left icon of inputgroup
     padding: 0.3em;
   }
 
-  .ui-menu .ui-menuitem-link,
-  .ui-menubar .ui-menuitem-link,
-  .ui-tieredmenu .ui-menuitem-link,
-  .ui-contextmenu .ui-menuitem-link,
-  .ui-megamenu .ui-menuitem-link,
-  .ui-slidemenu .ui-menuitem-link {
+  .p-menu .p-menuitem-link,
+  .p-menubar .p-menuitem-link,
+  .p-tieredmenu .p-menuitem-link,
+  .p-contextmenu .p-menuitem-link,
+  .p-megamenu .p-menuitem-link,
+  .p-slidemenu .p-menuitem-link {
     // fix dropdown menu item height
     padding: 0.25em 0.857em;
   }
@@ -330,6 +325,7 @@ body {
 
 
 
+
 ////////// POSITIONING ///////////
 
 .verfical-center {
@@ -358,7 +354,7 @@ body {
 /* MODAL STYLES (taken from modal.less)
 ------------------------------------------------------------------------------------------*/
 
-modal {
+app-modal {
   position: relative; // needed to fix fade-in/fade-out as opacity < 1 creates a new stacking context
   z-index: 998;
 }
@@ -397,7 +393,7 @@ modal {
 
 
 
-modal.secondLevel {
+app-modal.secondLevel {
   // override z-index of secondLevel modals
   z-index: 1098;
 
@@ -439,12 +435,10 @@ modal .modal .modal-confirm {
 
 .metavalue {
   color: white;
-  // font-size: 0.526315789em; // 10px
 }
 
 .multiValues {
   background-color: rgba(36, 109, 226, 0.65);
-  /*background-color: rgb(186, 48, 141);*/
 }
 
 .eyeball {
@@ -459,8 +453,8 @@ modal .modal .modal-confirm {
 
 
 // Classic Grid Overrides //
-classic-grid-view {
-  classic-session-popup {
+app-classic-grid-view {
+  app-classic-session-popup {
     font-size: .85em;
   }
 }
@@ -470,7 +464,7 @@ classic-grid-view {
 
 // Pop-up Session Widget Overrides
 
-classic-session-popup {
+app-classic-session-popup {
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -482,7 +476,7 @@ classic-session-popup {
     padding-left: 0.263157895em;
     color: white;
 
-    meta-widget {
+    app-meta-widget {
 
       h3 {
         margin-top: 0.526315789em; // 10px
@@ -494,13 +488,7 @@ classic-session-popup {
 
       .eyeball {
         color: white;
-        // right: 0.684210526em; // 13px
       }
-
-      /*
-      .bullseye {
-        // right: 2.368421053em; // 45px
-      }*/
 
       .metalabel {
         color: rgb(118,143,181);
@@ -557,157 +545,28 @@ classic-session-popup {
 .feedToolbar {
   // position the toolbar in collections && feeds
   position: absolute;
-  top: -3.35em;
-  right: 5em;
+  top: -3.7rem;
+  right: 5rem;
   width: auto;
 }
 
-body .ui-toolbar {
+body .p-toolbar {
   // fix the collections toolbar padding
   padding: 0.335em 1em;
 }
 
-modal .closeButton {
+.close-button {
   position: absolute;
-  top: .2em;
-  right: .4em;
+  top: .2rem;
+  right: .4rem;
   color: black;
 }
 
 
 
 
-
-
-
-
-
-
-
-// Masonry Tile Settings
-
-masonry-tile {
-
-  .brickOuterDiv {
-    background-color: white;
-    border-radius: .3em;
-    font-weight: lighter;
-    font-size: .8em;
-  }
-
-  .separator {
-      margin: 0;
-      padding: 0;
-      display: block;
-  }
-
-  .textArea {
-    border-top: .1em solid black;
-    padding: .25em;
-  }
-
-  .textArea ul {
-    margin-block-start: 0;
-    margin-block-end: 0;
-  }
-
-  .column1 {
-    white-space: nowrap;
-    width: 1px;
-    font-weight: bold;
-    vertical-align: top;
-  }
-
-  .value {
-    word-wrap: break-word;
-    word-break: break-all;
-    color: black;
-  }
-
-  img {
-    width: 100%;
-    height: auto;
-
-  }
-
-  .pdf {
-    box-sizing: border-box;
-    border: solid .25em red;
-    border-radius: 0.263157895em; // 5px
-  }
-
-  .word {
-    box-sizing: border-box;
-    border: solid .25em rgb(42,86,153);
-    border-radius: 0.263157895em; // 5px
-  }
-
-  .excel {
-    box-sizing: border-box;
-    border: solid .25em rgb(32,114,71);
-    border-radius: 0.263157895em; // 5px
-  }
-
-  .powerpoint {
-    box-sizing: border-box;
-    border: solid .25em rgb(211,71,38);
-    border-radius: 0.263157895em; // 5px
-  }
-
-  .masonryTileTime {
-    position: absolute;
-    top: 0.263157895em; // 5px
-    left: 0.263157895em; // 5px
-    background-color: rgba(0,0,0,0.75);
-    color: white;
-    border-radius: 0.263157895em; // 5px
-    padding: 0.105263158em; // 2px
-  }
-
-  .masonryTileSessionID {
-    position: absolute;
-    top: 0.263157895em; // 5px
-    right: 0.263157895em; // 5px
-    // background-color: rgba(0,0,0,0.75);
-    // color: white;
-    border-radius: 0.263157895em; // 5px
-    padding: 0.105263158em; // 2px
-  }
-
-  .masonryTileNetworkInfo {
-    position: absolute;
-    bottom: 0.263157895em; // 5px
-    left: 0.263157895em; // 5px
-    background-color: rgba(0,0,0,0.75);
-    color: white;
-    border-radius: 0.263157895em; // 5px
-    padding: 0.105263158em; // 2px
-  }
-
-  .masonryFileTypeIcon {
-    // position: absolute;
-    // bottom: 0.263157895em; // 5px
-    // right: 0.263157895em; // 5px
-    display: inline-block;
-   
-    > i {
-      background-color: rgba(0,0,0,0.75);
-      color: white;
-      border-radius: 0.263157895em; // 5px
-      padding: 0.105263158em; // 2px
-    }
-
-  }
-
-}
-
-
-
 // Control Bar Settings
-
-control-bar-classic,
-control-bar-masonry {
-
+app-control-bar-classic {
   > div {
     padding: .3em;
     border-radius: 0.526315789em;
@@ -723,157 +582,6 @@ control-bar-masonry {
   .deselect {
     color: grey;
   }
-
-  span {
-    margin-right: .2em;
-  }
-
-  /*
-  span.fa-desktop {
-    // slightly shrink the monitor icon
-    // font-size: 1.8em;
-    // padding: .2em;
-  }
-  */
-
-}
-
-
-
-control-bar-classic {
-
-  > div {
-    background-color: rgba(0,0,0,0.5);
-  }
-
-  .fa-search-plus {
-    margin-right: 0;
-  }
-}
-
-
-
-control-bar-masonry {
-  display: block;
-
-  > div {
-    position: relative;
-    background-color: rgba(0,0,0,0.8);
-  }
-
-  .fa-desktop,
-  .fa-comment,
-  .fa-comment-o {
-    margin-right: 0;
-  }
-}
-
-
-
-
-/////// Splash Component Settings ///////
-
-modal .splash-body {
-  // width: 21.05263158em; // 400px
-  background-color: rgba(0,0,0,.9);
-  color: white;
-
-  h1 {
-    margin-bottom: 0;
-    margin-top: 0;
-    font-family: 'Gill Sans', 'Lucida Grande','Lucida Sans Unicode', Arial, Helvetica, sans-serif;
-  }
-
-  img {
-    width: 23.68421053em;
-    height: auto;
-  }
-
-  .fa-times-circle-o {
-    // position: relative;
-    // top: 0.105263158em;
-    // right: 0.263157895em;
-    // z-index: 100;
-    color: white;
-  }
-
-  .noBottomMargin {
-    margin-bottom: 0;
-  }
-}
-
-
-
-
-
-/////// Server-down Component Settings ///////
-
-modal .serverdown-body {
-  background-color: black !important;
-  color: white;
-}
-
-
-
-
-///////// Toolbar Settings /////////
-
-toolbar-widget {
-
-  .label {
-    color: rgb(230,234,234);
-    font-weight: bolder;
-    // font-size: 13px; // fix this one
-  }
-
-  .value {
-    color: white;
-    margin-right: 0.526315789em; /*10px*/
-    // font-size: 12px; // fix this one
-  }
-
-  .fa-deselect {
-    color: grey !important;
-  }
-
-  .hide {
-    display: none;
-  }
-
-  .afb-toolbar {
-    background-color: rgba(0, 0, 0, .8);
-    padding: .5em;
-    color: white;
-  }
-
-  .toolbarSearchDropdown {
-    position: absolute;
-    right: 5em;
-    top: 2.33333333em;
-    // padding: 0.263157895em;
-    padding: 0.5em;
-    background-color: rgb(146, 151, 160);
-    // width: 16.57894737em; // 315px
-    width: 25em; // 315px
-    border-radius: 0.157894737em;
-    z-index: 100;
-    display: flex;
-
-    .fa {
-      color: white;
-      margin-left: .4em;
-    }
-
-    input {
-      width: 100%;
-      // width: auto;
-    }
-
-    .deselect {
-      color: black !important;
-    }
-  }
-
 }
 
 
@@ -891,27 +599,19 @@ toolbar-widget {
 
 ////////// Classic Tile //////////
 
-classic-tile.hidden {
+app-classic-tile.hidden {
   display: none;
 }
 
-classic-tile {
+app-classic-tile {
 
   // this is one area we are not converting to em's for now as it is scaled by panzoom, so we don't need to muck with it
 
-  // display: inline-block; // the inline context needs to be set on this element
   display: block;
 
   .hidden {
     display: none;
   }
-
-
-  // $width: 6.105263158em;
-  // $borderWidth: 0.157894737em;
-  // $lineHeight: 5.789473684em;
-  // $topMargin: 0.105263158em;
-  // $rightMargin: 0.526315789em;
 
   $width: 116px;
   $borderWidth: 3px;
@@ -981,7 +681,7 @@ classic-tile {
     font-size: 1em;
   }
 
-  .ui-tabview-panels {
+  .p-tabview-panels {
     overflow: auto;
     width: 100%;
   }
@@ -994,14 +694,7 @@ classic-tile {
 ///////// NetWitness Collection Modal /////////
 
 
-body .nwCollectionModalBody {
-
-  /*width: 26.31578947em; // 500px
-  max-height: 90%;
-  overflow: auto;
-  top: 5%;
-  */
-  // font-size: .85em;
+.nwCollectionModalBody {
   font-size: 1em;
 
   .full-width {
@@ -1010,8 +703,6 @@ body .nwCollectionModalBody {
 
   .column1 {
     white-space: nowrap;
-    /*width: 1px;*/
-    // width: 7.894736842em; // 150px
     width: 10em; // 150px
   }
 
@@ -1024,9 +715,8 @@ body .nwCollectionModalBody {
   }
 
   .ourFont,
-  .ui-button-text {
+  .p-button-text {
     font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
-    // font-size: 0.578947368em !important; // 11px
   }
 
   .usecase-description-text {
@@ -1041,16 +731,16 @@ body .nwCollectionModalBody {
     font-size: .8em;
   }
 
-  .ui-radiobutton-box.ui-state-active {
+  .p-radiobutton-box.p-state-active {
     background-color: rgb(59, 153, 252);
   }
 
-  .minDimensionsTooltip.ui-tooltip .ui-tooltip-text {
+  .minDimensionsTooltip.p-tooltip .p-tooltip-text {
     width: 18.42105263em; // 350px
   }
 
 
-  .hashing256Tooltip.ui-tooltip .ui-tooltip-text {
+  .hashing256Tooltip.p-tooltip .p-tooltip-text {
     width: 22.36842105em; // 425px
   }
 
@@ -1063,23 +753,21 @@ body .nwCollectionModalBody {
     color: gray !important;
   }
 
-  .investigationTooltip.ui-tooltip .ui-tooltip-text {
+  .investigationTooltip.p-tooltip .p-tooltip-text {
     white-space: pre-line;
     width: 19.73684211em; // 375px
   }
 
-  .ui-inputtext {
+  .p-inputtext {
     // fix padding and font of pInputText
     padding: 0.2145em;
-    // font-size: .0.736842105em;
-    // font-size: .75em; // override theme default of 14px;
   }
 
   @include primeStyle(.9em);
 
 }
 
-body .ui-widget.nwCollectionTooltip {
+body .p-widget.nwCollectionTooltip {
   // this must be outside of .nwCollectionModal
   // this should be the definitive style model for tooltips - font-size must be adjusted for each component
   $width: 17.54204562em;
@@ -1089,7 +777,7 @@ body .ui-widget.nwCollectionTooltip {
   max-width: $width;
 }
 
-body .ui-widget.nwCollectionRegexTooltip {
+body .p-widget.nwCollectionRegexTooltip {
   $width: 25em;
   font-size: .75em;
   white-space: pre-line;
@@ -1097,34 +785,30 @@ body .ui-widget.nwCollectionRegexTooltip {
   max-width: $width;
 }
 
-body .ui-widget.contentLimitDistillationTooltip {
+body .p-widget.contentLimitDistillationTooltip {
   font-size: .75em;
-  // width: 15.78947368em; // 300px
   $width: auto;
   width: $width;
   max-width: $width;
 }
 
-body .ui-widget.textDistillationTooltip {
+body .p-widget.textDistillationTooltip {
   font-size: .75em;
-  // width: 15.78947368em; // 300px
   $width: auto;
   width: $width;
   max-width: $width;
 }
 
-body .ui-widget.regexDistillationTooltip {
+body .p-widget.regexDistillationTooltip {
   font-size: .75em;
-  // width: 21.05263158em; // 400px
   $width: auto;
   width: $width;
   max-width: $width;
 }
 
-body .ui-widget.hashingTooltip {
+body .p-widget.hashingTooltip {
   font-size: .75em;
   $width: 19em; // 405px
-  // width: 21.05263158em; // 400px
   width: $width;
   max-width: $width;
 }
@@ -1140,30 +824,33 @@ body .ui-widget.hashingTooltip {
 
 
 
+$login-typography: mat.define-typography-config(
+  $headline: mat.define-typography-level(1.2em, 1.6em, 500),
+  $input: mat.define-typography-level(0.7em, 1, 400),
+  $button: mat.define-typography-level(0.7em, 1, 400)
+);
 
+$modal-typography: mat.define-typography-config(
+  $headline: mat.define-typography-level(1.2em, 1.6em, 500),
+  $input: mat.define-typography-level(.8em, 1, 400),
+  $button: mat.define-typography-level(.8em, 1, 400)
+);
 
 
 
 
 ///////////// Login Form /////////////
 
-$login-typography: mat-typography-config(
-  $headline: mat-typography-level(1.2em, 1.6em, 500),
-  $input: mat-typography-level(0.7em, 1, 400),
-  $button: mat-typography-level(0.7em, 1, 400)
-);
 
-login-form {
-  /*mat-card-actions, .mat-card-content, .mat-card-subtitle {
-    margin: 0 !important;
-  }*/
-  
+
+app-login-form {
+
   mat-card {
     padding-bottom: 0 !important;
     font-size: 1.4em;
     width: 25em;
 
-    @include angular-material-typography($login-typography);
+    @include mat.all-component-typographies($login-typography);
     
     .mat-card-content,
     .mat-card-title > *,
@@ -1176,25 +863,25 @@ login-form {
     .mat-raised-button > * {
       line-height: 2.5;
     }
+  }
+}
 
-    /*.mat-card-title
-    {
-      font-size: 1.2em;
-    }
 
-    .mat-form-field-label,
-    .mat-input-element {
-      font-size: 0.7em;
-      // line-height: 1;
-    }
 
-    .mat-form-field {
-      // line-height: 1;
-    }*/
-
+app-edit-nw-service-modal {
+  @include mat.all-component-typographies($modal-typography);
+      
+  .mat-card-content,
+  .mat-card-title > *,
+  .mat-form-field > *,
+  .mat-raised-button > * {
+    font-size: 1em;
   }
 
-
+  .mat-raised-button,
+  .mat-raised-button > * {
+    line-height: 2.5;
+  }
 }
 
 
@@ -1207,20 +894,24 @@ login-form {
 
 ////////////// Session Viewer //////////////
 
-modal .content-details-modal-body {
+.content-details-modal-body {
   padding: 0;
 
   @include primeStyle(.85em);
 
-  .ui-dropdown {
+  .p-dialog-content {
+    padding: 0;
+    background-color: rgba(128, 128, 128, .95);
+  }
+
+  .p-dropdown {
     min-width: 4.5em;
     vertical-align: sub;
   }
 
 }
 
-content-viewer {
-
+app-content-viewer {
   .myImg {
     max-height: 95%;
     max-width: 95%;
@@ -1245,61 +936,90 @@ content-viewer {
 
 
 
-/////// Content Count Viewer ///////
-content-count-widget {
-  width: auto;
-  height: auto;
-  > div {
-    position: relative;
-    padding: 0.263157895em;
-    border-radius: 0.263157895em;
-    background-color: rgba(0,0,0,.8);
-    color: white;
-    font-size: .8em; // 9pt???
-  }
 
-  .count {
-    margin-top: 0.789473684em; /*15px*/
-    text-align: right;
-  }
+
+
+
+.p-radiobutton-icon {
+  display: none;
 }
 
-
-
-$modal-typography: mat-typography-config(
-  $headline: mat-typography-level(1.2em, 1.6em, 500),
-  $input: mat-typography-level(.8em, 1, 400),
-  $button: mat-typography-level(.8em, 1, 400)
-);
-
-//////// NW Service Add Modal ////////
-modal .new-edit-nw-server-modal-body {
-
-  @include angular-material-typography($modal-typography);
-    
-  .mat-card-content,
-  .mat-card-title > *,
-  .mat-form-field > *,
-  .mat-raised-button > * {
-    font-size: 1em;
-  }
-
-  .mat-raised-button,
-  .mat-raised-button > * {
-    line-height: 2.5;
-  }
-
+.make-link {
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: bolder;
 }
 
-
-/////// Manage Users ///////
-
-/*
-.user-table-container::-webkit-scrollbar-track {
-  background-color: blue;
+.clickable {
+  cursor: pointer;
 }
 
-.user-table-container::-webkit-scrollbar-thumb{
-  background-color: white;
+.not-allowed {
+  cursor: not-allowed;
 }
-*/
+
+.bold {
+  font-weight: bold;
+}
+
+.bolder {
+  font-weight: bolder;
+}
+
+.font-lg {
+  font-size: 1.25em;
+}
+
+.font-xl {
+  font-size: 1.5em;
+}
+
+.draggable {
+  cursor: move; /* fallback if grab cursor is unsupported */
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+/* (Optional) Apply a "closed-hand" cursor during drag operation. */
+.draggable:active {
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+}
+
+.no-margin-top {
+  margin-top: 0;
+}
+
+.no-margin-bottom {
+  margin-bottom: 0;
+}
+
+.white {
+  color: white;
+}
+
+.margin-0 {
+  margin: 0;
+}
+
+.padding-0 {
+  padding: 0;
+}
+
+.content-box {
+  box-sizing: content-box;
+}
+
+.border-box {
+  box-sizing: border-box;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.disabled {
+  opacity: 0.5;
+}

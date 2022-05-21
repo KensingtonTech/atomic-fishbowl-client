@@ -1,11 +1,19 @@
+<!-- toolbar -->
+<app-toolbar-widget
+  [contentCount]="contentCount"
+  (displaySplashScreenModal)="displaySplashScreenModal = true"
+  (displayPreferencesModal)="displayPreferencesModal = true">
+</app-toolbar-widget>
+
+
+
 <div
   #classicGridElement
   class="classic-grid-element"
-  (window:resize)="onWindowResize()"
-  style="height: 100%; width: 100%; overflow: hidden;">
+  (window:resize)="onWindowResize()">
 
     <pan-zoom
-      *ngIf="content && displayedContent && !destroyView && highResSessions"
+      *ngIf="content && displayedContent && !destroyView && highResSessions && collectionId"
       [config]="panzoomConfig">
 
         <div
@@ -13,7 +21,7 @@
           #gridItems style="position: relative;"
           [style.width.px]="canvasWidth">
 
-            <classic-tile
+            <app-classic-tile
               @zoomInOutParent
               *ngFor="let item of content; index as i;"
               [collectionId]="collectionId"
@@ -25,108 +33,204 @@
               [hide]="!displayedContent[i]"
               (mousedown)="onMouseDown($event)"
               (mouseup)="onMouseUp($event)">
-            </classic-tile>
+            </app-classic-tile>
 
         </div>
 
     </pan-zoom>
+
+    <!-- control bar -->
+    <app-control-bar-classic
+      *ngIf="panzoomConfig"
+      [panzoomConfig]="panzoomConfig"
+      [initialZoomWidth]="initialZoomWidth"
+      [initialZoomHeight]="initialZoomHeight"
+      [isMonitoringCollection]="selectedCollectionType === 'monitoring'"
+      [pauseMonitoring]="pauseMonitoring">
+    </app-control-bar-classic>
 
 </div>
 
 
 
 <div
-  class="classic-left-bar"
-  fxLayout="column"
-  fxLayoutAlign="start start">
-
-    <!-- control bar -->
-    <control-bar-classic
-      *ngIf="panzoomConfig"
-      fxFlexOffset="2em"
-      [panzoomConfig]="panzoomConfig"
-      [initialZoomWidth]="initialZoomWidth"
-      [initialZoomHeight]="initialZoomHeight">
-    </control-bar-classic>
-
-    <!-- pause / resume buttons for monitoring collections -->
-    <div
-      *ngIf="selectedCollectionType == 'monitoring'"
-      class="monitoringBox"
-      fxFlexOffset=".5em"
-      style="color: white;">
-
-      <i
-        *ngIf="!pauseMonitoring"
-        class="fa fa-pause-circle-o fa-4x"
-        (click)="suspendMonitoring()">
-      </i>
-
-      <i
-        *ngIf="pauseMonitoring"
-        class="fa fa-play-circle-o fa-4x"
-        (click)="resumeMonitoring()">
-      </i>
-
-    </div>
+  class="classic-left-bar flex flex-column justify-content-start align-items-center">
 
     <!-- content count -->
-    <content-count-widget
+    <app-content-count-widget
       *ngIf="selectedCollectionType"
       [contentCount]="contentCount">
-    </content-count-widget>
+    </app-content-count-widget>
 
 </div>
 
 
 
-<!-- toolbar -->
-<toolbar-widget
-  [contentCount]="contentCount">
-</toolbar-widget>
-
-
-
 <!-- session popup -->
-<classic-session-popup
+<app-classic-session-popup
   *ngIf="selectedCollectionServiceType"
   [enabled]="sessionWidgetEnabled"
   #sessionWidget>
 
-    <meta-widget
+    <app-meta-widget
+      *ngIf="popUpSession"
       [session]="popUpSession"
       [serviceType]="selectedCollectionServiceType"
       styleClass="popupSessionWidget">
-    </meta-widget>
+    </app-meta-widget>
 
-</classic-session-popup>
+</app-classic-session-popup>
 
 
 
-<!-- Modals -->
-<tab-container-modal></tab-container-modal>
+<!-- Collections / Feeds Modal-->
+<p-dialog
+  [visible]="displayTabContainerModal"
+  (visibleChange)="onDisplayTabContainerModalChanged($event)"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="tab-container-modal"
+  styleClass="tab-container-modal-body">
 
-<splash-screen-modal></splash-screen-modal>
+  <app-tab-container-modal></app-tab-container-modal>
 
-<preferences-modal></preferences-modal>
+</p-dialog>
 
-<manage-users-modal></manage-users-modal>
 
-<collection-deleted-notify-modal [user]="collectionDeletedUser"></collection-deleted-notify-modal>
 
-<content-details-modal
-  *ngIf="selectedCollectionServiceType"
-  [session]="selectedSession"
-  [content]="selectedContent"
-  [serviceType]="selectedCollectionServiceType"
-  [collectionId]="collectionId"
-  [sessionsAvailable]="sessionsAvailable">
-</content-details-modal>
+<!-- Splash Screeen -->
+<p-dialog
+  [(visible)]="displaySplashScreenModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  [contentStyle]="{padding: '0'}">
+  
+    <app-splash-screen-modal
+      [(displaySplashScreenModal)]="displaySplashScreenModal"
+      [firstLoad]="firstLoad">
+    </app-splash-screen-modal>
 
-<ng-container *ngIf="preferences && preferences.serviceTypes">
+</p-dialog>
 
-  <nw-collection-modal *ngIf="preferences.serviceTypes.nw"></nw-collection-modal>
 
-  <sa-collection-modal *ngIf="preferences.serviceTypes.sa"></sa-collection-modal>
 
-</ng-container>
+<!-- Feed Wizard -->
+<p-dialog
+  [(visible)]="displayFeedWizardModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="feed-wizard-modal"
+  styleClass="feed-wizard-modal-body">
+
+  <app-feed-wizard-modal></app-feed-wizard-modal>
+
+</p-dialog>
+
+
+
+<!-- Preferences -->
+<p-dialog
+  [(visible)]="displayPreferencesModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="preferences-modal"
+  styleClass="preferences-modal-body">
+
+  <app-preferences-modal
+    [(displayPreferencesModal)]="displayPreferencesModal">
+  </app-preferences-modal>
+
+</p-dialog>
+
+
+
+<!-- Manage Users Modal-->
+<p-dialog
+  [(visible)]="displayManageUsersModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="manage-users-modal"
+  styleClass="manage-users-modal-body">
+    
+    <app-manage-users-modal></app-manage-users-modal>
+
+</p-dialog>
+
+
+<!-- Content Details -->
+<p-dialog
+  [(visible)]="displayContentDetailsModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="content-details-modal"
+  styleClass="content-details-modal-body">
+
+    <app-content-details-modal
+      *ngIf="selectedCollectionServiceType && collectionId"
+      [session]="selectedSession"
+      [content]="selectedContent"
+      [serviceType]="selectedCollectionServiceType"
+      [collectionId]="collectionId"
+      [sessionsAvailable]="sessionsAvailable">
+    </app-content-details-modal>
+
+</p-dialog>
+
+
+
+<!-- NW / SA Collection Modals -->
+<p-dialog
+  [visible]="displayNwCollectionModal"
+  (visibleChange)="onDisplayNwCollectionModalChanged($event)"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false">
+
+  <!--maskStyleClass="nwCollectionModal"
+  styleClass="nwCollectionModalBody"-->
+
+  <app-nw-collection-modal
+    *ngIf="preferences?.serviceTypes?.nw">
+  </app-nw-collection-modal>
+
+  <!--<app-sa-collection-modal *ngIf="preferences.serviceTypes.sa"></app-sa-collection-modal>-->
+
+</p-dialog>
+
+
+
+<p-confirmDialog></p-confirmDialog>

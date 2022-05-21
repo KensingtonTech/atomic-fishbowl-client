@@ -1,0 +1,160 @@
+<div class="flex flex-column manage-users">
+
+  <!-- Header -->
+  <div
+    class="flex header flex-initial align-content-center">
+  
+    <h2
+      class="no-margin-top"
+      style="margin-right: auto;">
+        Manage Users
+    </h2>
+  
+    <div
+      *ngIf="errorDefined"
+      style="color: red; margin-right: 2em; line-height: 2;">
+        {{errorMessage}}
+    </div>
+  
+    <div style="margin-right: 1em;">
+  
+      <span
+        class="bolder clickable font-lg"
+        (click)="onAddUserClicked()">
+          Add a User
+      </span>
+  
+    </div>
+  
+    <i
+      (click)="close()"
+      class="fa fa-times-circle-o fa-2x clickable">
+    </i>
+  
+  </div>
+
+  <!-- User Table -->
+  <p-table [value]="users">
+
+    <ng-template pTemplate="header">
+
+      <tr>
+
+        <th>
+
+          <div class="flex justify-content-center">
+            Enabled
+          </div>
+          
+        </th>
+        
+        <th>User</th>
+        
+        <th>Full Name</th>
+        
+        <th>Email</th>
+
+        <th>
+
+          <div class="flex justify-content-center">
+            Actions
+          </div>
+
+        </th>
+
+      </tr>
+
+    </ng-template>
+
+    <ng-template pTemplate="body" let-user>
+
+      <tr>
+
+        <!-- User Enabled -->
+        <td>
+
+          <div class="flex justify-content-center">
+
+            <i
+              class="fa"  
+              [class.fa-ban]="!user.enabled"
+              [class.fa-check]="user.enabled">
+            </i>
+
+          </div>
+
+        </td>
+
+        <!-- Username -->
+        <td>
+
+          <span
+            class="make-link"
+            (click)="onEditUserClicked(user)">
+              {{user.username}}
+          </span>
+
+        </td>
+        
+        <!-- Full Name  -->
+        <td>
+          {{user.fullname}}
+        </td>
+
+        <!-- Email -->
+        <td>
+          {{user.email}}
+        </td>
+
+        <!-- Actions -->
+        <td>
+
+          <div class="flex justify-content-around">
+
+            <i
+              class="fa fa-pencil clickable"
+              (click)="onEditUserClicked(user)">
+            </i>
+
+            <i
+              class="fa fa-trash clickable"
+              (click)="onDeleteUserClicked($event , user)">
+            </i>
+
+          </div>
+
+        </td>
+
+      </tr>
+
+    </ng-template>
+
+  </p-table>
+
+
+
+<p-dialog
+  [(visible)]="displayAddUserModal"
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  [closable]="true"
+  [showHeader]="false"
+  maskStyleClass="new-edit-user-modal"
+  styleClass="new-edit-user-modal-body">
+
+  <app-edit-user-modal
+    [mode]="mode"
+    [users]="users"
+    [selectedUser]="selectedUser"
+    [(displayAddUserModal)]="displayAddUserModal">
+  </app-edit-user-modal>
+
+</p-dialog>
+
+
+
+
+<p-confirmPopup [key]="confirmationKey"></p-confirmPopup>

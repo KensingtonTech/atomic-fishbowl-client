@@ -1,0 +1,34 @@
+.manage-users {
+  height: 100%;
+}
+
+.cell {
+  padding-left: .3em;
+}
+
+.evenRow {
+  background-color: #FFF;
+}
+
+.oddRow {
+  background-color: #CCC;
+}
+
+.header {
+  width: 100%;
+  font-weight: bold;
+  background-color: white;
+}
+
+.center {
+  width: 100%;
+  text-align: center;
+}
+
+.fa-check {
+  color: green;
+}
+
+.fa-ban {
+  color: red;
+}

@@ -1,0 +1,150 @@
+<div
+  *ngIf="sessionId && meta"
+  [ngClass]="styleClass"
+  style="display: flex; flex-direction: column; position: relative; width: 100%; height: 100%;">
+
+    <div class="flex justify-content-between align-items-center">
+
+      <!-- session id -->
+      <h3 class="selectable no-margin-top no-margin-bottom">
+        {{serviceType === 'nw' ? 'Session' : 'Flow'}} {{sessionId}} Details
+      </h3>
+
+
+
+      <div class="flex align-items-center gap-1 noselect">
+
+        <!-- expand all / collapse all -->
+        <span
+          (click)="onExpandCollapseClicked()"
+          class="expand-all-button clickable">
+            {{!expandAll ? 'Expand' : 'Collapse'}}
+        </span>
+
+        <!-- netwitness bullseye -->
+        <a
+          *ngIf="serviceType === 'nw' && preferences.nw.url && deviceNumber && sessionId"
+          target="_blank"
+          [href]="preferences.nw.url + '/investigation/' + deviceNumber + '/reconstruction/' + sessionId + '/AUTO'">
+
+            <i
+              class="fa fa-bullseye fa-2x fa-fw clickable"
+              style="color: red;">
+            </i>
+
+        </a>
+
+        <!-- sa bullseye -->
+        <a
+          *ngIf="serviceType === 'sa' && preferences.sa.url && sessionId && meta"
+          target="_blank"
+          [href]="saUrlGetter(sessionId)">
+          
+            <i
+              class="fa fa-bullseye fa-2x fa-fw clickable"
+              style="color: red;"></i>
+
+        </a>
+
+        <!-- show / hide all eyeball toggle -->
+        <span
+          class="eyeball fa fa-2x fa-fw clickable"
+          (click)="showAllClick()"
+          [class.fa-eye-slash]="!showAll"
+          [class.fa-eye]="showAll">
+        </span>
+
+        <!-- close -->
+        <span
+          *ngIf="enableCloseButton"
+          class="fa fa-times-circle-o fa-2x fa-fw clickable"
+          (click)="closeButtonClicked.emit()"
+          style="color: white;">
+        </span>
+
+      </div>
+
+    </div>
+
+
+
+
+    <div
+      class="overflowBox"
+      style="flex-grow: 1;">
+
+        <!--scrollbar-width: none;-->
+        <div style="position: relative; width: 100%; height: 100%;">
+
+          <table
+            class="wrap"
+            style="width: 100%; table-layout: fixed;">
+
+              <!-- show time -->
+              <tr>
+
+                <td
+                  class="metalabel"
+                  style="width: 35%;">
+                    time
+                </td>
+                
+                <td
+                  *ngIf="serviceType === 'nw'"
+                  class="metavalue"
+                  style="width: 65%;">
+                    {{meta.time | formatTime:'ddd YYYY/MM/DD HH:mm:ss'}}
+                </td>
+                
+                <td
+                  *ngIf="serviceType === 'sa' && meta.stop_time"
+                  class="metavalue"
+                  style="width: 65%;">
+                    {{meta.stop_time | formatSaTime:'ddd YYYY/MM/DD HH:mm:ss'}}
+                </td>
+
+              </tr>
+
+              <!-- show all other meta -->
+              <!-- displayedKeys is all keys, both real or if only a preferred meta key.  It will be hidden via its display property -->
+              <tr
+                *ngFor="let key of displayedKeys"
+                [style.display]="isKeyHidden(key) ? 'none' : 'table-row'">
+
+                  <!-- only display a column if showAll is true or if its key is in the preferred meta keys -->
+                  <td
+                    *ngIf="!showAll || (showAll && checkForKeyInMeta(key))"
+                    class="metalabel">
+                      {{key}}
+                    </td>
+                  
+                  <td>
+
+                    <!-- only show the accordion if we have meta for its key -->
+                    <app-meta-accordion
+                      *ngIf="checkForKeyInMeta(key)"
+                      class="metavalue"
+                      [items]="meta[key]"
+                      [key]="key"
+                      [enabled]="enabledMeta[key]"
+                      [expandAll]="expandAll">
+                    </app-meta-accordion>
+
+                    <!-- if we're showing preferred meta and we don't have meta for a key, show the red no meta icon -->
+                    <i
+                      *ngIf="!showAll && !checkForKeyInMeta(key)"
+                      class="fa fa-ban"
+                      style="color: red;">
+                    </i>
+                    
+                  </td>
+
+              </tr>
+
+          </table>
+
+        </div>
+
+    </div>
+
+</div>

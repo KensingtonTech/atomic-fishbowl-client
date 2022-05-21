@@ -1,0 +1,725 @@
+<div class="flex flex-column preferences gap-2">
+  
+  <h2 class="no-margin-top no-margin-bottom flex-initial">
+    Preferences
+  </h2>
+
+
+
+  <p-tabView
+    *ngIf="preferences"
+    class="flex-grow-1"
+    [(activeIndex)]="selectedTabIndex">
+  
+      <p-tabPanel
+        header="User"
+        headerStyleClass="noselect nooutline">
+  
+          <table style="width: 100%;">
+  
+            <tr>
+              <td>
+                <b>Masonry Column Width</b>
+              </td>
+  
+              <td>
+                <input
+                  pInputText
+                  type="number"
+                  name="masonryColumnWidth"
+                  [(ngModel)]="masonryColumnWidth"
+                  min="100"
+                  max="9999"
+                  required> 
+                pixels
+              </td>
+            </tr>
+  
+            <tr>
+              <td>
+                <b>Masonry Autoscroll Speed</b>
+              </td>
+  
+              <td>
+                <input
+                  pInputText
+                  type="number"
+                  name="autoScrollSpeed"
+                  [(ngModel)]="autoScrollSpeed"
+                  min="100"
+                  max="999"
+                  required> 
+                pixels per second
+              </td>
+            </tr>
+  
+          </table>
+  
+      </p-tabPanel>
+  
+      <p-tabPanel
+        header="Global"
+        headerStyleClass="noselect nooutline">
+  
+          <table style="width: 100%">
+  
+            <tr>
+              <td>
+                <b>Default Content Limit</b>
+              </td>
+  
+              <td>
+                <input
+                  pInputText
+                  type="number"
+                  name="defaultContentLimit"
+                  [(ngModel)]="preferences.defaultContentLimit"
+                  min="1"
+                  max="99999"
+                  required>
+              </td>
+            </tr>
+  
+            <tr>
+              <td>
+                <b>Default Min. Dimensions</b>
+              </td>
+  
+              <td>
+                <input
+                  pInputText
+                  type="number"
+                  name="minX"
+                  [(ngModel)]="preferences.minX"
+                  min="0"
+                  max="9999"
+                  required> 
+                px width x &nbsp;
+  
+                <input
+                  pInputText
+                  type="number"
+                  name="minY"
+                  [(ngModel)]="preferences.minY"
+                  min="0"
+                  max="9999"
+                  required> 
+                px height
+              </td>
+  
+            </tr>
+  
+            <tr>
+              <td>
+                <b>Default Rolling Hours</b>
+              </td>
+  
+              <td>
+                <input
+                  pInputText
+                  type="number"
+                  name="defaultRollingHours"
+                  [(ngModel)]="preferences.defaultRollingHours"
+                  min="1"
+                  max="999"
+                  required>
+              </td>
+            </tr>
+  
+            <tr>
+  
+              <td>
+  
+                <b>Login Token Expiration</b>
+  
+              </td>
+  
+              <td>
+  
+                <input
+                  pInputText
+                  type="number"
+                  min="1"
+                  max="8760"
+                  name="tokenExpirationHours"
+                  [(ngModel)]="preferences.tokenExpirationHours"
+                  required
+                  pTooltip="This setting will only impact new logins.  Existing logged-in sessions will not be logged out until their token expires.  Be careful with this.  If you set it too high, newly logged-in clients will not have to login again until their token expires."> 
+                  
+                hours
+  
+              </td>
+  
+            </tr>
+  
+          </table>
+  
+      </p-tabPanel>
+  
+      <p-tabPanel
+        *ngIf="preferences.serviceTypes.nw"
+        header="NetWitness"
+        headerStyleClass="noselect nooutline">
+  
+          <!--NetWitness Preferences-->
+          <p *ngIf="!preferences.serviceTypes.nw">
+            NetWitness functionality is disabled.
+          </p>
+  
+          <div *ngIf="preferences.serviceTypes.nw">
+  
+              <table style="width: 100%">
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>NetWitness UI URL</b>
+  
+                  </td>
+  
+                  <td style="width: 99%;">
+  
+                    <input
+                      pInputText
+                      type="text"
+                      name="url"
+                      [(ngModel)]="preferences.nw.url"
+                      style="width: 100%;"
+                      required>
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Default Query Selection</b>
+  
+                  </td>
+  
+                  <td>
+  
+                    <p-dropdown
+                      name="nwDefaultQuerySelection"
+                      [options]="defaultNwQueriesOptions"
+                      [(ngModel)]="preferences.nw.defaultQuerySelection"
+                      [required]="true"
+                      [style]="{'width':'100%'}">
+                    </p-dropdown>
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Preset Query String</b>
+  
+                  </td>
+  
+                  <td>
+  
+                    <input
+                      pInputText
+                      type="text"
+                      name="nwPresetQuery"
+                      [(ngModel)]="preferences.nw.presetQuery"
+                      style="width: 100%;"
+                      required>
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Session Limit</b>
+  
+                  </td>
+  
+                  <td>
+  
+                    <input
+                      pInputText
+                      type="number"
+                      min="1"
+                      max="5000"
+                      name="nwSessionLimit"
+                      [(ngModel)]="preferences.nw.sessionLimit"
+                      required
+                      pTooltip="The maximum number of sessions to extract content from."> 
+                      
+                    sessions
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Query Timeout</b>
+  
+                  </td>
+  
+                  <td>
+  
+                    <input
+                      pInputText
+                      type="number"
+                      name="nwQueryTimeout"
+                      [(ngModel)]="preferences.nw.queryTimeout"
+                      min="1"
+                      max="30"
+                      required> 
+  
+                    seconds
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Content Timeout</b>
+  
+                  </td>
+  
+                  <td>
+  
+                    <input
+                      type="number"
+                      name="nwContentTimeout"
+                      [(ngModel)]="preferences.nw.contentTimeout"
+                      min="1"
+                      max="30"
+                      required> 
+                        
+                    seconds
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+                  
+                  <td>
+  
+                    <b>Rolling Query Delay</b>
+  
+                  </td>
+  
+                  <td>
+  
+                    <input
+                      pInputText
+                      type="number"
+                      min="1"
+                      name="nwQueryDelayMinutes"
+                      [(ngModel)]="preferences.nw.queryDelayMinutes"
+                      min="1"
+                      max="60"
+                      required> 
+  
+                    minutes
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Max Content Errors</b>
+  
+                  </td>
+  
+                  <td>
+  
+                    <input
+                      pInputText
+                      type="number"
+                      name="nwMaxContentErrors"
+                      [(ngModel)]="preferences.nw.maxContentErrors"
+                      min="0"
+                      max="1000"
+                      required>
+  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td colspan="2">
+                    
+                    <div style="border-bottom: .05em solid black; margin-top: 1em; margin-bottom: 1em;"></div>
+                  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Summary Meta Keys</b><br><br>
+  
+                    <div class="wrap commentText">
+                      These are the meta keys which are displayed when viewing only summarised meta in the session view.<br><br>
+                      One key per-line.
+                    </div>
+  
+                  </td>
+  
+                  <td>
+  
+                    <textarea
+                      name="nwDisplayedKeys"
+                      wrap="off"
+                      [(ngModel)]="displayedNwKeysString"
+                      style="width: 100%; height: 10.52631579em; resize: vertical;">
+                    </textarea>
+                    
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td colspan="2">
+                    
+                    <div style="border-bottom: .05em solid black; margin-top: 1em; margin-bottom: 1em;"></div>
+                  
+                  </td>
+  
+                </tr>
+  
+                <tr>
+  
+                  <td>
+  
+                    <b>Masonry Meta Keys</b><br><br>
+  
+                    <div class="wrap commentText">
+                      These define extra meta keys to display on masonry tiles. May be in <b>key,friendlyName</b> CSV format, or a key name only.<br><br>
+                      Only keys with values will be displayed.<br><br>
+                      One item per-line.
+                    </div>
+  
+                  </td>
+  
+                  <td>
+  
+                    <textarea
+                      name="nwMasonryKeys"
+                      wrap="off"
+                      [(ngModel)]="masonryNwKeysString"
+                      style="width: 100%; height: 10.52631579em; resize: vertical;">
+                    </textarea>
+  
+                  </td>
+  
+                </tr>
+  
+              </table>
+  
+            </div>
+  
+      </p-tabPanel>
+  
+      <!-- Solera Preferences -->
+      <p-tabPanel
+        *ngIf="preferences.serviceTypes.sa"
+        header="Symantec SA"
+        headerStyleClass="noselect nooutline">
+        
+          <p *ngIf="!preferences.serviceTypes.sa">
+            Security Analytics functionality is disabled.
+          </p>
+          
+          <div *ngIf="preferences.serviceTypes.sa">
+  
+            <table style="width: 100%">
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Security Analytics URL</b>
+  
+                </td>
+  
+                <td style="width: 99%;">
+  
+                  <input
+                    type="text"
+                    name="saUrl"
+                    [(ngModel)]="preferences.sa.url"
+                    style="width: 100%;"
+                    required>
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Default Query Selection</b>
+  
+                </td>
+  
+                <td>
+  
+                  <p-dropdown
+                    name="saDefaultQuerySelection"
+                    [options]="defaultSaQueriesOptions"
+                    [(ngModel)]="preferences.sa.defaultQuerySelection"
+                    [required]="true"
+                    [style]="{'width':'100%'}">
+                  </p-dropdown>
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Preset Query String</b>
+  
+                </td>
+  
+                <td>
+  
+                  <input
+                    type="text"
+                    name="saPresetQuery"
+                    [(ngModel)]="preferences.sa.presetQuery"
+                    style="width: 100%;"
+                    required>
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Flow Limit</b>
+  
+                </td>
+  
+                <td>
+  
+                  <input
+                    type="number"
+                    min="1"
+                    max="5000"
+                    name="saSessionLimit"
+                    [(ngModel)]="preferences.sa.sessionLimit"
+                    required
+                    pTooltip="The maximum number of flows to extract content from."> 
+                    
+                  flows
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Query Timeout</b>
+  
+                </td>
+  
+                <td>
+  
+                  <input
+                    type="number"
+                    name="saQueryTimeout"
+                    [(ngModel)]="preferences.sa.queryTimeout"
+                    required> 
+                    
+                  seconds
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Content Timeout</b>
+  
+                </td>
+  
+                <td>
+  
+                  <input
+                    type="number"
+                    name="saContentTimeout"
+                    [(ngModel)]="preferences.sa.contentTimeout"
+                    required> 
+                    
+                  seconds
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Rolling Query Delay</b>
+  
+                </td>
+  
+                <td>
+  
+                  <input
+                    type="number"
+                    min="1"
+                    name="saQueryDelayMinutes"
+                    [(ngModel)]="preferences.sa.queryDelayMinutes"
+                    required> 
+                    
+                  minutes
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Max Content Errors</b>
+  
+                </td>
+  
+                <td>
+  
+                  <input
+                    type="number"
+                    name="saMaxContentErrors"
+                    [(ngModel)]="preferences.sa.maxContentErrors"
+                    required>
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Summary Meta Keys</b><br><br>
+                  
+                  <div class="wrap commentText">
+                    These are the meta keys which are displayed when viewing only summarised meta in the session view.<br><br>
+                    One key per-line.
+                  </div>
+  
+                </td>
+  
+                <td>
+  
+                  <textarea
+                    name="saDisplayedKeys"
+                    wrap="off"
+                    [(ngModel)]="displayedSaKeysString"
+                    style="width: 100%; height: 10.52631579em; resize: vertical;">
+                  </textarea>
+  
+                </td>
+  
+              </tr>
+  
+              <tr>
+  
+                <td>
+  
+                  <b>Masonry Meta Keys</b><br><br>
+  
+                  <div class="wrap commentText">
+                    These define extra meta keys to display on masonry tiles. May be in <b>key,friendlyName</b> CSV format, or a key name only.<br><br>
+                    Only keys with values will be displayed.<br><br>
+                    One item per-line.
+                  </div>
+  
+                </td>
+  
+                <td>
+  
+                  <textarea
+                    name="saMasonryKeys"
+                    wrap="off"
+                    [(ngModel)]="masonrySaKeysString"
+                    style="width: 100%; height: 10.52631579em; resize: vertical;">
+                  </textarea>
+  
+                </td>
+  
+              </tr>
+  
+            </table>
+  
+          </div>
+  
+      </p-tabPanel>
+  
+  </p-tabView>
+  
+  
+  
+  <div
+    class="footer-row"
+    style="margin-top: 0.263157895em;">
+  
+      <div style="float: right;">
+  
+        <p-button
+          [disabled]="!preferences.serviceTypes.nw && !preferences.serviceTypes.sa"
+          type="button"
+          label="OK"
+          (onClick)="onSubmitPreferences()">
+        </p-button>
+        
+        &nbsp;
+        
+        <p-button
+          type="button"
+          (onClick)="close()"
+          label="Cancel">
+        </p-button>
+  
+      </div>
+  
+  </div>
+
+</div>
+
+<div
+  (click)="displayPreferencesModalChange.next(false)"
+  class="fa fa-times-circle-o fa-2x close-button clickable">
+</div>

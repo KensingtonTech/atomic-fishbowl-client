@@ -4,7 +4,7 @@
 
 <ng-container *ngIf="!isMobile">
 
-  <eula *ngIf="!eulaAccepted"></eula>
+  <app-eula *ngIf="!eulaAccepted"></app-eula>
 
   <ng-container *ngIf="eulaAccepted">
 
@@ -12,7 +12,7 @@
       *ngIf="serverReachable"
       style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden;">
 
-        <login-form *ngIf="credentialsChecked && !loggedIn"></login-form>
+        <app-login-form *ngIf="credentialsChecked && !loggedIn"></app-login-form>
 
         <ng-container *ngIf="loggedIn && socketUpgraded">
 
@@ -27,10 +27,26 @@
 
     </div>
 
-    <serverdown-modal></serverdown-modal>
+    <p-confirmDialog [key]="confirmationKey"></p-confirmDialog>
 
-    <logged-out-notify-modal></logged-out-notify-modal>
-    
   </ng-container>
 
 </ng-container>
+
+
+<!-- Server Down Modal-->
+<p-dialog
+  [visible]="displayServerDownDialog
+  "
+  [draggable]="false"
+  [modal]="true"
+  [blockScroll]="true"
+  [closeOnEscape]="false"
+  [dismissableMask]="false"
+  [closable]="false"
+  [showHeader]="false"
+  [contentStyle]="{padding: '0'}">
+
+  <app-serverdown-modal></app-serverdown-modal>
+
+</p-dialog>

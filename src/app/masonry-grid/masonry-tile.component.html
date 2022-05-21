@@ -1,214 +1,144 @@
-<div class="brickOuterDiv" *ngIf="session" [style.width.px]="masonryColumnWidth" [style.margin.px]="margin">
+<div
+  class="brickOuterDiv"
+  *ngIf="session"
+  [style.width.px]="masonryColumnWidth">
 
-  <div style="position: relative; min-height: 2.631578947em;">
+  <div
+    class="image-area border"
+    [ngClass]="extraClass">
 
-    <ng-container *ngIf="displayTextArea">
+      <!-- the image itself -->
+      <img
+        #image
+        class="separator"
+        (load)="onImageLoaded()"
+        (error)="onImageError()"
+        [src]="imageSource"
+        draggable="false">
 
-      <!--NetWitness Tile Overlay-->
-      <ng-container *ngIf="serviceType === 'nw'; else saOverlay">
+      
+      <div
+        *ngIf="displayTextArea"
+        class="image-overlay flex flex-column justify-content-between">
 
-        <!-- time -->
-        <div class="selectable masonryTileTime">
-          {{session.meta['time'] | formatTime}}
-        </div>
+        <!-- Header -->
+        <div class="header flex justify-content-between align-items-top">
 
-        <!-- file icons and session id -->
-        <div class="selectable masonryTileSessionID">
+          <!-- time -->
+          <span>
 
-          <span style="vertical-align: top; color: white; background-color: rgba(0,0,0,0.75);">
-            {{session.id}}
+            <span class="overlay-item selectable">
+              {{
+                serviceType === 'nw'
+                  ? (session.meta.time | formatTime)
+                  : (session.meta.stop_time | formatSaTime)
+              }}
+            </span>
+
+          </span>
+  
+          <!-- file icons and session id -->
+          <span>
+
+            <span class="selectable overlay-item">
+              {{session.id}}
+            </span>
+
           </span>
 
-          <ng-container *ngTemplateOutlet="fileIcons"></ng-container>
+          <!-- file type icon overlay -->
+          <span
+            *ngIf="content.fromArchive || content.isArchive || fileIconClass"
+            class="selectable">
+  
+            &nbsp;
+  
+            <!-- file archive icon - must be separate from regular icon -->
+            <i
+              *ngIf="content.fromArchive || content.isArchive"
+              class="fa fa-file-archive-o fa-2x overlay-item">
+            </i>
+  
+            <!-- regular file type icon -->
+            <i
+              *ngIf="fileIconClass"
+              class="fa fa-2x file-type-icon overlay-item"
+              [ngClass]="fileIconClass">
+            </i>
+  
+          </span>
+      
+        </div>
+
+        <!-- Footer -->
+        <div class="flex">
+
+          <!-- network info -->
+          <span
+            *ngIf="serviceType === 'nw'"
+            class="selectable overlay-item flex-initial">
+              {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta.service}}
+          </span>
+  
+          <span
+            *ngIf="serviceType === 'sa'"
+            class="selectable overlay-item flex-initial">
+              {{session.meta.initiator_ip}} -> {{session.meta.responder_ip}}:{{session.meta.responder_port}} ~ {{session.meta.protocol_family}}
+          </span>
 
         </div>
 
-        <!-- network info -->
-        <div class="selectable masonryTileNetworkInfo">
-          {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta['service']}}
-        </div>
+      </div>
+  
+    </div>
 
-      </ng-container>
 
-      <!--SA Tile Overlay-->
-      <ng-template #saOverlay>
 
-        <div class="selectable masonryTileTime">
-          {{session.meta['stop_time'] | formatSaTime}}
-        </div>
-
-        <div class="selectable masonryTileSessionID">
-          {{session.id}}
-        </div>
-
-        <div class="selectable masonryTileNetworkInfo">
-          {{session.meta['initiator_ip']}} -> {{session.meta['responder_ip']}}:{{session.meta['responder_port']}} ~ {{session.meta['protocol_family']}}
-        </div>
-
-      </ng-template>
-
-      <ng-template #fileIcons>
-
-        <!-- file type icon overlay -->
-        <div *ngIf="content.fromArchive || content.isArchive || content.contentType == 'pdf' || content.contentType == 'office'" class="selectable masonryFileTypeIcon">
-
-          &nbsp;
-
-          <!-- file archive icon - must be separate from regular icon -->
-          <ng-container *ngIf="content.fromArchive || content.isArchive">
+    <!-- Bottom Text Area -->
+    <div
+      *ngIf="displayTextArea"
+      class="text-area selectable">
+  
+        <ul *ngIf="textAreaList.length !== 0">
+  
+            <li *ngFor="let text of textAreaList">
+  
+              <span class="bold">
+                {{text}}
+              </span>
+  
+            </li>
+  
+        </ul>
+  
+        <table>
+  
+          <tr *ngIf="masonryMeta.length === 0">
+  
+            <td colspan="2">
+  
+              <div class="no-meta">
+                No relevant meta found for this session.
+              </div>
+  
+            </td>
+  
+          </tr>
+  
+          <tr *ngFor="let item of textAreaTableItems">
+  
+            <td class="meta-key">
+              {{item.key}}
+            </td>
+  
+            <td class="value">
+              {{item.value}}
+            </td>
+  
+          </tr>
           
-            <i class="fa fa-file-archive-o fa-2x"></i>
-          
-          </ng-container>
-
-          <!-- regular file type icon -->
-          <i
-            *ngIf="content.contentType == 'pdf' || content.contentType == 'office'"
-            class="fa fa-2x"
-            [class.fa-lock]="['encryptedZipEntry', 'unsupportedZipEntry', 'encryptedRarEntry', 'encryptedRarTable'].includes(content.contentType)"
-            [class.fa-file-pdf-o]="content.contentType === 'pdf'"
-            [class.fa-file-word-o]="content.contentType === 'office' && content.contentSubType === 'word'"
-            [class.fa-file-excel-o]="content.contentType === 'office' && content.contentSubType === 'excel'"
-            [class.fa-file-powerpoint-o]="content.contentType === 'office' && content.contentSubType === 'powerpoint'">
-          </i>
-
-        </div>
-
-      </ng-template>
-
-    </ng-container>
-
-    <!-- the image itself -->
-    <img
-      #image
-      class="separator"
-      (load)="onImageLoaded()"
-      (error)="onImageError()"
-      [ngClass]="extraClass"
-      [src]="imageSource"
-      draggable="false">
-
-  </div>
-
-  <!-- text area -->
-  <div
-    *ngIf="displayTextArea"
-    class="textArea selectable">
-
-      <ul
-        *ngIf="textAreaList.length !== 0"
-        style="list-style-type: none; padding: 0;">
-
-          <li *ngFor="let text of textAreaList">
-
-            <b>{{text}}</b>
-
-          </li>
-
-      </ul>
-
-      <!--<ul *ngIf="content.contentType !== 'image'" style="list-style-type: none; padding: 0;">
-        <li *ngIf="content.contentType == 'encryptedRarEntry' || content.contentType == 'encryptedZipEntry'">
-          <b>Encrypted file within a {{utils.toCaps(content.archiveType)}} archive</b>
-        </li>
-        <li *ngIf="content.contentType == 'unsupportedZipEntry'">
-          <b>Unsupported ZIP format</b>
-        </li>
-        <li *ngIf="content.contentType == 'encryptedRarTable'">
-          <b>RAR archive has an encrypted table</b>
-        </li>
-        <li *ngIf="content.contentType == 'hash'">
-          <b>Found executable matching {{utils.toCaps(content.hashType)}} hash value</b>
-        </li>
-        <li *ngIf="content.contentType == 'pdf' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-          <b>Found PDF document containing text term</b>
-        </li>
-        <li *ngIf="content.contentType == 'office' && content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-          <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document containing text term</b>
-        </li>
-        <li *ngIf="content.contentType == 'pdf' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-          <b>Found PDF document matching Regex term</b>
-        </li>
-        <li *ngIf="content.contentType == 'office' && content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-          <b>Found Office {{utils.capitalizeFirstLetter(content.contentSubType)}} document matching Regex term</b>
-        </li>
-      </ul>-->
-
-      <table style="width: 100%;">
-
-        <tr *ngIf="masonryMeta.length === 0">
-
-          <td colspan="2">
-
-            <div style="margin-bottom: .5em;">
-              No relevant meta found for this session.
-            </div>
-
-          </td>
-
-        </tr>
-
-        <tr *ngFor="let struct of textAreaTableItems">
-
-          <td class="column1">
-            {{struct.key}}
-          </td>
-
-          <td class="value">
-            {{struct.value}}
-          </td>
-
-        </tr>
-
-        <!--
-        <tr *ngFor="let struct of masonryMeta">
-          <td class="column1">{{struct.friendly}}</td>
-          <td class="value">{{struct.value}}</td>
-        </tr>
-        <tr *ngIf="content.contentType == 'hash'">
-          <td class="column1">{{utils.toCaps(content.hashType)}} Hash:</td>
-          <td class="value">{{content.hashValue}}</td>
-        </tr>
-        <tr *ngIf="content.contentType == 'hash' && content.hashFriendly">
-          <td class="column1">{{utils.toCaps(content.hashType)}} Description:</td>
-          <td class="value">{{content.hashFriendly}}</td>
-        </tr>
-        <tr *ngIf="content.contentType == 'hash'">
-          <td class="column1">Filename:</td>
-          <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="content.contentType =='pdf' && content.contentFile">
-          <td class="column1">PDF Filename:</td>
-          <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="content.contentType =='office' && content.contentFile">
-          <td class="column1">Office Filename:</td>
-          <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="content.isArchive">
-          <td class="column1">Archive File:</td>
-          <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="content.fromArchive">
-          <td class="column1">Archived Filename:</td>
-          <td class="value">{{utils.pathToFilename(content.archiveFilename)}}</td>
-        </tr>
-        <tr *ngIf="content.contentType == 'encryptedZipEntry' || content.contentType == 'encryptedRarEntry'">
-          <td class="column1">Encrypted File:</td>
-          <td class="value">{{utils.pathToFilename(content.contentFile)}}</td>
-        </tr>
-        <tr *ngIf="content.textDistillationEnabled && content.textTermsMatched?.length > 0">
-          <td class="column1">Matched Text:</td>
-          <td class="value">{{content.textTermsMatched}}</td>
-        </tr>
-        <tr *ngIf="content.regexDistillationEnabled && content.regexTermsMatched?.length > 0">
-          <td class="column1">Matched RegEx:</td>
-          <td class="value">{{content.regexTermsMatched}}</td>
-        </tr>
-        -->
-        
-      </table>
-
-  </div>
+        </table>
+  
+    </div>
 
 </div>

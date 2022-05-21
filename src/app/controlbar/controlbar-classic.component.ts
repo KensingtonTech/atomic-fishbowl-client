@@ -1,12 +1,25 @@
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, Input, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  OnInit,
+  OnDestroy,
+  Input,
+  ChangeDetectorRef,
+  Output,
+  EventEmitter
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { PanZoomAPI } from 'ngx-panzoom';
 import * as log from 'loglevel';
+import { PanZoomConfig } from 'ngx-panzoom';
 
 @Component({
-  selector: 'control-bar-classic',
+  selector: 'app-control-bar-classic',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './controlbar-classic.component.html'
+  templateUrl: './controlbar-classic.component.html',
+  styleUrls: [
+    './controlbar-classic.component.scss'
+  ]
 })
 
 export class ClassicControlBarComponent implements OnInit, OnDestroy {
@@ -15,17 +28,28 @@ export class ClassicControlBarComponent implements OnInit, OnDestroy {
 
   @Input() initialZoomWidth: number;
   @Input() initialZoomHeight: number;
-  @Input() panzoomConfig: any;
+  @Input() panzoomConfig: PanZoomConfig;
+
+  // Monitoring Collections
+  @Input() isMonitoringCollection = false;
+  @Input() pauseMonitoring = false;
+  @Output() suspendMonitoringClicked = new EventEmitter<void>();
+  @Output() resumeMonitoringClicked = new EventEmitter<void>();
+
   private panZoomAPI: PanZoomAPI;
   routerDropdownOpen = false;
-  private subscriptions = new Subscription;
+  private subscriptions = new Subscription();
 
   ngOnInit(): void {
     log.debug('ClassicControlBarComponent: OnInit');
-    this.subscriptions.add(this.panzoomConfig.api.subscribe( (api: any) => {
-      log.debug('ClassicControlBarComponent: newApiSubscription: Got new API');
-      this.panZoomAPI = api;
-    }));
+    this.subscriptions.add(
+      this.panzoomConfig.api.subscribe(
+        (api) => {
+          log.debug('ClassicControlBarComponent: newApiSubscription: Got new API');
+          this.panZoomAPI = api;
+        }
+      )
+    );
   }
 
   ngOnDestroy(): void {

@@ -29,22 +29,6 @@
   @extend .center-element;
 }
 
-.modal { 
-  @extend .center-container;
-  display: grid; // 'grid' gets added by the modal service
-  // modal container fixed across whole screen
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-
-.modal-body {
-  // modal default - row 2, column 2 - right in the middle
-  @extend .center-element;
-}
-
 @mixin reapplyModalStyleToWrapper {
   padding: initial;
   background-color:initial;
@@ -61,23 +45,20 @@
 
 
 // Preferences Modal
-
 .preferences-modal {
-  // @extend .center-container;
-  display: grid;
+  display: grid !important;
   grid-template-columns: repeat(12, 1fr);
   grid-template-rows: repeat(12, 1fr);
-  // grid-template-rows: 1fr 41.39310526em 1fr;
 
   .preferences-modal-body {
-    grid-column: 6 / -6;
-    grid-row: 4 / -3;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    max-height: initial;
 
-    // @media #{$mq-medium} {
-      // 1024 - purple
-      grid-row: 2 / -2;
-      grid-column: 4 / -4;
-    // }
+    grid-row: 2 / -2;
+    grid-column: 4 / -4;
+
     @media #{$mq-large} {
       // 1366 - green
       grid-row: 2 / -3;
@@ -103,34 +84,13 @@
       // 3840 - black
       grid-row: 3 / -5;
     }
-
-    > div {
-      height: 100%;
-      display: grid;
-      grid-template-columns: 1;
-      grid-template-rows: 2em auto 2em;
-      
-      h2 {
-        grid-row: 1;
-      }
-
-      .tabViewContainer {
-        grid-row: 2;
-      }
-
-      .okayButtons {
-        grid-row: 3;
-      }
-      
-    }
   }
 }
 
 
 
 // NW Collections Modal
-
-modal .nwCollectionModal {
+.nwCollectionModal {
   // it's necessary to wrap the content in another div as we have to apply the row to modal-body, which causes it to grow to the row height.
   // by adding another div, we allow the row to remain the same size while allowing the body to grow as needed, without shifting its top position
   // this also means we have to un-apply the default modal css and re-apply it to the inner/wrapper div
@@ -139,8 +99,6 @@ modal .nwCollectionModal {
   // smallest: 621.719
   // biggest: 812.125
   $minHeight: 31.08595em;
-  // $maxHeight: 40.60625em;
-  // $maxHeight: 48.26955em;
   $maxHeight: 50em;
   display: grid;
   grid-template-rows: 1fr $maxHeight 1fr;
@@ -150,7 +108,7 @@ modal .nwCollectionModal {
     @include reapplyModalStyleToWrapper();
   }
 
-  .ui-tabview-panels {
+  .p-tabview-panels {
     height: 18.4em !important;
   }
 }
@@ -158,8 +116,7 @@ modal .nwCollectionModal {
 
 
 // Login Form
-
-login-form {
+app-login-form {
   position: fixed;
   left: 0;
   right: 0;
@@ -179,13 +136,18 @@ login-form {
 
 
 // Content (Session) Details Modal
-
-modal .content-details-modal {
-  display: grid;
+.content-details-modal {
+  display: grid !important;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
     
-  .modal-body {
+  .content-details-modal-body {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    max-height: initial;
+
+
     @extend .wholescreen-element;
 
     .grid-container {
@@ -203,12 +165,8 @@ modal .content-details-modal {
 
       .menu-bar {
         grid-row: 1;
-        // grid-column: 1 / -3;
         grid-column-start: 1;
-        // @media #{$mq-medium} {
-          // 1024 - purple
-          grid-column-end: $session-popup-medium-line;
-        // }
+        grid-column-end: $session-popup-medium-line;
         @media #{$mq-large} {
           // 1366 - green
           grid-column-end: $session-popup-large-line;
@@ -235,14 +193,10 @@ modal .content-details-modal {
         }
       }
 
-      .viewers {
+      .content-viewers-container {
         grid-row: 2;
-        // grid-column: 1 / -3;
         grid-column-start: 1;
-        // @media #{$mq-medium} {
-          // 1024 - purple
-          grid-column-end: $session-popup-medium-line;
-        // }
+        grid-column-end: $session-popup-medium-line;
         @media #{$mq-large} {
           // 1366 - green
           grid-column-end: $session-popup-large-line;
@@ -271,12 +225,8 @@ modal .content-details-modal {
 
       .meta-widget {
         grid-row: 1 / -1;
-        // grid-column: -3 / -1;
         grid-column-end: -1;
-        // @media #{$mq-medium} {
-          // 1024 - purple
-          grid-column-start: $session-popup-medium-line;
-        // }
+        grid-column-start: $session-popup-medium-line;
         @media #{$mq-large} {
           // 1366 - green
           grid-column-start: $session-popup-large-line;
@@ -309,210 +259,25 @@ modal .content-details-modal {
 
 
 
-// Classic Grid
-
-body classic-grid-view {
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-
-  display: grid;
-  grid-template-columns: repeat(48, 1fr);
-  grid-template-rows: auto 1fr;
-  
-
-  toolbar-widget {
-    position: relative;
-    grid-row: 1;
-    grid-column: 1 / -1;
-    z-index: 3;
-  }
-
-  .classic-grid-element {
-    position: relative;
-    grid-row: 1 / -1;
-    grid-column: 1 / -1;
-    z-index: 2;
-  }
-
-
-
-  classic-session-popup {
-    position: relative;
-    z-index: 3;
-    grid-row: 2;
-    
-    $session-popup-medium-line: -12;
-    $session-popup-large-line: -12;
-    $session-popup-1x-line: -10;
-    $session-popup-2x-line: -9;
-    $session-popup-3x-line: -8;
-    $session-popup-4x-line: -9;
-    $session-popup-5x-line: -7;
-    
-    grid-column-end: -1;
-    // @media #{$mq-medium} {
-      // 1024 - purple
-      grid-column-start: $session-popup-medium-line;
-    // }
-    @media #{$mq-large} {
-      // 1366 - green
-      grid-column-start: $session-popup-large-line;
-    }
-    @media #{$mq-xlarge} {
-      // 1920 - blue
-      grid-column-start: $session-popup-1x-line;
-    }
-    @media #{$mq-2xlarge} {
-      // 2560 - yellow
-      grid-column-start: $session-popup-2x-line;
-    }
-    @media #{$mq-3xlarge} {
-      // 3200 - red
-      grid-column-start: $session-popup-3x-line;
-    }
-    @media #{$mq-4xlarge} {
-      // 3360 - orange
-      grid-column-start: $session-popup-4x-line;
-    }
-    @media #{$mq-5xlarge} {
-      // 3840 - black
-      grid-column-start: $session-popup-5x-line;
-    }
-    
-  }
-
-  $leftbar-medium-line: 9;
-  $leftbar-1x-line: 7;
-
-  .classic-left-bar {
-
-    grid-row: 2;
-    grid-column-start: 1;
-    // @media #{$mq-medium} {
-      // 1024
-      grid-column-end: $leftbar-medium-line;
-    // }
-    @media #{$mq-xlarge} {
-      // 1920
-      grid-column-end: $leftbar-1x-line;
-    }
-
-    control-bar-classic {
-      display: block;
-      position: relative;
-      z-index: 3;
-      left: 1em;
-    }
-
-    .monitoringBox {
-      margin-left: 1em;
-      z-index: 3;
-    }
-  
-    content-count-widget {
-      left: 1em;
-      z-index: 3;
-      margin-top: auto;
-      margin-bottom: auto;
-    }
-  }
-
-.classic-grid-container {
-  display: grid;
-  grid-template-columns: repeat(19, 126px);
-  grid-auto-rows: auto;
-}
-
-
-}
-
-
-
-// Masonry Grid
-
-body masonry-grid-view {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-
-  display: grid;
-  grid-template-columns: repeat(48, 1fr);
-  grid-template-rows: auto 1fr;
-
-  toolbar-widget {
-    position: relative;
-    grid-row: 1;
-    grid-column: 1 / -1;
-    z-index: 3;
-  }
-
-  $leftbar-medium-line: 5;
-  $leftbar-1x-line: 4;
-
-  .masonry-left-bar {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    grid-row: 2;
-    grid-column-start: 1;
-    // @media #{$mq-medium} {
-      // 1024
-      grid-column-end: $leftbar-medium-line;
-    // }
-    @media #{$mq-xlarge} {
-      // 1920
-      grid-column-end: $leftbar-1x-line;
-    }
-
-  }
-
-  .masonryViewport {
-    position: relative;
-    z-index: 2;
-    grid-row: 2 / -1;
-    // @media #{$mq-medium} {
-      // 1024
-      grid-column-start: $leftbar-medium-line;
-    // }
-    @media #{$mq-xlarge} {
-      //1920
-      grid-column-start: $leftbar-1x-line;
-    }
-    grid-column-end: -1;
-    
-  }
-
-}
-
-
-
 // Tab Container Modal (Collections and Feeds)
-
 .tab-container-modal {
-  display: grid;
+  display: grid !important;
   grid-template-columns: repeat(12, 1fr);
   grid-template-rows: repeat(12, 1fr);
 
   .tab-container-modal-body {
-
     position: relative;
     height: 100%;
     width: 100%;
+    max-height: initial;
+    grid-row: 2 / -2;
+    grid-column: 2 / -2;
     
-    // @media #{$mq-medium} {
-      // 1024 - purple
-      grid-row: 2 / -2;
-      grid-column: 2 / -2;
-    // }
     @media #{$mq-2xlarge} {
       // 2560 - yellow
       grid-row: 2 / -3;
       grid-column: 2 / -2;
     }
-    
   }
 }
 
@@ -520,73 +285,35 @@ body masonry-grid-view {
 
 
 // Manage Users Modal
-
 .manage-users-modal {
-  display: grid;
+  display: grid !important;
   grid-template-columns: repeat(12, 1fr);
   grid-template-rows: repeat(12, 1fr);
 
   .manage-users-modal-body {
-
     // position of modal
-
     position: relative;
     height: 100%;
     width: 100%;
-    
-    // @media #{$mq-medium} {
-      // 1024 - purple
-      grid-column: 3 / -3;
-      grid-row: 2 / -2;
-    // }
+    max-height: initial;
+    grid-column: 3 / -3;
+    grid-row: 2 / -2;
+
     @media #{$mq-xlarge} {
       // 1920 - blue
       grid-column: 4 / -4;
       grid-row: 2 / -3;
     }
-    
   }
 
   .manage-users-modal-body {
-
     // inner table grid
-    
     .user-table {
       display: grid;
       grid-template-columns: 5em auto 1fr 1fr 1fr;
       grid-auto-rows: auto;
       grid-row-gap: .3em;
-
       max-height: 100%;
-
-      /*
-      // @media #{$mq-medium} {
-        // 1024 - purple
-        max-height: 43em;
-        // margin-bottom: 1em;
-      // }
-      @media #{$mq-large} {
-        // 1366 - green
-        max-height: 48.5em;
-      }
-      @media #{$mq-xlarge} {
-        // 1920 - blue
-        max-height: 51em;
-      }
-      @media #{$mq-2xlarge} {
-        // 2560 - yellow
-        max-height: 60em;
-      }
-      @media #{$mq-4xlarge} {
-        // 3360 - orange
-        max-height: 70em;
-      }
-      @media #{$mq-5xlarge} {
-        // 3840 - black
-        max-height: 73em;
-      }
-      */
-  
     }
 
     .header {
@@ -598,48 +325,25 @@ body masonry-grid-view {
 
 
 
-// Add NW / SA Service Modal
-
-modal .new-edit-nw-server-modal-body {
-  width: 35em;
-}
-
-
-
-
 
 // Feed Wizard
-
 .feed-wizard-modal {
-  display: grid;
+  display: grid !important;
   grid-template-columns: repeat(12, 1fr);
   grid-template-rows: repeat(12, 1fr);
 
   .feed-wizard-modal-body {
-
-    // @media #{$mq-medium} {
-      // 1024 - purple
-      // grid-row: 2 / -2;
-      grid-column: 2 / -2;
-      grid-row: 3 / -4;
-    // }
+    position: relative;
+    height: 100%;
+    width: 100%;
+    max-height: initial;
+    grid-column: 2 / -2;
+    grid-row: 3 / -4;
 
     @media #{$mq-xlarge} {
       // 1920 - blue
       grid-column: 3 / -3;
       grid-row: 3 / -6;
-    }
-    
-    @media #{$mq-2xlarge} {
-      // 2560 - yellow
-      // grid-column: 3 / -4;
-      // grid-row: 4 / -4;
-    }
-
-    @media #{$mq-4xlarge} {
-      // 3360 - orange
-      // grid-column: 3 / -3;
-      // grid-row: 3 / -7;
     }
   }
 }
@@ -649,47 +353,6 @@ modal .new-edit-nw-server-modal-body {
 
 
 // Collections Inner Table Grid
-
-.collections-table {
-  display: grid;
-  grid-template-columns: 6em 1fr .5fr .5fr .5fr .5fr .5fr;
-  grid-auto-rows: auto;
-  grid-row-gap: .3em;
-
-  .header {
-    position: sticky;
-    top: 0;
-  }
-
-  /*
-  @media #{$mq-medium} {
-    // 1024 - purple
-    max-height: 43em;
-    margin-bottom: 1em;
-  }
-  @media #{$mq-large} {
-    // 1366 - green
-    max-height: 48.5em;
-  }
-  @media #{$mq-xlarge} {
-    // 1920 - blue
-    max-height: 51em;
-  }
-  @media #{$mq-2xlarge} {
-    // 2560 - yellow
-    max-height: 60em;
-  }
-  @media #{$mq-4xlarge} {
-    // 3360 - orange
-    max-height: 70em;
-  }
-  @media #{$mq-5xlarge} {
-    // 3840 - black
-    max-height: 73em;
-  }*/
-
-}
-
 .collections-table-clone {
   display: grid;
   grid-template-columns: repeat(6, auto);
@@ -701,7 +364,6 @@ modal .new-edit-nw-server-modal-body {
 
 
 // Feeds Inner Table Grid
-
 .feeds-table {
   display: grid;
   grid-template-columns: 6em 1fr .5fr .5fr .5fr .5fr .5fr;
@@ -712,32 +374,4 @@ modal .new-edit-nw-server-modal-body {
     position: sticky;
     top: 0;
   }
-
-  /*
-  @media #{$mq-medium} {
-    // 1024 - purple
-    max-height: 43em;
-    margin-bottom: 1em;
-  }
-  @media #{$mq-large} {
-    // 1366 - green
-    max-height: 48.5em;
-  }
-  @media #{$mq-xlarge} {
-    // 1920 - blue
-    max-height: 51em;
-  }
-  @media #{$mq-2xlarge} {
-    // 2560 - yellow
-    max-height: 60em;
-  }
-  @media #{$mq-4xlarge} {
-    // 3360 - orange
-    max-height: 70em;
-  }
-  @media #{$mq-5xlarge} {
-    // 3840 - black
-    max-height: 73em;
-  }*/
-
 }

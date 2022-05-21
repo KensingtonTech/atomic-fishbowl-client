@@ -5,6 +5,7 @@ export interface SaServer {
   port: number;
   ssl: boolean;
   user: string;
-  // deviceNumber: number;
-  password?: string;
+  password: string;
 }
+
+export type SaServers = Record<string, SaServer>;

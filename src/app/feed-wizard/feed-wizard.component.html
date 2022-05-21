@@ -1,0 +1,735 @@
+<!-- the initial page of the wizard -->
+<div *ngIf="page === 1">
+
+  <form
+    #highLevelDetailsForm="ngForm"
+    (ngSubmit)="pageOneToPageTwoSubmit()"
+    novalidate>
+
+      <!--header-->
+      <div class="flex">
+
+        <h2
+          *ngIf="!editing"
+          style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+            Hash Feed Wizard - New Feed
+        </h2>
+        
+        <h2
+          *ngIf="editing && feed"
+          style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+            Hash Feed Wizard - Editing "{{feed.name}}"
+        </h2>
+
+        <!-- next / cancel buttons -->
+        <div style="margin-left: auto;">
+        
+          <p-button
+            (onClick)="close()"
+            label="Cancel">
+          </p-button>
+            
+          &nbsp;
+          
+          <p-button
+            *ngIf="feedType === 'manual'"
+            type="submit"
+            label="Next"
+            [disabled]="!highLevelDetailsForm.valid || lines.length === 0 || !nameValid">
+          </p-button>
+          
+          <p-button
+            *ngIf="feedType === 'scheduled' && !editing"
+            type="submit"
+            label="Next"
+            [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || (urlAuthentication === 'enabled' && !(urlUser && urlPassword)) || !urlVerified || !nameValid">
+          </p-button>
+          
+          <p-button
+            *ngIf="feedType === 'scheduled' && editing"
+            type="submit"
+            label="Next"
+            [disabled]="!validateUrlInput() || !highLevelDetailsForm.valid || urlAuthentication === 'enabled' && (!urlPassword && urlChanged) || !urlVerified || !nameValid">
+          </p-button>
+
+        </div>
+
+      </div>
+
+
+      <div class="table">
+
+        <!-- feed name -->
+        <div class="row">
+
+          <div
+            class="cell left-column"
+            style="vertical-align: bottom;">
+              Feed Name
+          </div>
+
+          <div class="cell right-column">
+
+            <label
+              *ngIf="!nameValid && name.length !== 0"
+              for="feedName"
+              style="color: red;">
+                A feed already exists with this name
+            </label>
+
+            <label
+              *ngIf="name.length === 0"
+              for="nameBox"
+              style="color: red;">
+                The name field is required
+            </label>
+
+            <input
+              pInputText
+              type="text"
+              id="feedName"
+              name="feedName"
+              [(ngModel)]="name"
+              (ngModelChange)="onNameChanged($event)"
+              autocomplete="off"
+              required
+              style="width: 100%;"/>
+
+          </div>
+
+        </div>
+
+        <!-- feed type -->
+        <div class="row">
+
+          <div class="cell left-column">Type</div>
+
+          <div class="cell">
+
+            <p-selectButton
+              name="feedType"
+              [options]="feedTypeOptions"
+              [(ngModel)]="feedType">
+            </p-selectButton>
+
+          </div>
+          
+        </div>
+
+        <!-- manual feeds -->
+        <div *ngIf="feedType === 'manual'" class="row">
+
+          <div class="cell left-column">Select File</div>
+
+          <div class="cell">
+
+            <p-fileUpload
+              #fileUpload
+              mode="basic"
+              name="myfiles[]"
+              [customUpload]="true"
+              (uploadHandler)="uploadHandler($event, fileUpload)"
+              [chooseLabel]="label"
+              [auto]="true"
+              accept=".csv"
+              required>
+                filename
+            </p-fileUpload>
+
+          </div>
+
+        </div>
+
+        <!-- scheduled feeds -->
+
+        <!-- URL -->
+        <div *ngIf="feedType === 'scheduled'" class="row">
+
+          <div class="cell left-column">URL</div>
+
+          <div class="cell">
+
+            <input
+              pInputText
+              type="text"
+              name="url"
+              size="100"
+              (ngModelChange)="onUrlChange()"
+              [(ngModel)]="url"
+              autocomplete="off"
+              required/>
+
+            <p-button
+              (onClick)="verifyUrl()"
+              label="Verify"
+              [disabled]="!validateUrlInput() || (!editing && urlAuthentication === 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication === 'enabled' && authChanged && !(urlUser && urlPassword))">
+            </p-button>
+
+            <span
+              *ngIf="urlVerified && urlVerifyClicked"
+              class="fa fa-thumbs-up"> 
+                Success
+            </span>
+
+            <span
+              *ngIf="!urlVerified && urlTested"
+              class="fa fa-thumbs-down"> 
+                
+                Failure
+                  
+                <span *ngIf="testError">
+                  : {{testError}}
+                </span>
+
+            </span>
+
+          </div>
+
+        </div>
+      
+
+        <!-- AUTHENTICATION -->
+        <div
+          *ngIf="feedType === 'scheduled'"
+          class="row">
+
+            <div class="cell left-column">
+              Authentication
+            </div>
+
+            <div class="cell">
+
+                <p-selectButton
+                  name="urlAuthentication"
+                  [options]="enabledOptions"
+                  [(ngModel)]="urlAuthentication"
+                  (ngModelChange)="onAuthChanged()">
+                </p-selectButton>
+
+                <span *ngIf="urlAuthentication === 'enabled'">
+                  
+                  &nbsp;
+
+                  <span class="p-float-label">
+
+                    <input
+                      pInputText
+                      type="text"
+                      name="urlUser"
+                      id="urlUser"
+                      [(ngModel)]="urlUser"
+                      autocomplete="off"
+                      (ngModelChange)="onAuthChanged()"
+                      required/>
+
+                    <label for="urlUser">
+                      Username
+                    </label>
+                    
+                  </span>
+
+                  <span class="p-float-label">
+
+                    <input
+                      pInputText
+                      type="password"
+                      id="urlPassword"
+                      name="urlPassword"
+                      [(ngModel)]="urlPassword"
+                      autocomplete="off"
+                      (ngModelChange)="onAuthChanged()"/>
+
+                    <label for="urlPassword">
+                      Password
+                    </label>
+
+                  </span>
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div
+          *ngIf="feedType === 'scheduled'"
+          class="row">
+
+          <div class="cell left-column">
+            Interval
+          </div>
+
+          <div class="cell">
+
+            <p-selectButton
+              name="selectedScheduleInterval"
+              [options]="intervalOptions"
+              [(ngModel)]="selectedScheduleInterval">
+            </p-selectButton>
+            
+            &nbsp;&nbsp;
+
+            <!-- hours -->
+            <div
+              *ngIf="selectedScheduleInterval === 'hours'"
+              style="display: inline-block;">
+                
+                Every 
+                  
+                <input
+                  pInputText
+                  type="number"
+                  name="selectedScheduleHours"
+                  [(ngModel)]="selectedScheduleHours"
+                  min="1"
+                  max="744"
+                  required/>
+                    
+                hours
+            
+            </div>
+
+            <!-- minutes -->
+            <div
+              *ngIf="selectedScheduleInterval === 'minutes'"
+              style="display: inline-block;"> 
+                
+                Every 
+              
+                <input
+                  pInputText
+                  type="number"
+                  name="selectedScheduleMinutes"
+                  [(ngModel)]="selectedScheduleMinutes"
+                  min="1"
+                  max="86400"
+                  required/>
+
+                minutes
+
+            </div>
+
+            <!-- time of day -->
+            <div
+              *ngIf="selectedScheduleInterval === 'day'"
+              style="display: inline-block;">
+
+                Every 
+
+                <input
+                  pInputText
+                  type="number"
+                  name="selectedScheduleDays"
+                  [(ngModel)]="selectedScheduleDays"
+                  min="1"
+                  max="31"
+                  required/> 
+
+                days
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    
+  </form>
+
+</div>
+
+
+
+
+
+<div *ngIf="page === 2">
+
+  <form
+    #feedDetailsForm="ngForm"
+    (ngSubmit)="pageTwoToPageThreeSubmit()"
+    novalidate>
+
+      <!--header-->
+      <div class="flex">
+
+        <h2
+          *ngIf="!editing"
+          style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+            Hash Feed Wizard - New Feed
+        </h2>
+
+        <h2
+          *ngIf="editing && feed"
+          style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+            Hash Feed Wizard - Editing "{{feed.name}}"
+        </h2>
+
+        <!-- next / cancel buttons -->
+        <div style="margin-left: auto;">
+
+          <p-button
+            (onClick)="pageTwoToPageOneSubmit()"
+            label="Previous">
+          </p-button>
+          
+          &nbsp;
+          
+          <p-button
+            type="submit"
+            label="Next"
+            [disabled]="!feedDetailsForm.valid || !feedDetailsFormValid()">
+          </p-button>
+
+        </div>
+  
+      </div>
+
+      <!-- options -->
+      <div class="table">
+      
+        <!-- feed type -->
+        <div class="row">
+
+          <div class="cell left-column">
+            CSV Delimiter
+          </div>
+
+          <div
+            class="cell"
+            style="width: 100%;">
+
+              <input
+                pInputText
+                type="text"
+                name="delimiter"
+                [(ngModel)]="delimiter"
+                (ngModelChange)="delimiterChanged()"
+                size="1"
+                maxlength="1"
+                required/>
+
+          </div>
+
+        </div>
+
+        <!-- has header row -->
+        <div class="row">
+
+          <div class="cell left-column">
+            Header Row
+          </div>
+
+          <div
+            class="cell"
+            style="width: 100%;">
+            
+              <p-checkbox
+                name="hasHeader"
+                [(ngModel)]="hasHeader"
+                [binary]="true">
+              </p-checkbox>
+
+          </div>
+          
+        </div>
+      
+      </div>
+
+      <p></p>
+
+      <div style="overflow-x: auto;">
+
+        <!-- display the feed -->
+        <div
+          *ngIf="lines" style="width: 99%;"
+          class="table csv-table">
+
+            <!-- header -->
+            <div class="header">
+
+              <div class="row">
+
+                <div
+                  class="header-cell left-column"
+                  style="font-style: italic;">
+                    Row Num:
+                </div>
+
+                <div
+                  *ngFor="let column of columnNumArr; let i = index"
+                  class="header-cell left-column">
+
+                    <div
+                      pDroppable="columnIdentifier"
+                      (onDrop)="onDrop(i)">
+
+                        <span style="font-size: 1.5em;">
+                          Column {{column}}
+                        </span>
+
+                        <span *ngIf="columnDropPorts && columnDropPorts[i]?.enabled">
+
+                          &nbsp;
+                          
+                          <p-button
+                            class="headerButton"
+                            icon="fa fa-fw fa-close"
+                            iconPos="right"
+                            [label]="columnDropPorts[i].columnId?.name ?? ''"
+                            (onClick)="onDeselectColumnId(i)">
+                          </p-button>
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          <!-- data -->
+          <div class="row-group">
+
+            <div
+              *ngFor="let line of lines; let i = index"
+              class="row"
+              [class.csv-header]="hasHeader && i === 0">
+
+              <div
+                *ngIf="!hasHeader"
+                class="cell">
+                  {{i + 1}}
+              </div>
+
+              <div
+                *ngIf="hasHeader"
+                class="cell">
+
+                  <span *ngIf="i === 0">
+                    Header
+                  </span>  
+
+                  <span *ngIf="i > 0">
+                    {{i}}
+                  </span>
+
+              </div>
+
+              <div
+                *ngFor="let column of line; let x = index"
+                class="cell csv-cell"
+                pDroppable="columnIdentifier"
+                (onDrop)="onDrop(x)">
+                  {{column}}
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <p></p>
+
+      <!-- Draggable Column Header Dock -->
+      <div
+        *ngIf="availableColumnIDs.length !== 0"
+        style="text-align: center;">
+
+          <div style="display: inline-block; text-align: right;">
+
+            <h3>Column Types</h3>
+
+            Drag each to the appropriate column
+
+          </div>
+
+          &nbsp;&nbsp;&nbsp;
+
+          <div style="display: inline-block;">
+
+            <div style="text-align: left;">
+
+              <div
+                *ngFor="let columnId of availableColumnIDs"
+                class="dragButton draggable"
+                style="margin-bottom: 0.15em;"
+                pDraggable="columnIdentifier"
+                (onDragStart)="onDragStart(columnId)"
+                (onDragEnd)="onDragEnd(columnId)">
+
+                  <p-button
+                    icon="fa fa-fw fa-check"
+                    [label]="columnId.name">
+                  </p-button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+      </div>
+
+  </form>
+
+</div>
+
+
+
+
+
+
+<div *ngIf="page === 3">
+
+  <form
+    #confirmForm="ngForm"
+    (ngSubmit)="finalSubmit()"
+    novalidate>
+
+      <!--header-->
+      <div class="flex">
+
+          <h2
+            *ngIf="!editing"
+            style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+              Hash Feed Wizard - New Feed
+          </h2>
+
+          <h2
+            *ngIf="editing && feed"
+            style="margin-top: 0; margin-bottom: .25em; color: rgb(54, 60, 66);">
+              Hash Feed Wizard - Editing "{{feed.name}}"
+          </h2>
+  
+          <!-- next / cancel buttons -->
+          <div style="margin-left: auto;">
+
+            <p-button
+              (onClick)="pageThreeToPageTwoSubmit()"
+              label="Previous">
+            </p-button>
+            
+            &nbsp;
+            
+            <p-button
+              type="submit"
+              label="Finish">
+            </p-button>
+
+          </div>
+  
+        </div>
+
+      <h1>Confirm Feed Parameters</h1>
+
+      <div class="table">
+
+        <div class="row">
+
+          <div class="cell left-column bold">
+            Feed Name
+          </div>
+
+          <div class="cell">
+            {{name}}
+          </div>
+
+        </div>
+      
+        <div *ngIf="feedType === 'manual'" class="row">
+
+          <div class="cell left-column bold">
+            CSV Filename
+          </div>
+
+          <div class="cell right-column">
+            {{filename}}
+          </div>
+
+        </div>  
+
+        <div class="row">
+
+          <div class="cell left-column bold">
+            Feed Type
+          </div>
+
+          <div class="cell right-column">
+            {{utils.capitalizeFirstLetter(feedType)}}
+          </div>
+
+        </div>
+
+        <div class="row">
+
+          <div class="cell left-column bold">
+            CSV Delimiter
+          </div>
+
+          <div class="cell right-column">
+            {{delimiter}}
+          </div>
+
+        </div>
+
+        <div class="row">
+
+          <div class="cell left-column bold">
+            Hash Value
+          </div>
+
+          <div class="cell right-column">
+            Column {{getColumnNumber('value') + 1}}
+          </div>
+
+        </div>
+
+        <div class="row">
+
+          <div class="cell left-column bold">
+            Hash Type
+          </div>
+
+          <div class="cell right-column">
+            Column {{getColumnNumber('type') + 1}}
+          </div>
+
+        </div>
+
+        <div class="row">
+
+          <div class="cell left-column bold">
+            Friendly Name
+          </div>
+
+          <div class="cell right-column">
+
+            <span *ngIf="getColumnNumber('friendly')">
+              Column {{getColumnNumber('friendly') + 1}}
+            </span>
+
+            <span *ngIf="!getColumnNumber('friendly')">
+              Column not assigned
+            </span>
+
+          </div>
+          
+        </div>
+
+      </div>
+
+      <div
+        *ngIf="error"
+        style="position: relative; top: 1.25em;">
+          The server returned an error when submitting the feed: {{error}}
+      </div>
+
+  </form>
+
+</div>

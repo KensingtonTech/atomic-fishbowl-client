@@ -1,0 +1,99 @@
+.brickOuterDiv {
+  border-radius: .3em;
+  font-weight: lighter;
+  font-size: .8em;
+  margin-top: .75rem;
+  margin-bottom: .75rem;
+
+  .image-area {
+    position: relative;
+    min-height: 2.631578947em;
+  
+    .image-overlay {
+      background-color: transparent;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: .2rem;
+
+      .header > {
+        flex: 0 1 auto;
+      }
+    }
+  }
+}
+
+.separator {
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+.text-area {
+  background-color: white;
+  border-top: .1em solid black;
+  padding: .25em;
+
+  ul {
+    margin-block-start: 0;
+    margin-block-end: 0;
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .meta-key {
+    white-space: nowrap;
+    width: 1px;
+    font-weight: bold;
+    vertical-align: top;
+  }
+
+  table {
+    width: 100%;
+
+    .no-meta {
+      margin-bottom: .5em;
+    }
+  }
+}
+
+.value {
+  word-wrap: break-word;
+  word-break: break-all;
+  color: black;
+}
+
+img {
+  width: 100%;
+  height: auto;
+}
+
+.border {
+  border-width: .25em;
+  border-style: solid;
+}
+
+.pdf {
+  border-color: red;
+}
+
+.word {
+  border-color: rgb(42,86,153);
+}
+
+.excel {
+  border-color: rgb(32,114,71);
+}
+
+.powerpoint {
+  border-color: rgb(211,71,38);
+}
+
+.overlay-item {
+  background-color: rgba(0,0,0,0.75);
+  color: white;
+  border-radius: 0.263157895em; // 5px
+  padding: 0.105263158em; // 2px
+}

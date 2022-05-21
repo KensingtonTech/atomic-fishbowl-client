@@ -1,8 +1,8 @@
-export class User {
-  id?: string;
+export interface User {
+  _id: string;
   username: string;
   fullname?: string;
-  email?: string;
-  enabled?: boolean;
+  email: string;
+  enabled: boolean;
   password?: string;
 }

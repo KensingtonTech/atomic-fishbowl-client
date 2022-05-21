@@ -1,0 +1,24 @@
+.overflowBox {
+  overflow-y: scroll;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overflowBox::-webkit-scrollbar {
+  display: none;
+}
+
+.expanded {
+  background-color: rgb(186, 48, 141);;
+}
+
+.verticalTop {
+  vertical-align: top;
+}
+
+.expand-all-button {
+  color: white;
+  line-height: 2em;
+  font-weight: bold;
+}

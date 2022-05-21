@@ -1,7 +1,8 @@
 import { Directive, HostListener } from '@angular/core';
-import * as screenfull from 'screenfull';
+import screenfull from 'screenfull';
 
 @Directive({
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[toggleFullscreen]'
 })
 export class ToggleFullscreenDirective {

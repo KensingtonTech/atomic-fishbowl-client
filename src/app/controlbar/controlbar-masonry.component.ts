@@ -1,37 +1,49 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  OnInit,
+  OnDestroy
+} from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { Subscription } from 'rxjs';
 import * as log from 'loglevel';
 
 @Component({
-  selector: 'control-bar-masonry',
+  selector: 'app-control-bar-masonry',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './controlbar-masonry.component.html'
+  templateUrl: './controlbar-masonry.component.html',
+  styleUrls: [
+    './controlbar-masonry.component.scss'
+  ]
 })
 
 export class MasonryControlBarComponent implements OnInit, OnDestroy {
 
-  constructor(private toolService: ToolService,
-              private changeDetectionRef: ChangeDetectorRef) {}
+  constructor(
+    private toolService: ToolService,
+    private changeDetectionRef: ChangeDetectorRef
+  ) {}
 
   scrollStarted = false;
   showMeta = true;
   routerDropdownOpen = false;
 
-  private subscriptions = new Subscription;
+  private subscriptions = new Subscription();
 
   ngOnInit(): void {
     log.debug('MasonryControlBarComponent: OnInit');
 
-    this.subscriptions.add(this.toolService.scrollToBottomStopped.subscribe( () => {
-      log.debug('MasonryControlBarComponent: scrollToBottomStoppedSubscription: scrollToBottomStopped');
-      this.scrollStarted = false;
-      this.changeDetectionRef.markForCheck();
-      this.changeDetectionRef.detectChanges();
-    }));
+    this.subscriptions.add(this.toolService.scrollToBottomStopped.subscribe(
+      () => {
+        log.debug('MasonryControlBarComponent: scrollToBottomStoppedSubscription: scrollToBottomStopped');
+        this.scrollStarted = false;
+        this.changeDetectionRef.markForCheck();
+        this.changeDetectionRef.detectChanges();
+      })
+    );
 
-    const showMeta = this.toolService.getPreference('showMeta');
-    this.showMeta =  showMeta === null ? true : showMeta;
+    this.showMeta = this.toolService.getBooleanPreference('showMeta', true);
     this.toolService.showMasonryTextArea.next(this.showMeta);
   }
 

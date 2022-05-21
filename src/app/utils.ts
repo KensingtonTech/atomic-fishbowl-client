@@ -1,9 +1,14 @@
 import dayjs from 'dayjs';
 import * as log from 'loglevel';
+import { SimpleChanges } from '@angular/core';
+import { HashValue } from 'types/collection';
 
+export interface CustomTimeSelection {
+  timeBegin: number;
+  timeEnd: number;
+}
 
-
-export function convertTimeSelection(selectedTimeframe): any {
+export const convertTimeSelection = (selectedTimeframe: string): CustomTimeSelection => {
   // returns an object { timeBegin: epochTime, timeEnd: epochTime } from a string ('Last 5 Minutes', etc)
   const t = { timeBegin: 0, timeEnd: 0 };
   const d = new Date();
@@ -81,259 +86,201 @@ export function convertTimeSelection(selectedTimeframe): any {
     t.timeEnd = dayjs().startOf('week').unix() - 1;
   }
   return t;
-}
+};
 
 
 
-export function convertCustomTimeSelection(timeBegin: Date, timeEnd: Date): object {
-  // Takes two Date objects as input
-  const t = { timeBegin: 0, timeEnd: 0 };
-  t.timeBegin = timeBegin.getTime() / 1000;
-  t.timeEnd = timeEnd.getTime() / 1000;
-  return t;
-}
+export const convertCustomTimeSelection = (timeBegin: Date, timeEnd: Date): CustomTimeSelection => ({
+  timeBegin: timeBegin.getTime() / 1000,
+  timeEnd: timeEnd.getTime() / 1000
+});
 
 
 
-export function timeValue(timeBegin: Date, timeEnd: Date): void {
+
+export const timeValue = (timeBegin: Date, timeEnd: Date): void => {
   // prints human readable begin and end times to console.  Takes two Date objects as input
   log.debug('time1:', timeBegin.getTime() / 1000);
   log.debug('time2:', timeEnd.getTime() / 1000);
-}
+};
 
 
 
-export function getFirstKey(o: object | any): string | null {
-  // returns the 'first' key name of a generic object - a bit of a hack since dicts aren't really ordered.
-  // Returns null if object is empty
-  // return Object.keys(o)[0];
-  for (const s in o) {
-    if (o.hasOwnProperty(s)) {
-      return s;
-    }
-  }
-  return null;
-}
+// returns the 'first' key name of a generic object
+// Returns undefined if object is empty
+export const getFirstKey = (o: object | any): string | undefined => Object.keys(o)[0];
 
 
 
-export function uniqueArrayValues(a: string[]): string[] {
-  // De-duplicates an array of strings and returns the de-duplicated array
-  const unique = [];
-  for (let i = 0; i < a.length; i++) {
-    const current = a[i];
-    if (unique.indexOf(current) < 0) { unique.push(current); }
-  }
-  return unique;
-}
+export const deduplicateArray = <T extends Array<any>>(arr: any[]): T => [...new Set(arr as any)] as T;
 
 
 
-export function grokLines(t: string): any[] {
+export const grokLines = (t: string): string[] => {
   // Converts a multi-line string (with newline delimiters) into an (de-duplicated) array of strings.
-  const terms = t.split('\n');
-  const midterms: any = [];
-  for (let i = 0; i < terms.length; i++) {
-    let term = terms[i];
-    term = term.replace(/\s+$/g, ''); // remove trailing whitespace
-    term = term.replace(/^\s+/g, '');  // remove leading whitespace
-    if ( ! term.match(/^\s*$/g) ) { // remove blank lines from array
-      midterms.push(term);
-    }
-  }
-  const endterms = uniqueArrayValues(midterms); // de-deduplicate array
-  return endterms;
-}
+  const terms = t.split('\n')
+    .map((term) => term.trim())
+    .filter( (term) => !term.match(/^$/));
+  return deduplicateArray(terms);
+};
 
 
 
-export function grokHashingLines(v: string): any {
+export const grokHashingLines = (values: string): HashValue[] => {
   // converts a multi-line string (with newline delimiters) into a de-duplicated array of objects, { hash: string, friendly: string }
   // a line from the input string may be either a single hash value, or a comma-separated hash, friendlyName value
 
-  const n = v.split('\n'); // split by newline
-  const newArray = [];
-  const hashTracker = []; // used for de-duplicating hash entries
+  const lines = values
+    .split('\n') // split by newline
+    .filter( (line) => !line.match(/^\s*$/));
+  const hashTracker = new Set<string>(); // used for de-duplicating hash entries
 
-  for (let x = 0; x < n.length; x++) {
-    // remove blank lines
-    if (!n[x].match(/^\s*$/)) {
-      newArray.push(n[x]);
-    }
-  }
+  const hashArray: HashValue[] = []; // this is the array of objects that we return
 
-  const keysArray = []; // this is the array of objects that we return
+  lines.forEach( (line, i) => {
+    const hashValue = {
+      hash: '',
+      friendly: ''
+    };
 
-  for (let i = 0; i < newArray.length; i++) {
-    const x = { hash: '', friendly: '' }; // x is the object which we will add to the array
-    const y = newArray[i].split(','); // split our line by comma
+    const splitLine = line.split(',');
+    let hash = splitLine.shift() as string;
+    hash = hash.trim();
+    const friendly = splitLine.length
+      ? splitLine.join(',').trim()
+      : '';
 
-    y[0] = y[0].trim(); // remove trailing and leading whitespace from key name, if any
-
-    if (y[0].match(/\s/)) {
+    if (hash.match(/\s/)) {
       // We will skip this row if the key contains any remaining whitespace
-      continue;
+      return;
     }
 
-    if (!hashTracker.includes(y[0])) { // de-dupe hashes
-      hashTracker.push(y[0]);
-      x.hash = y[0]; // assign hash id
-
-      if (y.length >= 2) {
-        // if user specifies CSV notation, save the second part as the friendly identifier
-        const s = y[1].trim(); // remove leading and trailing whitespace
-        x.friendly = s;
-      }
-
-      keysArray.push(x);
+    if (! hashTracker.has(hash)) {
+      hashTracker.add(hash);
+      hashArray.push({
+        hash,
+        friendly
+      });
     }
-  }
-  // log.debug('AddCollectionModalComponent: grokHashingLines(): keysArray:', keysArray);
-  return keysArray;
-}
+  });
+  return hashArray;
+};
 
 
 
-export function pathToFilename(s: string): string {
+export const pathToFilename = (value: string): string => {
   const RE = /([^/]*)$/;
-  const match = RE.exec(s);
-  return match[0];
-}
+  const match = RE.exec(value);
+  return match?.[0] ?? value;
+};
 
 
 
-export function toCaps(s: string): string {
-  return s.toUpperCase();
-}
+export const capitalizeFirstLetter = (value: string): string => value.charAt(0).toUpperCase() + value.slice(1);
 
 
 
-export function capitalizeFirstLetter(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-
-
-export function getHashesFromConfig(a: any[]): string {
+export const getHashesFromCollection = (hashes: HashValue[]): string => {
   let text = '';
-  for (let i = 0; i < a.length; i++) {
-    text += a[i].hash + ',' + a[i].friendly;
-    if (i < a.length - 1) { // omit the newline on the last line
+  for (let i = 0; i < hashes.length; i++) {
+    text += hashes[i].hash + ',' + hashes[i].friendly;
+    if (i < hashes.length - 1) { // omit the newline on the last line
      text += '\n';
     }
   }
   return text;
-}
+};
 
 
 
-export function deepCopy(o) {
+export function deepCopy<T extends Record<string | number, any>>(obj: T): T;
+export function deepCopy<T extends T[]>(obj: T): T[];
+export function deepCopy(obj: unknown): unknown;
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+export function deepCopy<T extends Record<string | number, any> | T[]>(obj: T): T | T[] {
   // taken from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
-  let newO, i;
-
-  if (typeof o !== 'object') {
-    return o;
+  let newObj: T | T[];
+  if (obj === undefined) {
+    return obj;
   }
-  if (!o) {
-    return o;
+  if (typeof obj !== 'object') {
+    return obj;
   }
 
-  if ('[object Array]' === Object.prototype.toString.apply(o)) {
-    newO = [];
-    for (i = 0; i < o.length; i += 1) {
-      newO[i] = deepCopy(o[i]);
+  if (isArray(obj)) {
+    newObj = [];
+    for (let i = 0; i < (obj as T[]).length; i++) {
+      newObj[i] = deepCopy((obj as T[])[i]) as T;
     }
-    return newO;
+    return newObj as T[];
   }
 
-  newO = {};
-  for (i in o) {
-    if (o.hasOwnProperty(i)) {
-      newO[i] = deepCopy(o[i]);
+  newObj = {} as T;
+  for (const property in obj) {
+    if (obj.hasOwnProperty(property)) {
+      newObj[property] = deepCopy(obj[property]) as any;
     }
   }
-  return newO;
-}
+  return newObj as T;
+};
 
 
 
-function getRootElementFontSize() {
-  // Returns a number
-  return parseFloat(
-    // of the computed font-size, so in px
-    getComputedStyle(
-      // for the root <html> element
-      document.documentElement
-    ).fontSize
-  );
-}
+const getRootElementFontSize = (): number => parseFloat(
+  // in px
+  getComputedStyle(
+    // for the root <html> element
+    document.documentElement
+  ).fontSize
+);
 
 
 
-function getElementFontSize(element: Element) {
-  // Returns a number
-  return parseFloat(
-    // of the computed font-size, so in px
-    getComputedStyle(
-      // for the root <html> element
-      element
-    ).fontSize
-  );
-}
+const getElementFontSize = (element: Element): number => parseFloat(
+  // of the computed font-size, so in px
+  getComputedStyle(
+    // for the root <html> element
+    element
+  ).fontSize
+);
 
 
 
-export function convertEmRelativeToElement(value: number, element: Element) {
-  return value * getElementFontSize(element);
-}
+export const convertEmRelativeToElement = (value: number, element: Element): number => value * getElementFontSize(element);
 
 
 
-export function convertRem(value: number) {
-  return value * getRootElementFontSize();
-}
+export const convertRem = (value: number): number => value * getRootElementFontSize();
 
 
 
-export function isOverflown(element) {
-  // from https://stackoverflow.com/questions/9333379/check-if-an-elements-content-is-overflowing
-  // tells if a DOM element is overflown
-  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
-}
+// from https://stackoverflow.com/questions/9333379/check-if-an-elements-content-is-overflowing
+// tells if a DOM element is overflown
+export const isOverflown = (element: HTMLElement): boolean => element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
 
 
 
-export function uriEncodeFilename(filename) {
-  return encodeURIComponent(filename);
-}
+export const uriEncodeFilename = (filename: string) => encodeURIComponent(filename);
 
 
 
-export function isEven(num: number) {
-  if (num % 2 === 0) {
-    return true;
-  }
-  return false;
-}
+export const isEven = (num: number): boolean => num % 2 === 0;
 
 
 
-export function getRectWidth (rect) {
-  return rect.width || (rect.right - rect.left);
-}
+export const getRectWidth = (rect: DOMRect): number => rect.width || (rect.right - rect.left);
 
 
 
-export function getRectHeight (rect) {
-  return rect.height || (rect.bottom - rect.top);
-}
+export const getRectHeight = (rect: DOMRect): number => rect.height ?? (rect.bottom - rect.top);
 
 
 
-export function getVisibleElements(elements: HTMLCollectionOf<any>): HTMLElement[] {
-  const visibleElements: HTMLElement[] = [];
+export const getVisibleElements = (elements: HTMLCollectionOf<HTMLElement>): HTMLElement[] =>
+  /*const visibleElements: HTMLElement[] = [];
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
   for (let i = 0; i < elements.length; i++) {
-    const elem: HTMLElement = elements[i];
+    const elem = elements[i];
     const width = elem.offsetWidth;
     const height = elem.offsetHeight;
     const noWidthAndHeight = width === 0 && height === 0;
@@ -341,6 +288,63 @@ export function getVisibleElements(elements: HTMLCollectionOf<any>): HTMLElement
       continue;
     }
     visibleElements.push(elem);
+  }*/
+  // return visibleElements;
+  Array.from(elements).filter(
+    (elem) => {
+      const width = elem.offsetWidth;
+      const height = elem.offsetHeight;
+      const noWidthAndHeight = width === 0 && height === 0;
+      return !noWidthAndHeight;
+    }
+  );
+
+export const isArray = <T>(obj: T): boolean => Array.isArray(obj);
+
+
+export const firstOrChangedSimpleChange = (key: string, changes: SimpleChanges): boolean => {
+  const found = key in changes;
+  const isFirstChange = found && changes[key].isFirstChange();
+  const valueChanged = found && !isFirstChange && changes[key].currentValue !== changes[key].previousValue;
+  return isFirstChange || valueChanged;
+};
+
+
+
+export const changedSimpleChange = (key: string, changes: SimpleChanges): boolean => {
+  const found = key in changes;
+  const isFirstChange = found && changes[key].isFirstChange();
+  const valueChanged = found && !isFirstChange && changes[key].currentValue !== changes[key].previousValue;
+  return !isFirstChange && valueChanged;
+};
+
+
+
+export const firstSimpleChange = (key: string, changes: SimpleChanges): boolean => {
+  const found = key in changes;
+  const isFirstChange = found && changes[key].isFirstChange();
+  return isFirstChange;
+};
+
+
+export const noop = (): void => {};
+
+
+export const stringToBase64 = (str: string): string => Buffer.from(str).toString('base64');
+
+
+
+export const getArrayMemberByObjectAttribute = <T extends Record<string, T>>(array: T[], key: string, value: unknown): T => {
+  for (const member of array) {
+    if (member[key] === value) {
+      return member;
+    }
   }
-  return visibleElements;
-}
+  throw new Error('Not found');
+};
+
+
+
+export const toEnumerable = (obj: any) => Object.fromEntries(
+  Object.getOwnPropertyNames(obj).map(prop => [prop, obj[prop]])
+);

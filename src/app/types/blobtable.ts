@@ -1,3 +1,1 @@
-export interface BlobTable {
-  [key: string]: string;
-}
+export type BlobTable = Record<string, string>;

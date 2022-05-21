@@ -1,0 +1,64 @@
+.full-width {
+  width: 100%;
+}
+
+.column1 {
+  white-space: nowrap;
+  width: 150px;
+}
+
+.line-separator {
+  height: 7px;
+}
+
+.ourFont,
+.p-button-text {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont !important;
+}
+
+.p-radiobutton-box.p-state-active {
+  background-color: rgb(59, 153, 252);
+}
+
+.minDimensionsTooltip.p-tooltip .p-tooltip-text {
+  width: 350px;
+}
+
+.contentLimitDistillationTooltip.p-tooltip .p-tooltip-text {
+  width: 300px;
+}
+
+.textDistillationTooltip.p-tooltip .p-tooltip-text {
+  width: 300px;
+}
+
+.regexDistillationTooltip.p-tooltip .p-tooltip-text {
+  width: 400px;
+}
+
+.hashingTooltip.p-tooltip .p-tooltip-text {
+  width: 405px;
+}
+
+.hashing256Tooltip.p-tooltip .p-tooltip-text {
+  width: 425px;
+}
+
+.addCollectionTooltip.p-tooltip .p-tooltip-text {
+  white-space: pre-line;
+  width: 375px;
+}
+
+.saServerTitle {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.fa-deselect {
+  color: gray !important;
+}
+
+.investigationTooltip.p-tooltip .p-tooltip-text {
+  white-space: pre-line;
+  width: 375px;
+}

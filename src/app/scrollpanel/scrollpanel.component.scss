@@ -1,5 +1,5 @@
 /*
-.ui-scrollpanel-wrapper {
+.p-scrollpanel-wrapper {
     // nix
     overflow: hidden;
     width: 100%;
@@ -11,7 +11,7 @@
 */
 
 /*
-.ui-scrollpanel-content {
+.p-scrollpanel-content {
     // nix
     height: calc(100% + 18px);
     width: calc(100% + 18px);
@@ -22,7 +22,7 @@
 }
 */
 
-.ui-scrollpanel-bar {
+.p-scrollpanel-bar {
     // kept
     position: relative;
     background: #c1c1c1;
@@ -34,7 +34,7 @@
     // transition: opacity 0.25s linear;
 }
 
-.ui-scrollpanel-bar-y {
+.p-scrollpanel-bar-y {
     // kept
     width: 9px;
     top: 0;
@@ -42,24 +42,24 @@
 }
 
 /*
-.ui-scrollpanel-bar-x {
+.p-scrollpanel-bar-x {
     // nix
     height: 9px;
     bottom: 0;
 }
 */
 
-.ui-scrollpanel-hidden {
+.p-scrollpanel-hidden {
     visibility: hidden;
 }
 
 /*
-.ui-scrollpanel:hover .ui-scrollpanel-bar,
-.ui-scrollpanel:active .ui-scrollpanel-bar {
+.p-scrollpanel:hover .p-scrollpanel-bar,
+.p-scrollpanel:active .p-scrollpanel-bar {
     opacity: 1;
 }*/
 
-.ui-scrollpanel-grabbed {
+.p-scrollpanel-grabbed {
     -o-user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
@@ -67,7 +67,7 @@
     user-select: none;
 }
 
-.ui-scrollpanel {
+.p-scrollpanel {
     // kept
     position: absolute;
     width: 9px;

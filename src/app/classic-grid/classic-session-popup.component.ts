@@ -1,8 +1,21 @@
-import { Component, OnInit, OnChanges, ElementRef, Input } from '@angular/core';
-import { trigger, state, style, animate, transition } from '@angular/animations';
+import {
+  Component,
+  OnInit,
+  OnChanges,
+  ElementRef,
+  Input
+} from '@angular/core';
+import {
+  trigger,
+  state,
+  style,
+  animate,
+  transition,
+  AnimationEvent
+} from '@angular/animations';
 
 @Component( {
-  selector: 'classic-session-popup',
+  selector: 'app-classic-session-popup',
   templateUrl: './classic-session-popup.component.html',
   animations: [
     trigger(
@@ -32,25 +45,25 @@ export class ClassicSessionPopupComponent implements OnInit, OnChanges {
 
 
 
-  ngOnChanges(values: any): void {
+  ngOnChanges(): void {
     // log.debug('ClassicSessionPopupComponent ngOnChanges(): values', values);
     this.enabledTrigger = this.enabled ? 'enabled' : 'disabled';
   }
 
 
 
-  onAnimationStart(event) {
+  onAnimationStart(event: AnimationEvent) {
     if (event.toState === 'enabled') {
-      this.el.nativeElement.style['display'] = 'block';
+      this.el.nativeElement.style.display = 'block';
     }
   }
 
 
 
-  onAnimationDone(event) {
+  onAnimationDone(event: AnimationEvent) {
     // log.debug('ModalComponent: onAnimationDone(): event:', event);
     if (event.toState === 'disabled') {
-      this.el.nativeElement.style['display'] = 'none';
+      this.el.nativeElement.style.display = 'none';
     }
   }
 

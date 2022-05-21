@@ -1,8 +1,10 @@
+import { ContentMask } from 'types/contentmask';
+
 export abstract class AbstractGrid {
-  onSearchBarOpen: Function;
-  onMaskChanged: Function;
-  onSearchTermsTyped: Function;
-  onToggleCaseSensitiveSearch: Function;
-  onNextSessionClicked: Function;
-  onPreviousSessionClicked: Function;
+  onSearchBarOpen: (state: boolean) => void;
+  onMaskChanged: (event: ContentMask) => void;
+  onSearchTermsTyped: (searchTerms: string) => void;
+  onToggleCaseSensitiveSearch: () => void;
+  onNextSessionClicked: () => void;
+  onPreviousSessionClicked: () => void;
 }

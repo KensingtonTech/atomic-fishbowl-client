@@ -1,0 +1,46 @@
+<app-modal
+  [id]="id"
+  class="downloadfile-confirm-modal"
+  [secondLevel]="true"
+  bodyClass="noselect modal-confirm">
+
+  <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 100px; text-align: center;">
+
+    <span
+      class="fa fa-exclamation-circle fa-fw fa-5x"
+      style="display: inline-block; color: red; vertical-align: middle; line-height: 100px;">
+    </span>
+
+  </div>
+
+  <div style="position: absolute; left: 100px; right: 10px; top: 0; bottom: 0;">
+
+    <p>
+
+        Are you sure you want to download file '<b>{{utils.pathToFilename(file)}}</b>'?
+
+    </p>
+
+    <p>
+      
+      This is potentially unsafe.  Only do this if you're really sure that you know what you're doing!
+    
+    </p>
+
+    <div style="float: right;">
+
+      <p-button
+        (onClick)="confirm()"
+        label="Confirm">
+      </p-button>
+
+      <p-button
+        (onClick)="cancel()"
+        label="Cancel">
+      </p-button>
+
+    </div>
+
+  </div>
+
+</app-modal>

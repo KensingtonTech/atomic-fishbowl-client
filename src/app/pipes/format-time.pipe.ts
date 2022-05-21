@@ -6,7 +6,13 @@ import dayjs from 'dayjs';
 
 export class FormatTimePipe implements PipeTransform {
 
-  transform(value: any, args?: string): any {
+  transform(value?: number | string | number[] | string[], args?: string): string | void {
+    if (Array.isArray(value)) {
+      value = value[0];
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
     if (!value) {
       return;
     }

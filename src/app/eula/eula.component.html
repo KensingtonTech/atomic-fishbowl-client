@@ -1,0 +1,18 @@
+<div class="eula-container">
+
+  <h1>Atomic Fishbowl</h1>
+
+  <h2>End User License Agreement</h2>
+
+  <div
+    [innerHTML]="eula"
+    style="text-align: left;">
+  </div>
+
+  <p-button
+    type="button"
+    (onClick)="onAccept()"
+    label="I Agree">
+  </p-button>
+
+</div>

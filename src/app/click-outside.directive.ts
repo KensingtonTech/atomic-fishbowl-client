@@ -1,32 +1,28 @@
-import { Directive, ElementRef, Output, EventEmitter, HostListener } from '@angular/core';
+import {
+  Directive,
+  Output,
+  EventEmitter,
+  HostListener
+} from '@angular/core';
 import * as log from 'loglevel';
 
 @Directive({
-    selector: '[clickOutside]'
+  // eslint-disable-next-line @angular-eslint/directive-selector
+  selector: '[clickOutside]'
 })
 export class ClickOutsideDirective {
+  constructor() {}
 
-    constructor(private el: ElementRef ) {}
+  @Output() clickOutside = new EventEmitter();
 
-    @Output() clickOutside = new EventEmitter();
-
-    @HostListener('document:click', ['$event']) onClick(event: any) {
-        log.debug('ClickOutsideDirective: onClick(): event.target:', event.target);
-        const targetElement: Element = event.target;
-        const classList = targetElement.classList;
-        log.debug('ClickOutsideDirective: onClick(): classList:', classList);
-        let clickedInside = false;
-
-        if (classList.contains('routerIcon')) {
-            clickedInside = true;
-        }
-
-        log.debug('ClickOutsideDirective: onClick(): el:', this.el.nativeElement);
-        log.debug('ClickOutsideDirective: onClick(): clickedInside:', clickedInside);
-
-        if (!clickedInside) {
-            this.clickOutside.emit();
-        }
+  @HostListener('document:click', ['$event']) onClick(event: MouseEvent) {
+    if (!event.target) {
+      return;
     }
-
+    const targetElement = event.target as HTMLElement;
+    const classList = targetElement.classList;
+    if (!classList.contains('routerIcon')) {
+      this.clickOutside.emit();
+    }
+  }
 }

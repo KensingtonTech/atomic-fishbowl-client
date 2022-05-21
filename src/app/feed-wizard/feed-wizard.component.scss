@@ -1,0 +1,85 @@
+.table {
+  display: table;
+  border-collapse: separate;
+  border-spacing: 0.75em;
+  width: 100%;
+}
+
+.csv-table {
+  border-spacing: 0;
+}
+
+.header {
+  display: table-header-group;
+}
+
+.header-cell {
+  display: table-cell;
+  font-weight: bold;
+}
+
+.row {
+  display: table-row;
+}
+
+.left-column {
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+.right-column {
+  width: 100%;
+}
+
+.cell {
+  display: table-cell;
+  padding: 0.1em;
+}
+
+.csv-cell {
+  border: 0.05em solid black;
+}
+
+.row-group {
+  display: table-row-group;
+  border: 0.05em solid black;
+}
+
+.row-group > .row:nth-child(even) {background: #CCC;}
+.row-group > .row:nth-child(odd) {background: #FFF;}
+
+.center {
+  text-align: center;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.p-float-label {
+  display: inline-block;
+}
+
+.csv-header {
+  background: red !important;
+  color: white;
+}
+
+.dragButton {
+  position: relative;
+  background-color: initial;
+  width: fit-content;
+}
+
+.dragButton:after {
+   content: '';
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   position: absolute;
+}
+
+.headerButton {
+  font-size: .8em;
+}

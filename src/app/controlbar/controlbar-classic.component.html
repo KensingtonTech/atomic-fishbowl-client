@@ -1,29 +1,69 @@
-<div class="noselect">
+<div class="flex align-items-center">
 
-  <router-dropdown (isOpen)="onRouterDropdownOpen($event)"></router-dropdown>
+  <div class="control-button-area noselect flex align-items-center gap-2">
+    
+    <app-router-dropdown
+      (isOpen)="onRouterDropdownOpen($event)"
+      pTooltip="Select view"
+      tooltipPosition="bottom"
+      [showDelay]="500">
+    </app-router-dropdown>
+  
+    <span
+      *ngIf="!routerDropdownOpen"
+      toggleFullscreen
+      class="icon fa fa-desktop fa-2x fa-fw clickable"
+      pTooltip="Toggle fullscreen"
+      tooltipPosition="bottom"
+      [showDelay]="500">
+    </span>
+  
+    <span
+      *ngIf="!routerDropdownOpen"
+      (click)="zoomToFit()"
+      class="icon fa fa-home fa-2x fa-fw clickable"
+      pTooltip="Zoom to fit"
+      tooltipPosition="bottom"
+      [showDelay]="500">
+    </span>
+  
+    <span
+      *ngIf="!routerDropdownOpen"
+      (click)="zoomOut()"
+      class="icon fa fa-search-minus fa-2x fa-fw clickable"
+      pTooltip="Zoom out"
+      tooltipPosition="bottom"
+      [showDelay]="500">
+    </span>
+  
+    <span
+      *ngIf="!routerDropdownOpen"
+      (click)="zoomIn()"
+      class="icon fa fa-search-plus fa-2x fa-fw clickable"
+      pTooltip="Zoom in"
+      tooltipPosition="bottom"
+      [showDelay]="500">
+    </span>
 
-  <span
-    *ngIf="!routerDropdownOpen"
-    toggleFullscreen
-    class="icon fa fa-desktop fa-2x fa-fw">
-  </span>
+    <!-- pause / resume buttons for monitoring collections -->
+    <i
+      *ngIf="isMonitoringCollection && !pauseMonitoring"
+      class="fa fa-pause-circle-o fa-4x clickable white"
+      (click)="suspendMonitoringClicked.emit()">
+    </i>
 
-  <span
-    *ngIf="!routerDropdownOpen"
-    (click)="zoomToFit()"
-    class="icon fa fa-home fa-2x fa-fw">
-  </span>
+    <i
+      *ngIf="isMonitoringCollection && pauseMonitoring"
+      class="fa fa-play-circle-o fa-4x clickable white"
+      (click)="resumeMonitoringClicked.emit()">
+    </i>
 
-  <span
-    *ngIf="!routerDropdownOpen"
-    (click)="zoomOut()"
-    class="icon fa fa-search-minus fa-2x fa-fw">
-  </span>
+  </div>
 
-  <span
-    *ngIf="!routerDropdownOpen"
-    (click)="zoomIn()"
-    class="icon fa fa-search-plus fa-2x fa-fw">
-  </span>
+  <!-- keeps icons from shifting when switching to / from monitoring collection -->
+  <i
+    *ngIf="!isMonitoringCollection"
+    class="fa fa-pause-circle-o fa-4x invisible">
+  </i>
 
 </div>

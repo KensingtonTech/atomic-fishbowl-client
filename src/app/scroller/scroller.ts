@@ -1,6 +1,6 @@
 import { NgZone } from '@angular/core';
 import { ScrollerAnimate } from './animate';
-
+import { ScrollerOptions } from 'types/scroller';
 
 /*
  * Scroller
@@ -28,27 +28,25 @@ import { ScrollerAnimate } from './animate';
 
 /**
  * @param pos {Number} position between 0 (start of effect) and 1 (end of effect)
-**/
- function easeOutCubic(pos): number {
-  return (Math.pow((pos - 1), 3) + 1);
-}
+ **/
+ const easeOutCubic = (pos: number): number => (Math.pow((pos - 1), 3) + 1);
 
 
 
 /**
  * @param pos {Number} position between 0 (start of effect) and 1 (end of effect)
-**/
-function easeInOutCubic(pos): number {
+ **/
+const easeInOutCubic = (pos: number): number => {
   if ((pos /= 0.5) < 1) {
     return 0.5 * Math.pow(pos, 3);
   }
 
   return 0.5 * (Math.pow((pos - 2), 3) + 2);
-}
+};
 
 
 
-function NOOP() {}
+const NOOP = () => {};
 
 
 
@@ -63,41 +61,36 @@ export class Scroller {
    * A pure logic typescript 'component' for 'virtual' scrolling/zooming.
    */
 
-  constructor(callback, options, zone) {
-    this.__renderCallback = callback;
-    Object.keys(options).forEach( key => this.options[key] = options[key] ); // assign options to this.options
+  constructor(
+    renderCallback: (scrollLeft: number, scrolltop: number, zoomLevel: number) => void,
+    options: Partial<ScrollerOptions>,
+    zone: NgZone
+  ) {
+    this.__renderCallback = renderCallback;
+    Object.entries(options)
+      .forEach( ([key, value]) => (this.options as Record<string, any>)[key] = value);
     this.zone = zone;
     this.__animator = new ScrollerAnimate(this.zone);
   }
 
   private zone: NgZone;
-
   private __animator: ScrollerAnimate;
-
-  private __zoomComplete: Function = null;
-
+  private __zoomComplete?: () => void;
   private __interruptedAnimation: boolean;
-
   private __initialTouchLeft: number;
-
   private __initialTouchTop: number;
-
   private __lastScale: number;
-
   private __enableScrollX: boolean;
-
   private __enableScrollY: boolean;
-
   private __zoomLevelStart: number;
 
 
 
-  private __renderCallback;
+  private __renderCallback: (scrollLeft: number, scrolltop: number, zoomLevel: number) => void;
 
   private __scrollCompleteCallback = NOOP; // this takes precedence over options.scrollingComplete.  It can be set by the scrollBy()
 
-  options = {
-
+  options: ScrollerOptions = {
     /** Enable scrolling on x-axis */
     scrollingX: true,
 
@@ -228,19 +221,19 @@ export class Scroller {
   __snapHeight = 100;
 
   /** {Integer} Height to assign to refresh area */
-  __refreshHeight: number = null;
+  __refreshHeight: number;
 
   /** {Boolean} Whether the refresh process is enabled when the event is released now */
   __refreshActive = false;
 
   /** {Function} Callback to execute on activation. This is for signalling the user about a refresh is about to happen when he release */
-  __refreshActivate: Function = null;
+  __refreshActivate: () => void;
 
   /** {Function} Callback to execute on deactivation. This is for signalling the user about the refresh being cancelled */
-  __refreshDeactivate: Function = null;
+  __refreshDeactivate: () => void;
 
   /** {Function} Callback to execute to start the actual refresh. Call {@link #refreshFinish} when done */
-  __refreshStart: Function = null;
+  __refreshStart: () => void;
 
   /** {Number} Zoom level */
   __zoomLevel = 1;
@@ -275,16 +268,16 @@ export class Scroller {
   */
 
   /** {Number} Left position of finger at start */
-  __lastTouchLeft: number = null;
+  __lastTouchLeft: number;
 
   /** {Number} Top position of finger at start */
-  __lastTouchTop: number = null;
+  __lastTouchTop: number;
 
   /** {Date} Timestamp of last move of finger. Used to limit tracking range for deceleration speed. */
-  __lastTouchMove: number = null;
+  __lastTouchMove: number;
 
   /** {Array} List of positions, uses three indexes for each state: left, top, timestamp */
-  __positions: number[] = null;
+  __positions: number[];
 
 
 
@@ -295,22 +288,22 @@ export class Scroller {
   */
 
   /** {Integer} Minimum left scroll position during deceleration */
-  __minDecelerationScrollLeft: number = null;
+  __minDecelerationScrollLeft: number;
 
   /** {Integer} Minimum top scroll position during deceleration */
-  __minDecelerationScrollTop: number = null;
+  __minDecelerationScrollTop: number;
 
   /** {Integer} Maximum left scroll position during deceleration */
-  __maxDecelerationScrollLeft: number = null;
+  __maxDecelerationScrollLeft: number;
 
   /** {Integer} Maximum top scroll position during deceleration */
-  __maxDecelerationScrollTop: number = null;
+  __maxDecelerationScrollTop: number;
 
   /** {Number} Current factor to modify horizontal scroll position with on every step */
-  __decelerationVelocityX: number = null;
+  __decelerationVelocityX: number;
 
   /** {Number} Current factor to modify vertical scroll position with on every step */
-  __decelerationVelocityY: number = null;
+  __decelerationVelocityY: number;
 
 
 
@@ -330,7 +323,7 @@ export class Scroller {
    * @param contentWidth {Integer ? null} Outer width of inner element
    * @param contentHeight {Integer ? null} Outer height of inner element
    */
-  setDimensions(clientWidth, clientHeight, contentWidth, contentHeight) {
+  setDimensions(clientWidth: number, clientHeight: number, contentWidth: number, contentHeight: number) {
 
     // Only update values which are defined
     if (clientWidth === +clientWidth) {
@@ -365,9 +358,9 @@ export class Scroller {
    * @param left {Integer ? 0} Left position of outer element
    * @param top {Integer ? 0} Top position of outer element
    */
-  setPosition(left, top) {
-    this.__clientLeft = left || 0;
-    this.__clientTop = top || 0;
+  setPosition(left: number, top: number) {
+    this.__clientLeft = left ?? 0;
+    this.__clientTop = top ?? 0;
 
   }
 
@@ -379,7 +372,7 @@ export class Scroller {
    * @param width {Integer} Snapping width
    * @param height {Integer} Snapping height
    */
-  setSnapSize(width, height) {
+  setSnapSize(width: number, height: number) {
     this.__snapWidth = width;
     this.__snapHeight = height;
   }
@@ -396,7 +389,7 @@ export class Scroller {
    * @param deactivateCallback {Function} Callback to execute on deactivation. This is for signalling the user about the refresh being cancelled.
    * @param startCallback {Function} Callback to execute to start the real async refresh action. Call {@link #finishPullToRefresh} after finish of refresh.
    */
-  activatePullToRefresh(height, activateCallback, deactivateCallback, startCallback) {
+  activatePullToRefresh(height: number, activateCallback: () => void, deactivateCallback: () => void, startCallback: () => void) {
     this.__refreshHeight = height;
     this.__refreshActivate = activateCallback;
     this.__refreshDeactivate = deactivateCallback;
@@ -437,7 +430,7 @@ export class Scroller {
   /**
    * Returns the scroll position and zooming values
    *
-   * @return {Map} `left` and `top` scroll position and `zoom` level
+   * @return `left` and `top` scroll position and `zoom` level
    */
   getValues() {
     return {
@@ -451,7 +444,7 @@ export class Scroller {
   /**
    * Returns the maximum scroll values
    *
-   * @return {Map} `left` and `top` maximum scroll values
+   * @return `left` and `top` maximum scroll values
    */
   getScrollMax() {
     return {
@@ -472,7 +465,7 @@ export class Scroller {
    * @param originTop {Number ? null} Zoom in at given top coordinate
    * @param callback {Function ? null} A callback that gets fired when the zoom is complete.
    */
-  zoomTo(level, animate, originLeft, originTop, callback = null) {
+  zoomTo(level: number, animate: boolean, originLeft?: number, originTop?: number, callback?: () => void) {
     if (!this.options.zooming) {
       throw new Error('Zooming is not enabled!');
     }
@@ -491,11 +484,11 @@ export class Scroller {
     const oldLevel = this.__zoomLevel;
 
     // Normalize input origin to center of viewport if not defined
-    if (originLeft == null) {
+    if (originLeft === undefined) {
       originLeft = this.__clientWidth / 2;
     }
 
-    if (originTop == null) {
+    if (originTop === undefined) {
       originTop = this.__clientHeight / 2;
     }
 
@@ -540,7 +533,7 @@ export class Scroller {
    * @param originTop {Number ? 0} Zoom in at given top coordinate
    * @param callback {Function ? null} A callback that gets fired when the zoom is complete.
    */
-  zoomBy(factor, animate, originLeft, originTop, callback) {
+  zoomBy(factor: number, animate: boolean, originLeft: number, originTop: number, callback: () => void) {
     this.zoomTo(this.__zoomLevel * factor, animate, originLeft, originTop, callback);
 
   }
@@ -555,7 +548,7 @@ export class Scroller {
    * @param animate {Boolean?false} Whether the scrolling should happen using an animation
    * @param zoom {Number?null} Zoom level to go to
    */
-  scrollTo(left, top, animate, zoom: number = null) {
+  scrollTo(left: number, top: number, animate = false, zoom?: number) {
 
     // Stop deceleration
     if (this.__isDecelerating) {
@@ -564,7 +557,7 @@ export class Scroller {
     }
 
     // Correct coordinates based on new zoom level
-    if (zoom !== null && zoom !== this.__zoomLevel) {
+    if (zoom !== undefined && zoom !== this.__zoomLevel) {
 
       if (!this.options.zooming) {
         throw new Error('Zooming is not enabled!');
@@ -638,7 +631,7 @@ export class Scroller {
 
 
 
-  setScrollTop(scrollTop) {
+  setScrollTop(scrollTop: number) {
     this.__scrollTop = scrollTop;
   }
 
@@ -650,14 +643,15 @@ export class Scroller {
    * @param top {Number ? 0} Scroll y-axis by given offset
    * @param animate {Boolean ? false} Whether to animate the given change
    */
-  scrollBy(left, top, animate, startNew = false, callback = null) {
+  scrollBy(left = 0, top = 0, animate = false, startNew = false, scrollCompleteCallback?: () => void) {
     this.__scrollCompleteCallback = NOOP;
-    if (callback) {
+    if (scrollCompleteCallback) {
       // callback is the callback to run when the animation has completed
-      this.__scrollCompleteCallback = callback;
+      this.__scrollCompleteCallback = scrollCompleteCallback;
     }
 
-    let startLeft, startTop;
+    let startLeft: number;
+    let startTop: number;
     if (!startNew) {
       startLeft = this.__isAnimating ? this.__scheduledLeft : this.__scrollLeft;
       startTop = this.__isAnimating ? this.__scheduledTop : this.__scrollTop;
@@ -695,7 +689,7 @@ export class Scroller {
    * @param top {Number} Top scroll position
    * @param animate {Boolean?false} Whether animation should be used to move to the new coordinates
    */
-  __publish(left, top, zoom, animate = null) {
+  __publish(left: number, top: number, zoomLevel: number, animate = false) {
     // Remember whether we had an animation, then we try to continue based on the current "drive" of the animation
     const wasAnimating = this.__isAnimating;
     if (wasAnimating) {
@@ -704,13 +698,12 @@ export class Scroller {
     }
 
     if (animate && this.options.animating) {
-
       // we're animating
 
       // Keep scheduled positions for scrollBy/zoomBy functionality
       this.__scheduledLeft = left;
       this.__scheduledTop = top;
-      this.__scheduledZoom = zoom;
+      this.__scheduledZoom = zoomLevel;
 
       const oldLeft = this.__scrollLeft;
       const oldTop = this.__scrollTop;
@@ -718,12 +711,11 @@ export class Scroller {
 
       const diffLeft = left - oldLeft;
       const diffTop = top - oldTop;
-      const diffZoom = zoom - oldZoom;
+      const diffZoom = zoomLevel - oldZoom;
 
-      const step = (percentComplete, now, render) => {
+      const step = (percentComplete: number, now: number, render: boolean) => {
 
         if (render) {
-
           this.__scrollLeft = oldLeft + (diffLeft * percentComplete);
           this.__scrollTop = oldTop + (diffTop * percentComplete);
           this.__zoomLevel = oldZoom + (diffZoom * percentComplete);
@@ -737,13 +729,11 @@ export class Scroller {
         }
       };
 
-      const verify = (id) => {
-        return this.__animationId === id;
-      };
+      const verify = (id: number) => this.__animationId === id;
 
-      const completed = (renderedFramesPerSecond, animationId, wasFinished) => {
-        // console.log('completed: wasFinished:', wasFinished);
-        if (animationId === this.__isAnimating) {
+      const completed = (renderedFramesPerSecond: number, animationId: number, wasFinished: boolean) => {
+        // I have literally no idea what the author was trying to do here, so hoping that type coercion is sufficient
+        if (animationId === (this.__isAnimating as unknown as number)) {
           this.__isAnimating = false;
         }
         if (this.__didDecelerationComplete || wasFinished) {
@@ -760,18 +750,18 @@ export class Scroller {
 
           if (this.__zoomComplete) {
             this.__zoomComplete();
-            this.__zoomComplete = null;
+            this.__zoomComplete = undefined;
           }
         }
       };
 
       // When continuing based on previous animation we choose an ease-out animation instead of ease-in-out
-      let easingFunc = null;
+      let easingFunc;
       if (this.options.easing) {
         easingFunc = wasAnimating ? easeOutCubic : easeInOutCubic;
       }
       this.__animationId = this.__animator.start(step, verify, completed, this.options.animationDuration, easingFunc);
-      this.__isAnimating = this.__animationId !== null ? true : false;
+      this.__isAnimating = this.__animationId !== undefined;
 
     }
 
@@ -781,11 +771,11 @@ export class Scroller {
 
       this.__scheduledLeft = this.__scrollLeft = left;
       this.__scheduledTop = this.__scrollTop = top;
-      this.__scheduledZoom = this.__zoomLevel = zoom;
+      this.__scheduledZoom = this.__zoomLevel = zoomLevel;
 
       // Push values out
       if (this.__renderCallback) {
-        this.__renderCallback(left, top, zoom);
+        this.__renderCallback(left, top, zoomLevel);
       }
 
       // Fix max scroll ranges
@@ -794,7 +784,7 @@ export class Scroller {
 
         if (this.__zoomComplete) {
           this.__zoomComplete();
-          this.__zoomComplete = null;
+          this.__zoomComplete = undefined;
         }
       }
     }
@@ -805,8 +795,8 @@ export class Scroller {
   /**
    * Recomputes scroll minimum values based on client dimensions and content dimensions.
    */
-  __computeScrollMax(zoomLevel = null) {
-    if (zoomLevel === null) {
+  __computeScrollMax(zoomLevel?: number) {
+    if (zoomLevel === undefined) {
       zoomLevel = this.__zoomLevel;
     }
 
@@ -827,9 +817,8 @@ export class Scroller {
    * Called when a touch sequence end and the speed of the finger was high enough
    * to switch into deceleration mode.
    */
-  __startDeceleration(timeStamp) {
+  __startDeceleration(timestamp: number) {
     if (this.options.paging) {
-
       const scrollLeft = Math.max(Math.min(this.__scrollLeft, this.__maxScrollLeft), 0);
       const scrollTop = Math.max(Math.min(this.__scrollTop, this.__maxScrollTop), 0);
       const clientWidth = this.__clientWidth;
@@ -844,16 +833,14 @@ export class Scroller {
 
     }
     else {
-
       this.__minDecelerationScrollLeft = 0;
       this.__minDecelerationScrollTop = 0;
       this.__maxDecelerationScrollLeft = this.__maxScrollLeft;
       this.__maxDecelerationScrollTop = this.__maxScrollTop;
-
     }
 
     // Wrap class method
-    const step = (percent, now, render) => {
+    const step = (percent: number, now: number, render: boolean) => {
       this.__stepThroughDeceleration(render);
     };
 
@@ -870,7 +857,7 @@ export class Scroller {
       return shouldContinue;
     };
 
-    const completed = (renderedFramesPerSecond, animationId, wasFinished) => {
+    const completed = (renderedFramesPerSecond: number, animationId: number, wasFinished: boolean) => {
       this.__isDecelerating = false;
       if (this.__didDecelerationComplete) {
         this.options.scrollingComplete();
@@ -881,7 +868,7 @@ export class Scroller {
     };
 
     // Start animation and switch on flag
-    this.__isDecelerating = this.__animator.start(step, verify, completed) !== null ? true : false;
+    this.__isDecelerating = this.__animator.start(step, verify, completed) !== undefined;
   }
 
 
@@ -891,7 +878,7 @@ export class Scroller {
    *
    * @param inMemory {Boolean?false} Whether to not render the current step, but keep it in memory only. Used internally only!
    */
-  __stepThroughDeceleration(render) {
+  __stepThroughDeceleration(inMemory = false) {
     //
     // COMPUTE NEXT SCROLL POSITION
     //
@@ -926,7 +913,7 @@ export class Scroller {
     // UPDATE SCROLL POSITION
     //
 
-    if (render) {
+    if (inMemory) {
       this.__publish(scrollLeft, scrollTop, this.__zoomLevel);
     }
     else {
@@ -1031,7 +1018,7 @@ export class Scroller {
   doTouchStart(touches, timeStamp) {
 
     // Array-like check is enough here
-    if (touches.length == null) {
+    if (touches.length === null) {
       throw new Error('Invalid touch list: ' + touches);
     }
 
@@ -1122,7 +1109,7 @@ export class Scroller {
   doTouchMove(touches, timeStamp, scale) {
 
     // Array-like check is enough here
-    if (touches.length == null) {
+    if (touches.length === null) {
       throw new Error('Invalid touch list: ' + touches);
     }
 
@@ -1167,7 +1154,7 @@ export class Scroller {
       let level = this.__zoomLevel;
 
       // Work with scaling
-      if (scale != null && this.options.zooming) {
+      if (scale !== null && this.options.zooming) {
 
         let oldLevel = level;
 
@@ -1234,7 +1221,7 @@ export class Scroller {
             scrollTop += (moveY / 2 * this.options.speedMultiplier);
 
             // Support pull-to-refresh (only when only y is scrollable)
-            if (!this.__enableScrollX && this.__refreshHeight != null) {
+            if (!this.__enableScrollX && this.__refreshHeight !== null) {
 
               if (!this.__refreshActive && scrollTop <= -this.__refreshHeight) {
 

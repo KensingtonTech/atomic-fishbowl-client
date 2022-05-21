@@ -1,17 +1,45 @@
-/*
-  This is a "Solution Style" tsconfig.json file, and is used by editors and TypeScript’s language server to improve development experience.
-  It is not intended to be used to perform a compilation.
-
-  To learn more about this file see: https://angular.io/config/solution-tsconfig.
-*/
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./src/tsconfig.app.json"
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "es2017",
+    "lib": [
+      "es2021",
+      "dom"
+    ],
+    "paths": {
+      "dragula": [
+        "node_modules/@kensingtontech/dragula/*"
+      ],
+      "types/*": [
+        "src/app/types/*"
+      ],
+      "services/*": [
+        "src/app/services/*"
+      ]
     },
-    {
-      "path": "./src/tsconfig.spec.json"
-    }
-  ]
+    "allowSyntheticDefaultImports": true
+  },
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true,
+    "strictInjectionParameters": true,
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  }
 }

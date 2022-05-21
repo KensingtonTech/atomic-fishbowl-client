@@ -1,13 +1,30 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit, OnChanges, ViewChild, ElementRef, NgZone, SimpleChanges } from '@angular/core';
-import { Content } from 'types/content';
-import { trigger, state, style, transition, animate, useAnimation } from '@angular/animations';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Input,
+  OnInit,
+  OnChanges,
+  ViewChild,
+  ElementRef,
+  NgZone,
+  SimpleChanges
+} from '@angular/core';
+import { ContentItem } from 'types/collection';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  useAnimation
+} from '@angular/animations';
 import { zoomIn, zoomOut } from 'ng-animate';
 import { DataService } from 'services/data.service';
 import * as utils from '../utils';
 import * as log from 'loglevel';
 
 @Component({
-  selector: 'classic-tile',
+  selector: 'app-classic-tile',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './classic-tile.component.html',
   animations: [
@@ -51,18 +68,20 @@ import * as log from 'loglevel';
 
 export class ClassicTileComponent implements OnInit, OnChanges {
 
-  constructor(private changeDetectionRef: ChangeDetectorRef,
-              public dataService: DataService,
-              private zone: NgZone,
-              private el: ElementRef ) {}
+  constructor(
+    private changeDetectionRef: ChangeDetectorRef,
+    public dataService: DataService,
+    private zone: NgZone,
+    private el: ElementRef
+  ) {}
 
   utils = utils;
 
   @ViewChild('image', { static: true }) imageRef: ElementRef;
   @ViewChild('highResImage') highResImageRef: ElementRef;
 
-  @Input() content: Content;
-  @Input() collectionId: string = null;
+  @Input() content: ContentItem;
+  @Input() collectionId: string;
   @Input() loadHighRes = false; // this triggers initial loading of the high-res image (not the displaying of it - bound from the parent's loadAllHighResImages
   @Input() showHighRes = false; // this triggers the displaying of high-res images
   @Input() hide = false;
@@ -76,21 +95,21 @@ export class ClassicTileComponent implements OnInit, OnChanges {
 
 
   ngOnInit(): void {
-    let endFunc: Function;
+    let endFunc: () => void;
 
     switch (this.content.contentType) {
       case 'image':
-        this.imgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.thumbnail)}`;
+        this.imgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.thumbnail as string)}`;
         this.highResImgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.contentFile)}`;
         break;
       case 'pdf':
-        this.imgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.thumbnail)}`;
-        this.highResImgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.pdfImage)}`;
+        this.imgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.thumbnail as string)}`;
+        this.highResImgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.pdfImage as string)}`;
         this.contentClass = 'pdf';
         break;
       case 'office':
-        this.imgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.thumbnail)}`;
-        this.highResImgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.pdfImage)}`;
+        this.imgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.thumbnail as string)}`;
+        this.highResImgSource = `/collections/${this.collectionId}/${utils.uriEncodeFilename(this.content.pdfImage as string)}`;
         this.contentClass = this.content.contentSubType;
         endFunc = () => {
           this.imageRef.nativeElement.setAttribute('contentSubType', this.content.contentSubType);
@@ -189,13 +208,11 @@ export class ClassicTileComponent implements OnInit, OnChanges {
 
 
 
-  onAnimationComplete(event) {
+  onAnimationComplete() {
     log.debug('ClassicTileComponent: onAnimationComplete():');
     if (this.animationState === 'zoomOut') {
       this.el.nativeElement.classList.add('hidden');
     }
   }
-
-
 }
 

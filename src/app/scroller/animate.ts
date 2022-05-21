@@ -4,16 +4,18 @@ export class ScrollerAnimate {
 
   private desiredFrames = 60;
   private millisecondsPerSecond = 1000;
-  private running = {};
+  private running = new Set<number>();
   private counter = 1;
   private zone: NgZone;
 
-  private animationFrameFunc: Function;
+  private animationFrameFunc: ((callback: FrameRequestCallback) => number) & ((callback: FrameRequestCallback) => number);
 
 
-  constructor(zone) {
+  constructor(zone: NgZone) {
     this.zone = zone;
-    this.zone.runOutsideAngular( () => this.animationFrameFunc = window.requestAnimationFrame );
+    this.zone.runOutsideAngular(
+      () => this.animationFrameFunc = window.requestAnimationFrame
+    );
   }
 
 
@@ -22,12 +24,12 @@ export class ScrollerAnimate {
    * Stops the given animation.
    *
    * @param id {Integer} Unique animation ID
-   * @return {Boolean} Whether the animation was stopped (aka, was running before)
+   * @return Whether the animation was stopped (aka, was running before)
    */
   stop(id: number): boolean {
-    const cleared = this.running[id] !== null;
+    const cleared = this.isRunning(id);
     if (cleared) {
-      this.running[id] = null;
+      this.running.delete(id);
     }
     return cleared;
   }
@@ -37,13 +39,13 @@ export class ScrollerAnimate {
   /**
    * Stops the current animation.
    *
-   * @return {Boolean} Whether the animation was stopped (aka, was running before)
+   * @return Whether the animation was stopped (aka, was running before)
    */
   stopCurrent(): boolean {
     const id = this.counter - 1;
-    const cleared = this.running[id] != null;
+    const cleared = this.isRunning(id);
     if (cleared) {
-      this.running[id] = null;
+      this.running.delete(id);
     }
     return cleared;
   }
@@ -54,10 +56,10 @@ export class ScrollerAnimate {
    * Whether the given animation is still running.
    *
    * @param id {Integer} Unique animation ID
-   * @return {Boolean} Whether the animation is still running
+   * @return Whether the animation is still running
    */
-  isRunning(id): boolean {
-    return this.running[id] !== null;
+  isRunning(id: number): boolean {
+    return this.running.has(id);
   }
 
 
@@ -74,9 +76,15 @@ export class ScrollerAnimate {
    * @param duration {Integer} Milliseconds to run the animation
    * @param easingMethod {Function} Pointer to easing function
    *   Signature of the method should be `function(percent) { return modifiedValue; }`
-   * @return {Integer} Identifier of animation. Can be used to stop it any time.
+   * @return Identifier of animation. Can be used to stop it any time.
    */
-  start(stepCallback, verifyCallback, completedCallback, duration = null, easingMethod = null): number {
+  start(
+    stepCallback: (pct: number, now: number, render: boolean) => boolean | void,
+    verifyCallback: (id: number) => boolean,
+    completedCallback: (droppedFrames: number, animationId: number, wasFinished: boolean) => void,
+    duration?: number,
+    easingMethod?: (percent: number) => number
+  ): number {
 
     const start = performance.now();
     let lastFrame = start;
@@ -85,38 +93,36 @@ export class ScrollerAnimate {
     const id = this.counter++;
 
     // Compacting running db automatically every few new animations
-    if (id % 20 === 0) {
-      const newRunning = {};
+    /*if (id % 20 === 0) {
+      const newRunning = new Set<number>();
       Object.keys(this.running).forEach( usedId => {
-        newRunning[usedId] = true;
+        newRunning[usedId as unknown as number] = true;
       });
       this.running = newRunning;
-    }
+    }*/
 
     // This is the internal step method which is called every few milliseconds
-    const step = virtual => {
-
+    const step = (virtual?: boolean | number): void => {
       // Normalize virtual value
-      const render = virtual !== true;
+      // eslint-disable-next-line eqeqeq
+      const render = virtual != true;
 
       // Get current time
       const now = performance.now();
 
       // Verification is executed before next animation step
-      if (!this.running[id] || (verifyCallback && !verifyCallback(id))) {
+      if (!this.isRunning(id) || (verifyCallback && !verifyCallback(id))) {
 
-        this.running[id] = null;
+        this.running.delete(id);
         if (completedCallback) {
           completedCallback(this.desiredFrames - (dropCounter / ((now - start) / this.millisecondsPerSecond)), id, false);
         }
         return;
-
       }
 
       // For the current rendering to apply let's update omitted steps in memory.
       // This is important to bring internal state variables up-to-date with progress in time.
       if (render) {
-
         const droppedFrames = Math.round((now - lastFrame) / (this.millisecondsPerSecond / this.desiredFrames)) - 1;
         for (let j = 0; j < Math.min(droppedFrames, 4); j++) {
           step(true);
@@ -136,9 +142,9 @@ export class ScrollerAnimate {
       // Execute step callback, then...
       const value = easingMethod ? easingMethod(percent) : percent;
       if ((stepCallback(value, now, render) === false || percent === 1) && render) {
-        this.running[id] = null;
+        this.running.delete(id);
         if (completedCallback) {
-          completedCallback(this.desiredFrames - (dropCounter / ((now - start) / this.millisecondsPerSecond)), id, percent === 1 || duration == null);
+          completedCallback(this.desiredFrames - (dropCounter / ((now - start) / this.millisecondsPerSecond)), id, percent === 1 || duration === undefined);
         }
       }
       else if (render) {
@@ -148,7 +154,7 @@ export class ScrollerAnimate {
     };
 
     // Mark as running
-    this.running[id] = true;
+    this.running.add(id);
 
     // Init first step
     this.animationFrameFunc(step);

@@ -5,6 +5,7 @@ import * as log from 'loglevel';
 // A directive that catches errors on image load
 
 @Directive({
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[imgerror] imgerror [imgerr] imgerr'
 })
 
@@ -14,7 +15,7 @@ export class ImageErrorDirective implements OnInit, OnDestroy {
 
   constructor(
     private el: ElementRef,
-    private authService: AuthenticationService) {}
+  ) {}
 
 
 
@@ -35,9 +36,9 @@ export class ImageErrorDirective implements OnInit, OnDestroy {
 
 
 
-  onError = (error) => {
+  onError = () => {
 
-  }
+  };
 
 
 }

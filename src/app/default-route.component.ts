@@ -5,7 +5,7 @@ import { Subscription} from 'rxjs';
 import * as log from 'loglevel';
 
 @Component({
-  selector: 'default-route',
+  selector: 'app-default-route',
   template: ''
 })
 
@@ -18,13 +18,11 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
   constructor(
     private toolService: ToolService,
     private route: ActivatedRoute,
-    private router: Router ) {}
-
-
+    private router: Router
+  ) {}
 
   private defaultRoute = 'masonryGrid';
-
-  private subscriptions = new Subscription;
+  private subscriptions = new Subscription();
 
 
 
@@ -34,8 +32,11 @@ export class DefaultRouteComponent implements OnInit, OnDestroy {
     // https://localhost/adhoc?query=abcd
     // https://localhost?query=abcd&something=somethingelse
     log.debug('DefaultRouteComponent: ngOnInit()');
-    this.subscriptions.add(this.route.queryParams.subscribe( (params: Params ) => this.onRouteParameters(params) ));
-    // log.debug('DefaultRouteComponent: ngOnInit(): params:', this.route.snapshot.queryParams);
+    this.subscriptions.add(
+      this.route.queryParams.subscribe(
+        (params: Params ) => this.onRouteParameters(params)
+      )
+    );
   }
 
 

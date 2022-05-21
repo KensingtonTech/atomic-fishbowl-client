@@ -1,34 +1,46 @@
-import { Directive, Inject, ElementRef, forwardRef, Input, OnDestroy, AfterViewInit, NgZone, Renderer2, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Directive,
+  Inject,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnDestroy,
+  AfterViewInit,
+  NgZone,
+  Renderer2,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
 import { IsotopeDirective } from './isotope.directive';
 import * as log from 'loglevel';
 
 
 @Directive({
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[isotope-brick], isotope-brick'
 })
 
 export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewInit {
 
-  // Enable mutation observer with [observeBrickMutations]="'true'"
-
-  constructor(private el: ElementRef,
-              private ngZone: NgZone,
-              private renderer: Renderer2,
-              @Inject(forwardRef(() => IsotopeDirective)) private isotopeComponent: IsotopeDirective ) {}
+  constructor(
+    private el: ElementRef,
+    private ngZone: NgZone,
+    private renderer: Renderer2,
+    @Inject(forwardRef(() => IsotopeDirective)) private isotopeDirective: IsotopeDirective
+  ) {}
 
   // tslint:disable-next-line:no-input-rename
-  @Input('observeBrickMutations') private enableObserver = false;
+  @Input() private enableObserver = false;
 
-  private observer: MutationObserver = null;
-  private loadComplete = false;
-
+  private observer: MutationObserver;
 
 
   ngAfterViewInit(): void {
-
     this.renderer.setStyle(this.el.nativeElement, 'visibility', 'hidden');
     // this.el.nativeElement.parentElement.removeChild(this.el.nativeElement); // will be re-added to DOM later by isotope.directive
-    this.ngZone.runOutsideAngular( () => this.el.nativeElement.addEventListener('onloaded', this.onImagesLoadedComplete ) );
+    this.ngZone.runOutsideAngular(
+      () => this.el.nativeElement.addEventListener('onloaded', this.onImagesLoadedComplete )
+    );
     if (this.enableObserver) {
       // enable mutation watcher
       log.debug('IsotopeBrickDirective: ngAfterViewInit(): Enabling mutation observer');
@@ -39,8 +51,10 @@ export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewIni
 
   ngOnDestroy(): void {
     // log.debug('IsotopeBrickDirective: ngOnDestroy() removing brick');
-    this.isotopeComponent.remove(this.el);
-    this.ngZone.runOutsideAngular( () => this.el.nativeElement.removeEventListener('onloaded', this.onImagesLoadedComplete ) );
+    this.isotopeDirective.remove(this.el);
+    this.ngZone.runOutsideAngular(
+      () => this.el.nativeElement.removeEventListener('onloaded', this.onImagesLoadedComplete )
+    );
     if (this.observer) {
       this.observer.disconnect();
     }
@@ -58,9 +72,8 @@ export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewIni
 
   onImagesLoadedComplete = () => {
     // log.debug('IsotopeBrickDirective: onImagesLoadedComplete(): proceeding to add brick to Isotope');
-    this.isotopeComponent.addBrick(this.el);
-    this.loadComplete = true;
-  }
+    this.isotopeDirective.addBrick(this.el);
+  };
 
 
 
@@ -69,9 +82,9 @@ export class IsotopeBrickDirective implements OnChanges, OnDestroy, AfterViewIni
 
     if (MutationObserver) {
       /** Watch for any changes to subtree */
-      this.observer = new MutationObserver( (mutations, observerFromElement) => {
+      this.observer = new MutationObserver( () => {
         log.debug('IsotopeBrickDirective: watchForHtmlChanges(): MutationObserver: calling layout()');
-        this.isotopeComponent.layout();
+        this.isotopeDirective.layout();
       });
 
       // define what element should be observed by the observer

@@ -1,5 +1,6 @@
 import { Subject, BehaviorSubject } from 'rxjs';
 import { IsotopeAPI } from './isotope-api';
+import * as utils from '../utils';
 /**
  * IsotopeOption
  */
@@ -19,87 +20,100 @@ export interface PackeryOption {
 
 
 
-export class IsotopeConfig {
-
-  layoutMode = 'masonry';
-  itemSelector: string;
+export interface IsotopeConfigOptions {
+  layoutMode?: string;
+  itemSelector?: string;
   masonry: MasonryOption;
-  packery: PackeryOption;
-  percentPosition: boolean;
-  stamp: string;
+  packery?: PackeryOption;
+  percentPosition?: boolean;
+  stamp?: string;
+  originLeft?: boolean;
+  originTop?: boolean;
+  containerStyle?: string;
+  transitionDuration?: string;
+  resize?: boolean;
+  initLayout?: boolean;
+}
+
+
+
+export class IsotopeConfig implements IsotopeConfigOptions {
+  layoutMode = 'masonry';
+  itemSelector?: string;
+  masonry: MasonryOption;
+  packery?: PackeryOption;
+  percentPosition?: boolean;
+  stamp?: string;
   originLeft = true;
   originTop = true;
-  containerStyle: any;
-  transitionDuration: string;
-  resize: boolean;
+  containerStyle?: string;
+  transitionDuration?: string;
+  resize?: boolean;
   initLayout = true;
-  layoutComplete: Subject<any> = new Subject<any>();
-  initialized: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  api: BehaviorSubject<IsotopeAPI> = new BehaviorSubject<IsotopeAPI>({
-    layout: null,
-    destroyMe: null,
-    initializeMe: null,
-    unhideAll: null,
-    basicLayout: null,
-    reloadItems: null
+  initialized = new BehaviorSubject<boolean>(false);
+  api = new BehaviorSubject<IsotopeAPI>({
+    layout: utils.noop,
+    destroyMe: utils.noop,
+    initializeMe: utils.noop,
+    unhideAll: utils.noop,
+    basicLayout: utils.noop,
+    reloadItems: utils.noop
   });
 
 
 
-  constructor( options?: any ) {
-
+  constructor( options?: IsotopeConfigOptions ) {
     if (!options) {
       return;
     }
 
-    if ('layoutMode' in options) {
+    if (options.layoutMode) {
       this.layoutMode = options.layoutMode;
     }
 
-    if ('itemSelector' in options) {
+    if (options.itemSelector) {
       this.itemSelector = options.itemSelector;
     }
 
-    if ('masonry' in options) {
+    if (options.masonry) {
       this.masonry = options.masonry;
     }
 
-    if ('packery' in options) {
+    if (options.packery) {
       this.packery = options.packery;
     }
 
-    if ('percentPosition' in options) {
+    if (options.percentPosition !== undefined) {
       this.percentPosition = options.percentPosition;
     }
 
-    if ('stamp' in options) {
+    if (options.stamp) {
       this.stamp = options.stamp;
     }
 
-    if ('originLeft' in options) {
+    if (options.originLeft !== undefined) {
       this.originLeft = options.originLeft;
     }
 
-    if ('originTop' in options) {
+    if (options.originTop !== undefined) {
       this.originTop = options.originTop;
     }
 
-    if ('containerStyle' in options) {
+    if (options.containerStyle) {
       this.containerStyle = options.containerStyle;
     }
 
-    if ('transitionDuration' in options) {
+    if (options.transitionDuration !== undefined) {
       this.transitionDuration = options.transitionDuration;
     }
 
-    if ('resize' in options) {
+    if (options.resize !== undefined) {
       this.resize = options.resize;
     }
 
-    if ('initLayout' in options) {
+    if (options.initLayout !== undefined) {
       this.initLayout = options.initLayout;
     }
-
   }
 
 
@@ -115,7 +129,7 @@ export class IsotopeConfig {
     if (this.packery) {
       newOption.packery = this.packery;
     }
-    if (this.percentPosition !== null) {
+    if (this.percentPosition) {
       newOption.percentPosition = this.percentPosition;
     }
     if (this.stamp) {
@@ -140,7 +154,6 @@ export class IsotopeConfig {
       newOption.initLayout = this.initLayout;
     }
     newOption.layoutMode = this.layoutMode;
-    newOption.layoutComplete = this.layoutComplete;
     newOption.initialized = this.initialized;
     newOption.api = this.api;
     return newOption;

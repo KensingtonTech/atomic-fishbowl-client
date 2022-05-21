@@ -1,4 +1,4 @@
-set -x
+set -xe
 
 VERS=`grep version package.json | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]'`
 MAJOR=$(echo $VERS | cut -d'.' -f1)
@@ -9,8 +9,6 @@ if [[ $branch =~ "develop" ]]; then
   LEVEL=1
 elif [[ $branch =~ "release" ]]; then
   LEVEL=3
-elif [[ $branch =~ "rsac-2018" ]]; then
-  LEVEL=3
 elif [[ $branch =~ "hotfix" ]]; then
   LEVEL=4
 elif [[ $branch =~ "master" ]]; then
@@ -19,12 +17,16 @@ else
   LEVEL=1
 fi
 
-PKGNAME="afb-nginx"
+PKGNAME="atomic-fishbowl-nginx"
 ARTIFACTNAME="afb-docker-nginx"
-VER="$MAJOR.$MINOR.$PATCH.$BUILD_NUMBER-$LEVEL"
-REPONAME="kentechrepo:5000"
+if [[ "$LEVEL" -eq 4 || "$LEVEL" -eq 5 ]]; then
+  VER="$MAJOR.$MINOR.$PATCH.$BUILD_NUMBER"
+else
+  VER="$MAJOR.$MINOR.$PATCH.$BUILD_NUMBER-$LEVEL"  
+fi
+IMAGE_PREFIX="kensingtontech"
 
-#Create our build-properties.js file
+# Create build-properties.ts
 cat > src/app/build-properties.ts << EOF
 export const buildProperties = {
   major: $MAJOR,
@@ -44,31 +46,28 @@ build:
 */
 EOF
 
-npm install
-npm run copypdf
-
 echo "\$forceDebugBuild = $forceDebugBuild"
 
-if [[ "$LEVEL" -ne 1 && "$forceDebugBuild" == "false" ]]; then
+if [[ $LEVEL -ne 1 && $forceDebugBuild = "false" ]]; then
   # Prod build
-  sed -i'' "s/^import 'core-js\/es7\/reflect';/\/\/ import 'core-js\/es7\/reflect';/" src/polyfills.ts
-  ng build --prod --aot --build-optimizer
+  docker build --no-cache -f Dockerfile-prod -t ${PKGNAME}:${VER} . \
+  && docker rmi $(docker images --filter=label=stage=builder --quiet)
 else
   # Dev build
-  sed -i'' "s/^import 'core-js\/es7\/reflect';/\/\/ import 'core-js\/es7\/reflect';/" src/polyfills.ts
-  ng build
+  docker build --no-cache -f Dockerfile-prod -t ${PKGNAME}:${VER} --build-arg DEBUG_BUILD=true . \
+  && docker rmi $(docker images --filter=label=stage=builder --quiet)
 fi
 
-cp node_modules/isotope-layout/dist/isotope.pkgd.min.js src/resources
-cp atomic-fishbowl.license dist/
-rm -f dist/roboto*.{ttf,svg,eot}
+# push our tags to docker hub
+if [ $DEPLOY = "true" ]; then
+  docker tag ${PKGNAME}:${VER} ${IMAGE_PREFIX}/${PKGNAME}:${VER}
+  docker push ${IMAGE_PREFIX}/${PKGNAME}:${VER}
+  if [ $LEVEL -eq 5 ]; then
+    docker image tag ${PKGNAME}:${VER} ${PKGNAME}:latest
+    docker image tag ${PKGNAME}:${VER} ${IMAGE_PREFIX}/${PKGNAME}:latest
+    docker push ${PKGNAME}:latest
+  fi
+fi
 
-#now build the docker container
-docker build -t ${PKGNAME}:${VER} -t ${PKGNAME}:latest -t ${REPONAME}/${PKGNAME}:latest -t ${REPONAME}/${PKGNAME}:${VER} .
-
-#push our two tags to our private registry
-docker push ${REPONAME}/${PKGNAME}:${VER}
-docker push ${REPONAME}/${PKGNAME}:latest
-
-#create artifact
-docker save afb-nginx:${VER} ${PKGNAME}:latest | gzip > ${ARTIFACTNAME}_${VER}.tgz
+# create artifact
+#docker save afb-nginx:${VER} ${PKGNAME}:latest | gzip > ${ARTIFACTNAME}_${VER}.tgz

@@ -1,95 +1,124 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef, AfterViewInit, ChangeDetectionStrategy, NgZone, forwardRef } from '@angular/core';
-import { Router, NavigationStart } from '@angular/router';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  NgZone,
+  forwardRef
+} from '@angular/core';
+import { Router, NavigationStart, Event as AltRouterEvent } from '@angular/router';
 import { ToolService } from 'services/tool.service';
 import { DataService } from 'services/data.service';
-import { Content, Contents } from 'types/content';
 import { ContentCount } from 'types/contentcount';
-import { ModalService } from '../modal/modal.service';
 import { IsotopeConfig } from '../isotope/isotope-config';
 import { IsotopeAPI } from '../isotope/isotope-api';
 import { ContentMask } from 'types/contentmask';
-import { Search } from 'types/search';
 import { Subscription, Subject } from 'rxjs';
-import { Collection } from 'types/collection';
-import { Preferences } from 'types/preferences';
+import {
+  Collection,
+  ContentItem,
+  Search,
+  Session,
+  Sessions
+} from 'types/collection';
+import { MasonryKey, Preferences } from 'types/preferences';
 import * as utils from '../utils';
 import { CollectionDeletedDetails } from 'types/collection-deleted-details';
 import { AbstractGrid } from '../abstract-grid.class';
-import { Session, Sessions } from 'types/session';
 import { DodgyArchiveTypes } from 'types/dodgy-archive-types';
 import { SessionsAvailable } from 'types/sessions-available';
 import * as imagesLoaded from 'imagesloaded';
 import { Scroller } from '../scroller/scroller';
 import * as log from 'loglevel';
-
+import { ConfirmationService } from 'primeng/api';
+import { MasonryTileComponent } from './masonry-tile.component';
 
 @Component({
-  selector: 'masonry-grid-view',
+  selector: 'app-masonry-grid-view',
   providers: [ { provide: AbstractGrid, useExisting: forwardRef(() => MasonryGridComponent ) } ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './masonry-grid.component.html',
-  styles: [`
-    isotope {
-      outline-width: 0;
-    }
-  `]
+  styleUrls: [
+    './masonry-grid.component.scss'
+  ]
 })
 
 export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit, OnDestroy {
 
-  constructor(  private dataService: DataService,
-                private toolService: ToolService,
-                private modalService: ModalService,
-                private changeDetectionRef: ChangeDetectorRef,
-                private router: Router,
-                private zone: NgZone ) {}
+  constructor(
+    private dataService: DataService,
+    private toolService: ToolService,
+    private changeDetectionRef: ChangeDetectorRef,
+    private router: Router,
+    private zone: NgZone,
+    private confirmationService: ConfirmationService
+  ) {}
 
-  @ViewChild('scrollContainer', { static: true }) private scrollContainerRef: ElementRef;
-  @ViewChild('isotopeContent') private isotopeContentRef: ElementRef;
+  @ViewChild('ScrollContainerRef', { static: true }) private scrollContainerRef: ElementRef;
+  @ViewChild('IsotopeContentRef') private isotopeContentRef: ElementRef;
 
 
   // high-level session, content, and search data pushed from server
   private search: Search[] = []; // 'search' is an array containing text extracted from PDF's which can be searched
-  content: Content[] = [];
-  contentObj: Contents = {}; // contains every item of content, indexed by its content id
+  content: ContentItem[] = [];
   sessions: Sessions = {};
-  contentCount = new ContentCount; // { images: number, pdfs: number, word: number, excel: number, powerpoint: number, dodgyArchives: number, hashes: number, total: number }
+  contentCount = new ContentCount(); // { images: number, pdfs: number, word: number, excel: number, powerpoint: number, dodgyArchives: number, hashes: number, total: number }
+
+  // Dialog Control
+  displayTabContainerModal = false;
+  displayManageUsersModal = false;
+  displayFeedWizardModal = false;
+  displayPreferencesModal = false;
+  displayNwCollectionModal = false;
+  displayContentDetailsModal = false;
+
+  // Splash Screen Control
+  _displaySplashScreenModal = false;
+  set displaySplashScreenModal(value: boolean) {
+    this._displaySplashScreenModal = value;
+    if (!value) {
+      this.toolService.splashScreenClosed.next();
+    }
+  }
+  get displaySplashScreenModal() {
+    return this._displaySplashScreenModal;
+  }
+  firstLoad = this.toolService.firstLoad;
+  firstLoadTimeout?: NodeJS.Timeout;
 
   // preferences
   preferences: Preferences;
-  masonryKeys: any = null;
+  masonryKeys?: MasonryKey[];
 
   // collection information
-  selectedCollectionType: string = null;
-  selectedCollectionServiceType: string = null; // 'nw' or 'sa'
-  collectionId: string = null;
+  selectedCollectionType?: string;
+  selectedCollectionServiceType?: 'nw' | 'sa';
+  collectionId?: string;
   collectionDeletedUser = '';
   private collectionState = '';
 
   // masonry and isotope
-  masonryColumnWidth = this.toolService.getPreference('masonryColumnWidth') || 350; // default is 350
-  tileMarginEms = 1;  // set the margin for tiles here in ems.  Its px value will be calculated later, and upon window resize
-  tileMargin = utils.convertEmRelativeToElement(this.tileMarginEms, document.body);
-  isotopeConfig = new IsotopeConfig({
-    itemSelector: '.brick',
-    resize: false, // we handle this ourselves to prevent change detection on resize
-    masonry: {
-      columnWidth: this.masonryColumnWidth + this.tileMargin * 2,
-      gutter: 0,
-      horizontalOrder: false, // setting to true will cause column lengths to get out of whack
-      fitWidth: false
-    },
-    containerStyle: null
-  });
+  masonryColumnWidth = this.toolService.getNumberPreference('masonryColumnWidth', 350); // default is 350
+  minGutterPx = 20;
+  layoutCompleteCallback = this.onLayoutComplete.bind(this);
+  isotopeConfig: IsotopeConfig;
   private isotopeApi: IsotopeAPI;
   private isotopeInitialized = false;
   addWithLayoutSetting = false; // isotope will not auto-layout when bricks are added if false
   addWithLayout = false; // isotope will not auto-layout when bricks are added if false
-  private imgsLoaded: ImagesLoaded.ImagesLoaded = null;
+  private imgsLoaded?: ImagesLoaded.ImagesLoaded;
   private initialLayoutInProgress = false; // helps address a race condition where onContentPublished() and/or onSessionsPurged() step on the first layout operation of onContentReplaced, and causes tons of unnecessary layout operations.  Prevents addWithLayout from being set to true until that first layout operation is complete.
-  private publishedContentQueueing = false; // instructs onLayoutComplete() to perform an additional operation after the initialLayout operation has completed, and also to switch the layout mode to addWithLayout = true
+  private queuePublishedContent = false; // instructs onLayoutComplete() to perform an additional operation after the initialLayout operation has completed, and also to switch the layout mode to addWithLayout = true
   private get displayedTileIds(): string[] {
-    return utils.getVisibleElements(document.getElementsByTagName('masonry-tile')).map( (elem) => elem.getAttribute('id') );
+    return utils.getVisibleElements(
+      document.getElementsByTagName('app-masonry-tile') as HTMLCollectionOf<HTMLElement>
+    )
+      .map( (elem) => elem.getAttribute('id') )
+      .filter( (elem) => elem !== null ) as string[];
   }
 
   // search and filtering
@@ -97,11 +126,11 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private caseSensitiveSearch = false;
   private lastSearchTerm = '';
   pauseMonitoring = false;
-  private lastMask = new ContentMask;
+  private lastMask = new ContentMask();
   private searchBarOpen = false;
 
   // scrolling
-    private pixelsPerSecond = this.toolService.getPreference('autoScrollSpeed') || 200; // the scroll speed.  the default is 200 pixels per second
+  private pixelsPerSecond = this.toolService.getNumberPreference('autoScrollSpeed', 200); // the scroll speed.  the default is 200 pixels per second
   private autoScrollStarted = false; // the state of the autoscroll control button.  From the user perspective, is the process running?
   private autoScrollAnimationRunning = false; // is the scroll animation actually running?  It may be paused programatically from time to time to do things like purging
   private autoScrollAnimationPaused = false; // if true, when onLayoutComplete() runs, it will cause the autoscroller to unpause if it was previously running.  always combined with stopScrollerAnimation()
@@ -122,7 +151,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     return this._scrollContentHeight;
   }
   toolbarHeight = 0; // not really being used right now but maybe will be some day
-  private autoScrollRestartTimeout: any; // handle for timer
+  private autoScrollRestartTimeout?: NodeJS.Timeout; // handle for timer
   private scrollerOptions = {
     scrollingX: false,
     scrollingY: true,
@@ -144,35 +173,38 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   get scrollTop() {
     return this._scrollTop;
   }
-  private resizeObserver: any;
-  private resizeId: any;
+  private resizeObserver: ResizeObserver;
+  private resizeTimout?: NodeJS.Timeout;
   private lineHeight: number; // we store the height of a single line relative to the container so we can use it when user hits up/down arrows
   scrollbarMoved = new Subject<number>();
   scrollTopChanged = new Subject<number>();
   containerHeightChanged = new Subject<number>();
   contentHeightChanged = new Subject<number>();
   private unpauseAfterResize = false;
-  private unpauseAfterResizeTimeout;
+  private unpauseAfterResizeTimeout?: NodeJS.Timeout;
 
   // session viewer
   selectedSession: Session;
-  selectedContent: Content;
-  private selectedContentId: string = null;
-  sessionsAvailable: SessionsAvailable = { previous: false, next: false };
+  selectedContent: ContentItem;
+  private selectedContentId: string;
+  sessionsAvailable: SessionsAvailable = {
+    previous: false,
+    next: false
+  };
   mouseButtonDown = false;
 
   // Text Area
   showTextArea = true;
 
   // Subscription holders
-  private subscriptions = new Subscription;
+  private subscriptions = new Subscription();
 
 
 
   ngOnDestroy(): void {
     log.debug('MasonryGridComponent: ngOnDestroy()');
-    if (this.resizeId) {
-      clearTimeout(this.resizeId);
+    if (this.resizeTimout) {
+      clearTimeout(this.resizeTimout);
     }
     window.removeEventListener('resize', this.onWindowResize );
     if (this.unpauseAfterResizeTimeout) {
@@ -187,7 +219,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
-    document.removeEventListener('keydown', this.onKeyPressed );
+    this.scrollContainerRef.nativeElement.removeEventListener('keydown', this.onKeyPressed );
     this.toolService.addNwAdhocCollectionNext.next({});
     this.toolService.addSaAdhocCollectionNext.next({});
   }
@@ -196,142 +228,298 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   ngOnInit(): void {
     log.debug('MasonryGridComponent: ngOnInit()');
-
     this.toolService.lastRoute = 'masonryGrid';
     this.toolService.setPreference('lastRoute', 'masonryGrid');
 
-    // New startup code
-    log.debug('MasonryGridComponent: ngOnInit(): toolService.urlParametersLoaded:', this.toolService.urlParametersLoaded);
-    log.debug('MasonryGridComponent: ngOnInit(): toolService.queryParams:', this.toolService.queryParams);
+    // log.debug('MasonryGridComponent: ngOnInit(): toolService.urlParametersLoaded:', this.toolService.urlParametersLoaded);
+    // log.debug('MasonryGridComponent: ngOnInit(): toolService.queryParams:', this.toolService.queryParams);
 
-    this.subscriptions.add(this.toolService.onSplashScreenAtStartupClosed.subscribe( () => {
-      if (!this.toolService.urlParametersLoaded) {
-        // only show the collections tab container if the user hasn't passed in custom url params, like when drilling from an investigation
-        this.modalService.open(this.toolService.tabContainerModalId);
-      }
-    }));
+    this.subscriptions.add(
+      this.toolService.displayTabContainerModal.subscribe(
+        (displayTabContainerModal) => {
+          this.displayTabContainerModal = displayTabContainerModal;
+          this.changeDetectionRef.detectChanges();
+        }
+      )
+    );
+
+    this.subscriptions.add(
+      this.toolService.displayManageUsersModal.subscribe(
+        (displayManageUsersModal) => this.displayManageUsersModal = displayManageUsersModal
+      )
+    );
+
+    this.subscriptions.add(
+      this.toolService.displayNwCollectionModal.subscribe(
+        (displayNwCollectionModal) => {
+          this.displayNwCollectionModal = displayNwCollectionModal;
+          /*if (displayNwCollectionModal) {
+            this.toolService.addNwCollectionNext.next();
+          }*/
+          this.changeDetectionRef.detectChanges();
+        }
+      )
+    );
+
+    this.subscriptions.add(
+      this.toolService.displayContentDetailsModal.subscribe(
+        (displayContentDetailsModal) => {
+          this.displayContentDetailsModal = displayContentDetailsModal;
+          this.changeDetectionRef.detectChanges();
+        }
+      )
+    );
+
+    this.subscriptions.add(
+      this.toolService.splashScreenClosed.subscribe(
+        () => this.onSplashScreenClosed()
+      )
+    );
 
     if (this.toolService.urlParametersLoaded) {
       // if we have query parameters, load the appropriate ad hoc modal
-      this.toolService.splashLoaded = true; // we don't want the splash to load if the user navigates to a different view
-      if (this.toolService.queryParams['service'] === 'nw') {
-        this.toolService.addNwAdhocCollectionNext.next(this.toolService.queryParams);
+      this.toolService.firstLoad = false; // we don't want the splash to load if the user navigates to a different view
+      this.firstLoad = false;
+      switch (this.toolService.queryParams?.service) {
+        case 'nw':
+          this.toolService.addNwAdhocCollectionNext.next(this.toolService.queryParams);
+          break;
+        case 'sa':
+          this.toolService.addSaAdhocCollectionNext.next(this.toolService.queryParams);
+          break;
       }
-      else if (this.toolService.queryParams['service'] === 'sa') {
-        this.toolService.addSaAdhocCollectionNext.next(this.toolService.queryParams);
-      }
-      this.toolService.queryParams = null;
+      this.toolService.queryParams = undefined;
       this.toolService.urlParametersLoaded = false;
     }
-    // End new startup code
 
 
     // Take subscriptions
 
-    this.subscriptions.add(this.router.events.subscribe( (val: any) => this.onRouterEvent(val)));
+    this.subscriptions.add(
+      this.router.events.subscribe(
+        (val) => this.onRouterEvent(val)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.preferencesChanged.subscribe( (prefs: Preferences) => this.onPreferencesChanged(prefs) ));
+    this.subscriptions.add(
+      this.dataService.preferencesChanged.subscribe(
+        (prefs) => this.onPreferencesChanged(prefs)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.collectionDeleted.subscribe( (details: CollectionDeletedDetails) => this.onCollectionDeleted(details) ));
+    this.subscriptions.add(
+      this.dataService.collectionDeleted.subscribe(
+        (details: CollectionDeletedDetails) => this.onCollectionDeleted(details)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.selectedCollectionChanged.subscribe( (collection: Collection) => this.onSelectedCollectionChanged(collection) ));
+    this.subscriptions.add(
+      this.dataService.selectedCollectionChanged.subscribe(
+        (collection: Collection) => this.onSelectedCollectionChanged(collection)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.collectionStateChanged.subscribe( (collection: any) => this.onCollectionStateChanged(collection) ));
+    this.subscriptions.add(
+      this.dataService.collectionStateChanged.subscribe(
+        (collection) => this.onCollectionStateChanged(collection)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.sessionsReplaced.subscribe( (s: any) => this.onSessionsReplaced(s) ));
+    this.subscriptions.add(
+      this.dataService.sessionsReplaced.subscribe(
+        (sessions) => this.onSessionsReplaced(sessions)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.sessionPublished.subscribe( (s: any) => this.onSessionPublished(s) ));
+    this.subscriptions.add(
+      this.dataService.sessionPublished.subscribe(
+        (session) => this.onSessionPublished(session)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.contentReplaced.subscribe( (i: any) => this.onContentReplaced(i) ));
+    this.subscriptions.add(
+      this.dataService.contentReplaced.subscribe(
+        (contentItems) => this.onContentReplaced(contentItems)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.contentPublished.subscribe( (newContent: any) => this.onContentPublished(newContent) ));
+    this.subscriptions.add(
+      this.dataService.contentPublished.subscribe(
+        (contentItems) => this.onContentPublished(contentItems)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.searchReplaced.subscribe( (s: Search[]) => this.onSearchReplaced(s) ));
+    this.subscriptions.add(
+      this.dataService.searchReplaced.subscribe(
+        (search) => this.onSearchReplaced(search)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.searchPublished.subscribe( (s: Search[]) => this.onSearchPublished(s) ));
+    this.subscriptions.add(
+      this.dataService.searchPublished.subscribe(
+        (search) => this.onSearchPublished(search)
+      )
+    );
 
-    this.subscriptions.add(this.dataService.sessionsPurged.subscribe( (sessionsToPurge: number[]) => this.onSessionsPurged(sessionsToPurge) ));
+    this.subscriptions.add(
+      this.dataService.sessionsPurged.subscribe(
+        (sessionsToPurge) => this.onSessionsPurged(sessionsToPurge)
+      )
+    );
 
-    this.subscriptions.add(this.toolService.scrollToBottom.subscribe( () => this.onScrollToBottomClicked() ));
+    this.subscriptions.add(
+      this.toolService.scrollToBottom.subscribe(
+        () => this.onScrollToBottomClicked()
+      )
+    );
 
-    this.subscriptions.add(this.toolService.stopScrollToBottom.subscribe( () => this.onStopScrollToBottomClicked() ));
+    this.subscriptions.add(
+      this.toolService.stopScrollToBottom.subscribe(
+        () => this.onStopScrollToBottomClicked()
+      )
+    );
 
-    this.subscriptions.add(this.isotopeConfig.layoutComplete.subscribe( (height) => this.onLayoutComplete(height) ));
+    this.subscriptions.add(
+      this.toolService.masonryColumnWidthChanged.subscribe(
+        (width) => this.onMasonryColumnWidthChanged(width)
+      )
+    );
 
-    this.subscriptions.add(this.toolService.masonryColumnWidthChanged.subscribe( (width: number) => this.onMasonryColumnWidthChanged(width) ));
+    this.subscriptions.add(
+      this.toolService.masonryAutoscrollSpeedChanged.subscribe(
+        (autoScrollSpeed) => this.onAutoscrollSpeedChanged(autoScrollSpeed)
+      )
+    );
 
-    this.subscriptions.add(this.toolService.masonryAutoscrollSpeedChanged.subscribe( (autoScrollSpeed: number) => this.onAutoscrollSpeedChanged(autoScrollSpeed) ));
+    this.subscriptions.add(
+      this.dataService.monitoringCollectionPause.subscribe(
+        (paused) => {
+          this.pauseMonitoring = paused;
+          this.changeDetectionRef.detectChanges();
+        }
+      )
+    );
 
-    this.subscriptions.add(this.dataService.monitoringCollectionPause.subscribe( (paused) => {
-      this.pauseMonitoring = paused;
-      this.changeDetectionRef.detectChanges();
-    } ));
+    this.subscriptions.add(
+      this.toolService.showMasonryTextArea.subscribe(
+        shown => this.onTextAreaToggled(shown)
+      )
+    );
 
-    this.subscriptions.add(this.toolService.showMasonryTextArea.subscribe( shown => this.onTextAreaToggled(shown) ));
+    this.subscriptions.add(
+      this.scrollbarMoved.subscribe(
+        scrollTop => this.onScrollbarMoved(scrollTop)
+      )
+    );
 
-    this.subscriptions.add(this.isotopeConfig.api.subscribe( api => this.isotopeApi = api ));
-
-    this.subscriptions.add(this.isotopeConfig.initialized.subscribe(initialized => this.isotopeInitialized = initialized));
-
-    this.subscriptions.add(this.scrollbarMoved.subscribe( scrollTop => this.onScrollbarMoved(scrollTop)));
-
+    this.subscriptions.add(
+      this.toolService.displayFeedWizardModal.subscribe(
+        (display) => {
+          this.displayFeedWizardModal = display;
+          if (!display) {
+            this.toolService.displayTabContainerModal.next(true);
+          }
+          this.changeDetectionRef.detectChanges();
+        }
+      )
+    );
   }
 
 
 
   ngAfterViewInit() {
     // https://localhost?op=adhoc&service=nw&ip=184.105.132.210&side=dst
+    this.zone.runOutsideAngular(
+      () => window.addEventListener('resize', this.onWindowResize )
+    );
 
-    this.zone.runOutsideAngular( () => window.addEventListener('resize', this.onWindowResize ) );
+    this.isotopeConfig = this.buildIsotopeConfig();
+    this.changeDetectionRef.detectChanges();
 
-    const toolbar: any = document.getElementsByClassName('afb-toolbar')[0];
+    this.subscriptions.add(
+      this.isotopeConfig.api.subscribe(
+        api => this.isotopeApi = api
+      )
+    );
+
+    this.subscriptions.add(
+      this.isotopeConfig.initialized.subscribe(
+        initialized => this.isotopeInitialized = initialized
+      )
+    );
+
+    const toolbar = document.getElementsByClassName('afb-toolbar')[0] as HTMLElement;
     this.toolbarHeight = toolbar.offsetHeight;
-    // console.log('toolbarHeight:', this.toolbarHeight);
-    // this.changeDetectionRef.detectChanges();
 
-    if ( !this.toolService.splashLoaded && !this.toolService.urlParametersLoaded ) {
-        // only load the splash screen if we don't have ad hoc query parameters
-        log.debug('MasonryGridComponent: ngAfterViewInit(): loading the splash screen');
-        this.modalService.open(this.toolService.splashScreenModalId);
+    const displaySplashScreen = this.firstLoad && !this.toolService.urlParametersLoaded; // only load the splash screen if we don't have ad hoc query parameters;
+
+    if (displaySplashScreen) {
+      // only load the splash screen if we don't have ad hoc query parameters
+      this.displaySplashScreenModal = true;
+      this.firstLoadTimeout = setTimeout(
+        () => this.displaySplashScreenModal = false,
+        3000
+      );
     }
-    else if (this.toolService.splashLoaded && !this.toolService.selectedCollection) {
+    else if (!this.firstLoad && !this.toolService.selectedCollection) {
       // open the tab container on subsequent logout/login combos, if a collection wasn't previously selected
       if (this.toolService.urlParametersLoaded) {
-        this.modalService.open(this.toolService.tabContainerModalId);
+        this.toolService.displayTabContainerModal.next(true);
       }
-    }
-    else {
-      log.debug('MasonryGridComponent: ngAfterViewInit(): not loading the splash screen - this should mean that we\'re just witching views or we\'re in ad hoc mode');
     }
 
     window.dispatchEvent(new Event('resize'));
 
     log.debug('MasonryGridComponent: ngAfterViewInit(): creating scroller');
     this.scroller = new Scroller( this.render, this.scrollerOptions, this.zone );
-    this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
-    // log.debug('MasonryGridComponent: ngAfterViewInit(): scroller:', this.scroller);
+    this.scroller.setDimensions(
+      this.scrollContainerRef.nativeElement.clientWidth,
+      this.scrollContainerRef.nativeElement.clientHeight,
+      this.isotopeContentRef.nativeElement.offsetWidth,
+      this.scrollContentHeight
+    );
     this.isotopeContentRef.nativeElement.style['transform-origin'] = 'left-top';
-    this.scrollContainerRef.nativeElement.addEventListener('wheel', this.onMouseWheel, { passive: true });
+    this.scrollContainerRef.nativeElement.addEventListener(
+      'wheel',
+      this.onMouseWheel,
+      { passive: true }
+    );
 
-    log.debug('MasonryGridComponent: ngAfterViewInit(): creating ResizeObserver');
-    this.resizeObserver = new (<any>window).ResizeObserver( entries => this.onContentHeightChanged(entries) );
-    log.debug('MasonryGridComponent: ngAfterViewInit(): now observing');
-    this.zone.runOutsideAngular( () => this.resizeObserver.observe(this.isotopeContentRef.nativeElement) );
-    log.debug('MasonryGridComponent: ngAfterViewInit(): observation in progress');
-
+    this.resizeObserver = new window.ResizeObserver( entries => this.onContentHeightChanged(entries) );
+    this.zone.runOutsideAngular(
+      () => this.resizeObserver.observe(this.isotopeContentRef.nativeElement)
+    );
 
     if (this.toolService.loadCollectionOnRouteChange) {
-      log.debug('MasonryGridComponent: ngAfterViewInit(): getting collection data again on toolService.loadCollectionOnRouteChange');
+      log.debug('MasonryGridComponent: ngAfterViewInit(): getting collection data again');
       this.toolService.loadCollectionOnRouteChange = false;
       this.toolService.getCollectionDataAgain.next();
     }
 
     this.lineHeight = utils.convertEmRelativeToElement(1, this.scrollContainerRef.nativeElement);
 
-    this.zone.runOutsideAngular( () => document.addEventListener('keydown', this.onKeyPressed ));
+    this.zone.runOutsideAngular(
+      () => this.scrollContainerRef.nativeElement.addEventListener(
+        'keydown',
+        this.onKeyPressed
+      )
+    );
+  }
 
-    log.debug('MasonryGridComponent: ngAfterViewInit(): finished ngAfterViewInit()');
 
+
+  onSplashScreenClosed() {
+    if (this.firstLoadTimeout) {
+      clearTimeout(this.firstLoadTimeout);
+      this.firstLoadTimeout = undefined;
+      this.toolService.firstLoad = false;
+      this.firstLoad = false;
+      this.changeDetectionRef.detectChanges();
+      if (!this.toolService.urlParametersLoaded) {
+        // only show the collections tab container if the user hasn't passed in custom url params, like when drilling from an investigation
+        this.toolService.displayTabContainerModal.next(true);
+      }
+    }
   }
 
 
@@ -340,11 +528,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: onNextSessionClicked()');
     // get the list of un-filtered tiles
     const displayedTileIds = this.displayedTileIds;
-    log.debug('MasonryGridComponent: onNextSessionClicked(): displayedTileIds:', displayedTileIds);
 
-    let nextContentItem: Content;
-    let nextContentItemId;
-    let nextSessionId;
+    let nextContentItem: ContentItem | undefined;
+    let nextContentItemId: string  | undefined;
+    let nextSessionId: number | undefined;
 
     for (let i = 0; i < displayedTileIds.length; i++) {
       if (displayedTileIds[i] === this.selectedContentId && i < displayedTileIds.length - 1 ) {
@@ -354,8 +541,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       }
     }
 
-    for (let i = 0; i < this.content.length; i++) {
-      const contentItem = this.content[i];
+    for (const contentItem of this.content) {
       if (contentItem.id === nextContentItemId) {
         nextContentItem = contentItem;
         nextSessionId = contentItem.session;
@@ -363,15 +549,13 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       }
     }
 
-    log.debug('MasonryGridComponent: onNextSessionClicked(): nextContentItem:', nextContentItem);
-    log.debug('MasonryGridComponent: onNextSessionClicked(): nextSessionId:', nextSessionId);
-
-    this.selectedSession = this.sessions[nextSessionId];
-    this.selectedContent = nextContentItem;
-    this.selectedContentId = nextContentItem.id;
-    this.updateNextPreviousButtonStatus();
+    if (nextContentItem && nextSessionId !== undefined) {
+      this.selectedSession = this.sessions[nextSessionId];
+      this.selectedContent = nextContentItem;
+      this.selectedContentId = nextContentItem.id;
+      this.updateNextPreviousButtonStatus();
+    }
     this.changeDetectionRef.detectChanges();
-
   }
 
 
@@ -380,21 +564,18 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: onPreviousSessionClicked()');
     // get the list of un-filtered tiles
     const displayedTileIds = this.displayedTileIds;
-    log.debug('MasonryGridComponent: onPreviousSessionClicked(): displayedTileIds:', displayedTileIds);
-    let previousContentItem: Content;
-    let previousContentItemId;
-    let previousSessionId;
+    let previousContentItem: ContentItem | undefined;
+    let previousContentItemId: string | undefined;
+    let previousSessionId: number | undefined;
 
     for (let i = 0; i < displayedTileIds.length; i++) {
       if (displayedTileIds[i] === this.selectedContentId && i <= displayedTileIds.length - 1 ) {
         previousContentItemId = displayedTileIds[i - 1];
-        log.debug('MasonryGridComponent: onPreviousSessionClicked(): previousContentItemId:', previousContentItemId);
         break;
       }
     }
 
-    for (let i = 0; i < this.content.length; i++) {
-      const contentItem = this.content[i];
+    for (const contentItem of this.content) {
       if (contentItem.id === previousContentItemId) {
         previousContentItem = contentItem;
         previousSessionId = contentItem.session;
@@ -402,27 +583,25 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       }
     }
 
-    log.debug('MasonryGridComponent: onPreviousSessionClicked(): previousContentItem:', previousContentItem);
-    log.debug('MasonryGridComponent: onPreviousSessionClicked(): previousSessionId:', previousSessionId);
-
-    this.selectedSession = this.sessions[previousSessionId];
-    this.selectedContent = previousContentItem;
-    this.selectedContentId = previousContentItem.id;
-    this.updateNextPreviousButtonStatus();
+    if (previousContentItem && previousSessionId !== undefined) {
+      this.selectedSession = this.sessions[previousSessionId];
+      this.selectedContent = previousContentItem;
+      this.selectedContentId = previousContentItem.id;
+      this.updateNextPreviousButtonStatus();
+    }
     this.changeDetectionRef.detectChanges();
   }
 
 
 
   updateNextPreviousButtonStatus(): void {
+    // log.debug('updateNextPreviousButtonStatus()');
     // get the list of un-filtered tile id's
     const displayedTileIds = this.displayedTileIds;
-    // log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): displayedTileIds:', displayedTileIds);
-    // log.debug('MasonryGridComponent: updateNextPreviousButtonStatus(): selectedContentId:', this.selectedContentId);
-
     for (let i = 0; i < displayedTileIds.length; i++) {
+      const tileId = displayedTileIds[i];
 
-      if (displayedTileIds[i] === this.selectedContentId) {
+      if (tileId === this.selectedContentId) {
 
         if (displayedTileIds.length - 1 === i) {
           // this is the last displayed item.  disable the next item button
@@ -452,7 +631,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onWindowResize = (event) => {
+  onWindowResize = () => {
     log.debug('MasonryGridComponent: onWindowResize()');
 
     if (this.autoScrollStarted) {
@@ -460,34 +639,40 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.unpauseAfterResize = true;
     }
 
-    if (this.resizeId) {
-      clearTimeout(this.resizeId);
+    if (this.resizeTimout) {
+      clearTimeout(this.resizeTimout);
     }
 
-    this.resizeId = this.zone.runOutsideAngular( () => setTimeout( () => {
-      this.scrollContainerHeight = this.scrollContainerRef.nativeElement.clientHeight;
-      log.debug('MasonryGridComponent: onWindowResize(): scrollContainerHeight:', this.scrollContainerHeight);
+    this.resizeTimout = this.zone.runOutsideAngular(
+      () => setTimeout(
+        () => {
+          this.scrollContainerHeight = this.scrollContainerRef.nativeElement.clientHeight;
+          log.debug('MasonryGridComponent: onWindowResize(): scrollContainerHeight:', this.scrollContainerHeight);
 
-      this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+          this.scroller.setDimensions(
+            this.scrollContainerRef.nativeElement.clientWidth,
+            this.scrollContainerRef.nativeElement.clientHeight,
+            this.isotopeContentRef.nativeElement.offsetWidth,
+            this.scrollContentHeight
+          );
 
-      this.tileMargin = utils.convertEmRelativeToElement(this.tileMarginEms, document.body);
-      this.isotopeConfig.masonry.columnWidth = this.masonryColumnWidth + this.tileMargin * 2;
+          this.isotopeConfig = this.buildIsotopeConfig();
+          this.changeDetectionRef.detectChanges(); // needed to refresh the tiles prior to layout
 
-      this.changeDetectionRef.detectChanges(); // needed to refresh the tiles prior to layout
+          if (this.isotopeInitialized) {
+            this.isotopeApi.layout(true);
+          }
 
-      if (this.isotopeInitialized) {
-        this.isotopeApi.layout(true);
-      }
-
-      if (this.scrollTop > this.scrollContentHeight - this.scrollContainerHeight && this.scrollContentHeight > this.scrollContainerHeight) {
-        // keep scrollTop in bounds
-        this.render(0, this.scrollContentHeight - this.scrollContainerHeight, 1);
-      }
-
-      this.resizeId = null;
-    }, 500 ) );
-
-  }
+          if (this.scrollTop > this.scrollContentHeight - this.scrollContainerHeight && this.scrollContentHeight > this.scrollContainerHeight) {
+            // keep scrollTop in bounds
+            this.render(0, this.scrollContentHeight - this.scrollContainerHeight, 1);
+          }
+          this.resizeTimout = undefined;
+        },
+        500
+      )
+    );
+  };
 
 
 
@@ -497,7 +682,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onRouterEvent(val: any): void {
+  onRouterEvent(val: AltRouterEvent): void {
     // Take action to destroy masonry when we navigate away - saves us loads of time waiting for all the bricks to be removed and isotope to be destroyed
     // log.debug('MasonryGridComponent: onRouterEvent(): received val:', val);
     if (val instanceof NavigationStart) {
@@ -510,8 +695,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onPreferencesChanged(prefs: Preferences): void {
-
+  onPreferencesChanged(prefs?: Preferences): void {
     if (!prefs || Object.keys(prefs).length === 0) {
       return;
     }
@@ -520,30 +704,27 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     let callLayout = false;
 
-    if (this.selectedCollectionServiceType) {
-      // we need to trigger a layout when we change masonry meta keys in preferences
-
-      if (this.selectedCollectionServiceType === 'nw') {
-
+    switch (this.selectedCollectionServiceType) {
+      // we must trigger a layout when we change masonry meta keys in preferences
+      case 'nw': {
         if ( this.isotopeInitialized && JSON.stringify(prefs.nw.masonryKeys) !== JSON.stringify(this.preferences.nw.masonryKeys) ) {
           log.debug('MasonryGridComponent: onPreferencesChanged(): NW Masonry keys have changed.  Calling Isotope layout');
           callLayout = true;
         }
-
         this.masonryKeys = prefs.nw.masonryKeys.slice(0);
+        break;
       }
 
-      if (this.selectedCollectionServiceType === 'sa') {
-
+      case 'sa': {
         if ( this.isotopeInitialized && JSON.stringify(prefs.sa.masonryKeys) !== JSON.stringify(this.preferences.sa.masonryKeys) ) {
           log.debug('MasonryGridComponent: onPreferencesChanged(): SA Masonry keys have changed.  Calling Isotope layout');
           callLayout = true;
         }
-
         this.masonryKeys = prefs.sa.masonryKeys.slice(0);
+        break;
       }
-
     }
+
     this.changeDetectionRef.detectChanges(); // we need this to be before layout()
 
     if (callLayout) {
@@ -563,10 +744,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.changeDetectionRef.detectChanges();
 
       // deep copy so that the reference is changed and can thus be detected
-      const newIsotopeConfig = this.isotopeConfig.copy();
-      newIsotopeConfig.masonry.columnWidth = this.masonryColumnWidth + this.tileMargin * 2;
-      this.isotopeConfig = newIsotopeConfig;
-
+      this.isotopeConfig = this.buildIsotopeConfig();
       this.changeDetectionRef.detectChanges();
     }
   }
@@ -585,12 +763,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onSearchTermsTyped(event: any): void {
+  onSearchTermsTyped(searchTerms: string): void {
     // called directly from toolbar
     if (this.autoScrollStarted) {
       this.stopAutoScroll();
     }
-    this.searchTermsChanged(event);
+    this.searchTermsChanged(searchTerms);
   }
 
 
@@ -613,7 +791,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.search = [];
     this.sessions = {};
     this.content = [];
-    this.contentObj = {};
     this.resetContentCount();
     this.stopAutoScroll();
     this.scrollContentHeight = 0;
@@ -643,16 +820,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onContentReplaced(content: Content[]) {
+  onContentReplaced(content: ContentItem[]) {
     // when a whole new content collection is received
     log.debug('MasonryGridComponent: onContentReplaced(): content:', content);
     this.addWithLayout = this.addWithLayoutSetting;
     content.sort(this.sortContent);
     this.content = content;
-    this.content.forEach( (item: Content) => {
-      const contentId = item.id;
-      this.contentObj[contentId] = item;
-    });
     if (this.content.length !== 0) {
       this.initialLayoutInProgress = true; // if we receive new published content during the initial layout operation, we need to queue it until we've finished that layout, or else we'll get a ton of layout operations
     }
@@ -676,12 +849,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   onImagesLoadedComplete = () => {
     // this only gets used if this.addWithLayout if false, and that is just experimental and doesn't really work properly
     log.debug('MasonryGridComponent: onImagesLoadedComplete()');
-    this.imgsLoaded.off('always', this.onImagesLoadedComplete);
-    this.imgsLoaded = null;
+    (this.imgsLoaded as ImagesLoaded.ImagesLoaded).off('always', this.onImagesLoadedComplete);
+    this.imgsLoaded = undefined;
     this.isotopeApi.layout();
     this.isotopeApi.reloadItems();
     this.isotopeApi.unhideAll();
-  }
+  };
 
 
 
@@ -702,27 +875,30 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onContentPublished(newContent: Content[]): void {
+  onContentPublished(newContent: ContentItem[]): void {
     // when a content object is pushed from a still-building fixed, rolling, or monitoring collection
-    log.debug('MasonryGridComponent: onContentPublished(): content:', newContent);
+    log.debug('MasonryGridComponent: onContentPublished(): newContent:', newContent);
 
     if (this.initialLayoutInProgress) {
-      this.publishedContentQueueing = true;
+      log.debug('MasonryGridComponent: onContentPublished(): initialLayoutInProgress === true.  Queing published content before layout.');
+      this.queuePublishedContent = true;
     }
     else if (!this.addWithLayout) {
+      log.debug('MasonryGridComponent: onContentPublished(): Adding content with immediate layout');
       this.addWithLayout = true;
+      this.changeDetectionRef.detectChanges();
     }
 
     newContent.forEach(content => {
       this.content.push(content);
-      const contentId = content.id;
-      this.contentObj[contentId] = content;
     });
 
     // update content counts here to save cycles not calculating image masks
     this.countContent(newContent);
 
-    if (this.searchBarOpen) { this.searchTermsChanged( { searchTerms: this.lastSearchTerm } ); }
+    if (this.searchBarOpen) {
+      this.searchTermsChanged(this.lastSearchTerm);
+    }
     this.changeDetectionRef.detectChanges();
   }
 
@@ -753,7 +929,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.search = [];
       this.sessions = {};
       this.content = [];
-      this.contentObj = {};
       this.resetContentCount();
       this.pauseScrollerAnimation();
       this.scrollContentHeight = 0;
@@ -776,14 +951,13 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.search = [];
     this.sessions = {};
     this.content = [];
-    this.contentObj = {};
     this.resetContentCount();
     this.stopAutoScroll();
-    this.selectedCollectionType = null;
+    this.selectedCollectionType = undefined;
     this.collectionState = '';
-    this.collectionId = null;
-    this.selectedCollectionServiceType = null;
-    this.masonryKeys = null;
+    this.collectionId = undefined;
+    this.selectedCollectionServiceType = undefined;
+    this.masonryKeys = undefined;
     this.changeDetectionRef.detectChanges();
   }
 
@@ -796,9 +970,14 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
     this.collectionDeletedUser = details.user;
+    this.confirmationService.confirm({
+      message: `Ever so sorry, but your chosen collection has been deleted by user ${details.user}`,
+      icon: 'pi pi-exclamation-triangle',
+      header: 'Collection Deleted',
+      rejectVisible: false
+    });
     this.dataService.noopCollection.next();
     this.noopCollection();
-    this.modalService.open(this.toolService.collectionDeletedModalId);
   }
 
 
@@ -807,7 +986,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: onSessionsPurged(): sessionsToPurge:', sessionsToPurge);
 
     if (this.initialLayoutInProgress) {
-      this.publishedContentQueueing = true;
+      this.queuePublishedContent = true;
     }
 
     if (this.autoScrollStarted) {
@@ -818,16 +997,15 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.maskChanged(this.lastMask);
     this.countContent();
     if (searchRemoved && this.searchBarOpen) {
-      this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+      this.searchTermsChanged(this.lastSearchTerm);
     }
     this.changeDetectionRef.detectChanges();
   }
 
 
 
-  onMouseWheel = (wheelEvent) => {
+  onMouseWheel = (wheelEvent: WheelEvent) => {
     // log.debug('MasonryGridComponent: wheelEvent:', wheelEvent);
-
     if (wheelEvent && wheelEvent.deltaY === 0) {
       // only do anything if we're scrolling vertically
       return;
@@ -838,7 +1016,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       this.stopAutoScroll();
     }
 
-
     const targetY = this.scrollTop + wheelEvent.deltaY;
     // log.debug('MasonryGridComponent: wheelEvent: scrollContentHeight:', this.scrollContentHeight);
     // log.debug('MasonryGridComponent: wheelEvent: targetY:', targetY);
@@ -847,7 +1024,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     // scroll the container
     this.render(0, targetY, 1);
-  }
+  };
 
 
 
@@ -894,27 +1071,27 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
 
     log.debug('MasonryGridComponent: startScrollerAnimation(): Starting scroller animation');
-
-    log.debug('autoScrollAnimationRunning = true');
     this.autoScrollAnimationRunning = true;
 
     this.scroller.options.animationDuration = duration;
     this.scroller.setScrollTop(this.scrollTop);
-    this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+    this.scroller.setDimensions(
+      this.scrollContainerRef.nativeElement.clientWidth,
+      this.scrollContainerRef.nativeElement.clientHeight,
+      this.isotopeContentRef.nativeElement.offsetWidth,
+      this.scrollContentHeight
+    );
     this.zone.runOutsideAngular( () => {
       this.scroller.scrollBy(0, distanceToScroll, true, true, () => this.onAutoScrollAnimationComplete());
     });
-
   }
 
 
 
-  private render = (left, top, zoom) => {
-    // console.log(`render: left: ${left} top: ${top} zoom: ${zoom}`);
+  private render = (left: number, top: number, zoom: number): void => {
     this.scrollTop = top;
-    this.isotopeContentRef.nativeElement.style['transform'] = 'translate3d(' + (-left) + 'px,' + (-top) + 'px,0) scale(' + zoom + ')';
-    return;
-  }
+    this.isotopeContentRef.nativeElement.style.transform = `translate3d(${(-left)}px,${(-top)}px,0) scale(${zoom})`;
+  };
 
 
 
@@ -956,7 +1133,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onLayoutComplete(height: number): void {
+  onLayoutComplete(): void {
     // this gets called when Isotope finishes a layout operation.  This means that the window height may have potentially grown or shrunk
     // log.debug('MasonryGridComponent: onLayoutComplete(): height:', height);
 
@@ -964,10 +1141,10 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       log.debug('MasonryGridComponent: onLayoutComplete()');
       this.initialLayoutInProgress = false;
 
-      if (this.publishedContentQueueing) {
+      if (this.queuePublishedContent) {
         // if published content was queued while the initial layout was happening, call another layout() to lay them out, after which
         // every item will be laid out individually by setting addWithLayout to true
-        this.publishedContentQueueing = false;
+        this.queuePublishedContent = false;
         this.isotopeApi.layout();
         setTimeout( () => {
           if (!this.addWithLayout) {
@@ -979,16 +1156,21 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     if (this.unpauseAfterResize) {
       this.unpauseAfterResize = false;
-      this.unpauseAfterResizeTimeout = this.zone.runOutsideAngular( () => setTimeout( () => {
-        this.unpauseAfterResizeTimeout = null;
-        this.unpauseScrollerAnimation();
-      }, 100 ) );
+      this.unpauseAfterResizeTimeout = this.zone.runOutsideAngular(
+        () => setTimeout(
+          () => {
+            this.unpauseAfterResizeTimeout = undefined;
+            this.unpauseScrollerAnimation();
+          },
+          100
+        )
+      );
     }
   }
 
 
 
-  onContentHeightChanged(entries: any[]) { // ResizeObserverEntry[]
+  onContentHeightChanged(entries: ResizeObserverEntry[]) {
     log.debug('MasonryGridComponent: onContentHeightChanged(): entry 0 contentRect:', entries[0].contentRect);
     const height = entries[0].contentRect.height;
     this.scrollContentHeight = height;
@@ -1005,11 +1187,16 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     if (this.unpauseAfterResizeTimeout) {
       clearTimeout(this.unpauseAfterResizeTimeout);
-      this.unpauseAfterResizeTimeout = null;
-      this.autoScrollRestartTimeout = this.zone.runOutsideAngular( () => setTimeout( () => {
-        this.unpauseAfterResizeTimeout = null;
-        this.unpauseScrollerAnimation();
-      }, 25 ) );
+      this.unpauseAfterResizeTimeout = undefined;
+      this.autoScrollRestartTimeout = this.zone.runOutsideAngular(
+        () => setTimeout(
+          () => {
+            this.unpauseAfterResizeTimeout = undefined;
+            this.unpauseScrollerAnimation();
+          },
+          25
+        )
+      );
     }
     else if (this.autoScrollStarted && this.autoScrollAnimationPaused && !this.autoScrollRestartTimeout) {
       // scroller is paused and no existing setTimeout
@@ -1038,7 +1225,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       log.debug('MasonryGridComponent: onContentHeightChanged(): not starting autoscroller this time');
       log.debug(`MasonryGridComponent: onContentHeightChanged(): autoScrollAnimationPaused: ${this.autoScrollAnimationPaused} autoScrollStarted: ${this.autoScrollStarted} autoScrollAnimationRunning: ${this.autoScrollAnimationRunning}`);
     }
-
   }
 
 
@@ -1058,7 +1244,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     log.debug('autoScrollAnimationRunning = false');
     this.autoScrollAnimationRunning = false;
-    // this.toolService.scrollToBottomStopped.next(); // sometimes we need to use this method without triggering an end to the controlbar
   }
 
 
@@ -1075,7 +1260,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     log.debug('MasonryGridComponent: unpauseScrollerAnimation(): Unpausing scroller animation');
     this.autoScrollAnimationPaused = false;
     this.startScrollerAnimation();
-  }
+  };
 
 
 
@@ -1126,19 +1311,21 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       // stop the autoscroller
       this.stopAutoScroll();
     }
-    this.modalService.open(this.toolService.contentDetailsModalId);
+    this.toolService.displayContentDetailsModal.next(true);
     if (this.selectedCollectionType === 'monitoring' && this.pauseMonitoring === false) {
       // pause monitoring
       this.suspendMonitoring();
     }
+    this.changeDetectionRef.detectChanges();
   }
 
 
-  maskChanged(e: ContentMask): void {
-    this.lastMask = e;
-    log.debug('MasonryGridComponent: maskChanged():', e);
+  maskChanged(contentMask: ContentMask): void {
+    this.lastMask = contentMask;
+    log.debug('MasonryGridComponent: maskChanged():', contentMask);
+    const {showImage, showPdf, showWord, showExcel, showPowerpoint, showHash, showDodgy, showFromArchivesOnly} = contentMask;
 
-    if (e.showImage && e.showPdf && e.showWord && e.showExcel && e.showPowerpoint && e.showHash && e.showDodgy && !e.showFromArchivesOnly) {
+    if (showImage && showPdf && showWord && showExcel && showPowerpoint && showHash && showDodgy && !showFromArchivesOnly) {
       this.filter = '*';
       this.changeDetectionRef.detectChanges();
       return;
@@ -1147,28 +1334,28 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     const tempFilter = [];
     let fromArchivesOnly = false;
 
-    if (e.showFromArchivesOnly) {
+    if (showFromArchivesOnly) {
       fromArchivesOnly = true;
     }
-    if (e.showImage) {
+    if (showImage) {
       tempFilter.push('[contentType="image"]');
     }
-    if (e.showPdf) {
+    if (showPdf) {
       tempFilter.push('[contentType="pdf"]');
     }
-    if (e.showWord) {
+    if (showWord) {
       tempFilter.push('[contentSubType="word"]');
     }
-    if (e.showExcel) {
+    if (showExcel) {
       tempFilter.push('[contentSubType="excel"]');
     }
-    if (e.showPowerpoint) {
+    if (showPowerpoint) {
       tempFilter.push('[contentSubType="powerpoint"]');
     }
-    if (e.showHash) {
+    if (showHash) {
       tempFilter.push('[contentType="hash"]');
     }
-    if (e.showDodgy && !fromArchivesOnly) {
+    if (showDodgy && !fromArchivesOnly) {
       tempFilter.push('[contentType="unsupportedZipEntry"],[contentType="encryptedZipEntry"],[contentType="encryptedRarEntry"],[contentType="encryptedRarTable"]');
     }
     if (tempFilter.length > 0 && !fromArchivesOnly) {
@@ -1188,33 +1375,21 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   onToggleCaseSensitiveSearch(): void {
     log.debug('MasonryGridComponent: onToggleCaseSensitiveSearch()');
     this.caseSensitiveSearch = !this.caseSensitiveSearch;
-    this.searchTermsChanged( { searchTerms: this.lastSearchTerm } );
+    this.searchTermsChanged(this.lastSearchTerm);
   }
 
 
-  getContentBySession(n: number): any {
-    for (let x = 0; x < this.content.length; x++) {
-      if (this.content[x].session === n) {
-        return this.content[x];
+  getContentBySession(sessionId: number): ContentItem | void {
+    for (const content of this.content) {
+      if (content.session === sessionId) {
+        return content;
       }
     }
   }
 
 
-
-  getContentBySessionAndContentFile(o: any): any {
-    for (let x = 0; x < this.content.length; x++) {
-      if (this.content[x].session === o.session && utils.pathToFilename(this.content[x].contentFile) === o.contentFile) {
-        return this.content[x];
-      }
-    }
-  }
-
-
-
-  searchTermsChanged(e: any): void {
-    // log.debug('MasonryGridComponent: searchTermsChanged(): e:', e);
-    const searchTerms = e.searchTerms;
+  searchTermsChanged(searchTerms: string): void {
+    // log.debug('MasonryGridComponent: searchTermsChanged()');
     this.lastSearchTerm = searchTerms;
     const matchedIds = [];
 
@@ -1224,17 +1399,17 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
       return;
     }
 
-    for (let i = 0; i < this.search.length; i++) {
-      if (!this.caseSensitiveSearch && this.search[i].searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) {
+    for (const search of this.search) {
+      if (!this.caseSensitiveSearch && search.searchString.toLowerCase().indexOf(searchTerms.toLowerCase()) >= 0) {
         // case-insensitive search
         // we found a match!
-        const matchedId = this.search[i].id;
+        const matchedId = search.id;
         matchedIds.push(`[id="${matchedId}"]`);
       }
-      else if (this.caseSensitiveSearch && this.search[i].searchString.indexOf(searchTerms) >= 0) {
+      else if (this.caseSensitiveSearch && search.searchString.indexOf(searchTerms) >= 0) {
         // case-sensitive search
         // we found a match!
-        const matchedId = this.search[i].id;
+        const matchedId = search.id;
         matchedIds.push(`[id="${matchedId}"]`);
       }
     }
@@ -1253,15 +1428,15 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   resetContentCount(): void {
     log.debug('MasonryGridComponent: resetContentCount()');
-    this.contentCount = new ContentCount;
+    this.contentCount = new ContentCount();
   }
 
 
 
-  private countContent(newContent: Content[] = null): void {
+  private countContent(newContent?: ContentItem[]): void {
     // count content from scratch (if no newContent), or add to existing this.contentCount if newContent is defined
-    const contentCount = newContent ? this.contentCount : new ContentCount; // operate on this.contentCount if newContent is defined
-    const tempContent: Content[] = newContent || this.content;
+    const contentCount = newContent ? this.contentCount : new ContentCount(); // operate on this.contentCount if newContent is defined
+    const tempContent: ContentItem[] = newContent || this.content;
     tempContent.forEach( (content) => {
       switch (content.contentType) {
         case 'image':
@@ -1303,20 +1478,15 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   private purgeSessions(sessionsToPurge: number[]): boolean {
     let searchRemoved = false;
     while (sessionsToPurge.length !== 0) {
-      const sessionToPurge = sessionsToPurge.shift();
+      const sessionToPurge = sessionsToPurge.shift() as number;
 
-      const contentsToPurge = [];
-      for (let i = 0; i < this.content.length; i++) {
-        // Purge content
-        const content = this.content[i];
-        // log.debug('MasonryGridComponent: purgeSessions(): content:', content);
-        if (content.session === sessionToPurge) {
-          contentsToPurge.push(content);
-        }
-      }
-      // log.debug('MasonryGridComponent: purgeSessions(): contentsToPurge:', contentsToPurge);
+      // Purge content
+      const contentsToPurge = this.content.filter(
+        (content) => content.session === sessionToPurge
+      );
+
       while (contentsToPurge.length !== 0) {
-        const contentToPurge = contentsToPurge.shift();
+        const contentToPurge = contentsToPurge.shift() as ContentItem;
         for (let i = 0; i < this.content.length; i++) {
           const content = this.content[i];
           if (contentToPurge.session === content.session && contentToPurge.contentFile === content.contentFile && contentToPurge.contentType === content.contentType) {
@@ -1328,16 +1498,13 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
         }
       }
 
-      const searchesToPurge: Search[] = [];
-      for (let i = 0; i < this.search.length; i++) {
-        const search = this.search[i];
-        if (search.session === sessionToPurge) {
-          searchesToPurge.push(search);
-        }
-      }
+      const searchesToPurge = this.search.filter(
+        (search) => search.session === sessionToPurge
+      );
+
       while (searchesToPurge.length !== 0) {
-        const searchToPurge = searchesToPurge.shift();
-        for (let i = 0; i < this.search.length; i++) {
+        const searchToPurge = searchesToPurge.shift() as Search;
+        for (let i = this.search.length - 1; i >= 0; i--) {
           const search = this.search[i];
           if (searchToPurge.session === search.session && searchToPurge.contentFile === search.contentFile) {
             // Purge search
@@ -1348,7 +1515,6 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
           }
         }
       }
-
     }
     return searchRemoved;
   }
@@ -1361,7 +1527,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  sortContent(a: any, b: any): number {
+  sortContent(a: ContentItem, b: ContentItem): number {
    if (a.session < b.session) {
     return -1;
    }
@@ -1379,28 +1545,22 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onTileClicked(event) {
-    // log.debug('MasonryGridComponent: onTileClicked(): event:', event);
-    if (event.target.tagName === 'IMG') {
-      // set session and open session viewer
+  onTileClicked(tile: MasonryTileComponent) {
+    log.debug('MasonryGridComponent: onTileClicked()');
       if (this.selectedCollectionType === 'monitoring' && !this.pauseMonitoring) {
         this.suspendMonitoring();
       }
-      const sessionId = event.currentTarget.getAttribute('sessionId');
-      const contentId = event.currentTarget.getAttribute('id');
-      this.selectedSession = this.sessions[sessionId];
-      this.selectedContent = this.contentObj[contentId];
-      this.selectedContentId = contentId;
-      // log.debug('MasonryGridComponent: onTileClicked(): selectedContentId:', this.selectedContentId);
+      this.selectedSession = tile.session;
+      this.selectedContent = tile.content;
+      this.selectedContentId = tile.content.id;
       this.updateNextPreviousButtonStatus();
       this.changeDetectionRef.detectChanges();
       this.openSessionDetails();
-    }
   }
 
 
 
-  onScrollbarMoved(scrollTop) {
+  onScrollbarMoved(scrollTop: number) {
     // log.debug('MasonryGridComponent: onScrollbarMoved(): scrollTop:', scrollTop);
     if (scrollTop < 0 || scrollTop > this.scrollContentHeight - this.scrollContainerHeight) {
       return;
@@ -1410,7 +1570,7 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
 
 
-  onTextAreaToggled(shown) {
+  onTextAreaToggled(shown: boolean) {
     log.debug('MasonryGridComponent: onTextAreaToggled(): shown', shown);
     this.showTextArea = shown;
     if (this.autoScrollStarted) {
@@ -1426,43 +1586,45 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
   // Keyboard Handlers //
 
-  onKeyPressed = (event) => {
-    if (this.modalService.isOpen) {
-      return;
-    }
+  onKeyPressed = (event: KeyboardEvent) => {
     // log.debug('MasonryGridComponent: onKeyPressed(): event:', event);
     const keyTable = {
-      'ArrowUp': () => this.onUpArrowPressed(),
-      'ArrowDown': () => this.onDownArrowPressed(),
-      'Home': () => this.onHomePressed(),
-      'End': () => this.onEndPressed(),
-      'PageDown': () => this.onPageDownPressed(),
-      'PageUp': () => this.onPageUpPressed()
+      ArrowUp: () => this.onUpArrowPressed(),
+      ArrowDown: () => this.onDownArrowPressed(),
+      Home: () => this.onHomePressed(),
+      End: () => this.onEndPressed(),
+      PageDown: () => this.onPageDownPressed(),
+      PageUp: () => this.onPageUpPressed()
     };
     if (event.key in keyTable) {
-      keyTable[event.key]();
+      (keyTable as Record<string, () => void>)[event.key]();
     }
-  }
+  };
 
 
 
   onHomePressed() {
-    // log.debug('MasonryGridComponent: onHomePressed()');
+    log.debug('MasonryGridComponent: onHomePressed()');
     if (this.autoScrollStarted) {
       this.stopAutoScroll();
     }
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
-      this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+      this.scroller.setDimensions(
+        this.scrollContainerRef.nativeElement.clientWidth,
+        this.scrollContainerRef.nativeElement.clientHeight,
+        this.isotopeContentRef.nativeElement.offsetWidth,
+        this.scrollContentHeight
+      );
       this.scroller.options.animationDuration = 250;
-      this.scroller.scrollTo(0, 0, true, null);
+      this.scroller.scrollTo(0, 0, true);
     });
   }
 
 
 
   onEndPressed() {
-    // log.debug('MasonryGridComponent: onEndPressed()');
+    log.debug('MasonryGridComponent: onEndPressed()');
     if (this.autoScrollStarted) {
       this.stopAutoScroll();
     }
@@ -1472,9 +1634,14 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     const target = this.scrollContentHeight - this.scrollContainerHeight;
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
-      this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+      this.scroller.setDimensions(
+        this.scrollContainerRef.nativeElement.clientWidth,
+        this.scrollContainerRef.nativeElement.clientHeight,
+        this.isotopeContentRef.nativeElement.offsetWidth,
+        this.scrollContentHeight
+      );
       this.scroller.options.animationDuration = 250;
-      this.scroller.scrollTo(0, target, true, null);
+      this.scroller.scrollTo(0, target, true);
     });
   }
 
@@ -1491,9 +1658,14 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
-      this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+      this.scroller.setDimensions(
+        this.scrollContainerRef.nativeElement.clientWidth,
+        this.scrollContainerRef.nativeElement.clientHeight,
+        this.isotopeContentRef.nativeElement.offsetWidth,
+        this.scrollContentHeight
+      );
       this.scroller.options.animationDuration = 100;
-      this.scroller.scrollTo(0, target, true, null);
+      this.scroller.scrollTo(0, target, true);
     });
   }
 
@@ -1513,9 +1685,14 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
-      this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+      this.scroller.setDimensions(
+        this.scrollContainerRef.nativeElement.clientWidth,
+        this.scrollContainerRef.nativeElement.clientHeight,
+        this.isotopeContentRef.nativeElement.offsetWidth,
+        this.scrollContentHeight
+      );
       this.scroller.options.animationDuration = 100;
-      this.scroller.scrollTo(0, target, true, null);
+      this.scroller.scrollTo(0, target, true);
     });
 
   }
@@ -1536,9 +1713,14 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
-      this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+      this.scroller.setDimensions(
+        this.scrollContainerRef.nativeElement.clientWidth,
+        this.scrollContainerRef.nativeElement.clientHeight,
+        this.isotopeContentRef.nativeElement.offsetWidth,
+        this.scrollContentHeight
+      );
       this.scroller.options.animationDuration = 250;
-      this.scroller.scrollTo(0, target, true, null);
+      this.scroller.scrollTo(0, target, true);
     });
   }
 
@@ -1558,12 +1740,58 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
     }
     this.zone.runOutsideAngular( () => {
       this.scroller.setScrollTop(this.scrollTop);
-      this.scroller.setDimensions(this.scrollContainerRef.nativeElement.clientWidth, this.scrollContainerRef.nativeElement.clientHeight, this.isotopeContentRef.nativeElement.offsetWidth, this.scrollContentHeight);
+      this.scroller.setDimensions(
+        this.scrollContainerRef.nativeElement.clientWidth,
+        this.scrollContainerRef.nativeElement.clientHeight,
+        this.isotopeContentRef.nativeElement.offsetWidth,
+        this.scrollContentHeight
+      );
       this.scroller.options.animationDuration = 250;
-      this.scroller.scrollTo(0, target, true, null);
+      this.scroller.scrollTo(0, target, true);
     });
   }
 
 
 
+  buildIsotopeConfig(): IsotopeConfig {
+    const scrollContainer = this.scrollContainerRef.nativeElement as HTMLElement;
+    const containerWidth = scrollContainer.clientWidth;
+
+    let numColumns = Math.floor( containerWidth / this.masonryColumnWidth );
+    let gutter = 0;
+    let remainder;
+    while (gutter < this.minGutterPx && numColumns > 1) {
+      remainder = containerWidth - (this.masonryColumnWidth * numColumns);
+      gutter = Math.floor( remainder / numColumns);
+      if (gutter < this.minGutterPx) {
+        numColumns--;
+      }
+    }
+
+    return new IsotopeConfig({
+      itemSelector: '.brick',
+      resize: false, // we handle this ourselves to prevent change detection on resize
+      masonry: {
+        columnWidth: this.masonryColumnWidth,
+        gutter,
+        // gutter: 0,
+        horizontalOrder: false, // setting to true will cause column lengths to get out of whack
+        fitWidth: false
+      }
+    });
+  }
+
+
+
+  onDisplayTabContainerModalChanged(value: boolean) {
+    log.debug('MasonryGridComponent: onDisplayTabContainerModalChanged()');
+    this.toolService.displayTabContainerModal.next(value);
+  }
+
+
+
+  onDisplayNwCollectionModalChanged(value: boolean) {
+    log.debug('MasonryGridComponent: onDisplayNwCollectionModalChanged()');
+    this.toolService.displayNwCollectionModal.next(value);
+  }
 }

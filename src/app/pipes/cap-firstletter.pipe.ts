@@ -1,10 +1,11 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { capitalizeFirstLetter } from '../utils';
 
-@Pipe({name: 'capFirstLetter'})
+@Pipe({name: 'capitaliseFirstLetter'})
 
 export class CapFirstLetterPipe implements PipeTransform {
 
-  transform(value: string): any {
-    return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+  transform(value: string): string {
+    return capitalizeFirstLetter(value);
   }
 }
