@@ -1,0 +1,8 @@
+ARG NODE_VERSION=16.15.0
+FROM node:${NODE_VERSION}
+
+RUN echo "deb http://deb.debian.org/debian stretch-backports main" >> /etc/apt/sources.list \
+&& apt-get update \
+&& apt-get install -y zip vim less man tcpdump jq net-tools libcap2-bin \
+&& apt-get install -y -t stretch-backports git \
+&& echo "root:password" | chpasswd
