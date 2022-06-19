@@ -40,17 +40,16 @@ http {
     }
 
     server {
-        #listen 443 ssl;
         listen 443 ssl http2;
         keepalive_requests 2000;
         http2_max_concurrent_streams 1024;
-        ssl_certificate /etc/nginx/ssl.cer;
-        ssl_certificate_key /etc/nginx/ssl.key;
+        ssl_certificate /etc/nginx/certificates/ssl.cer;
+        ssl_certificate_key /etc/nginx/certificates/ssl.key;
 
         location /collections/ {
           alias /var/kentech/afb/collections/;
           auth_jwt_use_keyfile on;
-          auth_jwt_keyfile_path "/etc/nginx/jwt.pem";
+          auth_jwt_keyfile_path "/etc/nginx/certificates/jwt.pem";
           auth_jwt_loginurl "/login";
           auth_jwt_enabled on;
           auth_jwt_validate_email off;
@@ -91,17 +90,5 @@ http {
        location / {
          proxy_pass http://client:3000;
        }
-
-#       location / {
-#         index index.html;
-#         root /opt/kentech/afb-client/webroot;
-#         gzip_static on;
-#         error_page 404 /index.html;
-#         #try_files $uri =404;
-#         #expires 1d;
-#         access_log /opt/local/var/log/nginx/access.log;
-#       }
-
     }
-
 }
