@@ -96,7 +96,7 @@
         </div>
 
         <div class="header cell">
-          Collection Name
+          Name
         </div>
 
         <div class="header cell">
@@ -124,10 +124,9 @@
 
             <!-- Actions -->
             <div
-              class="cell center actions"
+              class="cell actions-cell"
               [class.evenRow]="!odd"
               [class.oddRow]="odd"
-              style="cursor: initial;"
               [attr.collectionId]="collection.id">
 
                 <!-- Delete -->
@@ -158,7 +157,7 @@
             <!-- Collection Name for NetWitness -->
             <div
               *ngIf="collection.serviceType === 'nw'; else saCollectionName"
-              class="cell collectionName"
+              class="collectionName"
               [class.evenRow]="!odd"
               [class.oddRow]="odd"
               [attr.collectionId]="collection.id">
@@ -210,7 +209,7 @@
 
               <div
                 *ngIf="collection.serviceType === 'sa'"
-                class="cell collectionName"
+                class="collectionName"
                 [class.evenRow]="!odd"
                 [class.oddRow]="odd"
                 [attr.collectionId]="collection.id">

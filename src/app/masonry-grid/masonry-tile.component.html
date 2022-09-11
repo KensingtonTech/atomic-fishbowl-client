@@ -14,8 +14,8 @@
         (load)="onImageLoaded()"
         (error)="onImageError()"
         [src]="imageSource"
-        draggable="false">
-
+        draggable="false"
+        (click)="onClick()">
       
       <div
         *ngIf="displayTextArea"
@@ -27,7 +27,7 @@
           <!-- time -->
           <span>
 
-            <span class="overlay-item selectable">
+            <span class="overlay-item selectable enable-pointer">
               {{
                 serviceType === 'nw'
                   ? (session.meta.time | formatTime)
@@ -40,7 +40,7 @@
           <!-- file icons and session id -->
           <span>
 
-            <span class="selectable overlay-item">
+            <span class="selectable overlay-item enable-pointer">
               {{session.id}}
             </span>
 
@@ -76,13 +76,13 @@
           <!-- network info -->
           <span
             *ngIf="serviceType === 'nw'"
-            class="selectable overlay-item flex-initial">
+            class="selectable overlay-item flex-initial enable-pointer">
               {{session.meta['ip.src']}} -> {{session.meta['ip.dst']}}:{{session.meta['tcp.dstport']}}{{session.meta['udp.dstport']}} ~ {{session.meta.service}}
           </span>
   
           <span
             *ngIf="serviceType === 'sa'"
-            class="selectable overlay-item flex-initial">
+            class="selectable overlay-item flex-initial enable-pointer">
               {{session.meta.initiator_ip}} -> {{session.meta.responder_ip}}:{{session.meta.responder_port}} ~ {{session.meta.protocol_family}}
           </span>
 

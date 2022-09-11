@@ -56,284 +56,308 @@
 
       </div>
 
+      <p-table
+        [value]="[null]"
+        [autoLayout]="false"
+        class="page-1-table">
 
-      <div class="table">
+        <ng-template
+          pTemplate="body"
+          let-nothing>
 
-        <!-- feed name -->
-        <div class="row">
+          <!-- Feed Name Row -->
+          <tr>
 
-          <div
-            class="cell left-column"
-            style="vertical-align: bottom;">
+            <td>
               Feed Name
-          </div>
+            </td>
 
-          <div class="cell right-column">
+            <td>
 
-            <label
-              *ngIf="!nameValid && name.length !== 0"
-              for="feedName"
-              style="color: red;">
-                A feed already exists with this name
-            </label>
+              <span
+              class="p-float-label"
+              style="width: 100%;">
 
-            <label
-              *ngIf="name.length === 0"
-              for="nameBox"
-              style="color: red;">
-                The name field is required
-            </label>
+              <input
+                pInputText
+                type="text"
+                id="feedName"
+                name="feedName"
+                [(ngModel)]="name"
+                (ngModelChange)="onNameChanged($event)"
+                autocomplete="off"
+                required
+                style="width: 100%;"
+                [class.ng-invalid]="!name.length || (name.length && !nameValid)"
+              />
 
-            <input
-              pInputText
-              type="text"
-              id="feedName"
-              name="feedName"
-              [(ngModel)]="name"
-              (ngModelChange)="onNameChanged($event)"
-              autocomplete="off"
-              required
-              style="width: 100%;"/>
+              <label
+                *ngIf="!nameValid && name.length !== 0"
+                for="feedName">
+                  A feed already exists with this name
+              </label>
+  
+              <label
+                *ngIf="name.length === 0"
+                for="feedName">
+                  The name field is required
+              </label>
 
-          </div>
-
-        </div>
-
-        <!-- feed type -->
-        <div class="row">
-
-          <div class="cell left-column">Type</div>
-
-          <div class="cell">
-
-            <p-selectButton
-              name="feedType"
-              [options]="feedTypeOptions"
-              [(ngModel)]="feedType">
-            </p-selectButton>
-
-          </div>
-          
-        </div>
-
-        <!-- manual feeds -->
-        <div *ngIf="feedType === 'manual'" class="row">
-
-          <div class="cell left-column">Select File</div>
-
-          <div class="cell">
-
-            <p-fileUpload
-              #fileUpload
-              mode="basic"
-              name="myfiles[]"
-              [customUpload]="true"
-              (uploadHandler)="uploadHandler($event, fileUpload)"
-              [chooseLabel]="label"
-              [auto]="true"
-              accept=".csv"
-              required>
-                filename
-            </p-fileUpload>
-
-          </div>
-
-        </div>
-
-        <!-- scheduled feeds -->
-
-        <!-- URL -->
-        <div *ngIf="feedType === 'scheduled'" class="row">
-
-          <div class="cell left-column">URL</div>
-
-          <div class="cell">
-
-            <input
-              pInputText
-              type="text"
-              name="url"
-              size="100"
-              (ngModelChange)="onUrlChange()"
-              [(ngModel)]="url"
-              autocomplete="off"
-              required/>
-
-            <p-button
-              (onClick)="verifyUrl()"
-              label="Verify"
-              [disabled]="!validateUrlInput() || (!editing && urlAuthentication === 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication === 'enabled' && authChanged && !(urlUser && urlPassword))">
-            </p-button>
-
-            <span
-              *ngIf="urlVerified && urlVerifyClicked"
-              class="fa fa-thumbs-up"> 
-                Success
             </span>
 
-            <span
-              *ngIf="!urlVerified && urlTested"
-              class="fa fa-thumbs-down"> 
+            </td>
+
+          </tr>
+
+          <!-- Feed Type Row -->
+          <tr>
+
+            <td>
+              Feed Type
+            </td>
+
+            <td>
+              <p-selectButton
+                name="feedType"
+                [options]="feedTypeOptions"
+                [(ngModel)]="feedType">
+              </p-selectButton>
+            </td>
+
+          </tr>
+
+          <!-- Select File Column -->
+          <tr *ngIf="feedType === 'manual'">
+
+            <td>
+              Select File
+            </td>
+
+            <td>
+              <p-fileUpload
+                #fileUpload
+                mode="basic"
+                name="myfiles[]"
+                [customUpload]="true"
+                (uploadHandler)="uploadHandler($event, fileUpload)"
+                [chooseLabel]="label"
+                [auto]="true"
+                accept=".csv"
+                required>
+                  filename
+              </p-fileUpload>
+            </td>
+
+          </tr>
+
+          <!-- scheduled feeds -->
+          <ng-container  *ngIf="feedType === 'scheduled'">
+
+            <!-- URL -->
+            <tr>
+  
+              <td>
+                URL
+              </td>
+  
+              <td>
                 
-                Failure
-                  
-                <span *ngIf="testError">
-                  : {{testError}}
-                </span>
+                <div class="flex gap-1 align-items-center">
 
-            </span>
+                  <input
+                    pInputText
+                    type="text"
+                    name="url"
+                    size="100"
+                    (ngModelChange)="onUrlChange()"
+                    [(ngModel)]="url"
+                    autocomplete="off"
+                    required
+                    class="flex-grow-1"/>
+    
+                  <p-button
+                    (onClick)="verifyUrl()"
+                    label="Verify"
+                    [disabled]="!validateUrlInput() || (!editing && urlAuthentication === 'enabled' && !(urlUser && urlPassword)) || (editing && urlAuthentication === 'enabled' && authChanged && !(urlUser && urlPassword))">
+                  </p-button>
+    
+                  <span
+                    *ngIf="urlVerified && urlVerifyClicked"
+                    class="fa fa-thumbs-up fa-lg">
+                      Success
+                  </span>
+    
+                  <span                   *ngIf="!urlVerified && urlTested">
+                      
+                      <div class="fa fa-thumbs-down fa-lg">
+                        Failure
+                      </div>
 
-          </div>
+                      <div class="failure">
+                        {{testError}}
+                      </div>
+    
+                  </span>
 
-        </div>
+                </div>
+  
+              </td>
+  
+            </tr>
+
+            <!-- AUTHENTICATION -->
+            <tr>
+
+              <td>
+                Authentication
+              </td>
+
+              <td>
+
+                <div class="flex align-items-end gap-2">
+
+                  <p-selectButton
+                    name="urlAuthentication"
+                    [options]="enabledOptions"
+                    [(ngModel)]="urlAuthentication"
+                    (ngModelChange)="onAuthChanged()">
+                  </p-selectButton>
+  
+                  <div *ngIf="urlAuthentication === 'enabled'">
+  
+                    <span class="p-float-label">
+  
+                      <input
+                        pInputText
+                        type="text"
+                        name="urlUser"
+                        id="urlUser"
+                        [(ngModel)]="urlUser"
+                        autocomplete="off"
+                        (ngModelChange)="onAuthChanged()"
+                        required/>
+  
+                      <label
+                        *ngIf="!urlUser"
+                        for="urlUser">
+                          Username
+                      </label>
+                      
+                    </span>
+  
+                    <span
+                      class="p-float-label">
+  
+                      <input
+                        pInputText
+                        type="password"
+                        id="urlPassword"
+                        name="urlPassword"
+                        [(ngModel)]="urlPassword"
+                        autocomplete="off"
+                        (ngModelChange)="onAuthChanged()"/>
+  
+                      <label
+                        for="urlPassword"
+                        *ngIf="!urlPassword">
+                          Password
+                      </label>
+  
+                    </span>
+  
+                  </div>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+            <!-- Interval -->
+            <tr>
+
+              <td>
+                Interval
+              </td>
+
+              <td>
+
+                <div class="flex align-items-end gap-2">
+
+                  <p-selectButton
+                    name="selectedScheduleInterval"
+                    [options]="intervalOptions"
+                    [(ngModel)]="selectedScheduleInterval">
+                  </p-selectButton>
       
-
-        <!-- AUTHENTICATION -->
-        <div
-          *ngIf="feedType === 'scheduled'"
-          class="row">
-
-            <div class="cell left-column">
-              Authentication
-            </div>
-
-            <div class="cell">
-
-                <p-selectButton
-                  name="urlAuthentication"
-                  [options]="enabledOptions"
-                  [(ngModel)]="urlAuthentication"
-                  (ngModelChange)="onAuthChanged()">
-                </p-selectButton>
-
-                <span *ngIf="urlAuthentication === 'enabled'">
+                  <!-- hours -->
+                  <span
+                    *ngIf="selectedScheduleInterval === 'hours'">
+                      
+                      Every 
+                        
+                      <input
+                        pInputText
+                        type="number"
+                        name="selectedScheduleHours"
+                        [(ngModel)]="selectedScheduleHours"
+                        min="1"
+                        max="744"
+                        required/>
+                          
+                      hours
                   
-                  &nbsp;
-
-                  <span class="p-float-label">
-
-                    <input
-                      pInputText
-                      type="text"
-                      name="urlUser"
-                      id="urlUser"
-                      [(ngModel)]="urlUser"
-                      autocomplete="off"
-                      (ngModelChange)="onAuthChanged()"
-                      required/>
-
-                    <label for="urlUser">
-                      Username
-                    </label>
+                  </span>
+      
+                  <!-- minutes -->
+                  <span
+                    *ngIf="selectedScheduleInterval === 'minutes'"> 
+                      
+                      Every 
                     
+                      <input
+                        pInputText
+                        type="number"
+                        name="selectedScheduleMinutes"
+                        [(ngModel)]="selectedScheduleMinutes"
+                        min="1"
+                        max="86400"
+                        required/>
+      
+                      minutes
+      
+                  </span>
+      
+                  <!-- time of day -->
+                  <span
+                    *ngIf="selectedScheduleInterval === 'day'">
+      
+                      Every 
+      
+                      <input
+                        pInputText
+                        type="number"
+                        name="selectedScheduleDays"
+                        [(ngModel)]="selectedScheduleDays"
+                        min="1"
+                        max="31"
+                        required/> 
+      
+                      days
+      
                   </span>
 
-                  <span class="p-float-label">
+                </div>
 
-                    <input
-                      pInputText
-                      type="password"
-                      id="urlPassword"
-                      name="urlPassword"
-                      [(ngModel)]="urlPassword"
-                      autocomplete="off"
-                      (ngModelChange)="onAuthChanged()"/>
+              </td>
 
-                    <label for="urlPassword">
-                      Password
-                    </label>
+            </tr>
 
-                  </span>
+          </ng-container>
+          
+        </ng-template>
 
-                </span>
-
-            </div>
-
-        </div>
-
-        <div
-          *ngIf="feedType === 'scheduled'"
-          class="row">
-
-          <div class="cell left-column">
-            Interval
-          </div>
-
-          <div class="cell">
-
-            <p-selectButton
-              name="selectedScheduleInterval"
-              [options]="intervalOptions"
-              [(ngModel)]="selectedScheduleInterval">
-            </p-selectButton>
-            
-            &nbsp;&nbsp;
-
-            <!-- hours -->
-            <div
-              *ngIf="selectedScheduleInterval === 'hours'"
-              style="display: inline-block;">
-                
-                Every 
-                  
-                <input
-                  pInputText
-                  type="number"
-                  name="selectedScheduleHours"
-                  [(ngModel)]="selectedScheduleHours"
-                  min="1"
-                  max="744"
-                  required/>
-                    
-                hours
-            
-            </div>
-
-            <!-- minutes -->
-            <div
-              *ngIf="selectedScheduleInterval === 'minutes'"
-              style="display: inline-block;"> 
-                
-                Every 
-              
-                <input
-                  pInputText
-                  type="number"
-                  name="selectedScheduleMinutes"
-                  [(ngModel)]="selectedScheduleMinutes"
-                  min="1"
-                  max="86400"
-                  required/>
-
-                minutes
-
-            </div>
-
-            <!-- time of day -->
-            <div
-              *ngIf="selectedScheduleInterval === 'day'"
-              style="display: inline-block;">
-
-                Every 
-
-                <input
-                  pInputText
-                  type="number"
-                  name="selectedScheduleDays"
-                  [(ngModel)]="selectedScheduleDays"
-                  min="1"
-                  max="31"
-                  required/> 
-
-                days
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
+      </p-table>
     
   </form>
 

@@ -796,6 +796,23 @@ export class DataService { // Manages NwSession objects and also Image objects i
 
 
 
+  async downloadFile(url: string, filename: string): Promise<void> {
+    // from https://stackoverflow.com/questions/51682514/angular-how-to-download-a-file-from-httpclient
+    this.http.get(url, { responseType: 'blob' }).subscribe(
+      (blob) => {
+        blob = new Blob([blob], { type: 'application/octet-stream' });
+        const downloadLink = document.createElement('a');
+        downloadLink.href = window.URL.createObjectURL(blob);
+        downloadLink.download = filename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.parentNode?.removeChild(downloadLink);
+      }
+    );
+}
+
+
+
 
   ///////////////////// PING /////////////////////
 

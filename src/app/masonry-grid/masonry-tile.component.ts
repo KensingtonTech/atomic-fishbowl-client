@@ -10,7 +10,9 @@ import {
   OnChanges,
   ElementRef,
   NgZone,
-  ViewChild
+  ViewChild,
+  Output,
+  EventEmitter
 } from '@angular/core';
 import { MasonryGridComponent } from './masonry-grid.component';
 import { DataService } from 'services/data.service';
@@ -64,6 +66,8 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() serviceType: 'nw' | 'sa'; // 'nw' or 'sa'
   @Input() collectionId?: string;
   @Input() displayTextArea = true;
+
+  @Output() clicked = new EventEmitter<MasonryTileComponent>();
 
   session: Session; // holds meta, among other things
   masonryMeta: MasonryMeta[] = [];
@@ -315,5 +319,11 @@ export class MasonryTileComponent implements OnInit, AfterViewInit, OnChanges {
   async getImage(origUrl: string) {
     // we don't want to bind this directly to the image with an async pipe as it gets stuck in a loop
     return  await this.dataService.getImage(origUrl);
+  }
+
+
+
+  onClick() {
+    this.clicked.emit(this);
   }
 }

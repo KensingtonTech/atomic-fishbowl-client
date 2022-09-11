@@ -9,9 +9,7 @@ import {
   Renderer2,
   SimpleChanges,
   Inject,
-  forwardRef,
-  Output,
-  EventEmitter
+  forwardRef
 } from '@angular/core';
 import { ToolService } from 'services/tool.service';
 import { ContentItem, Session } from 'types/collection';
@@ -22,6 +20,8 @@ import { Subscription} from 'rxjs';
 import * as log from 'loglevel';
 import * as utils from '../utils';
 import { PDFDocumentProxy } from 'ng2-pdf-viewer';
+import { DataService } from 'services/data.service';
+import { ConfirmationService } from 'primeng/api';
 
 (window as any).pdfWorkerSrc = '/resources/pdf.worker.min.js';
 
@@ -43,7 +43,9 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
     private toolService: ToolService,
     private changeDetectionRef: ChangeDetectorRef,
     private renderer: Renderer2,
-    @Inject(forwardRef(() => AbstractGrid )) private parent: AbstractGrid
+    @Inject(forwardRef(() => AbstractGrid )) private parent: AbstractGrid,
+    private dataService: DataService,
+    private confirmationService: ConfirmationService
   ) {}
 
   @Input() serviceType: 'nw' | 'sa';
@@ -286,6 +288,24 @@ export class SessionDetailsModalComponent implements OnInit, OnChanges, OnDestro
       return;
     }
     log.error('PdfViewerModalComponent: onPdfViewerError(): pdf viewer threw error:', error);
+  }
+
+
+
+  async downloadLinkClicked(event: Event, item: ContentItem, downloadArchive = false): Promise<void> {
+    const file = downloadArchive
+      ? item.archiveFilename
+      : item.contentFile;
+    const url = `/collections/${this.collectionId}/${file}`;
+    const filename = `session_${this.sessionId}_${file}`;
+
+    this.confirmationService.confirm({
+      target: event.target ?? undefined,
+      message: 'This file contains potentially harmful data.  Are you sure you want to download it?',
+      accept: () => this.dataService.downloadFile(url, filename),
+      key: 'content-details-modal'
+    });
+    this.changeDetectionRef.detectChanges();
   }
 
 }

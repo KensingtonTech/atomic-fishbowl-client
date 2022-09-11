@@ -1,5 +1,5 @@
 .brickOuterDiv {
-  border-radius: .3em;
+  border-radius: .5rem;
   font-weight: lighter;
   font-size: .8em;
   margin-top: .75rem;
@@ -17,12 +17,17 @@
       left: 0;
       right: 0;
       padding: .2rem;
+      pointer-events: none;
 
       .header > {
         flex: 0 1 auto;
       }
     }
   }
+}
+
+.enable-pointer {
+  pointer-events: auto;
 }
 
 .separator {

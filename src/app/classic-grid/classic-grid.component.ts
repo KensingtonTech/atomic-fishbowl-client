@@ -1186,4 +1186,10 @@ export class ClassicGridComponent implements AbstractGrid, OnInit, AfterViewInit
     this.toolService.displayNwCollectionModal.next(value);
   }
 
+
+
+  onDisplayFeedWizardModalChanged(value: boolean) {
+    this.toolService.displayFeedWizardModal.next(value);
+  }
+
 }

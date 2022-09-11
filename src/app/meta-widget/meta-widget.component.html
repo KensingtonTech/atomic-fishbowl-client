@@ -1,18 +1,17 @@
 <div
   *ngIf="sessionId && meta"
-  [ngClass]="styleClass"
-  style="display: flex; flex-direction: column; position: relative; width: 100%; height: 100%;">
+  class="flex flex-column meta-widget"
+  [ngClass]="styleClass">
 
-    <div class="flex justify-content-between align-items-center">
+    <!-- Header Bar -->
+    <div class="flex justify-content-between align-items-baseline">
 
       <!-- session id -->
       <h3 class="selectable no-margin-top no-margin-bottom">
         {{serviceType === 'nw' ? 'Session' : 'Flow'}} {{sessionId}} Details
       </h3>
 
-
-
-      <div class="flex align-items-center gap-1 noselect">
+      <div class="flex align-items-end gap-1 noselect">
 
         <!-- expand all / collapse all -->
         <span
@@ -25,30 +24,21 @@
         <a
           *ngIf="serviceType === 'nw' && preferences.nw.url && deviceNumber && sessionId"
           target="_blank"
-          [href]="preferences.nw.url + '/investigation/' + deviceNumber + '/reconstruction/' + sessionId + '/AUTO'">
-
-            <i
-              class="fa fa-bullseye fa-2x fa-fw clickable"
-              style="color: red;">
-            </i>
-
+          [href]="preferences.nw.url + '/investigation/' + deviceNumber + '/reconstruction/' + sessionId + '/AUTO'"
+          class="fa fa-bullseye fa-2x fa-fw clickable red">
         </a>
 
         <!-- sa bullseye -->
         <a
           *ngIf="serviceType === 'sa' && preferences.sa.url && sessionId && meta"
           target="_blank"
-          [href]="saUrlGetter(sessionId)">
-          
-            <i
-              class="fa fa-bullseye fa-2x fa-fw clickable"
-              style="color: red;"></i>
-
+          [href]="saUrlGetter(sessionId)"
+          class="fa fa-bullseye fa-2x fa-fw clickable red">
         </a>
 
         <!-- show / hide all eyeball toggle -->
         <span
-          class="eyeball fa fa-2x fa-fw clickable"
+          class="eyeball fa fa-2x fa-fw clickable align-self-start"
           (click)="showAllClick()"
           [class.fa-eye-slash]="!showAll"
           [class.fa-eye]="showAll">
