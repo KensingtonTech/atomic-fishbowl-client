@@ -44,24 +44,28 @@
 
                 <td>
 
-                  <label
-                    *ngIf="!nameValid"
-                    for="nwNameBox"
-                    style="color: red;">
-                      {{nameInvalidMessage}}<br>
-                  </label>
+                  <span class="p-float-label">
 
-                  <input
-                    pInputText
-                    #nwNameBox
-                    id="nwNameBox"
-                    type="text"
-                    name="name"
-                    (ngModelChange)="onNameChanged($event)"
-                    [(ngModel)]="name"
-                    style="width: 100%;"
-                    autocomplete="off"
-                    required>
+                    <input
+                      pInputText
+                      #nwNameBox
+                      id="nwNameBox"
+                      type="text"
+                      name="name"
+                      (ngModelChange)="onNameChanged($event)"
+                      [(ngModel)]="name"
+                      style="width: 100%;"
+                      autocomplete="off"
+                      required
+                      [class.ng-invalid]="nameInvalidMessage">
+
+                      <label
+                        *ngIf="nameInvalidMessage"
+                        for="nwNameBox">
+                          {{nameInvalidMessage}}
+                      </label>
+
+                  </span>
 
                 </td>
 
@@ -685,35 +689,13 @@
             </table>
 
 
-
-
-
-            <!--EXECUTE OR CANCEL BUTTONS-->
-            <div class="flex justify-content-end gap-2">
-
-              <p-button
-                type="submit"
-                [disabled]="!submitButtonEnabled || !nameValid"
-                [label]="okButtonText">
-              </p-button>
-              
-              <p-button
-                type="button"
-                (onClick)="close()"
-                label="Cancel">
-              </p-button>
-
-            </div>
-                      
-
-
-
-
             <!-- Tab Container -->
             <p-tabView (onChange)="onTabClicked()">
 
                 <!--SELECT A NETWITNESS SERVICE BOX-->
-                <p-tabPanel header="Connection" headerStyleClass="nwCollectionPanelHeader noselect">
+                <p-tabPanel
+                  header="Connection"
+                  headerStyleClass="nwCollectionPanelHeader noselect">
 
                   <div
                     *ngIf="nwServers"
@@ -1087,6 +1069,23 @@
                 </p-tabPanel>
           
             </p-tabView>
+
+            <!--EXECUTE OR CANCEL BUTTONS-->
+            <div class="flex justify-content-end gap-2 p-2">
+
+              <p-button
+                type="submit"
+                [disabled]="!submitButtonEnabled || !nameValid"
+                [label]="okButtonText">
+              </p-button>
+              
+              <p-button
+                type="button"
+                (onClick)="close()"
+                label="Cancel">
+              </p-button>
+
+            </div>
             
           </div>
           

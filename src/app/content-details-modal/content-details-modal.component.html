@@ -1,7 +1,4 @@
-<div
-  *ngIf="serviceType && collectionId"
-  class="grid-container"
-  style="height: 100%;">
+<ng-container *ngIf="serviceType && collectionId">
 
     <!-- Top Bar / Menu Bar -->
     <div
@@ -192,4 +189,4 @@
 
     </div>
 
-</div>
+</ng-container>

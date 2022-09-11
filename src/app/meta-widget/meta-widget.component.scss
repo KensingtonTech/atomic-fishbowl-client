@@ -3,6 +3,8 @@
   overflow-x: scroll;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 .overflowBox::-webkit-scrollbar {

@@ -429,6 +429,7 @@ export class NwCollectionModalComponent implements OnInit, OnDestroy {
     }
     else if (name.length !== 0 && !this.collectionNames.has(name) || (this.mode === this.modes.editRolling && name === this.origName))  {
       this.nameValid = true;
+      this.nameInvalidMessage = '';
     }
     else {
       this.nameValid = false;

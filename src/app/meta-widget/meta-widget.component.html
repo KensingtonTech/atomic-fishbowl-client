@@ -1,16 +1,16 @@
 <div
   *ngIf="sessionId && meta"
+  class="meta-widget"
   [ngClass]="styleClass"
   style="display: flex; flex-direction: column; position: relative; width: 100%; height: 100%;">
 
+    <!-- Header Bar -->
     <div class="flex justify-content-between align-items-center">
 
       <!-- session id -->
       <h3 class="selectable no-margin-top no-margin-bottom">
         {{serviceType === 'nw' ? 'Session' : 'Flow'}} {{sessionId}} Details
       </h3>
-
-
 
       <div class="flex align-items-center gap-1 noselect">
 

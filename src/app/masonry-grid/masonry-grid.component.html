@@ -70,7 +70,6 @@
 
               <app-masonry-tile
                 *ngFor="let item of content"
-                #MasonryTileRef
                 isotope-brick
                 class="brick"
                 [collectionId]="collectionId"
@@ -84,7 +83,7 @@
                 [masonryColumnWidth]="masonryColumnWidth"
                 [serviceType]="selectedCollectionServiceType"
                 [attr.id]="item.id"
-                (click)="onTileClicked(MasonryTileRef)"
+                (clicked)="onTileClicked($event)"
                 [displayTextArea]="showTextArea">
               </app-masonry-tile>
 
@@ -153,7 +152,8 @@
   [dismissableMask]="false"
   [closable]="true"
   [showHeader]="false"
-  [contentStyle]="{padding: '0'}">
+  [contentStyle]="{padding: '0'}"
+  styleClass="no-border-radius">
   
     <app-splash-screen-modal
       [(displaySplashScreenModal)]="displaySplashScreenModal"
@@ -166,7 +166,8 @@
 
 <!-- Feed Wizard -->
 <p-dialog
-  [(visible)]="displayFeedWizardModal"
+  [visible]="displayFeedWizardModal"
+  (visibleChange)="onDisplayFeedWizardModalChanged($event)"
   [draggable]="false"
   [modal]="true"
   [blockScroll]="true"
@@ -177,7 +178,7 @@
   maskStyleClass="feed-wizard-modal"
   styleClass="feed-wizard-modal-body">
 
-  <app-feed-wizard-modal></app-feed-wizard-modal>
+  <app-feed-wizard-modal *ngIf="displayFeedWizardModal"></app-feed-wizard-modal>
 
 </p-dialog>
 
@@ -214,7 +215,7 @@
   [dismissableMask]="false"
   [closable]="true"
   [showHeader]="false"
-  maskStyleClass="content-details-modal"
+  maskStyleClass="content-details-modal-mask"
   styleClass="content-details-modal-body">
 
     <app-content-details-modal
@@ -240,7 +241,9 @@
   [closeOnEscape]="true"
   [dismissableMask]="false"
   [closable]="true"
-  [showHeader]="false">
+  [showHeader]="false"
+  maskStyleClass="collection-modal"
+  styleClass="collection-modal-body">
 
   <app-nw-collection-modal>
   </app-nw-collection-modal>

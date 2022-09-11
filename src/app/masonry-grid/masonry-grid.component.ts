@@ -251,11 +251,8 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     this.subscriptions.add(
       this.toolService.displayNwCollectionModal.subscribe(
-        (displayNwCollectionModal) => {
-          this.displayNwCollectionModal = displayNwCollectionModal;
-          /*if (displayNwCollectionModal) {
-            this.toolService.addNwCollectionNext.next();
-          }*/
+        (displayModal) => {
+          this.displayNwCollectionModal = displayModal;
           this.changeDetectionRef.detectChanges();
         }
       )
@@ -414,9 +411,9 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
 
     this.subscriptions.add(
       this.toolService.displayFeedWizardModal.subscribe(
-        (display) => {
-          this.displayFeedWizardModal = display;
-          if (!display) {
+        (displayModal) => {
+          this.displayFeedWizardModal = displayModal;
+          if (!displayModal) {
             this.toolService.displayTabContainerModal.next(true);
           }
           this.changeDetectionRef.detectChanges();
@@ -1793,5 +1790,12 @@ export class MasonryGridComponent implements AbstractGrid, OnInit, AfterViewInit
   onDisplayNwCollectionModalChanged(value: boolean) {
     log.debug('MasonryGridComponent: onDisplayNwCollectionModalChanged()');
     this.toolService.displayNwCollectionModal.next(value);
+  }
+
+
+
+  onDisplayFeedWizardModalChanged(value: boolean) {
+    log.debug('MasonryGridComponent: onDisplayFeedWizardModalChanged()');
+    this.toolService.displayFeedWizardModal.next(value);
   }
 }

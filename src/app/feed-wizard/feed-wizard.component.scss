@@ -22,6 +22,14 @@
   display: table-row;
 }
 
+.page-1-table {
+  tr {
+    td:first-child {
+      width: 10em;
+    }
+  }
+}
+
 .left-column {
   white-space: nowrap;
   font-weight: bold;

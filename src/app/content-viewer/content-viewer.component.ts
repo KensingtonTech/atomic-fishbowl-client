@@ -12,7 +12,10 @@ import * as utils from '../utils';
 @Component({
   selector: 'app-content-viewer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './content-viewer.component.html'
+  templateUrl: './content-viewer.component.html',
+  styleUrls: [
+    './content-viewer.component.scss'
+  ]
 })
 
 export class ContentViewerComponent implements OnChanges {

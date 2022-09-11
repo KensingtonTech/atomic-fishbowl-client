@@ -6,3 +6,14 @@
   border-spacing: .5rem;
   border-collapse: separate;
 }
+
+/*
+:host {
+  ::ng-deep {
+    p-tabView {
+      .p-tabview-panels {
+        height: 10rem;
+      }
+    }
+  }
+}*/
