@@ -157,7 +157,7 @@
             <!-- Collection Name for NetWitness -->
             <div
               *ngIf="collection.serviceType === 'nw'; else saCollectionName"
-              class="cell collectionName"
+              class="collectionName"
               [class.evenRow]="!odd"
               [class.oddRow]="odd"
               [attr.collectionId]="collection.id">
@@ -209,7 +209,7 @@
 
               <div
                 *ngIf="collection.serviceType === 'sa'"
-                class="cell collectionName"
+                class="collectionName"
                 [class.evenRow]="!odd"
                 [class.oddRow]="odd"
                 [attr.collectionId]="collection.id">

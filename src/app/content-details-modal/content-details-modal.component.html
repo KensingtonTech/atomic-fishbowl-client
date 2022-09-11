@@ -3,10 +3,10 @@
     <!-- Top Bar / Menu Bar -->
     <div
       *ngIf="isOpen && content"
-      class="menu-bar noselect">
+      class="flex justify-content-between menu-bar noselect">
         
         <!-- Items on the left of the menu bar-->
-        <div class="left-items">
+        <div class="flex align-items-center gap-2">
 
           <!-- file icon -->
           <div
@@ -15,40 +15,36 @@
           </div>
           
           <!-- filename -->
-          <div class="selectable left-medium-spacer">
+          <div class="selectable">
             {{utils.pathToFilename(content.contentFile)}}
           </div>
 
-          <!-- Download link -->
-          <!--
-          <div>
-
-            <a
-              (click)="downloadLinkClicked(content.contentFile)"
-              style="display: inline-block; vertical-align: middle;"
-              class="fa fa-arrow-circle-o-down fa-2x"
-              pTooltip="Download Document"
-              tooltipPosition="bottom"
-              showDelay="500">
-            </a>
-            
-            <a
-              style="display: inline-block; vertical-align: middle;"
-              class="fa fa-arrow-circle-o-down fa-2x"
-              pTooltip="Download Document"
-              tooltipPosition="bottom"
-              showDelay="500"
-              [href]="content.contentFile">
-            </a>
-
-          </div>
-          -->
+          <!-- Download Artefact -->
+          <span
+            *ngIf="!(content.isArchive || ['unsupportedZipEntry', 'encryptedZipEntry', 'encryptedRarEntry', 'encryptedRarTable'].includes(content.contentType))"
+            (click)="downloadLinkClicked($event, content)"
+            class="fa fa-arrow-circle-o-down fa-2x clickable"
+            pTooltip="Download artefact"
+            tooltipPosition="bottom"
+            [showDelay]="500">
+          </span>
+          
+          <!-- Download Archive -->
+          <span
+            *ngIf="content.fromArchive || content.isArchive"
+            (click)="downloadLinkClicked($event, content, true)"
+            class="fa fa-arrow-circle-o-down fa-2x clickable opacity-8"
+            pTooltip="Download archive"
+            tooltipPosition="bottom"
+            [showDelay]="500"
+            style="color: antiquewhite;">
+          </span>
 
         </div>
 
         
         <!-- Items on the right of the menu bar-->
-        <div class="right-items">
+        <div class="flex align-items-center">
 
           <!-- Zoom, rotation, next / previous controls -->
           <ng-container *ngIf="['pdf', 'office'].includes(content.contentType)">
@@ -190,3 +186,5 @@
     </div>
 
 </ng-container>
+
+<p-confirmPopup key="content-details-modal"></p-confirmPopup>
